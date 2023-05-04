@@ -5,7 +5,7 @@ import tlsClient from 'tls-client';
 import {Session} from "tls-client/dist/esm/sessions";
 import {Params} from "tls-client/dist/esm/types";
 import {toEventCB, toEventStream} from "../../utils";
-import {Chat, Request, Response, ResponseStream} from "../index";
+import {Chat, ChatOptions, Request, Response, ResponseStream} from "../index";
 
 const userAgent = new UserAgent();
 
@@ -65,11 +65,13 @@ interface SearchResult {
 export class You extends Chat {
     private session: Session;
 
-    constructor() {
-        super();
+    constructor(props: ChatOptions) {
+        super(props);
         this.session = new tlsClient.Session({clientIdentifier: 'chrome_108'});
         this.session.headers = this.getHeaders();
-        this.session.proxy = "http://192.168.0.155:10811";
+        if (this.proxy) {
+            this.session.proxy = this.proxy;
+        }
     }
 
     private async request(req: Request) {

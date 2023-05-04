@@ -1,5 +1,9 @@
 import {Stream} from "stream";
 
+export interface ChatOptions {
+    proxy?: string;
+}
+
 export interface Response {
     text: string | null;
     other: any;
@@ -23,6 +27,13 @@ export interface HistoryItem {
 
 
 export abstract class Chat {
+    protected proxy: string | undefined;
+
+    constructor(options?: ChatOptions) {
+        this.proxy = options?.proxy;
+    }
+
     public abstract ask(req: Request): Promise<Response>
+
     public abstract askStream(req: Request): Promise<ResponseStream>
 }

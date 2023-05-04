@@ -2,12 +2,11 @@ import {You} from "./model/you";
 import Koa from 'koa';
 import Router from 'koa-router'
 import bodyParser from 'koa-bodyparser';
-import {Readable} from "stream";
 
 const app = new Koa();
 const router = new Router();
 app.use(bodyParser());
-const you = new You();
+const you = new You({proxy: process.env.https_proxy || process.env.http_proxy});
 
 interface AskReq {
     prompt: string;
@@ -23,7 +22,7 @@ router.get('/ask', async (ctx) => {
     ctx.body = res.text;
 });
 
-router.get('/ask/stream',async(ctx)=>{
+router.get('/ask/stream', async (ctx) => {
     const {prompt} = ctx.query;
     if (!prompt) {
         ctx.body = 'please input prompt';
@@ -34,7 +33,7 @@ router.get('/ask/stream',async(ctx)=>{
         "Cache-Control": "no-cache",
         "Connection": "keep-alive",
     })
-    const res =  await you.askStream({prompt: prompt as string});
+    const res = await you.askStream({prompt: prompt as string});
     ctx.body = res.text;
 })
 
