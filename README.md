@@ -40,10 +40,6 @@ By using this repository or any code related to it, you agree to these terms. Th
 
 <br>
 
-<img src="https://media.giphy.com/media/LnQjpWaON8nhr21vNW/giphy.gif" width="100" align="left">
-Just API's from some language model sites.
-
-
 ## Run local
 
 ```shell
