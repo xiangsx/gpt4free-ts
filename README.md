@@ -52,3 +52,15 @@ yarn start
 ```
 docker-compose up --build -d
 ```
+
+## test with curl
+
+common request
+```shell
+curl "http://127.0.0.1:3000/ask?prompt=你好"
+```
+
+request event-stream 
+```shell
+curl "http://127.0.0.1:3000/ask/stream?prompt=你好"
+```
