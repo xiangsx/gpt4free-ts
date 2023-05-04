@@ -1,0 +1,36 @@
+{
+  "name": "gpt4free-ts",
+  "version": "0.0.1",
+  "description": "gpt4free typescript version",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "ts-node index.ts"
+  },
+  "keywords": [
+    "git4free",
+    "typescript"
+  ],
+  "author": "xiangsx",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/event-stream": "^4.0.0",
+    "@types/koa": "^2.13.6",
+    "@types/koa-bodyparser": "^4.3.10",
+    "@types/koa-router": "^7.4.4",
+    "@types/node": "^18.16.3",
+    "@types/uuid": "^9.0.1",
+    "typescript": "^5.0.4"
+  },
+  "dependencies": {
+    "event-stream": "^4.0.1",
+    "fake-useragent": "^1.0.1",
+    "https-proxy-agent": "^5.0.1",
+    "koa": "^2.14.2",
+    "koa-bodyparser": "^4.4.0",
+    "koa-router": "^12.0.0",
+    "tls-client": "^0.0.5",
+    "user-agents": "^1.0.1367",
+    "uuid": "^9.0.0"
+  }
+}
