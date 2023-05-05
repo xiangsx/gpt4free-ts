@@ -41,17 +41,17 @@ docker-compose up --build -d
 
 common request
 ```shell
-curl "http://127.0.0.1:3000/ask?prompt=你好"
-curl "http://127.0.0.1:3000/ask?prompt=你好&model=forefront"
+curl "http://127.0.0.1:3000/ask?prompt=hello"
+curl "http://127.0.0.1:3000/ask?prompt=hello&model=forefront"
 ```
 
 request event-stream 
 ```shell
 # test you
-curl "http://127.0.0.1:3000/ask/stream?prompt=你好" 
+curl "http://127.0.0.1:3000/ask/stream?prompt=hello" 
 
 # test forefront
-curl "http://127.0.0.1:3000/ask/stream?prompt=你好&model=forefront"
+curl "http://127.0.0.1:3000/ask/stream?prompt=hello&model=forefront"
 ```
 
 Due to legal and personal issues, the development speed of this Repository may slow down over the next one to two weeks. I apologize for any inconvenience this may cause. I have been putting a lot of effort into this small personal/educational project, and it is now on the verge of being taken down.
