@@ -1,6 +1,8 @@
 This is a replication project for the typescript version of [gpt4free](https://github.com/xtekky/gpt4free)
 
-The implemented models are:
+Still striving to keep updating.
+
+Have implemented models here:
 - [x] you.com	GPT-3.5 / Internet / good search
 - [x] forefront.ai	GPT-4/3.5
 - [ ] poe.com	GPT-4/3.5
