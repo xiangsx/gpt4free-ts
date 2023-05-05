@@ -13,6 +13,47 @@ Have implemented models here:
 - [ ] bing.com/chat	GPT-4/3.5
 - [ ] italygpt.it	GPT-3.5
 
+
+## Run local
+
+```shell
+# install module
+yarn
+# start server
+yarn start
+```
+
+## Deploy with docker-compose
+
+first, you should create file .env
+```env
+http_proxy=http://host:port
+# you should config this if you use forefront api, this apikey is used for receive register email
+# get api key here https://rapidapi.com/Privatix/api/temp-mail
+rapid_api_key=xxxxxxxxxx
+```
+deploy
+```
+docker-compose up --build -d
+```
+
+## Test with curl
+
+common request
+```shell
+curl "http://127.0.0.1:3000/ask?prompt=hello"
+curl "http://127.0.0.1:3000/ask?prompt=hello&model=forefront"
+```
+
+request event-stream 
+```shell
+# test you
+curl "http://127.0.0.1:3000/ask/stream?prompt=hello" 
+
+# test forefront
+curl "http://127.0.0.1:3000/ask/stream?prompt=hello&model=forefront"
+```
+
 Due to legal and personal issues, the development speed of this Repository may slow down over the next one to two weeks. I apologize for any inconvenience this may cause. I have been putting a lot of effort into this small personal/educational project, and it is now on the verge of being taken down.
 
 <p>You may join our discord: <a href="https://discord.com/invite/gpt4free">discord.gg/gpt4free<a> for further updates. <a href="https://discord.gg/gpt4free"><img align="center" alt="gpt4free Discord" width="22px" src="https://raw.githubusercontent.com/peterthehan/peterthehan/master/assets/discord.svg" /></a></p>
@@ -39,35 +80,3 @@ Please note the following:
 6. **Updates and Changes**: The author reserves the right to modify, update, or remove any content, information, or features in this repository at any time without prior notice. Users are responsible for regularly reviewing the content and any changes made to this repository.
 
 By using this repository or any code related to it, you agree to these terms. The author is not responsible for any copies, forks, or reuploads made by other users. This is the author's only account and repository. To prevent impersonation or irresponsible actions, you may comply with the GNU GPL license this Repository uses.
-
-<br>
-
-## Run local
-
-```shell
-yarn
-yarn start
-```
-
-## Deploy with docker-compose
-
-```
-docker-compose up --build -d
-```
-
-## Test with curl
-
-common request
-```shell
-curl "http://127.0.0.1:3000/ask?prompt=你好"
-curl "http://127.0.0.1:3000/ask?prompt=你好&model=forefront"
-```
-
-request event-stream 
-```shell
-# test you
-curl "http://127.0.0.1:3000/ask/stream?prompt=你好" 
-
-# test forefront
-curl "http://127.0.0.1:3000/ask/stream?prompt=你好&model=forefront"
-```

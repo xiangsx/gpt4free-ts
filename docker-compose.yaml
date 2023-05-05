@@ -12,8 +12,6 @@ services:
     restart: always
     environment:
       #      - TZ=Asia/Shanghai
-      - http_proxy=http://192.168.0.155:10811
-      - https_proxy=http://192.168.0.155:10811
-      # you should config this if you use forefront api, this apikey is used for receive register email
-      # get api key here https://rapidapi.com/Privatix/api/temp-mail
-      - rapid_api_key=xxxx
+      - http_proxy=${http_proxy}
+      - https_proxy=${http_proxy}
+      - rapid_api_key=${rapid_api_key}
