@@ -2,7 +2,6 @@ import Koa from 'koa';
 import Router from 'koa-router'
 import bodyParser from 'koa-bodyparser';
 import {ChatModelFactory, Model} from "./model";
-import type {Middleware} from "koa";
 
 const app = new Koa();
 const router = new Router();
