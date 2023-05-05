@@ -5,7 +5,7 @@ import tlsClient from 'tls-client';
 import {Session} from "tls-client/dist/esm/sessions";
 import {Params} from "tls-client/dist/esm/types";
 import {toEventCB, toEventStream} from "../../utils";
-import {Chat, ChatOptions, Request, Response, ResponseStream} from "../index";
+import {Chat, ChatOptions, Request, Response, ResponseStream} from "../base";
 
 const userAgent = new UserAgent();
 
@@ -65,7 +65,7 @@ interface SearchResult {
 export class You extends Chat {
     private session: Session;
 
-    constructor(props: ChatOptions) {
+    constructor(props?: ChatOptions) {
         super(props);
         this.session = new tlsClient.Session({clientIdentifier: 'chrome_108'});
         this.session.headers = this.getHeaders();

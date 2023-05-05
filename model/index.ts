@@ -1,39 +1,27 @@
-import {Stream} from "stream";
+import {Chat, ChatOptions} from "./base";
+import {You} from "./you";
 
-export interface ChatOptions {
-    proxy?: string;
+export enum Model {
+    // define new model here
+    You = 'you',
 }
 
-export interface Response {
-    text: string | null;
-    other: any;
-}
-
-export interface ResponseStream {
-    text: Stream;
-    other: any;
-}
-
-export interface Request {
-    prompt: string;
-    history?: HistoryItem[];
-    options?: any;
-}
-
-export interface HistoryItem {
-    question?: string;
-    answer?: string;
-}
-
-
-export abstract class Chat {
-    protected proxy: string | undefined;
+export class ChatModelFactory {
+    private modelMap: Map<Model, Chat>;
+    private readonly options: ChatOptions | undefined;
 
     constructor(options?: ChatOptions) {
-        this.proxy = options?.proxy;
+        this.modelMap = new Map();
+        this.options = options;
+        this.init();
     }
 
-    public abstract ask(req: Request): Promise<Response>
+    init() {
+        // register new model here
+        this.modelMap.set(Model.You, new You(this.options))
+    }
 
-    public abstract askStream(req: Request): Promise<ResponseStream>
+    get(model: Model): Chat | undefined {
+        return this.modelMap.get(model);
+    }
 }
