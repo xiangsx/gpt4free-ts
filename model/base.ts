@@ -6,12 +6,12 @@ export interface ChatOptions {
 
 export interface Response {
     text: string | null;
-    other: any;
+    other?: any;
 }
 
 export interface ResponseStream {
     text: Stream;
-    other: any;
+    other?: any;
 }
 
 export interface Request {
@@ -29,7 +29,7 @@ export interface HistoryItem {
 export abstract class Chat {
     protected proxy: string | undefined;
 
-    constructor(options?: ChatOptions) {
+    protected constructor(options?: ChatOptions) {
         this.proxy = options?.proxy;
     }
 

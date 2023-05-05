@@ -2,7 +2,7 @@ This is a replication project for the typescript version of [gpt4free](https://g
 
 The implemented models are:
 - [x] you.com	GPT-3.5 / Internet / good search
-- [ ] forefront.ai	GPT-4/3.5
+- [x] forefront.ai	GPT-4/3.5
 - [ ] poe.com	GPT-4/3.5
 - [ ] writesonic.com	GPT-3.5 / Internet
 - [ ] t3nsor.com	GPT-3.5
@@ -53,14 +53,19 @@ yarn start
 docker-compose up --build -d
 ```
 
-## test with curl
+## Test with curl
 
 common request
 ```shell
 curl "http://127.0.0.1:3000/ask?prompt=你好"
+curl "http://127.0.0.1:3000/ask?prompt=你好&model=forefront"
 ```
 
 request event-stream 
 ```shell
-curl "http://127.0.0.1:3000/ask/stream?prompt=你好"
+# test you
+curl "http://127.0.0.1:3000/ask/stream?prompt=你好" 
+
+# test forefront
+curl "http://127.0.0.1:3000/ask/stream?prompt=你好&model=forefront"
 ```
