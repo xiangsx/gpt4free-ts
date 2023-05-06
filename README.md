@@ -4,7 +4,7 @@ Still striving to keep updating.
 
 Have implemented models here:
 - [x] you.com	GPT-3.5 / Internet / good search **not active**
-- [x] forefront.ai	GPT-4/3.5 **still active**
+- [x] forefront.ai	GPT-4/3.5 ***It work perfect in 2023-05-07***
 - [ ] poe.com	GPT-4/3.5
 - [ ] writesonic.com	GPT-3.5 / Internet
 - [ ] t3nsor.com	GPT-3.5
