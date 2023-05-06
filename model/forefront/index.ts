@@ -17,7 +17,7 @@ interface ForefrontRequest extends Request {
         defaultPersona?: string;
         gptmodel?: Model;
         // if set true, auto sign up when gpt4 times use up
-        resignup?: boolean;
+        resignup?: string;
     }
 }
 
@@ -59,6 +59,7 @@ export class Forefront extends Chat {
     private client: AxiosInstance | undefined;
     private session: ForefrontSessionInfo | undefined;
     private keepAliveInterval: NodeJS.Timer | undefined = undefined;
+    private gpt4times: number = 0;
 
     constructor(options?: ChatOptions) {
         super(options);
@@ -73,7 +74,7 @@ export class Forefront extends Chat {
             res.text.pipe(es.split(/\r?\n\r?\n/)).pipe(es.map(async (chunk: any, cb: any) => {
                 const str = chunk.replace('data: ', '');
                 if (!str || str === '[DONE]') {
-                    cb(null, false);
+                    cb(null, '');
                     return;
                 }
                 const data = parseJSON(str, {}) as ChatCompletionChunk;
@@ -107,6 +108,7 @@ export class Forefront extends Chat {
             actionType = Action.new,
             defaultPersona = '607e41fe-95be-497e-8e97-010a59b2e2c0',
             gptmodel = Model.gpt4,
+            resignup = 0
         } = req.options || {};
         const jsonData = {
             text: req.prompt,
@@ -128,10 +130,28 @@ export class Forefront extends Chat {
                     }
                 } as AxiosRequestConfig
             );
-            return {text: response.data};
+            const stream = response.data.pipe(es.split(/\r?\n\r?\n/)).pipe(es.map(async (chunk: any, cb: any) => {
+                const str = chunk.replace('data: ', '');
+                if (!str || str === '[DONE]') {
+                    cb(null, '');
+                    return;
+                }
+                if (str.indexOf('event: error') !== -1) {
+                    cb(null, 'GPT-4 rate limit exceeded (>5 messages every 3 hours). Time remaining: 180 minutes; try set resignup=true in query')
+                    return;
+                }
+                const data = parseJSON(str, {}) as ChatCompletionChunk;
+                if (!data.choices) {
+                    cb(null, '');
+                    return;
+                }
+                const [{delta: {content}}] = data.choices;
+                cb(null, content);
+            }))
+            return {text: stream};
         } catch (e: any) {// session will expire very fast, I cannot know what reason
             if (e.response.status === 401) {
-                if (req.options?.resignup) {
+                if (+resignup) {
                     this.client = undefined;
                     // do not retry auto, avoid loss control
                     throw new Error('retry again, will sign up again');
@@ -139,6 +159,18 @@ export class Forefront extends Chat {
                 throw new Error('try change model to gpt-3.5-turbo or set resignup = true')
             }
             throw e;
+        } finally {
+            if (req.options?.gptmodel === Model.gpt4) {
+                this.gpt4times += 1;
+                if (this.gpt4times === 5) {
+                    if (+resignup) {
+                        this.client = undefined;
+                        this.gpt4times = 0;
+                    } else {
+                        throw new Error('try set resignup=true in query');
+                    }
+                }
+            }
         }
     }
 

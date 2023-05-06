@@ -39,10 +39,30 @@ docker-compose up --build -d
 
 ## Test with curl
 
+### params in query
+
+```
+prompt: string; // required
+```
+
+forefront options
+```
+chatId?: string;
+actionType?: Action; // 'new' or 'continue'
+defaultPersona?: string;
+gptmodel?: Model; // gpt-4 or gpt-3.5-turbo
+resignup?: number; // default 0 if set 1, auto sign up when gpt4 times use up
+// event: error
+// data: GPT-4 rate limit exceeded (>5 messages every 3 hours). Time remaining: 179 minutes
+// if you see this try set resignup=1 or use gpt-3.5-turbo
+```
+
+### test now!
+
 common request
 ```shell
 # test default model chat.forefront.at
-curl "http://127.0.0.1:3000/ask?prompt=hello"
+curl "http://127.0.0.1:3000/ask?prompt=hello&model=forefront&gptmodel=gpt-4&resignup=0"
 
 # test you.com
 curl "http://127.0.0.1:3000/ask?prompt=hello&model=you"
@@ -51,7 +71,7 @@ curl "http://127.0.0.1:3000/ask?prompt=hello&model=you"
 request event-stream 
 ```shell
 # test default model chat.forefront.at
-curl "http://127.0.0.1:3000/ask/stream?prompt=hello" 
+curl "http://127.0.0.1:3000/ask/stream?prompt=hello&model=forefront&gptmodel=gpt-4&resignup=0"
 
 # test you
 curl "http://127.0.0.1:3000/ask/stream?prompt=hello&model=you"

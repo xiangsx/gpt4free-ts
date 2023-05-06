@@ -51,7 +51,7 @@ router.get('/ask/stream', async (ctx) => {
         return;
     }
     ctx.set({
-        "Content-Type": "text/event-stream",
+        "Content-Type": "text/event-stream;charset=utf-8",
         "Cache-Control": "no-cache",
         "Connection": "keep-alive",
     });
