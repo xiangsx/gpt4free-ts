@@ -3,8 +3,8 @@ This is a replication project for the typescript version of [gpt4free](https://g
 Still striving to keep updating.
 
 Have implemented models here:
-- [x] you.com	GPT-3.5 / Internet / good search
-- [x] forefront.ai	GPT-4/3.5
+- [x] you.com	GPT-3.5 / Internet / good search **not active**
+- [x] forefront.ai	GPT-4/3.5 **still active**
 - [ ] poe.com	GPT-4/3.5
 - [ ] writesonic.com	GPT-3.5 / Internet
 - [ ] t3nsor.com	GPT-3.5
@@ -41,17 +41,20 @@ docker-compose up --build -d
 
 common request
 ```shell
+# test default model chat.forefront.at
 curl "http://127.0.0.1:3000/ask?prompt=hello"
-curl "http://127.0.0.1:3000/ask?prompt=hello&model=forefront"
+
+# test you.com
+curl "http://127.0.0.1:3000/ask?prompt=hello&model=you"
 ```
 
 request event-stream 
 ```shell
-# test you
+# test default model chat.forefront.at
 curl "http://127.0.0.1:3000/ask/stream?prompt=hello" 
 
-# test forefront
-curl "http://127.0.0.1:3000/ask/stream?prompt=hello&model=forefront"
+# test you
+curl "http://127.0.0.1:3000/ask/stream?prompt=hello&model=you"
 ```
 
 Due to legal and personal issues, the development speed of this Repository may slow down over the next one to two weeks. I apologize for any inconvenience this may cause. I have been putting a lot of effort into this small personal/educational project, and it is now on the verge of being taken down.

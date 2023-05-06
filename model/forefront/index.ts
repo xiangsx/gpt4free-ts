@@ -42,6 +42,12 @@ interface ForefrontSessionInfo {
     userID: string;
 }
 
+export enum Action {
+    new = 'new',
+    continue = 'continue',
+    newGreeting = 'new:greeting',
+}
+
 export class Forefront extends Chat {
     private client: AxiosInstance | undefined;
     private session: ForefrontSessionInfo | undefined;
