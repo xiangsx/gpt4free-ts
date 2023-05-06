@@ -4,7 +4,7 @@ import UserAgent from 'user-agents';
 import tlsClient from 'tls-client';
 import {Session} from "tls-client/dist/esm/sessions";
 import {Params} from "tls-client/dist/esm/types";
-import {toEventCB, toEventStream} from "../../utils";
+import {parseJSON, toEventCB, toEventStream} from "../../utils";
 import {Chat, ChatOptions, Request, Response, ResponseStream} from "../base";
 
 const userAgent = new UserAgent();
@@ -127,14 +127,14 @@ export class You extends Chat {
                 let obj: any;
                 switch (eventName) {
                     case 'youChatToken':
-                        obj = JSON.parse(data) as any;
+                        obj = parseJSON(data,{}) as any;
                         res.text += obj.youChatToken;
                         break;
                     case 'done':
                         resolve(res);
                         return;
                     default:
-                        obj = JSON.parse(data) as any;
+                        obj = parseJSON(data,{}) as any;
                         res.other[eventName] = obj;
                         return;
                 }
