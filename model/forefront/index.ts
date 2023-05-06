@@ -4,10 +4,10 @@ import tlsClient from 'tls-client';
 
 import {Chat, ChatOptions, Request, Response, ResponseStream} from "../base";
 import {Email} from '../../utils/email';
-import axios, {AxiosInstance, CreateAxiosDefaults} from "axios";
+import axios, {AxiosInstance, AxiosRequestConfig, CreateAxiosDefaults} from "axios";
 import {v4} from "uuid";
 import es from "event-stream";
-import {parseJSON} from "../../utils";
+import {encryptWithAes256Cbc, parseJSON} from "../../utils";
 
 interface ForefrontRequest extends Request {
     options?: {
@@ -38,14 +38,18 @@ interface ChatCompletionChunk {
 interface ForefrontSessionInfo {
     agent: string;
     token: string;
+    sessionID: string;
+    userID: string;
 }
 
 export class Forefront extends Chat {
     private client: AxiosInstance | undefined;
+    private session: ForefrontSessionInfo | undefined;
 
     constructor(options?: ChatOptions) {
         super(options);
         this.client = undefined;
+        this.session = undefined;
     }
 
     public async ask(req: ForefrontRequest): Promise<Response> {
@@ -54,6 +58,10 @@ export class Forefront extends Chat {
         return new Promise(resolve => {
             res.text.pipe(es.split(/\r?\n\r?\n/)).pipe(es.map(async (chunk: any, cb: any) => {
                 const str = chunk.replace('data: ', '');
+                if (!str || str === '[DONE]') {
+                    cb(null, false);
+                    return;
+                }
                 const data = parseJSON(str, {}) as ChatCompletionChunk;
                 if (!data.choices) {
                     cb(null, '');
@@ -62,6 +70,9 @@ export class Forefront extends Chat {
                 const [{delta: {content}}] = data.choices;
                 cb(null, content);
             })).on('data', (data) => {
+                if (!data) {
+                    return;
+                }
                 text += data;
             }).on('close', () => {
                 resolve({text, other: res.other});
@@ -74,7 +85,7 @@ export class Forefront extends Chat {
         if (!this.client) {
             await this.initClient();
         }
-        if (!this.client) {
+        if (!this.client || !this.session) {
             throw new Error('hava not created account');
         }
         const {
@@ -91,12 +102,15 @@ export class Forefront extends Chat {
             messagePersona: defaultPersona,
             model: model,
         };
+        const base64Data = Buffer.from(this.session.userID + defaultPersona + chatId).toString('base64');
+        const encryptedSignature = encryptWithAes256Cbc(base64Data, this.session.sessionID);
 
         try {
             const response = await this.client?.post(
-                'https://chat-server.tenant-forefront-default.knative.chi.coreweave.com/chat',
-                jsonData,
-                {responseType: 'stream'}
+                'https://streaming.tenant-forefront-default.knative.chi.coreweave.com/chat', jsonData,
+                {
+                    responseType: 'stream', headers: {'x-signature': encryptedSignature}
+                } as AxiosRequestConfig
             );
             return {text: response.data};
         } catch (e) {// session will expire very fast, I cannot know what reason
@@ -106,6 +120,7 @@ export class Forefront extends Chat {
 
     async initClient() {
         let hisSession = await this.createToken();
+        this.session = hisSession;
         this.client = axios.create({
             headers: {
                 'authority': 'chat-server.tenant-forefront-default.knative.chi.coreweave.com',
@@ -170,6 +185,8 @@ export class Forefront extends Chat {
         const validateRes = await session.get(validateURL)
         const loginRes = await session.get('https://clerk.forefront.ai/v1/client?_clerk_js_version=4.38.4');
         const token = (loginRes.data as any).response.sessions[0].last_active_token.jwt;
-        return {token, agent};
+        const sessionID = (loginRes.data as any).response.sessions[0].id
+        const userID = (loginRes.data as any).response.sessions[0].user.id
+        return {token, agent, sessionID, userID};
     }
 }
