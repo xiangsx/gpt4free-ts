@@ -3,7 +3,7 @@ import UserAgent from 'user-agents';
 import tlsClient from 'tls-client';
 
 import {Chat, ChatOptions, Request, Response, ResponseStream} from "../base";
-import {Email} from '../../utils/email';
+import {CreateEmail, TempEmailType, TempMailMessage} from '../../utils/emailFactory';
 import axios, {AxiosInstance, AxiosRequestConfig, CreateAxiosDefaults} from "axios";
 import {v4} from "uuid";
 import es from "event-stream";
@@ -150,8 +150,8 @@ export class Forefront extends Chat {
     }
 
     async createToken(): Promise<ForefrontSessionInfo> {
-        const mailbox = new Email();
-        const mailAddress = await mailbox.create();
+        const mailbox = CreateEmail(TempEmailType.TempEmail44);
+        const mailAddress = await mailbox.getMailAddress();
         const agent = new UserAgent().toString();
         const session = new tlsClient.Session({clientIdentifier: 'chrome_108'});
         session.headers = {
@@ -177,10 +177,10 @@ export class Forefront extends Chat {
         if (verifyRes.text.indexOf('sign_up_attempt') === -1) {
             throw new Error('forefront create account failed');
         }
-        const msgs = await mailbox.getMessage()
+        const msgs = (await mailbox.waitMails()) as TempMailMessage[]
         let validateURL: string | undefined;
         for (const msg of msgs) {
-            validateURL = msg.mail_html.match(/https:\/\/clerk\.forefront\.ai\/v1\/verify\?token=[^\s"]+/i)?.[0];
+            validateURL = msg.content.match(/https:\/\/clerk\.forefront\.ai\/v1\/verify\?token=[^\s"]+/i)?.[0];
             if (validateURL) {
                 break;
             }
