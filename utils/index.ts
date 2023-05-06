@@ -36,6 +36,7 @@ export function parseJSON(str: string, defaultObj: any): any | undefined {
     try {
         return JSON.parse(str)
     } catch (e) {
+        console.error(str,e);
         return defaultObj;
     }
 }
