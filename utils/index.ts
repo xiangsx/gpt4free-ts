@@ -36,7 +36,18 @@ export function parseJSON(str: string, defaultObj: any): any | undefined {
     try {
         return JSON.parse(str)
     } catch (e) {
-        console.error(str,e);
+        console.error(str, e);
         return defaultObj;
     }
+}
+
+export function encryptWithAes256Cbc(data: string, key: string):string {
+    const hash = crypto.createHash('sha256').update(key).digest();
+    const iv = crypto.randomBytes(16);
+    const cipher = crypto.createCipheriv('aes-256-cbc', hash, iv);
+
+    let encryptedData = cipher.update(data, 'utf-8', 'hex');
+    encryptedData += cipher.final('hex');
+
+    return iv.toString('hex') + encryptedData;
 }
