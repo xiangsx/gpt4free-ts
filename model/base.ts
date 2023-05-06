@@ -16,21 +16,14 @@ export interface ResponseStream {
 
 export interface Request {
     prompt: string;
-    history?: HistoryItem[];
     options?: any;
 }
 
-export interface HistoryItem {
-    question?: string;
-    answer?: string;
-}
-
-
 export abstract class Chat {
-    protected proxy: string | undefined;
+    protected options: ChatOptions | undefined;
 
     protected constructor(options?: ChatOptions) {
-        this.proxy = options?.proxy;
+        this.options = options;
     }
 
     public abstract ask(req: Request): Promise<Response>

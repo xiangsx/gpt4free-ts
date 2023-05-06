@@ -13,9 +13,11 @@ interface ForefrontRequest extends Request {
     options?: {
         chatId?: string;
         prompt?: string;
-        actionType?: string;
+        actionType?: Action;
         defaultPersona?: string;
-        model?: string;
+        gptmodel?: Model;
+        // if set true, auto sign up when gpt4 times use up
+        resignup?: boolean;
     }
 }
 
@@ -48,9 +50,15 @@ export enum Action {
     newGreeting = 'new:greeting',
 }
 
+export enum Model {
+    gpt4 = 'gpt-4',
+    gpt3_5 = 'gpt-3.5-turbo',
+}
+
 export class Forefront extends Chat {
     private client: AxiosInstance | undefined;
     private session: ForefrontSessionInfo | undefined;
+    private keepAliveInterval: NodeJS.Timer | undefined = undefined;
 
     constructor(options?: ChatOptions) {
         super(options);
@@ -87,7 +95,7 @@ export class Forefront extends Chat {
 
     }
 
-    public async askStream(req: Request): Promise<ResponseStream> {
+    public async askStream(req: ForefrontRequest): Promise<ResponseStream> {
         if (!this.client) {
             await this.initClient();
         }
@@ -96,9 +104,9 @@ export class Forefront extends Chat {
         }
         const {
             chatId = v4(),
-            actionType = 'new',
+            actionType = Action.new,
             defaultPersona = '607e41fe-95be-497e-8e97-010a59b2e2c0',
-            model = 'gpt-4',
+            gptmodel = Model.gpt4,
         } = req.options || {};
         const jsonData = {
             text: req.prompt,
@@ -106,7 +114,7 @@ export class Forefront extends Chat {
             parentId: chatId,
             workspaceId: chatId,
             messagePersona: defaultPersona,
-            model: model,
+            model: gptmodel,
         };
         const base64Data = Buffer.from(this.session.userID + defaultPersona + chatId).toString('base64');
         const encryptedSignature = encryptWithAes256Cbc(base64Data, this.session.sessionID);
@@ -115,11 +123,21 @@ export class Forefront extends Chat {
             const response = await this.client?.post(
                 'https://streaming.tenant-forefront-default.knative.chi.coreweave.com/chat', jsonData,
                 {
-                    responseType: 'stream', headers: {'x-signature': encryptedSignature}
+                    responseType: 'stream', headers: {
+                        'x-signature': encryptedSignature, 'authorization': 'Bearer ' + this.session.token,
+                    }
                 } as AxiosRequestConfig
             );
             return {text: response.data};
-        } catch (e) {// session will expire very fast, I cannot know what reason
+        } catch (e: any) {// session will expire very fast, I cannot know what reason
+            if (e.response.status === 401) {
+                if (req.options?.resignup) {
+                    this.client = undefined;
+                    // do not retry auto, avoid loss control
+                    throw new Error('retry again, will sign up again');
+                }
+                throw new Error('try change model to gpt-3.5-turbo or set resignup = true')
+            }
             throw e;
         }
     }
@@ -132,7 +150,6 @@ export class Forefront extends Chat {
                 'authority': 'chat-server.tenant-forefront-default.knative.chi.coreweave.com',
                 'accept': '*/*',
                 'accept-language': 'en,fr-FR;q=0.9,fr;q=0.8,es-ES;q=0.7,es;q=0.6,en-US;q=0.5,am;q=0.4,de;q=0.3',
-                'authorization': 'Bearer ' + hisSession.token,
                 'cache-control': 'no-cache',
                 'content-type': 'application/json',
                 'origin': 'https://chat.forefront.ai',
@@ -158,8 +175,8 @@ export class Forefront extends Chat {
             origin: 'https://accounts.forefront.ai',
             'user-agent': agent, // Replace with actual random user agent
         }
-        if (this.proxy) {
-            session.proxy = this.proxy;
+        if (this.options?.proxy) {
+            session.proxy = this.options.proxy;
         }
         const signEmailRes = await session.post('https://clerk.forefront.ai/v1/client/sign_ups?_clerk_js_version=4.38.4',
             {data: {'email_address': mailAddress}});
@@ -193,6 +210,16 @@ export class Forefront extends Chat {
         const token = (loginRes.data as any).response.sessions[0].last_active_token.jwt;
         const sessionID = (loginRes.data as any).response.sessions[0].id
         const userID = (loginRes.data as any).response.sessions[0].user.id
+        this.keepAliveInterval = setInterval(async () => {
+            try {
+                const keepAliveRes = await session.post(`https://clerk.forefront.ai/v1/client/sessions/${sessionID}/tokens?_clerk_js_version=4.39.0`);
+                if (this.session) {
+                    this.session.token = (keepAliveRes.data as any).jwt as string;
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }, 30 * 1000);
         return {token, agent, sessionID, userID};
     }
 }

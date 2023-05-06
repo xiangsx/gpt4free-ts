@@ -69,8 +69,8 @@ export class You extends Chat {
         super(props);
         this.session = new tlsClient.Session({clientIdentifier: 'chrome_108'});
         this.session.headers = this.getHeaders();
-        if (this.proxy) {
-            this.session.proxy = this.proxy;
+        if (this.options?.proxy) {
+            this.session.proxy = this.options.proxy;
         }
     }
 
