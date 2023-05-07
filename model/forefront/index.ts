@@ -149,7 +149,7 @@ export class Forefront extends Chat {
                 cb(null, content);
             }))
             return {text: stream};
-        } catch (e: any) {// session will expire very fast, I cannot know what reason
+        } catch (e: any) {
             if (e.response.status === 401) {
                 if (+resignup) {
                     this.client = undefined;
