@@ -137,7 +137,10 @@ export class Forefront extends Chat {
                     return;
                 }
                 if (str.indexOf('event: error') !== -1) {
-                    cb(null, 'GPT-4 rate limit exceeded (>5 messages every 3 hours). Time remaining: 180 minutes; try set resignup=true in query')
+                    cb(null, 'GPT-4 rate limit exceeded (>5 messages every 3 hours). Time remaining: 180 minutes; try set resignup=1 in query')
+                    if (+resignup) {
+                        this.client = undefined;
+                    }
                     return;
                 }
                 const data = parseJSON(str, {}) as ChatCompletionChunk;
@@ -156,7 +159,7 @@ export class Forefront extends Chat {
                     // do not retry auto, avoid loss control
                     throw new Error('retry again, will sign up again');
                 }
-                throw new Error('try change model to gpt-3.5-turbo or set resignup = true')
+                throw new Error('try change model to gpt-3.5-turbo or set resignup=1')
             }
             throw e;
         } finally {
@@ -167,7 +170,7 @@ export class Forefront extends Chat {
                         this.client = undefined;
                         this.gpt4times = 0;
                     } else {
-                        throw new Error('try set resignup=true in query');
+                        throw new Error('try set resignup=1 in query');
                     }
                 }
             }
@@ -199,7 +202,7 @@ export class Forefront extends Chat {
     }
 
     async createToken(): Promise<ForefrontSessionInfo> {
-        const mailbox = CreateEmail(TempEmailType.TempEmail44);
+        const mailbox = CreateEmail(TempEmailType.TempEmail);
         const mailAddress = await mailbox.getMailAddress();
         const agent = new UserAgent().toString();
         const session = new tlsClient.Session({clientIdentifier: 'chrome_108'});
@@ -251,7 +254,7 @@ export class Forefront extends Chat {
             } catch (e) {
                 console.error(e);
             }
-        }, 30 * 1000);
+        }, 50 * 1000);
         return {token, agent, sessionID, userID};
     }
 }
