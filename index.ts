@@ -9,9 +9,15 @@ const errorHandler = async (ctx: Context, next: Next) => {
     try {
         await next();
     } catch (err:any) {
-        console.error(err);
-        ctx.body = JSON.stringify(err);
-        ctx.res.end();
+console.error(`-----------`)
+console.error(`Houston! We got a Problem!\n${err.message}`)
+console.error(err.message)
+console.error(`-----------`)
+      ctx.response.status = err.status || 500;
+        ctx.response.body = {
+            message: err.message,
+            stack: err
+        };
     }
 };
 app.use(errorHandler);
