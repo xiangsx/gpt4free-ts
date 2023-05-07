@@ -9,8 +9,9 @@ const errorHandler = async (ctx: Context, next: Next) => {
     try {
         await next();
     } catch (err:any) {
-        ctx.response.status = err.status || 500;
-        ctx.response.body = err;
+        console.error(err);
+        ctx.body = JSON.stringify(err);
+        ctx.res.end();
     }
 };
 app.use(errorHandler);
@@ -34,7 +35,7 @@ router.get('/ask', async (ctx) => {
         return;
     }
     const res = await chat.ask({prompt: prompt as string, options});
-    ctx.body = res.text;
+    ctx.body = res?.text;
 });
 
 router.get('/ask/stream', async (ctx) => {
@@ -54,7 +55,7 @@ router.get('/ask/stream', async (ctx) => {
         "Connection": "keep-alive",
     });
     const res = await chat.askStream({prompt: prompt as string, options});
-    ctx.body = res.text;
+    ctx.body = res?.text;
 })
 
 app.use(router.routes());

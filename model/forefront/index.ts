@@ -149,7 +149,7 @@ export class Forefront extends Chat {
                     return;
                 }
                 const [{delta: {content}}] = data.choices;
-                cb(null, content);
+                cb(null, content||'');
             }))
             return {text: stream};
         } catch (e: any) {
