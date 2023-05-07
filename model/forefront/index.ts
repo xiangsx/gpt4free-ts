@@ -202,7 +202,7 @@ export class Forefront extends Chat {
     }
 
     async createToken(): Promise<ForefrontSessionInfo> {
-        const mailbox = CreateEmail(TempEmailType.TempEmail);
+        const mailbox = CreateEmail(TempEmailType.TempEmail44);
         const mailAddress = await mailbox.getMailAddress();
         const agent = new UserAgent().toString();
         const session = new tlsClient.Session({clientIdentifier: 'chrome_108'});
