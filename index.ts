@@ -10,9 +10,7 @@ const errorHandler = async (ctx: Context, next: Next) => {
         await next();
     } catch (err:any) {
         ctx.response.status = err.status || 500;
-        ctx.response.body = {
-            message: err.message,
-        };
+        ctx.response.body = err;
     }
 };
 app.use(errorHandler);
