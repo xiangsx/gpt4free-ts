@@ -213,14 +213,14 @@ export class Forefront extends Chat {
         if (this.options?.proxy) {
             session.proxy = this.options.proxy;
         }
-        const signEmailRes = await session.post('https://clerk.forefront.ai/v1/client/sign_ups?_clerk_js_version=4.38.4',
+        const signEmailRes = await session.post('https://clerk.forefront.ai/v1/client/sign_ups?_clerk_js_version=4.39.0',
             {data: {'email_address': mailAddress}});
         const traceToken = (signEmailRes.data as any)?.response?.id;
         if (!traceToken) {
             throw new Error('Failed to create account! sign email res parse token failed!');
         }
 
-        const verifyRes = await session.post(`https://clerk.forefront.ai/v1/client/sign_ups/${traceToken}/prepare_verification?_clerk_js_version=4.38.4`, {
+        const verifyRes = await session.post(`https://clerk.forefront.ai/v1/client/sign_ups/${traceToken}/prepare_verification?_clerk_js_version=4.39.0`, {
             data: {
                 'strategy': 'email_link',
                 'redirect_url': 'https://accounts.forefront.ai/sign-up/verify'
@@ -241,7 +241,7 @@ export class Forefront extends Chat {
             throw new Error('Error while obtaining verfication URL!')
         }
         const validateRes = await session.get(validateURL)
-        const loginRes = await session.get('https://clerk.forefront.ai/v1/client?_clerk_js_version=4.38.4');
+        const loginRes = await session.get('https://clerk.forefront.ai/v1/client?_clerk_js_version=4.39.0');
         const token = (loginRes.data as any).response.sessions[0].last_active_token.jwt;
         const sessionID = (loginRes.data as any).response.sessions[0].id
         const userID = (loginRes.data as any).response.sessions[0].user.id
