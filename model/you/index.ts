@@ -1,11 +1,11 @@
 import {v4 as uuidv4} from 'uuid';
 //@ts-ignore
 import UserAgent from 'user-agents';
-import tlsClient from 'tls-client';
 import {Session} from "tls-client/dist/esm/sessions";
 import {Params} from "tls-client/dist/esm/types";
 import {parseJSON, toEventCB, toEventStream} from "../../utils";
 import {Chat, ChatOptions, Request, Response, ResponseStream} from "../base";
+import {CreateTlsProxy} from "../../utils/proxyAgent";
 
 const userAgent = new UserAgent();
 
@@ -67,11 +67,8 @@ export class You extends Chat {
 
     constructor(props?: ChatOptions) {
         super(props);
-        this.session = new tlsClient.Session({clientIdentifier: 'chrome_108'});
+        this.session = CreateTlsProxy({clientIdentifier: 'chrome_108'});
         this.session.headers = this.getHeaders();
-        if (this.options?.proxy) {
-            this.session.proxy = this.options.proxy;
-        }
     }
 
     private async request(req: Request) {
@@ -127,14 +124,14 @@ export class You extends Chat {
                 let obj: any;
                 switch (eventName) {
                     case 'youChatToken':
-                        obj = parseJSON(data,{}) as any;
+                        obj = parseJSON(data, {}) as any;
                         res.text += obj.youChatToken;
                         break;
                     case 'done':
                         resolve(res);
                         return;
                     default:
-                        obj = parseJSON(data,{}) as any;
+                        obj = parseJSON(data, {}) as any;
                         res.other[eventName] = obj;
                         return;
                 }

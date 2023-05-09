@@ -8,7 +8,7 @@ const router = new Router();
 const errorHandler = async (ctx: Context, next: Next) => {
     try {
         await next();
-    } catch (err:any) {
+    } catch (err: any) {
         console.error(err);
         ctx.body = JSON.stringify(err);
         ctx.res.end();
@@ -16,7 +16,7 @@ const errorHandler = async (ctx: Context, next: Next) => {
 };
 app.use(errorHandler);
 app.use(bodyParser());
-const chatModel = new ChatModelFactory({proxy: process.env.https_proxy || process.env.http_proxy});
+const chatModel = new ChatModelFactory();
 
 interface AskReq {
     prompt: string;
