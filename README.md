@@ -1,17 +1,21 @@
 This is a replication project for the typescript version of [gpt4free](https://github.com/xtekky/gpt4free)
 
+## Demo [GPTGOD](http://gptgod.site)
+
+In the next two weeks, I will open source all the code for GPTGOD. If you need, Please watch this project or follow me to receive notifications.
+
+Why now? because there are stil some secret config shoule be removed from that project.
+
+## Reverse target
 Still striving to keep updating.
 
 Have implemented models here:
-- [x] you.com	GPT-3.5 / Internet / good search **not active**
-- [x] forefront.ai	GPT-4/3.5 ***It work perfect in 2023-05-07***
-- [ ] poe.com	GPT-4/3.5
-- [ ] writesonic.com	GPT-3.5 / Internet
-- [ ] t3nsor.com	GPT-3.5
-- [ ] sqlchat.ai	GPT-3.5
-- [ ] bard.google.com	custom / search
-- [ ] bing.com/chat	GPT-4/3.5
-- [ ] italygpt.it	GPT-3.5
+- [x] [you.com](you.com)	GPT-3.5 / Internet / good search **not active because of new auth method**
+- [x] [forefront.ai](forefront.ai)	GPT-4/3.5 ***It still work perfect after 2023-05-07***
+- [ ] [bing.com/chat](bing.com/chat)	GPT-4/3.5
+- [ ] [poe.com](poe.com)	GPT-4/3.5
+- [ ] [writesonic.com](writesonic.com)	GPT-3.5 / Internet
+- [ ] [t3nsor.com](t3nsor.com)	GPT-3.5
 
 
 ## Run local
@@ -77,7 +81,9 @@ curl "http://127.0.0.1:3000/ask/stream?prompt=hello&model=forefront&gptmodel=gpt
 curl "http://127.0.0.1:3000/ask/stream?prompt=hello&model=you"
 ```
 
-Due to legal and personal issues, the development speed of this Repository may slow down over the next one to two weeks. I apologize for any inconvenience this may cause. I have been putting a lot of effort into this small personal/educational project, and it is now on the verge of being taken down.
+## 🌟 Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=xiangsx/gpt4free-ts&type=Date)](https://star-history.com/#xiangsx/gpt4free-ts&&type=Date)
 
 <p>You may join our discord: <a href="https://discord.com/invite/gpt4free">discord.gg/gpt4free<a> for further updates. <a href="https://discord.gg/gpt4free"><img align="center" alt="gpt4free Discord" width="22px" src="https://raw.githubusercontent.com/peterthehan/peterthehan/master/assets/discord.svg" /></a></p>
 
