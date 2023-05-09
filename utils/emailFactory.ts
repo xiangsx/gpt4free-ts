@@ -1,5 +1,6 @@
-import axios, {AxiosInstance, AxiosRequestConfig, CreateAxiosDefaults} from 'axios';
+import {AxiosInstance, AxiosRequestConfig, CreateAxiosDefaults} from 'axios';
 import {md5, randomStr} from "./index";
+import {CreateAxiosProxy} from "./proxyAgent";
 
 export enum TempEmailType {
     // need credit card https://rapidapi.com/Privatix/api/temp-mail
@@ -73,7 +74,7 @@ class TempMail extends BaseEmail {
         if (!apikey) {
             throw new Error('Need apikey for TempMail')
         }
-        this.client = axios.create({
+        this.client = CreateAxiosProxy({
             baseURL: 'https://privatix-temp-mail-v1.p.rapidapi.com/request/',
             headers: {
                 'X-RapidAPI-Key': apikey,
@@ -95,7 +96,7 @@ class TempMail extends BaseEmail {
             const itl = setInterval(async () => {
                 const response = await this.client.get(`/mail/id/${mailID}`);
                 if (response.data && response.data.length > 0) {
-                    resolve(response.data.map((item:any) => ({...item, content: item.mail_html})));
+                    resolve(response.data.map((item: any) => ({...item, content: item.mail_html})));
                     clearInterval(itl);
                     return;
                 }
@@ -130,7 +131,7 @@ class TempMail44 extends BaseEmail {
         if (!apikey) {
             throw new Error('Need apikey for TempMail')
         }
-        this.client = axios.create({
+        this.client = CreateAxiosProxy({
             baseURL: 'https://temp-mail44.p.rapidapi.com/api/v3/email/',
             headers: {
                 'X-RapidAPI-Key': apikey,
@@ -155,7 +156,7 @@ class TempMail44 extends BaseEmail {
             const itl = setInterval(async () => {
                 const response = await this.client.get(`/${this.address}/messages`);
                 if (response.data && response.data.length > 0) {
-                    resolve(response.data.map((item:any) => ({...item, content: item.body_html})));
+                    resolve(response.data.map((item: any) => ({...item, content: item.body_html})));
                     clearInterval(itl);
                     return;
                 }

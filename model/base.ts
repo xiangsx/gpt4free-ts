@@ -1,7 +1,6 @@
 import {Stream} from "stream";
 
 export interface ChatOptions {
-    proxy?: string;
 }
 
 export interface Response {
