@@ -1,5 +1,9 @@
 This is a replication project for the typescript version of [gpt4free](https://github.com/xtekky/gpt4free)
 
+Demo [GPTGOD](http://gptgod.site)
+In the next two weeks, I will open source all the code for GPTGOD. If you need, Please watch this project or follow me to receive notifications.
+Why now, because there are stil some secret config shoule be removed from that project.
+
 Still striving to keep updating.
 
 Have implemented models here:
