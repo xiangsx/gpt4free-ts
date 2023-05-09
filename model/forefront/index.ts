@@ -211,7 +211,7 @@ export class Forefront extends Chat {
             {data: {'email_address': mailAddress}});
         const traceToken = (signEmailRes.data as any)?.response?.id;
         if (!traceToken) {
-            throw new Error('Failed to create account! sign email res parse token failed!');
+            throw new Error(`Failed to create account! sign email res parse token failed! res:${JSON.stringify(signEmailRes.data)}`);
         }
 
         const verifyRes = await session.post(`https://clerk.forefront.ai/v1/client/sign_ups/${traceToken}/prepare_verification?_clerk_js_version=4.39.0`, {
