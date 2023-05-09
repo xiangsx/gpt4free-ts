@@ -77,13 +77,6 @@ export class Forefront extends Chat {
                     cb(null, '');
                     return;
                 }
-                // const data = parseJSON(str, {}) as ChatCompletionChunk;
-                // if (!data.choices) {
-                //     cb(null, '');
-                //     return;
-                // }
-                // const [{delta: {content}}] = data.choices;
-                // cb(null, content);
                 cb(null, str);
             })).on('data', (data) => {
                 if (!data) {
