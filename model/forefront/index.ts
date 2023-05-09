@@ -73,17 +73,18 @@ export class Forefront extends Chat {
         return new Promise(resolve => {
             res.text.pipe(es.split(/\r?\n\r?\n/)).pipe(es.map(async (chunk: any, cb: any) => {
                 const str = chunk.replace('data: ', '');
-                if (!str || str === '[DONE]') {
+                if (!str || str === '[DONE]'.trim()) {
                     cb(null, '');
                     return;
                 }
-                const data = parseJSON(str, {}) as ChatCompletionChunk;
-                if (!data.choices) {
-                    cb(null, '');
-                    return;
-                }
-                const [{delta: {content}}] = data.choices;
-                cb(null, content);
+                // const data = parseJSON(str, {}) as ChatCompletionChunk;
+                // if (!data.choices) {
+                //     cb(null, '');
+                //     return;
+                // }
+                // const [{delta: {content}}] = data.choices;
+                // cb(null, content);
+                cb(null, str);
             })).on('data', (data) => {
                 if (!data) {
                     return;
@@ -132,7 +133,7 @@ export class Forefront extends Chat {
             );
             const stream = response.data.pipe(es.split(/\r?\n\r?\n/)).pipe(es.map(async (chunk: any, cb: any) => {
                 const str = chunk.replace('data: ', '');
-                if (!str || str === '[DONE]') {
+                if (!str || str.trim() === '[DONE]') {
                     cb(null, '');
                     return;
                 }
