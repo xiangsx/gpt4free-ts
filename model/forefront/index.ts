@@ -73,7 +73,7 @@ export class Forefront extends Chat {
         return new Promise(resolve => {
             res.text.pipe(es.split(/\r?\n\r?\n/)).pipe(es.map(async (chunk: any, cb: any) => {
                 const str = chunk.replace('data: ', '');
-                if (!str || str === '[DONE]'.trim()) {
+                if (!str || str.trim() === '[DONE]') {
                     cb(null, '');
                     return;
                 }
