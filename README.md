@@ -67,6 +67,8 @@ resignup?: number; // default 0 if set 1, auto sign up when gpt4 times use up
 // event: error
 // data: GPT-4 rate limit exceeded (>5 messages every 3 hours). Time remaining: 179 minutes
 // if you see this try set resignup=1 or use gpt-3.5-turbo
+
+// if you want chat with context, set actionType=continue and chatId={Defined constant uuid}
 ```
 
 ### test now!
