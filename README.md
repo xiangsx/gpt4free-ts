@@ -42,7 +42,7 @@ docker run --env-file .env xiangsx/gpt4free-ts:latest
 
 ## Deploy with docker-compose
 
-first, you should create file .env; Follow step "Run with docekr"
+first, you should create file .env; Follow step "Run with docker
 
 deploy
 ```
