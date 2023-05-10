@@ -228,7 +228,7 @@ export class Forefront extends Chat {
             }
         }
         if (!validateURL) {
-            throw new Error('Error while obtaining verfication URL!')
+            throw new Error('Error while obtaining verification URL!')
         }
         const validateRes = await session.get(validateURL)
         const loginRes = await session.get('https://clerk.forefront.ai/v1/client?_clerk_js_version=4.39.0');
