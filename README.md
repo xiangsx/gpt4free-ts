@@ -12,6 +12,7 @@ Why now? because there are stil some secret config should be removed from that p
 Still striving to keep updating.
 
 Have implemented models here:
+If you do not want your website to appear here, please raise an issue and I will remove it immediately.
 
 - [x] [aidream](http://aidream.cloud) GPT-3.5 ***Still active after 2023-05-11***
 - [x] [you.com](you.com)    GPT-3.5 / Internet / good search **not active because of new auth method**
