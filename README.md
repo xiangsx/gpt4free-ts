@@ -13,14 +13,16 @@ Still striving to keep updating.
 
 Have implemented models here:
 If you do not want your website to appear here, please raise an issue and I will remove it immediately.
-
-- [x] [aidream](http://aidream.cloud) GPT-3.5 ***Still active after 2023-05-11***
-- [x] [you.com](you.com)    GPT-3.5 / Internet / good search **Still active after 2023-05-11**
-- [x] [forefront.ai](forefront.ai)    GPT-4/3.5 ***Not valid from 2023-05-10, but it will be right back***
-- [ ] [bing.com/chat](bing.com/chat)    GPT-4/3.5
-- [ ] [poe.com](poe.com)    GPT-4/3.5
-- [ ] [writesonic.com](writesonic.com)    GPT-3.5 / Internet
-- [ ] [t3nsor.com](t3nsor.com)    GPT-3.5
+|model|support|status|
+|--|--|--|
+|[aidream](http://aidream.cloud)|GPT-3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|
+|[you.com](you.com)|GPT-3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|
+|[forefront.ai](forefront.ai)|GPT-3.5 / Internet / good search|![Active](https://img.shields.io/badge/Active-grey)|
+|[phind.com](https://www.phind.com/)|GPT-4 / Internet / good search|![Active](https://img.shields.io/badge/Active-grey)|
+|[bing.com/chat](bing.com/chat)|GPT-4/3.5||
+|[poe.com](poe.com)| GPT-4/3.5||
+|[writesonic.com](writesonic.com)| GPT-3.5 / Internet||
+|[t3nsor.com](t3nsor.com)|GPT-3.5||
 
 ## Run local
 
