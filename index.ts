@@ -35,7 +35,7 @@ router.get('/ask', async (ctx) => {
         return;
     }
     const res = await chat.ask({prompt: prompt as string, options});
-    ctx.body = res?.text;
+    ctx.body = res;
 });
 
 router.get('/ask/stream', async (ctx) => {
