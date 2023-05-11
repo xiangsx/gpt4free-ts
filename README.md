@@ -5,7 +5,7 @@ This is a replication project for the typescript version of [gpt4free](https://g
 In the next two weeks, I will open source all the code for GPTGOD. If you need, Please watch this project or follow me
 to receive notifications.
 
-Why now? because there are stil some secret config shoule be removed from that project.
+Why now? because there are stil some secret config should be removed from that project.
 
 ## Reverse target
 
@@ -86,6 +86,8 @@ resignup?: number; // default 0 if set 1, auto sign up when gpt4 times use up
 // event: error
 // data: GPT-4 rate limit exceeded (>5 messages every 3 hours). Time remaining: 179 minutes
 // if you see this try set resignup=1 or use gpt-3.5-turbo
+
+// if you want chat with context, set actionType=continue and chatId={Defined constant uuid}
 ```
 
 ### test now!
