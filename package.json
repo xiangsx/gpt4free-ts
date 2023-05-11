@@ -26,6 +26,7 @@
   },
   "dependencies": {
     "axios": "^1.4.0",
+    "dotenv": "^16.0.3",
     "event-stream": "^4.0.1",
     "fake-useragent": "^1.0.1",
     "http-proxy-agent": "^6.0.1",

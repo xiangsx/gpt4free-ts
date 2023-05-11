@@ -406,6 +406,11 @@ dot-json@^1.2.2:
     docopt "~0.6.2"
     underscore-keypath "~0.0.22"
 
+dotenv@^16.0.3:
+  version "16.0.3"
+  resolved "http://registry.npm.baidu-int.com/dotenv/-/dotenv-16.0.3.tgz#115aec42bac5053db3c456db30cc243a5a836a07"
+  integrity sha512-7GO6HghkA5fYG9TYnNxi14/7K9f5occMlp3zXAuSxn7CKCxt9xbNWG7yF8hTCSUchlfWSe3uLmlPfigevRItzQ==
+
 duplexer@^0.1.1, duplexer@~0.1.1:
   version "0.1.2"
   resolved "https://registry.npmjs.org/duplexer/-/duplexer-0.1.2.tgz#3abe43aef3835f8ae077d136ddce0f276b0400e6"
