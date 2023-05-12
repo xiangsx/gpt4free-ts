@@ -4,3 +4,4 @@ yarn-error.log
 package-lock.json
 node_modules/
 .env
+pool/run

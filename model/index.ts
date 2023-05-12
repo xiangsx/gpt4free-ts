@@ -1,13 +1,15 @@
 import {Chat, ChatOptions} from "./base";
 import {You} from "./you";
-import {Forefront} from "./forefront";
 import {AiDream} from "./aidream";
+import {Phind} from "./phind";
+import {Forefrontnew} from "./forefront";
 
 export enum Model {
     // define new model here
     You = 'you',
     Forefront = 'forefront',
     AiDream = 'aidream',
+    Phind = 'phind',
 }
 
 export class ChatModelFactory {
@@ -23,8 +25,9 @@ export class ChatModelFactory {
     init() {
         // register new model here
         this.modelMap.set(Model.You, new You(this.options))
-        this.modelMap.set(Model.Forefront, new Forefront(this.options))
+        this.modelMap.set(Model.Forefront, new Forefrontnew(this.options))
         this.modelMap.set(Model.AiDream, new AiDream(this.options))
+        this.modelMap.set(Model.Phind, new Phind(this.options))
     }
 
     get(model: Model): Chat | undefined {
