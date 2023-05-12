@@ -42,6 +42,7 @@ http_proxy=http://host:port
 # you should config this if you use forefront api, this apikey is used for receive register email
 # get api key here https://rapidapi.com/calvinloveland335703-0p6BxLYIH8f/api/temp-mail44
 rapid_api_key=xxxxxxxxxx
+DEBUG=0 # default:0 when you set 1 make sure run with chromium ui
 ```
 
 ```
