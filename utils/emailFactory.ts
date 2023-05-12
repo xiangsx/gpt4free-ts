@@ -106,7 +106,7 @@ class TempMail extends BaseEmail {
                     return;
                 }
                 time++;
-            }, 1000);
+            }, 5000);
         });
     }
 
@@ -166,7 +166,7 @@ class TempMail44 extends BaseEmail {
                     return;
                 }
                 time++;
-            }, 1000);
+            }, 5000);
         });
     }
 }

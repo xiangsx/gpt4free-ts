@@ -13,11 +13,11 @@ Still striving to keep updating.
 
 Have implemented models here:
 If you do not want your website to appear here, please raise an issue and I will remove it immediately.
-|model|support|status|
-|--|--|--|
-|[aidream](http://aidream.cloud)|GPT-3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|
-|[you.com](you.com)|GPT-3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|
-|[forefront.ai](forefront.ai)|GPT-3.5 / Internet / good search|![Active](https://img.shields.io/badge/Active-grey)|
+|model|support|status|active time|
+|--|--|--|--|
+|[forefront.ai](forefront.ai)|GPT-4/gpt3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-05-21|
+|[aidream](http://aidream.cloud)|GPT-3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-05-21|
+|[you.com](you.com)|GPT-3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-05-21|
 |[phind.com](https://www.phind.com/)|GPT-4 / Internet / good search|![Active](https://img.shields.io/badge/Active-grey)|
 |[bing.com/chat](bing.com/chat)|GPT-4/3.5||
 |[poe.com](poe.com)| GPT-4/3.5||
@@ -102,6 +102,9 @@ common request
 curl "http://127.0.0.1:3000/ask?prompt=hello&model=aidream"
 
 # test default model chat.forefront.at
+# !!!!ATTENTION!!!! It Unstable when the first time use, but support GPT4
+# !!!!ATTENTION!!!! You may got timeout when you run this project ant req forefront the first time.
+# !!!!ATTENTION!!!! It will run quickly in your next time;
 curl "http://127.0.0.1:3000/ask?prompt=hello&model=forefront&gptmodel=gpt-4&resignup=1"
 
 # test you.com
@@ -115,6 +118,9 @@ request event-stream
 curl "http://127.0.0.1:3000/ask/stream?prompt=hello&model=aidream"
 
 # test chat.forefront.at
+# !!!!ATTENTION!!!! It Unstable when the first time use, but support GPT4
+# !!!!ATTENTION!!!! You may got timeout when you run this project ant req forefront the first time.
+# !!!!ATTENTION!!!! It will run quickly in your next time;
 curl "http://127.0.0.1:3000/ask/stream?prompt=hello&model=forefront&gptmodel=gpt-4&resignup=1"
 
 # test you

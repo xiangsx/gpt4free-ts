@@ -3,6 +3,7 @@ import Router from 'koa-router'
 import bodyParser from 'koa-bodyparser';
 import {ChatModelFactory, Model} from "./model";
 import dotenv from 'dotenv';
+import {freeBrowserPool} from "./pool/puppeteer";
 
 dotenv.config();
 
@@ -63,12 +64,15 @@ router.get('/ask/stream', async (ctx) => {
 
 app.use(router.routes());
 
-const server = app.listen(3000, () => {
-    console.log("Now listening: 127.0.0.1:3000");
-});
-
-process.on('SIGINT', () => {
-    server.close(() => {
-        process.exit(0);
+(async () => {
+    await freeBrowserPool.init(1, process.env.DEBUG === '1');
+    const server = app.listen(3000, () => {
+        console.log("Now listening: 127.0.0.1:3000");
     });
-});
+    process.on('SIGINT', () => {
+        server.close(() => {
+            process.exit(0);
+        });
+    });
+})()
+
