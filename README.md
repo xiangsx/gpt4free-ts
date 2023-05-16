@@ -1,6 +1,13 @@
 This is a replication project for the typescript version of [gpt4free](https://github.com/xtekky/gpt4free)
 
 ## Demo [GPTGOD](http://gptgod.site)
+### GPTGOD Support
+ 
+- [x] Midjourney The Most Powerful AI Drawing System in History.
+- [x] Claude
+- [x] Chatgpt
+- [x] Chatgpt with internet
+- [x] Create wechat ai robot for yourself, just need one step
 
 In the next two weeks, I will open source all the code for GPTGOD. If you need, Please watch this project or follow me
 to receive notifications.
