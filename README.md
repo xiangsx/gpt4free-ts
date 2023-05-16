@@ -4,6 +4,7 @@ This is a replication project for the typescript version of [gpt4free](https://g
 ### GPTGOD Support
  
 - [x] Midjourney The Most Powerful AI Drawing System in History.
+- [x] Stable Diffusion
 - [x] Claude
 - [x] Chatgpt
 - [x] Chatgpt with internet
