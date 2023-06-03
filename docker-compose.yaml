@@ -10,6 +10,8 @@ services:
     ports:
       - "3000:3000"
     restart: always
+    cap_add:
+      - "SYS_ADMIN"
     environment:
       #      - TZ=Asia/Shanghai
       - http_proxy=${http_proxy}
