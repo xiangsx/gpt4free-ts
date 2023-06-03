@@ -8,7 +8,7 @@ services:
     container_name: gpt4free-ts
     image: gpt4free-ts:latest
     ports:
-      - "3000:3000"
+      - "13000:3000"
     restart: always
     cap_add:
       - "SYS_ADMIN"
