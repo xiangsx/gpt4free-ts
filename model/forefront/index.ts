@@ -103,14 +103,14 @@ export class Forefrontnew extends Chat {
         await this.page.focus('.relative > .flex > .w-full > .text-th-primary-dark > div')
         await this.page.keyboard.type(req.prompt, {delay: 10});
         await this.page.keyboard.press('Enter');
-        await this.page.waitForSelector('#__next > .flex > .relative > .relative > .flex-1');
+        await this.page.waitForSelector('#__next > .flex > .relative > .relative > .w-full:nth-child(1)');
         // find markdown list container
-        const mdList = await this.page.$('#__next > .flex > .relative > .relative > .flex-1');
+        const mdList = await this.page.$('#__next > .flex > .relative > .relative > .w-full:nth-child(1)');
         const md = mdList;
         // get latest markdown id
-        const id = await md?.evaluate(el => el.children.length)
-        console.log(id);
-        const selector = `.flex-1 > .flex:nth-child(${id}) > .relative > .grid > .post-markdown`;
+        let id: number = (await md?.evaluate(el => el.children.length)) || 0
+        id = id * 4;
+        const selector = `div > .w-full:nth-child(${id}) > .flex > .flex > .post-markdown`;
         await this.page.waitForSelector(selector);
         const result = await this.page.$(selector)
         // get latest markdown text
@@ -134,7 +134,7 @@ export class Forefrontnew extends Chat {
                 return;
             }
             try {
-                await this.page.waitForSelector(`.flex-1 > .flex:nth-child(${id}) > .relative > .grid > .opacity-100`);
+                await this.page.waitForSelector(`.w-full:nth-child(${id}) > .flex > .flex > .flex > .opacity-100`);
                 const text: any = await result?.evaluate(el => {
                     console.log(el);
                     return el.textContent;
