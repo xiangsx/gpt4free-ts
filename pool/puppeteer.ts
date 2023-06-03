@@ -57,6 +57,7 @@ class FreeBrowserPool {
         this.size = size;
         const options: PuppeteerLaunchOptions = {
             headless: !debug,
+            args: ['--no-sandbox']
         };
         for (let i = 0; i < size; i++) {
             const browser = new FreeBrowser(`${i}`, options);
