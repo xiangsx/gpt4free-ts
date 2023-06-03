@@ -28,7 +28,7 @@ interface AskReq {
 }
 
 router.get('/ask', async (ctx) => {
-    const {prompt, model = Model.Forefront, ...options} = ctx.query as unknown as AskReq;
+    const {prompt, model = Model.Mcbbs, ...options} = ctx.query as unknown as AskReq;
     if (!prompt) {
         ctx.body = 'please input prompt';
         return;
@@ -39,11 +39,11 @@ router.get('/ask', async (ctx) => {
         return;
     }
     const res = await chat.ask({prompt: prompt as string, options});
-    ctx.body = res;
+    ctx.body = res.text;
 });
 
 router.get('/ask/stream', async (ctx) => {
-    const {prompt, model = Model.Forefront, ...options} = ctx.query as unknown as AskReq;
+    const {prompt, model = Model.Mcbbs, ...options} = ctx.query as unknown as AskReq;
     if (!prompt) {
         ctx.body = 'please input prompt';
         return;

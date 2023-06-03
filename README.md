@@ -15,6 +15,7 @@ Have implemented models here:
 If you do not want your website to appear here, please raise an issue and I will remove it immediately.
 |model|support|status|active time|
 |--|--|--|--|
+|[ai.mcbbs.gq](ai.mcbbs.gq)|gpt3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-06-03|
 |[forefront.ai](forefront.ai)|GPT-4/gpt3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-05-12|
 |[aidream](http://aidream.cloud)|GPT-3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-05-12|
 |[you.com](you.com)|GPT-3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-05-12
@@ -67,7 +68,23 @@ docker-compose up --build -d
 prompt: string; // required
 ```
 
-aidread options
+#### mcbbs options
+
+```typescript
+interface Message {
+    role: string;
+    content: string;
+}
+
+interface options {
+    parse: string;
+    messages: string; // attattion messages is Message[] json string
+    temperature: number;
+}
+
+```
+
+#### aidread options
 
 ```typescript
 interface options {
@@ -79,7 +96,7 @@ interface options {
 }
 ```
 
-forefront options
+#### forefront options
 
 ```
 chatId?: string;
@@ -97,9 +114,14 @@ resignup?: number; // default 0 if set 1, auto sign up when gpt4 times use up
 ### test now!
 
 common request
+use curl or input url in explorer
 
 ```shell
-# test default model aidream
+# test default model mcbbs
+
+curl '127.0.0.1:3000/ask/stream?messages=[{"role":"system","content":"IMPORTANT: You are a virtual assistant powered by the gpt-3.5-turbo model, now time is 2023/6/3 13:42:27}"},{"role":"user","content":"你好\n"},{"role":"assistant","content":"你好！有什么我可以帮助你的吗？"},{"role":"user","content":"写个冒泡排序\n"}]&prompt=test&model=mcbbs&parse=false'
+
+# test aidream
 curl "http://127.0.0.1:3000/ask?prompt=hello&model=aidream"
 
 # test default model chat.forefront.at
