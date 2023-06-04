@@ -14,7 +14,7 @@ export class FreeBrowser {
 
     constructor(id: string, options?: PuppeteerLaunchOptions) {
         this.options = {
-            userDataDir: path.join(runPath, id),
+            // userDataDir: path.join(runPath, id),
             ...options
         };
         this.id = id;
