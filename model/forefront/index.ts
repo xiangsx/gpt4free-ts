@@ -31,6 +31,74 @@ export class Forefrontnew extends Chat {
         })
     }
 
+    private async tryValidate(validateURL: string, triedTimes: number) {
+        if (triedTimes === 3) {
+            await this.remove();
+            throw new Error('validate failed');
+        }
+        triedTimes += 1;
+        try {
+            const tsl = await CreateTlsProxy({clientIdentifier: "chrome_108"}).get(validateURL)
+        } catch (e) {
+            console.log(e)
+            await this.tryValidate(validateURL, triedTimes);
+        }
+    }
+
+    private async remove() {
+        await freeBrowserPool.remove(this.browser?.id || "");
+        this.browser = undefined;
+        this.page = undefined;
+        this.msgSize = 0;
+    }
+
+    private async init(): Promise<Page> {
+        this.browser = freeBrowserPool.getRandom();
+        this.page = await this.browser.getPage("https://accounts.forefront.ai/sign-up");
+        await this.page.setViewport({width: 1920, height: 1080});
+        await this.page.waitForSelector('#emailAddress-field');
+        await this.page.click('#emailAddress-field')
+
+        await this.page.waitForSelector('.cl-rootBox > .cl-card > .cl-main > .cl-form > .cl-formButtonPrimary')
+        await this.page.click('.cl-rootBox > .cl-card > .cl-main > .cl-form > .cl-formButtonPrimary')
+
+        const emailBox = CreateEmail(TempEmailType.TempEmail44)
+        const emailAddress = await emailBox.getMailAddress();
+        // 将文本键入焦点元素
+        await this.page.keyboard.type(emailAddress, {delay: 10});
+        await this.page.keyboard.press('Enter');
+
+        const msgs = (await emailBox.waitMails()) as TempMailMessage[]
+        let validateURL: string | undefined;
+        for (const msg of msgs) {
+            validateURL = msg.content.match(/https:\/\/clerk\.forefront\.ai\/v1\/verify\?token=[^\s"]+/i)?.[0];
+            if (validateURL) {
+                break;
+            }
+        }
+        if (!validateURL) {
+            throw new Error('Error while obtaining verfication URL!')
+        }
+        await this.tryValidate(validateURL, 0);
+        console.log('register successfully');
+        await this.page.waitForSelector('.flex > .modal > .modal-box > .flex > .px-3:nth-child(1)', {timeout: 10000})
+        await this.page.click('.flex > .modal > .modal-box > .flex > .px-3:nth-child(1)')
+        await this.page.waitForSelector('.relative > .flex > .w-full > .text-th-primary-dark > div', {timeout: 10000})
+
+        await this.page.waitForTimeout(2000);
+        await this.page.waitForSelector('.absolute > .shadow > .w-full:nth-child(2) > .flex > .font-medium', {timeout: 100000});
+        await this.page.click('.absolute > .shadow > .w-full:nth-child(2) > .flex > .font-medium');
+        await this.page.waitForSelector('.absolute > .shadow > .w-full:nth-child(2) > .flex > .font-medium')
+        await this.page.click('.absolute > .shadow > .w-full:nth-child(2) > .flex > .font-medium')
+
+        await this.page.waitForSelector('.px-4 > .flex > .grid > .h-9 > .grow')
+        await this.page.click('.px-4 > .flex > .grid > .h-9 > .grow')
+
+        await this.page.waitForSelector('.grid > .block > .group:nth-child(5) > .grid > .grow:nth-child(1)')
+        await this.page.click('.grid > .block > .group:nth-child(5) > .grid > .grow:nth-child(1)')
+        return this.page;
+    }
+
     public async askStream(req: Request): Promise<ResponseStream> {
         if (this.writing) {
             const pt = new PassThrough();
@@ -38,65 +106,18 @@ export class Forefrontnew extends Chat {
             pt.end();
             return {text: pt}
         }
-        if (this.msgSize === 2) {
-            await freeBrowserPool.remove(this.browser?.id||"");
-            this.browser = undefined;
-            this.page = undefined;
-            this.msgSize = 0;
+        if (this.msgSize === 5) {
+            await this.remove();
         }
         this.msgSize++;
-        if (!this.browser) {
-            this.browser = freeBrowserPool.getRandom();
-        }
-        let needRegister = false;
-        if (!this.page) {
-            this.page = await this.browser.getPage(this.url);
-            await this.page.setViewport({width: 1920, height: 1080});
-        }
-        if (this.page.url() !== this.url) {
-            await this.page.goto(this.url);
+        if (!this.browser || !this.page) {
+            this.page = await this.init();
         }
         try {
             console.log('try find text input');
             await this.page.waitForSelector('.relative > .flex > .w-full > .text-th-primary-dark > div', {timeout: 10000})
         } catch (e) {
-            console.log('not found text input.')
-            console.log('try register');
-            await this.page.waitForSelector('.cl-rootBox > .cl-card > .cl-footer > .cl-footerAction > .cl-footerActionLink', {timeout: 10000});
-            await this.page.click('.cl-rootBox > .cl-card > .cl-footer > .cl-footerAction > .cl-footerActionLink');
-            await this.page.waitForSelector('#emailAddress-field');
-            await this.page.click('#emailAddress-field')
-
-            await this.page.waitForSelector('.cl-rootBox > .cl-card > .cl-main > .cl-form > .cl-formButtonPrimary')
-            await this.page.click('.cl-rootBox > .cl-card > .cl-main > .cl-form > .cl-formButtonPrimary')
-
-            const emailBox = CreateEmail(TempEmailType.TempEmail44)
-            const emailAddress = await emailBox.getMailAddress();
-            // 将文本键入焦点元素
-            await this.page.keyboard.type(emailAddress, {delay: 10});
-            await this.page.keyboard.press('Enter');
-
-            const msgs = (await emailBox.waitMails()) as TempMailMessage[]
-            let validateURL: string | undefined;
-            for (const msg of msgs) {
-                validateURL = msg.content.match(/https:\/\/clerk\.forefront\.ai\/v1\/verify\?token=[^\s"]+/i)?.[0];
-                if (validateURL) {
-                    break;
-                }
-            }
-            if (!validateURL) {
-                throw new Error('Error while obtaining verfication URL!')
-            }
-            const tsl = await CreateTlsProxy({clientIdentifier: "chrome_108"}).get(validateURL)
-            console.log('register successfully');
-            await this.page.waitForSelector('.flex > .modal > .modal-box > .flex > .px-3:nth-child(1)', {timeout: 10000})
-            await this.page.click('.flex > .modal > .modal-box > .flex > .px-3:nth-child(1)')
-            await this.page.waitForSelector('.relative > .flex > .w-full > .text-th-primary-dark > div', {timeout: 10000})
-            console.log('try save cookie');
-            console.log('save cookie successfully')
-        } finally {
-            await this.page.waitForSelector('.absolute > .shadow > .w-full:nth-child(2) > .flex > .font-medium',{timeout:100000});
-            await this.page.click('.absolute > .shadow > .w-full:nth-child(2) > .flex > .font-medium');
+            console.error(e);
         }
         console.log('try to find input');
         await this.page.waitForSelector('.relative > .flex > .w-full > .text-th-primary-dark > div', {
@@ -140,10 +161,11 @@ export class Forefrontnew extends Chat {
             try {
                 await this.page.waitForSelector(`.w-full:nth-child(${id}) > .flex > .flex > .flex > .opacity-100`);
                 const text: any = await result?.evaluate(el => {
-                    console.log(el);
                     return el.textContent;
                 });
-                pt.write(text.slice(oldText.length - text.length));
+                if (oldText.length !== text.length) {
+                    pt.write(text.slice(oldText.length - text.length));
+                }
             } finally {
                 pt.end();
                 clearInterval(itl);
