@@ -2,6 +2,8 @@ import puppeteer, {Browser, Page, PuppeteerLaunchOptions} from "puppeteer";
 import fs from 'fs';
 import path from "path";
 import run from "node:test";
+import {randomUUID} from "crypto";
+import {v4} from "uuid";
 
 const runPath = path.join(__dirname, 'run');
 
@@ -10,7 +12,7 @@ export class FreeBrowser {
     private readonly options: PuppeteerLaunchOptions | undefined;
     private urls: Set<string> = new Set<string>();
     private pages: Record<string, Page> = {};
-    private readonly id: string;
+    public readonly id: string;
 
     constructor(id: string, options?: PuppeteerLaunchOptions) {
         this.options = {
@@ -38,36 +40,61 @@ export class FreeBrowser {
         this.pages[url] = page;
         return page;
     }
+
+    public async close() {
+        this.browser?.close();
+    }
 }
 
 
 class FreeBrowserPool {
     private size: number = 0;
     private readonly pool: FreeBrowser[];
+    private debug: boolean = false;
 
     constructor() {
         this.pool = [];
     }
 
-    public async init(size: number, debug: boolean) {
+    public async init(size: number,debug:boolean) {
+        this.debug = debug;
         console.log(`browser pool init size:${size}`)
         if (!fs.existsSync(runPath)) {
             fs.mkdirSync(runPath);
         }
         this.size = size;
-        const options: PuppeteerLaunchOptions = {
-            headless: !debug,
-            args: ['--no-sandbox']
-        };
         for (let i = 0; i < size; i++) {
-            const browser = new FreeBrowser(`${i}`, options);
-            await browser.init();
-            this.pool.push(browser);
+            this.pool.push(await this.newBrowser());
         }
     }
 
     public getRandom(): FreeBrowser {
         return this.pool[Math.floor(Math.random() * this.pool.length)]
+    }
+
+    private async newBrowser(): Promise<FreeBrowser> {
+        const options: PuppeteerLaunchOptions = {
+            headless: !this.debug,
+            args: ['--no-sandbox']
+        };
+        const browser = new FreeBrowser(v4(), options);
+        await browser.init();
+        return browser;
+    }
+
+    public async remove(id: string) {
+        let removed = false;
+        this.pool.filter(item => {
+            if (item.id === id) {
+                item.close();
+                removed = true;
+                return false;
+            }
+            return true;
+        })
+        if (removed) {
+            this.pool.push(await this.newBrowser());
+        }
     }
 }
 
