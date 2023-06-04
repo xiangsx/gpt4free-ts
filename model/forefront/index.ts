@@ -103,9 +103,9 @@ export class Forefrontnew extends Chat {
         await this.page.focus('.relative > .flex > .w-full > .text-th-primary-dark > div')
         await this.page.keyboard.type(req.prompt, {delay: 10});
         await this.page.keyboard.press('Enter');
-        await this.page.waitForSelector('#__next > .flex > .relative > .relative > .w-full:nth-child(1)');
+        await this.page.waitForSelector('#__next > .flex > .relative > .relative > .w-full:nth-child(1) > div');
         // find markdown list container
-        const mdList = await this.page.$('#__next > .flex > .relative > .relative > .w-full:nth-child(1)');
+        const mdList = await this.page.$('#__next > .flex > .relative > .relative > .w-full:nth-child(1) > div');
         const md = mdList;
         // get latest markdown id
         let id: number = (await md?.evaluate(el => el.children.length)) || 0
