@@ -104,21 +104,6 @@ interface options {
 }
 ```
 
-#### forefront options
-
-```
-chatId?: string;
-actionType?: Action; // 'new' or 'continue'
-defaultPersona?: string;
-gptmodel?: Model; // gpt-4 or gpt-3.5-turbo
-resignup?: number; // default 0 if set 1, auto sign up when gpt4 times use up
-// event: error
-// data: GPT-4 rate limit exceeded (>5 messages every 3 hours). Time remaining: 179 minutes
-// if you see this try set resignup=1 or use gpt-3.5-turbo
-
-// if you want chat with context, set actionType=continue and chatId={Defined constant uuid}
-```
-
 ### test now!
 
 common request
@@ -132,11 +117,8 @@ curl '127.0.0.1:3000/ask/stream?messages=[{"role":"system","content":"IMPORTANT:
 # test aidream
 curl "http://127.0.0.1:3000/ask?prompt=hello&model=aidream"
 
-# test default model chat.forefront.at
-# !!!!ATTENTION!!!! It Unstable when the first time use, but support GPT4
-# !!!!ATTENTION!!!! You may got timeout when you run this project ant req forefront the first time.
-# !!!!ATTENTION!!!! It will run quickly in your next time;
-curl "http://127.0.0.1:3000/ask?prompt=hello&model=forefront&gptmodel=gpt-4&resignup=1"
+# test chat.forefront.at Default,use gpt4
+curl "http://127.0.0.1:3000/ask?prompt=hello&model=forefront"
 
 # test you.com
 curl "http://127.0.0.1:3000/ask?prompt=hello&model=you"
@@ -148,10 +130,7 @@ request event-stream
 # test default model aidream
 curl "http://127.0.0.1:3000/ask/stream?prompt=hello&model=aidream"
 
-# test chat.forefront.at
-# !!!!ATTENTION!!!! It Unstable when the first time use, but support GPT4
-# !!!!ATTENTION!!!! You may got timeout when you run this project ant req forefront the first time.
-# !!!!ATTENTION!!!! It will run quickly in your next time;
+# test chat.forefront.at Default,use gpt4
 curl "http://127.0.0.1:3000/ask/stream?prompt=hello&model=forefront&gptmodel=gpt-4&resignup=1"
 
 # test you
