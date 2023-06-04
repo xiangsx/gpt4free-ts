@@ -87,11 +87,8 @@ export class Forefrontnew extends Chat {
             console.log('try save cookie');
             console.log('save cookie successfully')
         } finally {
-            const se = await this.page.$('#model-select');
-            if (se) {
-                await this.page.click('#model-select');
-                await this.page.select('#model-select', 'gpt-4')
-            }
+            await this.page.waitForSelector('.absolute > .shadow > .w-full:nth-child(2) > .flex > .font-medium',{timeout:100000});
+            await this.page.click('.absolute > .shadow > .w-full:nth-child(2) > .flex > .font-medium');
         }
         console.log('try to find input');
         await this.page.waitForSelector('.relative > .flex > .w-full > .text-th-primary-dark > div', {
