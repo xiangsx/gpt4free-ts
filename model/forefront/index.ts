@@ -10,6 +10,7 @@ export class Forefrontnew extends Chat {
     private page: Page | undefined = undefined;
     private url: string = 'https://chat.forefront.ai/';
     private writing: NodeJS.Timer | undefined = undefined;
+    private msgSize: number = 0;
 
     constructor(options?: ChatOptions) {
         super(options);
@@ -37,6 +38,13 @@ export class Forefrontnew extends Chat {
             pt.end();
             return {text: pt}
         }
+        if (this.msgSize === 2) {
+            await freeBrowserPool.remove(this.browser?.id||"");
+            this.browser = undefined;
+            this.page = undefined;
+            this.msgSize = 0;
+        }
+        this.msgSize++;
         if (!this.browser) {
             this.browser = freeBrowserPool.getRandom();
         }
@@ -105,8 +113,7 @@ export class Forefrontnew extends Chat {
         const mdList = await this.page.$('#__next > .flex > .relative > .relative > .w-full:nth-child(1) > div');
         const md = mdList;
         // get latest markdown id
-        let id: number = (await md?.evaluate(el => el.children.length)) || 0
-        id = id * 4;
+        let id: number = this.msgSize * 4;
         const selector = `div > .w-full:nth-child(${id}) > .flex > .flex > .post-markdown`;
         await this.page.waitForSelector(selector);
         const result = await this.page.$(selector)
