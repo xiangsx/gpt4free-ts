@@ -1,7 +1,6 @@
 import {Chat, ChatOptions} from "./base";
 import {You} from "./you";
 import {AiDream} from "./aidream";
-import {Phind} from "./phind";
 import {Forefrontnew} from "./forefront";
 import {Mcbbs} from "./mcbbs";
 
@@ -10,7 +9,6 @@ export enum Model {
     You = 'you',
     Forefront = 'forefront',
     AiDream = 'aidream',
-    Phind = 'phind',
     Mcbbs = 'mcbbs',
 }
 
@@ -29,7 +27,6 @@ export class ChatModelFactory {
         this.modelMap.set(Model.You, new You(this.options))
         this.modelMap.set(Model.Forefront, new Forefrontnew(this.options))
         this.modelMap.set(Model.AiDream, new AiDream(this.options))
-        this.modelMap.set(Model.Phind, new Phind(this.options))
         this.modelMap.set(Model.Mcbbs, new Mcbbs(this.options))
     }
 
