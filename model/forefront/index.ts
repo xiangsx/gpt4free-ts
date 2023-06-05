@@ -59,7 +59,7 @@ export class Forefrontnew extends Chat {
         await page.waitForSelector('.cl-rootBox > .cl-card > .cl-main > .cl-form > .cl-formButtonPrimary')
         await page.click('.cl-rootBox > .cl-card > .cl-main > .cl-form > .cl-formButtonPrimary')
 
-        const emailBox = CreateEmail(TempEmailType.TempEmail44)
+        const emailBox = CreateEmail(process.env.EMAIL_TYPE as TempEmailType || TempEmailType.TempEmail44)
         const emailAddress = await emailBox.getMailAddress();
         // 将文本键入焦点元素
         await page.keyboard.type(emailAddress, {delay: 10});
