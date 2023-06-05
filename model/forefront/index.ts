@@ -9,6 +9,8 @@ type PageData = {
     gpt4times: number;
 }
 
+const MaxGptTimes = 4;
+
 export class Forefrontnew extends Chat {
     private page: Page | undefined = undefined;
     private msgSize: number = 0;
@@ -16,7 +18,7 @@ export class Forefrontnew extends Chat {
 
     constructor(options?: ChatOptions) {
         super(options);
-        this.pagePool = new BrowserPool<PageData>(+(process.env.POOL_SIZE||2), this.init.bind(this));
+        this.pagePool = new BrowserPool<PageData>(+(process.env.POOL_SIZE || 2), this.init.bind(this));
     }
 
     public async ask(req: Request): Promise<Response> {
@@ -57,7 +59,7 @@ export class Forefrontnew extends Chat {
         await page.waitForSelector('.cl-rootBox > .cl-card > .cl-main > .cl-form > .cl-formButtonPrimary')
         await page.click('.cl-rootBox > .cl-card > .cl-main > .cl-form > .cl-formButtonPrimary')
 
-        const emailBox = CreateEmail(TempEmailType.TempEmail44)
+        const emailBox = CreateEmail(TempEmailType.TempEmail)
         const emailAddress = await emailBox.getMailAddress();
         // 将文本键入焦点元素
         await page.keyboard.type(emailAddress, {delay: 10});
@@ -148,7 +150,8 @@ export class Forefrontnew extends Chat {
                 return;
             }
             try {
-                await page.waitForSelector(`.w-full > .flex > .flex > .flex > .opacity-100`);
+                // wait chat end
+                await page.waitForSelector(`.w-full > .flex > .flex > .flex > .opacity-100`, {timeout: 5 * 60 * 1000});
                 const text: any = await result?.evaluate(el => {
                     return el.textContent;
                 });
@@ -160,7 +163,7 @@ export class Forefrontnew extends Chat {
                 await page.waitForSelector('.flex:nth-child(1) > div:nth-child(2) > .relative > .flex > .cursor-pointer')
                 await page.click('.flex:nth-child(1) > div:nth-child(2) > .relative > .flex > .cursor-pointer')
                 data.gpt4times += 1;
-                if (data.gpt4times >= 5) {
+                if (data.gpt4times >= MaxGptTimes) {
                     destroy();
                 } else {
                     done(data);
