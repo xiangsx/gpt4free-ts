@@ -74,8 +74,8 @@ class FreeBrowserPool {
 
     private async newBrowser(): Promise<FreeBrowser> {
         const options: PuppeteerLaunchOptions = {
-            headless: !this.debug,
-            args: ['--no-sandbox']
+            headless: this.debug ? false : 'new',
+            args: ['--no-sandbox',`--proxy-server=${process.env.http_proxy}`]
         };
         const browser = new FreeBrowser(v4(), options);
         await browser.init();
