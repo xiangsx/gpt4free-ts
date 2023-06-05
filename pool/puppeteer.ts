@@ -2,7 +2,6 @@ import puppeteer, {Browser, Page, PuppeteerLaunchOptions} from "puppeteer";
 import fs from 'fs';
 import path from "path";
 import run from "node:test";
-import {randomUUID} from "crypto";
 import {v4} from "uuid";
 
 const runPath = path.join(__dirname, 'run');
@@ -56,7 +55,7 @@ class FreeBrowserPool {
         this.pool = [];
     }
 
-    public async init(size: number,debug:boolean) {
+    public async init(size: number, debug: boolean) {
         this.debug = debug;
         console.log(`browser pool init size:${size}`)
         if (!fs.existsSync(runPath)) {
@@ -75,8 +74,11 @@ class FreeBrowserPool {
     private async newBrowser(): Promise<FreeBrowser> {
         const options: PuppeteerLaunchOptions = {
             headless: this.debug ? false : 'new',
-            args: ['--no-sandbox',`--proxy-server=${process.env.http_proxy}`]
+            args: ['--no-sandbox']
         };
+        if (process.env.http_proxy) {
+            options.args?.push(`--proxy-server=${process.env.http_proxy}`);
+        }
         const browser = new FreeBrowser(v4(), options);
         await browser.init();
         return browser;
