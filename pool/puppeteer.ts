@@ -62,6 +62,7 @@ export class BrowserPool<T> {
                         item.data = data;
                     },
                     () => {
+                        item.page?.close();
                         this.initOne().then((page) => {
                             item.page = page
                             item.ready = true;
@@ -70,5 +71,6 @@ export class BrowserPool<T> {
                 ]
             }
         }
+        return [] as any;
     }
 }
