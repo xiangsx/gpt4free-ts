@@ -10,6 +10,8 @@ services:
     ports:
       - "13000:3000"
     restart: always
+    volumes:
+      - ./run:/usr/src/app/run
     cap_add:
       - "SYS_ADMIN"
     environment:
