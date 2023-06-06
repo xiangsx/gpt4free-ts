@@ -124,6 +124,8 @@ export class Forefrontnew extends Chat {
 
     private static async switchToGpt4(page: Page, triedTimes: number = 0) {
         if (triedTimes === 3) {
+            await page.waitForSelector('div > .absolute > .relative > .w-full:nth-child(3) > .relative')
+            await page.click('div > .absolute > .relative > .w-full:nth-child(3) > .relative');
             return;
         }
         try {
