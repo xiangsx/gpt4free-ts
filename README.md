@@ -54,7 +54,7 @@ http_proxy=http://host:port
 rapid_api_key=xxxxxxxxxx
 EMAIL_TYPE=temp-email44 # temp email type
 DEBUG=0 # default:0 when you set 1 make sure run with chromium ui
-POOL_SIZE=1 # forefront concurrency size
+POOL_SIZE=3 # forefront concurrency size. You can engage in {POOL_SIZE} conversations concurrently.
 ```
 
 ```
