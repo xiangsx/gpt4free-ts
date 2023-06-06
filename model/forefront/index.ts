@@ -55,8 +55,8 @@ class AccountPool {
         const now = moment();
         const minInterval = 3 * 60 * 60 + 10 * 60;// 3hour + 10min
         for (const item of this.pool) {
-            console.log(now.unix() - moment(item.last_use_time).unix());
             if (now.unix() - moment(item.last_use_time).unix() > minInterval) {
+                console.log(`find old login account:`, item);
                 item.last_use_time = now.format(TimeFormat);
                 this.syncfile();
                 return item
@@ -122,9 +122,13 @@ export class Forefrontnew extends Chat {
         }
     }
 
-    private static async switchToGpt4(page: Page) {
+    private static async switchToGpt4(page: Page, triedTimes: number = 0) {
+        if (triedTimes === 3) {
+            return;
+        }
         try {
             console.log('switch gpt4....')
+            triedTimes += 1;
             await page.waitForTimeout(2000);
             await page.waitForSelector('div > .absolute > .relative > .w-full:nth-child(3) > .relative')
             await page.click('div > .absolute > .relative > .w-full:nth-child(3) > .relative');
@@ -140,10 +144,10 @@ export class Forefrontnew extends Chat {
             await page.waitForSelector('.px-4 > .flex > .grid > .block > .group:nth-child(5)')
             await page.click('.px-4 > .flex > .grid > .block > .group:nth-child(5)')
             console.log('switch gpt4 ok!')
-        }catch (e) {
+        } catch (e) {
             console.log(e);
             await page.reload();
-            await Forefrontnew.switchToGpt4(page);
+            await Forefrontnew.switchToGpt4(page, triedTimes);
         }
     }
 
