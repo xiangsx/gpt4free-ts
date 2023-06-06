@@ -140,11 +140,15 @@ export class Forefrontnew extends Chat {
             await page.waitForTimeout(1000);
             await page.hover('div > .absolute > .relative > .w-full:nth-child(3) > .relative')
 
-            await page.waitForSelector('.grid > .h-9 > .text-th-primary-light > g > path')
-            await page.click('.grid > .h-9 > .text-th-primary-light > g > path')
+            await page.waitForSelector('.px-4 > .flex > .grid > .h-9 > .grow')
+            await page.click('.px-4 > .flex > .grid > .h-9 > .grow')
 
-            await page.waitForSelector('.px-4 > .flex > .grid > .block > .group:nth-child(5)')
-            await page.click('.px-4 > .flex > .grid > .block > .group:nth-child(5)')
+            await page.waitForSelector('.flex > .grid > .block > .sticky > .text-sm')
+            await page.click('.flex > .grid > .block > .sticky > .text-sm')
+            await page.keyboard.type('helpful', {delay: 10});
+
+            await page.waitForSelector('.px-4 > .flex > .grid > .block > .group')
+            await page.click('.px-4 > .flex > .grid > .block > .group')
             console.log('switch gpt4 ok!')
         } catch (e) {
             console.log(e);
