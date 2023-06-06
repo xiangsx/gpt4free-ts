@@ -88,7 +88,7 @@ export class Mcbbs extends Chat {
                 cb(null, '');
                 return;
             }
-            const data = parseJSON(dataStr, {});
+            const data = parseJSON(dataStr, {} as any);
             if (!data?.choices) {
                 cb(null, '');
                 return;

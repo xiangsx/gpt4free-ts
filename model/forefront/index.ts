@@ -4,6 +4,10 @@ import {BrowserPool} from "../../pool/puppeteer";
 import {CreateEmail, TempEmailType, TempMailMessage} from "../../utils/emailFactory";
 import {CreateTlsProxy} from "../../utils/proxyAgent";
 import {PassThrough} from "stream";
+import * as fs from "fs";
+import {parseJSON} from "../../utils";
+import {v4} from "uuid";
+import moment from 'moment';
 
 type PageData = {
     gpt4times: number;
@@ -11,14 +15,83 @@ type PageData = {
 
 const MaxGptTimes = 4;
 
+const TimeFormat = "YYYY-MM-DD HH:mm:ss";
+
+type Account = {
+    id: string;
+    email?: string;
+    login_time?: string;
+    last_use_time?: string;
+    gpt4times: number;
+}
+
+class AccountPool {
+    private pool: Account[] = [];
+    private readonly account_file_path = './run/account.json';
+
+    constructor() {
+        if (fs.existsSync(this.account_file_path)) {
+            const accountStr = fs.readFileSync(this.account_file_path, 'utf-8');
+            this.pool = parseJSON(accountStr, [] as Account[]);
+        } else {
+            fs.mkdirSync('./run', {recursive: true});
+            this.syncfile();
+        }
+    }
+
+    public syncfile() {
+        fs.writeFileSync(this.account_file_path, JSON.stringify(this.pool));
+    }
+
+    public getByID(id: string) {
+        for (const item of this.pool) {
+            if (item.id === id) {
+                return item;
+            }
+        }
+    }
+
+    public get(): Account {
+        const now = moment();
+        const minInterval = 3 * 60 * 60 + 10 * 60;// 3hour + 10min
+        for (const item of this.pool) {
+            console.log(now.unix() - moment(item.last_use_time).unix());
+            if (now.unix() - moment(item.last_use_time).unix() > minInterval) {
+                item.last_use_time = now.format(TimeFormat);
+                this.syncfile();
+                return item
+            }
+        }
+        const newAccount: Account = {
+            id: v4(),
+            last_use_time: now.format(TimeFormat),
+            gpt4times: 0,
+        }
+        this.pool.push(newAccount);
+        this.syncfile();
+        return newAccount
+    }
+
+    public multiGet(size: number): Account[] {
+        const result: Account[] = [];
+        for (let i = 0; i < size; i++) {
+            result.push(this.get());
+        }
+        return result
+    }
+}
+
+
 export class Forefrontnew extends Chat {
-    private page: Page | undefined = undefined;
-    private msgSize: number = 0;
-    private pagePool: BrowserPool<PageData>;
+    private pagePool: BrowserPool<Account>;
+    private accountPool: AccountPool;
 
     constructor(options?: ChatOptions) {
         super(options);
-        this.pagePool = new BrowserPool<PageData>(+(process.env.POOL_SIZE || 2), this.init.bind(this));
+        this.accountPool = new AccountPool();
+        const maxSize = +(process.env.POOL_SIZE || 2);
+        const initialAccounts = this.accountPool.multiGet(maxSize);
+        this.pagePool = new BrowserPool<Account>(maxSize, initialAccounts.map(item => item.id), this.init.bind(this));
     }
 
     public async ask(req: Request): Promise<Response> {
@@ -49,8 +122,44 @@ export class Forefrontnew extends Chat {
         }
     }
 
-    private async init(browser: Browser): Promise<Page> {
+    private static async switchToGpt4(page: Page) {
+        try {
+            console.log('switch gpt4....')
+            await page.waitForTimeout(2000);
+            await page.waitForSelector('div > .absolute > .relative > .w-full:nth-child(3) > .relative')
+            await page.click('div > .absolute > .relative > .w-full:nth-child(3) > .relative');
+            await page.waitForTimeout(1000);
+            await page.waitForSelector('div > .absolute > .relative > .w-full:nth-child(3) > .relative')
+            await page.click('div > .absolute > .relative > .w-full:nth-child(3) > .relative')
+            await page.waitForTimeout(1000);
+            await page.hover('div > .absolute > .relative > .w-full:nth-child(3) > .relative')
+
+            await page.waitForSelector('.grid > .h-9 > .text-th-primary-light > g > path')
+            await page.click('.grid > .h-9 > .text-th-primary-light > g > path')
+
+            await page.waitForSelector('.px-4 > .flex > .grid > .block > .group:nth-child(5)')
+            await page.click('.px-4 > .flex > .grid > .block > .group:nth-child(5)')
+            console.log('switch gpt4 ok!')
+        }catch (e) {
+            console.log(e);
+            await page.reload();
+            await Forefrontnew.switchToGpt4(page);
+        }
+    }
+
+    private async init(id: string, browser: Browser): Promise<[Page, Account]> {
+        const account = this.accountPool.getByID(id);
+        if (!account) {
+            throw new Error("account undefined, something error");
+        }
+
         const [page] = await browser.pages();
+        if (account.login_time) {
+            await page.goto("https://chat.forefront.ai/");
+            await page.setViewport({width: 1920, height: 1080});
+            await Forefrontnew.switchToGpt4(page);
+            return [page, account];
+        }
         await page.goto("https://accounts.forefront.ai/sign-up");
         await page.setViewport({width: 1920, height: 1080});
         await page.waitForSelector('#emailAddress-field');
@@ -61,6 +170,8 @@ export class Forefrontnew extends Chat {
 
         const emailBox = CreateEmail(process.env.EMAIL_TYPE as TempEmailType || TempEmailType.TempEmail44)
         const emailAddress = await emailBox.getMailAddress();
+        account.email = emailAddress;
+        this.accountPool.syncfile();
         // 将文本键入焦点元素
         await page.keyboard.type(emailAddress, {delay: 10});
         await page.keyboard.press('Enter');
@@ -78,31 +189,29 @@ export class Forefrontnew extends Chat {
         }
         await this.tryValidate(validateURL, 0);
         console.log('register successfully');
+        account.login_time = moment().format(TimeFormat);
+        this.accountPool.syncfile();
         await page.waitForSelector('.flex > .modal > .modal-box > .flex > .px-3:nth-child(1)', {timeout: 10000})
         await page.click('.flex > .modal > .modal-box > .flex > .px-3:nth-child(1)')
         await page.waitForSelector('.relative > .flex > .w-full > .text-th-primary-dark > div', {timeout: 10000})
 
-        await page.waitForTimeout(2000);
-        await page.waitForSelector('.absolute > .shadow > .w-full:nth-child(2) > .flex > .font-medium', {timeout: 100000});
-        await page.click('.absolute > .shadow > .w-full:nth-child(2) > .flex > .font-medium');
-        await page.waitForSelector('.absolute > .shadow > .w-full:nth-child(2) > .flex > .font-medium')
-        await page.click('.absolute > .shadow > .w-full:nth-child(2) > .flex > .font-medium')
-
-        await page.waitForSelector('.px-4 > .flex > .grid > .h-9 > .grow')
-        await page.click('.px-4 > .flex > .grid > .h-9 > .grow')
-
-        await page.waitForSelector('.grid > .block > .group:nth-child(5) > .grid > .grow:nth-child(1)')
-        await page.click('.grid > .block > .group:nth-child(5) > .grid > .grow:nth-child(1)')
-        return page;
+        await Forefrontnew.switchToGpt4(page);
+        return [page, account];
     }
 
     public async askStream(req: Request): Promise<ResponseStream> {
-        const [page, data = {gpt4times: 0} as PageData, done, destroy] = this.pagePool.get();
+        const [page, account, done, destroy] = this.pagePool.get();
+        if (!account) {
+            const pt = new PassThrough();
+            pt.write('account undefined, something error');
+            pt.end();
+            return {text: pt};
+        }
         if (!page) {
             const pt = new PassThrough();
             pt.write('please wait init.....about 1 min');
             pt.end();
-            return {text: pt}
+            return {text: pt};
         }
         try {
             console.log('try find text input');
@@ -162,11 +271,16 @@ export class Forefrontnew extends Chat {
                 pt.end();
                 await page.waitForSelector('.flex:nth-child(1) > div:nth-child(2) > .relative > .flex > .cursor-pointer')
                 await page.click('.flex:nth-child(1) > div:nth-child(2) > .relative > .flex > .cursor-pointer')
-                data.gpt4times += 1;
-                if (data.gpt4times >= MaxGptTimes) {
-                    destroy();
+                account.gpt4times += 1;
+                this.accountPool.syncfile();
+                if (account.gpt4times >= MaxGptTimes) {
+                    account.gpt4times = 0;
+                    account.last_use_time = moment().format(TimeFormat);
+                    this.accountPool.syncfile();
+                    const newAccount = this.accountPool.get();
+                    destroy(newAccount.id);
                 } else {
-                    done(data);
+                    done(account);
                 }
                 clearInterval(itl);
             }

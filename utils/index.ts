@@ -32,7 +32,7 @@ export function randomStr(): string {
     return v4().split('-').join('').slice(-6);
 }
 
-export function parseJSON(str: string, defaultObj: any): any | undefined {
+export function parseJSON<T>(str: string, defaultObj: T): T {
     try {
         return JSON.parse(str)
     } catch (e) {
@@ -41,7 +41,7 @@ export function parseJSON(str: string, defaultObj: any): any | undefined {
     }
 }
 
-export function encryptWithAes256Cbc(data: string, key: string):string {
+export function encryptWithAes256Cbc(data: string, key: string): string {
     const hash = crypto.createHash('sha256').update(key).digest();
     const iv = crypto.randomBytes(16);
     const cipher = crypto.createCipheriv('aes-256-cbc', hash, iv);
