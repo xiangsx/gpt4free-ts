@@ -1,5 +1,7 @@
 [English](README.md)
 
+<p>你可以加入 <a href="https://discord.gg/bbH68Kzm">discord.gg/gptgod<a>获取最新的项目进展. <a href="https://discord.gg/bbH68Kzm"><img align="center" alt="gpt4free Discord" width="22px" src="https://raw.githubusercontent.com/peterthehan/peterthehan/master/assets/discord.svg" /></a></p>
+
 ## 示例项目 [GPTGOD](http://gptgod.site)
 
 ### GPTGOD 现已支持
@@ -120,13 +122,13 @@ curl '127.0.0.1:3000/ask?messages=[{"role":"system","content":"IMPORTANT: You ar
 curl "http://127.0.0.1:3000/ask?prompt=hello&model=forefront"
 ```
 
-request event-stream
+stream类型，会不停地返回，不同网站返回的内容格式有所不同，后面目标是统一返回
 
 ```shell
 # test model mcbbs
 curl '127.0.0.1:3000/ask/stream?messages=[{"role":"system","content":"IMPORTANT: You are a virtual assistant powered by the gpt-3.5-turbo model, now time is 2023/6/3 13:42:27}"},{"role":"user","content":"你好\n"},{"role":"assistant","content":"你好！有什么我可以帮助你的吗？"},{"role":"user","content":"写个冒泡排序\n"}]&prompt=test&model=mcbbs&parse=false'
 
-# test model forefront, use gpt4
+# test model forefront, 返回的是eventstreaam 包含三个事件 data(数据流) error(错误事件) done(会话完成，这个里面会携带完整的数据，这个里面的markdown格式是没有错乱的，data里面的格式可能会有问题)
 curl "http://127.0.0.1:3000/ask/stream?prompt=hello&model=forefront"
 
 # test you
