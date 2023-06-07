@@ -32,6 +32,9 @@ export class BrowserPool<T> {
                 ready: false,
             }
             this.initOne(id).then(([page, data]) => {
+                if (!page) {
+                    return;
+                }
                 info.page = page;
                 info.data = data;
                 info.ready = true;

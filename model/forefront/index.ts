@@ -158,55 +158,59 @@ export class Forefrontnew extends Chat {
     }
 
     private async init(id: string, browser: Browser): Promise<[Page, Account]> {
-        const account = this.accountPool.getByID(id);
-        if (!account) {
-            throw new Error("account undefined, something error");
-        }
+        try {
+            const account = this.accountPool.getByID(id);
+            if (!account) {
+                throw new Error("account undefined, something error");
+            }
 
-        const [page] = await browser.pages();
-        if (account.login_time) {
-            await page.goto("https://chat.forefront.ai/");
+            const [page] = await browser.pages();
+            if (account.login_time) {
+                await page.goto("https://chat.forefront.ai/");
+                await page.setViewport({width: 1920, height: 1080});
+                await Forefrontnew.switchToGpt4(page);
+                return [page, account];
+            }
+            await page.goto("https://accounts.forefront.ai/sign-up");
             await page.setViewport({width: 1920, height: 1080});
+            await page.waitForSelector('#emailAddress-field');
+            await page.click('#emailAddress-field')
+
+            await page.waitForSelector('.cl-rootBox > .cl-card > .cl-main > .cl-form > .cl-formButtonPrimary')
+            await page.click('.cl-rootBox > .cl-card > .cl-main > .cl-form > .cl-formButtonPrimary')
+
+            const emailBox = CreateEmail(process.env.EMAIL_TYPE as TempEmailType || TempEmailType.TempEmail44)
+            const emailAddress = await emailBox.getMailAddress();
+            account.email = emailAddress;
+            this.accountPool.syncfile();
+            // 将文本键入焦点元素
+            await page.keyboard.type(emailAddress, {delay: 10});
+            await page.keyboard.press('Enter');
+
+            const msgs = (await emailBox.waitMails()) as TempMailMessage[]
+            let validateURL: string | undefined;
+            for (const msg of msgs) {
+                validateURL = msg.content.match(/https:\/\/clerk\.forefront\.ai\/v1\/verify\?token=[^\s"]+/i)?.[0];
+                if (validateURL) {
+                    break;
+                }
+            }
+            if (!validateURL) {
+                throw new Error('Error while obtaining verfication URL!')
+            }
+            await this.tryValidate(validateURL, 0);
+            console.log('register successfully');
+            account.login_time = moment().format(TimeFormat);
+            this.accountPool.syncfile();
+            await page.waitForSelector('.flex > .modal > .modal-box > .flex > .px-3:nth-child(1)', {timeout: 10000})
+            await page.click('.flex > .modal > .modal-box > .flex > .px-3:nth-child(1)')
+            await page.waitForSelector('.relative > .flex > .w-full > .text-th-primary-dark > div', {timeout: 10000})
+
             await Forefrontnew.switchToGpt4(page);
             return [page, account];
+        }catch (e) {
+            return [];
         }
-        await page.goto("https://accounts.forefront.ai/sign-up");
-        await page.setViewport({width: 1920, height: 1080});
-        await page.waitForSelector('#emailAddress-field');
-        await page.click('#emailAddress-field')
-
-        await page.waitForSelector('.cl-rootBox > .cl-card > .cl-main > .cl-form > .cl-formButtonPrimary')
-        await page.click('.cl-rootBox > .cl-card > .cl-main > .cl-form > .cl-formButtonPrimary')
-
-        const emailBox = CreateEmail(process.env.EMAIL_TYPE as TempEmailType || TempEmailType.TempEmail44)
-        const emailAddress = await emailBox.getMailAddress();
-        account.email = emailAddress;
-        this.accountPool.syncfile();
-        // 将文本键入焦点元素
-        await page.keyboard.type(emailAddress, {delay: 10});
-        await page.keyboard.press('Enter');
-
-        const msgs = (await emailBox.waitMails()) as TempMailMessage[]
-        let validateURL: string | undefined;
-        for (const msg of msgs) {
-            validateURL = msg.content.match(/https:\/\/clerk\.forefront\.ai\/v1\/verify\?token=[^\s"]+/i)?.[0];
-            if (validateURL) {
-                break;
-            }
-        }
-        if (!validateURL) {
-            throw new Error('Error while obtaining verfication URL!')
-        }
-        await this.tryValidate(validateURL, 0);
-        console.log('register successfully');
-        account.login_time = moment().format(TimeFormat);
-        this.accountPool.syncfile();
-        await page.waitForSelector('.flex > .modal > .modal-box > .flex > .px-3:nth-child(1)', {timeout: 10000})
-        await page.click('.flex > .modal > .modal-box > .flex > .px-3:nth-child(1)')
-        await page.waitForSelector('.relative > .flex > .w-full > .text-th-primary-dark > div', {timeout: 10000})
-
-        await Forefrontnew.switchToGpt4(page);
-        return [page, account];
     }
 
     public async askStream(req: Request): Promise<ResponseStream> {
