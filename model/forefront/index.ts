@@ -3,11 +3,11 @@ import {Browser, Page} from "puppeteer";
 import {BrowserPool} from "../../pool/puppeteer";
 import {CreateEmail, TempEmailType, TempMailMessage} from "../../utils/emailFactory";
 import {CreateTlsProxy} from "../../utils/proxyAgent";
-import {PassThrough} from "stream";
 import * as fs from "fs";
 import {parseJSON} from "../../utils";
 import {v4} from "uuid";
 import moment from 'moment';
+import {ReadEventStream, WriteEventStream} from "../../utils/eventstream";
 
 type PageData = {
     gpt4times: number;
@@ -98,14 +98,25 @@ export class Forefrontnew extends Chat {
         const res = await this.askStream(req);
         let text = '';
         return new Promise(resolve => {
-            res.text.on('data', (data) => {
+            const et = new ReadEventStream(res.text);
+            et.read(({event, data}) => {
                 if (!data) {
                     return;
                 }
-                text += data;
-            }).on('close', () => {
+                switch (event) {
+                    case 'data':
+                        text += data;
+                        break;
+                    case 'done':
+                        text = data;
+                        break;
+                    default:
+                        console.error(data);
+                        break;
+                }
+            }, () => {
                 resolve({text, other: res.other});
-            })
+            });
         })
     }
 
@@ -157,6 +168,22 @@ export class Forefrontnew extends Chat {
         }
     }
 
+    private async allowClipboard(browser: Browser, page: Page) {
+        const context = browser.defaultBrowserContext()
+        await context.overridePermissions("https://chat.forefront.ai", [
+            'clipboard-read',
+            'clipboard-write',
+        ])
+        await page.evaluate(() => Object.defineProperty(navigator, 'clipboard', {
+            value: {
+                //@ts-ignore
+                writeText(text) {
+                    this.text = text;
+                },
+            }
+        }));
+    }
+
     private async init(id: string, browser: Browser): Promise<[Page, Account]> {
         try {
             const account = this.accountPool.getByID(id);
@@ -168,6 +195,7 @@ export class Forefrontnew extends Chat {
             if (account.login_time) {
                 await page.goto("https://chat.forefront.ai/");
                 await page.setViewport({width: 1920, height: 1080});
+                await this.allowClipboard(browser, page);
                 await Forefrontnew.switchToGpt4(page);
                 return [page, account];
             }
@@ -205,33 +233,21 @@ export class Forefrontnew extends Chat {
             await page.waitForSelector('.flex > .modal > .modal-box > .flex > .px-3:nth-child(1)', {timeout: 10000})
             await page.click('.flex > .modal > .modal-box > .flex > .px-3:nth-child(1)')
             await page.waitForSelector('.relative > .flex > .w-full > .text-th-primary-dark > div', {timeout: 10000})
-
+            await this.allowClipboard(browser, page);
             await Forefrontnew.switchToGpt4(page);
             return [page, account];
-        }catch (e) {
-            return [];
+        } catch (e) {
+            return [] as any;
         }
     }
 
     public async askStream(req: Request): Promise<ResponseStream> {
         const [page, account, done, destroy] = this.pagePool.get();
-        if (!account) {
-            const pt = new PassThrough();
-            pt.write('account undefined, something error');
+        const pt = new WriteEventStream();
+        if (!account || !page) {
+            pt.write("error", 'please wait init.....about 1 min');
             pt.end();
-            return {text: pt};
-        }
-        if (!page) {
-            const pt = new PassThrough();
-            pt.write('please wait init.....about 1 min');
-            pt.end();
-            return {text: pt};
-        }
-        try {
-            console.log('try find text input');
-            await page.waitForSelector('.relative > .flex > .w-full > .text-th-primary-dark > div', {timeout: 10000})
-        } catch (e) {
-            console.error(e);
+            return {text: pt.stream};
         }
         console.log('try to find input');
         await page.waitForSelector('.relative > .flex > .w-full > .text-th-primary-dark > div', {
@@ -254,7 +270,6 @@ export class Forefrontnew extends Chat {
         const result = await page.$(selector)
         // get latest markdown text
         let oldText = '';
-        const pt = new PassThrough();
         (async () => {
             const itl = setInterval(async () => {
                 const text: any = await result?.evaluate(el => {
@@ -266,21 +281,21 @@ export class Forefrontnew extends Chat {
                 if (oldText.length === text.length) {
                     return;
                 }
-                pt.write(text.slice(oldText.length - text.length));
+                pt.write("data", text.slice(oldText.length - text.length));
                 oldText = text;
             }, 100)
             if (!page) {
                 return;
             }
             try {
-                // wait chat end
-                await page.waitForSelector(`.w-full > .flex > .flex > .flex > .opacity-100`, {timeout: 5 * 60 * 1000});
-                const text: any = await result?.evaluate(el => {
-                    return el.textContent;
-                });
-                if (oldText.length !== text.length) {
-                    pt.write(text.slice(oldText.length - text.length));
-                }
+                await page.waitForSelector('.opacity-100 > .flex > .relative:nth-child(2) > .flex > .cursor-pointer')
+                await page.click('.opacity-100 > .flex > .relative:nth-child(2) > .flex > .cursor-pointer')
+                //@ts-ignore
+                const text: any = await page.evaluate(() => navigator.clipboard.text);
+                console.log('chat end: ', text);
+                pt.write("done", text);
+            } catch (e) {
+                console.error(e);
             } finally {
                 pt.end();
                 await page.waitForSelector('.flex:nth-child(1) > div:nth-child(2) > .relative > .flex > .cursor-pointer')
@@ -299,7 +314,7 @@ export class Forefrontnew extends Chat {
                 clearInterval(itl);
             }
         })().then();
-        return {text: pt}
+        return {text: pt.stream}
     }
 
 }
