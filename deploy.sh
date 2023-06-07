@@ -1,6 +1,1 @@
-git pull origin master
-yarn
-# 执行 tsc 编译
-/www/server/nodejs/v16.1.0/bin/tsc
-pm2 delete gpt4free
-pm2 start ecosystem.config.js 
+docker run -p 4140:3000 --env-file .env xiangsx/gpt4free-ts:latest
