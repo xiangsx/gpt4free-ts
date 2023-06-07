@@ -105,7 +105,7 @@ export class Forefrontnew extends Chat {
                 }
                 switch (event) {
                     case 'data':
-                        text += data;
+                        text = data;
                         break;
                     case 'done':
                         text = data;
@@ -121,7 +121,7 @@ export class Forefrontnew extends Chat {
     }
 
     private async tryValidate(validateURL: string, triedTimes: number) {
-        if (triedTimes === 3) {
+        if (triedTimes === 10) {
             throw new Error('validate failed');
         }
         triedTimes += 1;
@@ -150,6 +150,9 @@ export class Forefrontnew extends Chat {
             await page.click('div > .absolute > .relative > .w-full:nth-child(3) > .relative')
             await page.waitForTimeout(1000);
             await page.hover('div > .absolute > .relative > .w-full:nth-child(3) > .relative')
+
+            await page.waitForSelector('.flex > .p-1 > .relative')
+            await page.click('.flex > .p-1 > .relative')
 
             await page.waitForSelector('.px-4 > .flex > .grid > .h-9 > .grow')
             await page.click('.px-4 > .flex > .grid > .h-9 > .grow')
@@ -254,41 +257,34 @@ export class Forefrontnew extends Chat {
             timeout: 10000,
             visible: true
         })
-        console.log('found');
+        console.log('found input');
         await page.click('.relative > .flex > .w-full > .text-th-primary-dark > div')
         await page.focus('.relative > .flex > .w-full > .text-th-primary-dark > div')
-        await page.keyboard.type(req.prompt, {delay: 10});
+        await page.keyboard.type(req.prompt);
         await page.keyboard.press('Enter');
         await page.waitForSelector('#__next > .flex > .relative > .relative > .w-full:nth-child(1) > div');
         // find markdown list container
         const mdList = await page.$('#__next > .flex > .relative > .relative > .w-full:nth-child(1) > div');
         const md = mdList;
         // get latest markdown id
-        let id: number = 4;
-        const selector = `div > .w-full:nth-child(${id}) > .flex > .flex > .post-markdown`;
-        await page.waitForSelector(selector);
-        const result = await page.$(selector)
-        // get latest markdown text
-        let oldText = '';
+        let id = 4;
         (async () => {
+            const selector = `div > .w-full:nth-child(${id}) > .flex > .flex > .post-markdown`;
+            await page.waitForSelector(selector);
+            const result = await page.$(selector)
             const itl = setInterval(async () => {
                 const text: any = await result?.evaluate(el => {
                     return el.textContent;
                 });
-                if (typeof text != 'string') {
-                    return;
+                if (text) {
+                    pt.write("data", text);
                 }
-                if (oldText.length === text.length) {
-                    return;
-                }
-                pt.write("data", text.slice(oldText.length - text.length));
-                oldText = text;
             }, 100)
             if (!page) {
                 return;
             }
             try {
-                await page.waitForSelector('.opacity-100 > .flex > .relative:nth-child(2) > .flex > .cursor-pointer')
+                await page.waitForSelector('.opacity-100 > .flex > .relative:nth-child(2) > .flex > .cursor-pointer', {timeout: 5 * 60 * 1000})
                 await page.click('.opacity-100 > .flex > .relative:nth-child(2) > .flex > .cursor-pointer')
                 //@ts-ignore
                 const text: any = await page.evaluate(() => navigator.clipboard.text);

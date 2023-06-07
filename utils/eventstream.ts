@@ -1,4 +1,5 @@
 import {PassThrough, Stream} from "stream";
+import {parseJSON} from "./index";
 
 export class WriteEventStream {
     public stream: PassThrough;
@@ -10,7 +11,7 @@ export class WriteEventStream {
     write(event: string, data: string) {
         if (!this.stream.closed) {
             this.stream.write(`event: ${event}\n`);
-            this.stream.write(`data: ${data}\n\n`);
+            this.stream.write(`data: ${JSON.stringify(data)}\n\n`);
         }
     }
 
@@ -22,7 +23,7 @@ export class WriteEventStream {
 export class ReadEventStream {
     private readonly stream: Stream;
 
-    constructor(stream:Stream) {
+    constructor(stream: Stream) {
         this.stream = stream;
     }
 
@@ -38,7 +39,7 @@ export class ReadEventStream {
                 const lines = v.split('\n');
                 const lineEvent = lines[0].replace('event: ', '');
                 const lineData = lines[1].replace('data: ', '');
-                dataCB({event: lineEvent, data: lineData});
+                dataCB({event: lineEvent, data: JSON.parse(lineData)});
                 index = buffer.indexOf('\n\n');
             }
         });
