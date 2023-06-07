@@ -4,8 +4,8 @@
   "description": "gpt4free typescript version",
   "main": "index.js",
   "scripts": {
-    "test": "ts-node test.ts",
-    "start": "ts-node index.ts"
+    "dev": "cross-env NODE_ENV=development nodemon ./index.ts",
+    "build": "tsc && cross-env NODE_ENV=production node dist/src/app.js"
   },
   "keywords": [
     "git4free",
