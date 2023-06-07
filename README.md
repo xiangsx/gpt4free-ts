@@ -2,7 +2,7 @@ This is a replication project for the typescript version of [gpt4free](https://g
 
 [中文](README_zh.md)
 
-<p>You may join our discord: <a href="https://discord.gg/bbH68Kzm">discord.gg/gpt4free<a> for further updates. <a href="https://discord.gg/bbH68Kzm"><img align="center" alt="gpt4free Discord" width="22px" src="https://raw.githubusercontent.com/peterthehan/peterthehan/master/assets/discord.svg" /></a></p>
+<p>You may join our discord: <a href="https://discord.gg/bbH68Kzm">discord.gg/gptgod<a> for further updates. <a href="https://discord.gg/bbH68Kzm"><img align="center" alt="gpt4free Discord" width="22px" src="https://raw.githubusercontent.com/peterthehan/peterthehan/master/assets/discord.svg" /></a></p>
 
 ## Demo [GPTGOD](http://gptgod.site)
 
