@@ -1,33 +1,29 @@
-This is a replication project for the typescript version of [gpt4free](https://github.com/xtekky/gpt4free)
+[English](README.md)
 
-[中文](README_zh.md)
+## 示例项目 [GPTGOD](http://gptgod.site)
 
-## Demo [GPTGOD](http://gptgod.site)
+### GPTGOD 现已支持
 
-### GPTGOD Support
+- [x] Midjourney 史上最强的AI画图
+- [x] Stable Diffusion 史上最强的开源AI画图
+- [x] Claude 仅次于gpt4的AI语言模型
+- [x] Chatgpt 都知道
+- [x] Chatgpt with internet 联网的chatgpt
+- [x] 以上所有功能，都能在网站中，一个步骤集成到微信机器人中
 
-- [x] Midjourney The Most Powerful AI Drawing System in History.
-- [x] Stable Diffusion
-- [x] Claude
-- [x] Chatgpt
-- [x] Chatgpt with internet
-- [x] Create wechat ai robot for yourself, just need one step
+GPTGOD 会在稳定之后，完全开源，如果你感兴趣的话请关注我
 
-In the next two weeks, I will open source all the code for GPTGOD. If you need, Please watch this project or follow me
-to receive notifications.
+## 目标
 
-Why now? because there are stil some secret config should be removed from that project.
+拼命更新中，期待您的PR....
 
-## Reverse target
-
-Still striving to keep updating.
-
-Have implemented models here:
-If you do not want your website to appear here, please raise an issue and I will remove it immediately.
+下面是已经可以转成api的网站:
+如果你发现你的网站在此列表，并且不想他出现，请联系我去除
 |model|support|status|active time|
 |--|--|--|--|
 |[ai.mcbbs.gq](https://ai.mcbbs.gq)|gpt3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-06-03|
-|[forefront.ai](https://chat.forefront.ai)|GPT-4/gpt3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-06-03|
+|[forefront.ai](https://chat.forefront.ai)|GPT-4/gpt3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after
+2023-06-03|
 |[aidream](http://aidream.cloud)|GPT-3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-05-12|
 |[you.com](you.com)|GPT-3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-05-12
 |[phind.com](https://www.phind.com/)|GPT-4 / Internet / good search|![Active](https://img.shields.io/badge/Active-grey)|
@@ -36,7 +32,7 @@ If you do not want your website to appear here, please raise an issue and I will
 |[writesonic.com](writesonic.com)| GPT-3.5 / Internet||
 |[t3nsor.com](t3nsor.com)|GPT-3.5||
 
-## Run local
+## 本地运行
 
 ```shell
 # install module
@@ -45,43 +41,58 @@ yarn
 yarn start
 ```
 
-## Run with docker
+## 使用Docker运行
 
-first, you should create file .env
+### 1. 首先创建环境文件 `.env`
 
 ```env
 http_proxy=http://host:port
-# you should config this if you use forefront api, this apikey is used for receive register email
-# get api key here https://rapidapi.com/calvinloveland335703-0p6BxLYIH8f/api/temp-mail44
+# 如果你使用forefront的话，`rapid_api_key` 必填
+# 这里获取 https://rapidapi.com/calvinloveland335703-0p6BxLYIH8f/api/temp-mail44
+# 这里获取 https://rapidapi.com/Privatix/api/temp-mail
 rapid_api_key=xxxxxxxxxx
-EMAIL_TYPE=temp-email44 # temp email type
-DEBUG=0 # default:0 when you set 1 make sure run with chromium ui
-POOL_SIZE=3 # forefront concurrency size. You can engage in {POOL_SIZE} conversations concurrently.
+# 临时邮箱类型 `temp-email44:不需要绑定信用卡，但是每天限死100条调用` `temp-email: 需要绑定信用卡，每天免费100条，之后付费` 
+EMAIL_TYPE=temp-email44
+DEBUG=0 # 目前仅forefront用到 默认是0 一般本地运行可以设置成1，可以看到网站运行过程
+POOL_SIZE=3 # 目前仅forefront用到 启用线程数，默认3 即代表同时可以进行3个会话
 ```
+
+### 2. 运行
 
 ```
 docker run --env-file .env xiangsx/gpt4free-ts:latest
 ```
 
-## Deploy with docker-compose
+## 使用`docker-compose`部署
 
-first, you should create file .env; Follow step "Run with docker
+### 1. 参照 docker步骤创建 `.env`文件
 
-deploy
+### 2. 部署
 
 ```
 docker-compose up --build -d
 ```
 
-## Test with curl
+## API使用说明
 
-### params in query
+### 参数介绍
 
+#### 1. 通用参数
+
+```typescript
+interface query {
+    prompt: string; // 有些网站不需要    
+    model: string; // 必填
+}
 ```
-prompt: string; // required
-```
 
-#### mcbbs options
+#### 2. 各个网站特有参数
+
+##### forefront(默认使用gpt4,其他模型需要修改代码)
+
+无
+
+##### mcbbs
 
 ```typescript
 interface Message {
@@ -97,46 +108,27 @@ interface options {
 
 ```
 
-#### aidread options
+### 开始使用
 
-```typescript
-interface options {
-    parentMessageId: string // if you need context try this
-    systemMessage: string // default: You are ChatGPT, a large language model trained by OpenAI. Follow the user's instructions carefully. Respond using markdown.
-    temperature: number; // default: 1
-    top_p: number // default:1
-    parse: boolean; //  default:true only valid in stream;if set false,return source data contains parentMessageId...
-}
-```
-
-### test now!
-
-common request
-use curl or input url in explorer
+普通API，等待整个会话结束才返回
 
 ```shell
-# test default model mcbbs
+# 使用 mcbbs
 
-curl '127.0.0.1:3000/ask/stream?messages=[{"role":"system","content":"IMPORTANT: You are a virtual assistant powered by the gpt-3.5-turbo model, now time is 2023/6/3 13:42:27}"},{"role":"user","content":"你好\n"},{"role":"assistant","content":"你好！有什么我可以帮助你的吗？"},{"role":"user","content":"写个冒泡排序\n"}]&prompt=test&model=mcbbs&parse=false'
+curl '127.0.0.1:3000/ask?messages=[{"role":"system","content":"IMPORTANT: You are a virtual assistant powered by the gpt-3.5-turbo model, now time is 2023/6/3 13:42:27}"},{"role":"user","content":"你好\n"},{"role":"assistant","content":"你好！有什么我可以帮助你的吗？"},{"role":"user","content":"写个冒泡排序\n"}]&prompt=test&model=mcbbs&parse=false'
 
-# test aidream
-curl "http://127.0.0.1:3000/ask?prompt=hello&model=aidream"
-
-# test chat.forefront.at Default,use gpt4
+# 使用 chat.forefront Default,use gpt4
 curl "http://127.0.0.1:3000/ask?prompt=hello&model=forefront"
-
-# test you.com
-curl "http://127.0.0.1:3000/ask?prompt=hello&model=you"
 ```
 
 request event-stream
 
 ```shell
-# test default model aidream
-curl "http://127.0.0.1:3000/ask/stream?prompt=hello&model=aidream"
+# test model mcbbs
+curl '127.0.0.1:3000/ask/stream?messages=[{"role":"system","content":"IMPORTANT: You are a virtual assistant powered by the gpt-3.5-turbo model, now time is 2023/6/3 13:42:27}"},{"role":"user","content":"你好\n"},{"role":"assistant","content":"你好！有什么我可以帮助你的吗？"},{"role":"user","content":"写个冒泡排序\n"}]&prompt=test&model=mcbbs&parse=false'
 
-# test chat.forefront.at Default,use gpt4
-curl "http://127.0.0.1:3000/ask/stream?prompt=hello&model=forefront&gptmodel=gpt-4&resignup=1"
+# test model forefront, use gpt4
+curl "http://127.0.0.1:3000/ask/stream?prompt=hello&model=forefront"
 
 # test you
 curl "http://127.0.0.1:3000/ask/stream?prompt=hello&model=you"
