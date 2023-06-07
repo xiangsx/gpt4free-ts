@@ -1,5 +1,7 @@
 [English](README.md)
 
+<p>你可以加入 <a href="https://discord.gg/bbH68Kzm">discord.gg/gptgod<a>获取最新的项目进展. <a href="https://discord.gg/bbH68Kzm"><img align="center" alt="gpt4free Discord" width="22px" src="https://raw.githubusercontent.com/peterthehan/peterthehan/master/assets/discord.svg" /></a></p>
+
 ## 示例项目 [GPTGOD](http://gptgod.site)
 
 ### GPTGOD 现已支持
