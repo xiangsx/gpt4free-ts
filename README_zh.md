@@ -61,7 +61,7 @@ POOL_SIZE=3 # 目前仅forefront用到 启用线程数，默认3 即代表同时
 ### 2. 运行
 
 ```
-docker run --env-file .env xiangsx/gpt4free-ts:latest
+docker run -p 3000:3000 --env-file .env xiangsx/gpt4free-ts:latest
 ```
 
 ## 使用`docker-compose`部署
