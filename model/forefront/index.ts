@@ -273,7 +273,6 @@ export class Forefrontnew extends Chat {
             return {text: pt.stream};
         }
         try {
-            await Forefrontnew.selectAssistant(page);
             console.log('try to find input');
             await page.waitForSelector('.relative > .flex > .w-full > .text-th-primary-dark > div', {
                 timeout: 10000,
