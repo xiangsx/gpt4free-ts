@@ -2,7 +2,7 @@ import puppeteer, {Browser, Page, PuppeteerLaunchOptions} from "puppeteer";
 import path from "path";
 import run from "node:test";
 import * as fs from "fs";
-import {sleep} from "../utils";
+import {shuffleArray, sleep} from "../utils";
 
 const runPath = path.join(__dirname, 'run');
 
@@ -70,7 +70,7 @@ export class BrowserPool<T> {
 
     //@ts-ignore
     get(): [page: Page | undefined, data: T | undefined, done: (data: T) => void, destroy: (newID: string) => void] {
-        for (const item of this.pool) {
+        for (const item of shuffleArray(this.pool)) {
             if (item.ready) {
                 item.ready = false;
                 return [
