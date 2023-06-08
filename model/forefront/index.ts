@@ -51,7 +51,7 @@ class AccountPool {
         }
     }
 
-    public delete(id:string) {
+    public delete(id: string) {
         this.pool = this.pool.filter(item => item.id !== id);
         this.syncfile();
     }
@@ -246,7 +246,7 @@ export class Forefrontnew extends Chat {
             return [page, account, account.id];
         } catch (e) {
             console.warn('something error happened,err:', e);
-            this.accountPool.delete(account?.id||"")
+            this.accountPool.delete(account?.id || "")
             const newAccount = this.accountPool.get();
             return [undefined, this.accountPool.get(), newAccount.id] as any;
         }
@@ -260,20 +260,30 @@ export class Forefrontnew extends Chat {
             pt.end();
             return {text: pt.stream};
         }
-        console.log('try to find input');
-        await page.waitForSelector('.relative > .flex > .w-full > .text-th-primary-dark > div', {
-            timeout: 10000,
-            visible: true
-        })
-        console.log('found input');
-        await page.click('.relative > .flex > .w-full > .text-th-primary-dark > div')
-        await page.focus('.relative > .flex > .w-full > .text-th-primary-dark > div')
-        await page.keyboard.type(req.prompt);
-        await page.keyboard.press('Enter');
-        await page.waitForSelector('#__next > .flex > .relative > .relative > .w-full:nth-child(1) > div');
-        // find markdown list container
-        const mdList = await page.$('#__next > .flex > .relative > .relative > .w-full:nth-child(1) > div');
-        const md = mdList;
+        try {
+            console.log('try to find input');
+            await page.waitForSelector('.relative > .flex > .w-full > .text-th-primary-dark > div', {
+                timeout: 10000,
+                visible: true
+            })
+            console.log('found input');
+            await page.click('.relative > .flex > .w-full > .text-th-primary-dark > div')
+            await page.focus('.relative > .flex > .w-full > .text-th-primary-dark > div')
+            await page.keyboard.type(req.prompt);
+            await page.keyboard.press('Enter');
+            await page.waitForSelector('#__next > .flex > .relative > .relative > .w-full:nth-child(1) > div');
+            // find markdown list container
+            const mdList = await page.$('#__next > .flex > .relative > .relative > .w-full:nth-child(1) > div');
+            const md = mdList;
+        } catch (e) {
+            console.error(e);
+            const newAccount = this.accountPool.get();
+            destroy(newAccount.id);
+            pt.write("error", 'some thing error, try again later');
+            pt.end();
+            return {text: pt.stream}
+        }
+
         // get latest markdown id
         let id = 4;
         (async () => {
