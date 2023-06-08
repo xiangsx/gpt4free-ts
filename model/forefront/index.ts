@@ -4,7 +4,7 @@ import {BrowserPool} from "../../pool/puppeteer";
 import {CreateEmail, TempEmailType, TempMailMessage} from "../../utils/emailFactory";
 import {CreateTlsProxy} from "../../utils/proxyAgent";
 import * as fs from "fs";
-import {parseJSON} from "../../utils";
+import {parseJSON, sleep} from "../../utils";
 import {v4} from "uuid";
 import moment from 'moment';
 import {ReadEventStream, WriteEventStream} from "../../utils/eventstream";
@@ -138,6 +138,23 @@ export class Forefrontnew extends Chat {
         }
     }
 
+    private static async selectAssistant(page: Page) {
+        // click assistant select
+        await page.waitForSelector('.px-4 > .flex > .grid > .h-9 > .grow')
+        await page.click('.px-4 > .flex > .grid > .h-9 > .grow')
+
+        // focus search input
+        await page.waitForSelector('.flex > .grid > .block > .sticky > .text-sm')
+        await page.click('.flex > .grid > .block > .sticky > .text-sm')
+        await page.keyboard.type('helpful', {delay: 10});
+
+        // select helpful assistant
+        await page.waitForSelector('.px-4 > .flex > .grid > .block > .group')
+        await page.click('.px-4 > .flex > .grid > .block > .group')
+
+        await page.click('.relative > .flex > .w-full > .text-th-primary-dark > div')
+    }
+
     private static async switchToGpt4(page: Page, triedTimes: number = 0) {
         if (triedTimes === 3) {
             await page.waitForSelector('div > .absolute > .relative > .w-full:nth-child(3) > .relative')
@@ -147,27 +164,20 @@ export class Forefrontnew extends Chat {
         try {
             console.log('switch gpt4....')
             triedTimes += 1;
-            await page.waitForTimeout(2000);
+            await sleep(1000);
             await page.waitForSelector('div > .absolute > .relative > .w-full:nth-child(3) > .relative')
             await page.click('div > .absolute > .relative > .w-full:nth-child(3) > .relative');
-            await page.waitForTimeout(1000);
+            await sleep(1000);
             await page.waitForSelector('div > .absolute > .relative > .w-full:nth-child(3) > .relative')
             await page.click('div > .absolute > .relative > .w-full:nth-child(3) > .relative')
-            await page.waitForTimeout(1000);
+            await sleep(1000);
             await page.hover('div > .absolute > .relative > .w-full:nth-child(3) > .relative')
 
+            // click never internet
             await page.waitForSelector('.flex > .p-1 > .relative')
             await page.click('.flex > .p-1 > .relative')
-
-            await page.waitForSelector('.px-4 > .flex > .grid > .h-9 > .grow')
-            await page.click('.px-4 > .flex > .grid > .h-9 > .grow')
-
-            await page.waitForSelector('.flex > .grid > .block > .sticky > .text-sm')
-            await page.click('.flex > .grid > .block > .sticky > .text-sm')
-            await page.keyboard.type('helpful', {delay: 10});
-
-            await page.waitForSelector('.px-4 > .flex > .grid > .block > .group')
-            await page.click('.px-4 > .flex > .grid > .block > .group')
+            await this.selectAssistant(page);
+            await Forefrontnew.switchToGpt4(page, triedTimes);
             console.log('switch gpt4 ok!')
         } catch (e) {
             console.log(e);
@@ -203,8 +213,8 @@ export class Forefrontnew extends Chat {
             if (account.login_time) {
                 await page.goto("https://chat.forefront.ai/");
                 await page.setViewport({width: 1920, height: 1080});
-                await this.allowClipboard(browser, page);
                 await Forefrontnew.switchToGpt4(page);
+                await this.allowClipboard(browser, page);
                 return [page, account, account.id];
             }
             await page.goto("https://accounts.forefront.ai/sign-up");
@@ -241,8 +251,8 @@ export class Forefrontnew extends Chat {
             await page.waitForSelector('.flex > .modal > .modal-box > .flex > .px-3:nth-child(1)', {timeout: 120000})
             await page.click('.flex > .modal > .modal-box > .flex > .px-3:nth-child(1)')
             await page.waitForSelector('.relative > .flex > .w-full > .text-th-primary-dark > div', {timeout: 120000})
-            await this.allowClipboard(browser, page);
             await Forefrontnew.switchToGpt4(page);
+            await this.allowClipboard(browser, page);
             return [page, account, account.id];
         } catch (e) {
             console.warn('something error happened,err:', e);

@@ -51,7 +51,7 @@ export class BrowserPool<T> {
     async initOne(id: string): Promise<[Page, T, string]> {
         const options: PuppeteerLaunchOptions = {
             headless: process.env.DEBUG === "1" ? false : 'new',
-            args: ['--no-sandbox'],
+            args: ['--no-sandbox', '--disable-setuid-sandbox'],
             userDataDir: `run/${id}`,
         };
         const browser = await puppeteer.launch(options);
