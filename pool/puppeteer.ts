@@ -1,6 +1,7 @@
 import puppeteer, {Browser, Page, PuppeteerLaunchOptions} from "puppeteer";
 import path from "path";
 import run from "node:test";
+import * as fs from "fs";
 
 const runPath = path.join(__dirname, 'run');
 
@@ -11,7 +12,7 @@ export interface PageInfo<T> {
     data?: T;
 }
 
-type PrepareFunc<T> = (id: string, browser: Browser) => Promise<[Page, T]>
+type PrepareFunc<T> = (id: string, browser: Browser) => Promise<[Page | undefined, T, string]>
 
 export class BrowserPool<T> {
     private readonly pool: PageInfo<T>[] = [];
@@ -31,10 +32,11 @@ export class BrowserPool<T> {
                 id,
                 ready: false,
             }
-            this.initOne(id).then(([page, data]) => {
+            this.initOne(id).then(([page, data, newID]) => {
                 if (!page) {
                     return;
                 }
+                info.id = newID;
                 info.page = page;
                 info.data = data;
                 info.ready = true;
@@ -45,16 +47,23 @@ export class BrowserPool<T> {
         }
     }
 
-    async initOne(id: string): Promise<[Page, T]> {
+    async initOne(id: string): Promise<[Page, T, string]> {
         const options: PuppeteerLaunchOptions = {
             headless: process.env.DEBUG === "1" ? false : 'new',
             args: ['--no-sandbox'],
+            userDataDir: `run/${id}`,
         };
-        if (id) {
-            options.userDataDir = `run/${id}`;
-        }
         const browser = await puppeteer.launch(options);
-        return this.prepare(id, browser)
+        const [page, data, newID] = await this.prepare(id, browser)
+        if (!page) {
+            console.log(`init ${id} failed, delete! init new ${newID}`);
+            await browser.close();
+            if (options.userDataDir) {
+                fs.rmdirSync(options.userDataDir, {recursive: true});
+            }
+            return this.initOne(newID);
+        }
+        return [page, data, newID];
     }
 
     //@ts-ignore
@@ -71,7 +80,8 @@ export class BrowserPool<T> {
                     },
                     (newID: string) => {
                         item.page?.close();
-                        this.initOne(newID).then(([page, data]) => {
+                        this.initOne(newID).then(([page, data, newID]) => {
+                            item.id = newID;
                             item.page = page
                             item.data = data;
                             item.ready = true;

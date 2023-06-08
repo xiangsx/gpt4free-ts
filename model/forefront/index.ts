@@ -51,6 +51,11 @@ class AccountPool {
         }
     }
 
+    public delete(id:string) {
+        this.pool = this.pool.filter(item => item.id !== id);
+        this.syncfile();
+    }
+
     public get(): Account {
         const now = moment();
         const minInterval = 3 * 60 * 60 + 10 * 60;// 3hour + 10min
@@ -187,9 +192,9 @@ export class Forefrontnew extends Chat {
         }));
     }
 
-    private async init(id: string, browser: Browser): Promise<[Page, Account]> {
+    private async init(id: string, browser: Browser): Promise<[Page | undefined, Account, string]> {
+        const account = this.accountPool.getByID(id);
         try {
-            const account = this.accountPool.getByID(id);
             if (!account) {
                 throw new Error("account undefined, something error");
             }
@@ -200,7 +205,7 @@ export class Forefrontnew extends Chat {
                 await page.setViewport({width: 1920, height: 1080});
                 await this.allowClipboard(browser, page);
                 await Forefrontnew.switchToGpt4(page);
-                return [page, account];
+                return [page, account, account.id];
             }
             await page.goto("https://accounts.forefront.ai/sign-up");
             await page.setViewport({width: 1920, height: 1080});
@@ -238,9 +243,12 @@ export class Forefrontnew extends Chat {
             await page.waitForSelector('.relative > .flex > .w-full > .text-th-primary-dark > div', {timeout: 10000})
             await this.allowClipboard(browser, page);
             await Forefrontnew.switchToGpt4(page);
-            return [page, account];
+            return [page, account, account.id];
         } catch (e) {
-            return [] as any;
+            console.warn('something error happened,err:', e);
+            this.accountPool.delete(account?.id||"")
+            const newAccount = this.accountPool.get();
+            return [undefined, this.accountPool.get(), newAccount.id] as any;
         }
     }
 
