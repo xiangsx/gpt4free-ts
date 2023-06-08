@@ -1,5 +1,3 @@
-This is a replication project for the typescript version of [gpt4free](https://github.com/xtekky/gpt4free)
-
 [中文](README_zh.md)
 
 <p>You may join our discord: <a href="https://discord.gg/bbH68Kzm">discord.gg/gptgod<a> for further updates. <a href="https://discord.gg/bbH68Kzm"><img align="center" alt="gpt4free Discord" width="22px" src="https://raw.githubusercontent.com/peterthehan/peterthehan/master/assets/discord.svg" /></a></p>
@@ -150,6 +148,7 @@ curl "http://127.0.0.1:3000/ask/stream?prompt=hello&model=you"
 
 <p>You may join our discord: <a href="https://discord.com/invite/gpt4free">discord.gg/gpt4free<a> for further updates. <a href="https://discord.gg/gpt4free"><img align="center" alt="gpt4free Discord" width="22px" src="https://raw.githubusercontent.com/peterthehan/peterthehan/master/assets/discord.svg" /></a></p>
 
+This is a replication project for the typescript version of [gpt4free](https://github.com/xtekky/gpt4free)
 
 <img alt="gpt4free logo" src="https://user-images.githubusercontent.com/98614666/233799515-1a7cb6a3-b17f-42c4-956d-8d2a0664466f.png">
 
