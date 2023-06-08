@@ -51,3 +51,9 @@ export function encryptWithAes256Cbc(data: string, key: string): string {
 
     return iv.toString('hex') + encryptedData;
 }
+
+export async function sleep(duration: number): Promise<void> {
+    return new Promise((resolve) => {
+        setTimeout(() => resolve(), duration);
+    })
+}

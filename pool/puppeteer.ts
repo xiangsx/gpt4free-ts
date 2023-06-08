@@ -2,6 +2,7 @@ import puppeteer, {Browser, Page, PuppeteerLaunchOptions} from "puppeteer";
 import path from "path";
 import run from "node:test";
 import * as fs from "fs";
+import {sleep} from "../utils";
 
 const runPath = path.join(__dirname, 'run');
 
@@ -61,6 +62,7 @@ export class BrowserPool<T> {
             if (options.userDataDir) {
                 fs.rmdirSync(options.userDataDir, {recursive: true});
             }
+            await sleep(5000);
             return this.initOne(newID);
         }
         return [page, data, newID];
