@@ -60,7 +60,7 @@ POOL_SIZE=3 # forefront concurrency size. You can engage in {POOL_SIZE} conversa
 ```
 
 ```
-docker run --env-file .env xiangsx/gpt4free-ts:latest
+docker run -p 3000:3000 --env-file .env xiangsx/gpt4free-ts:latest
 ```
 
 ## Deploy with docker-compose
