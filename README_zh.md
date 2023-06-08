@@ -74,6 +74,10 @@ docker run -p 3000:3000 --env-file .env xiangsx/gpt4free-ts:latest
 docker-compose up --build -d
 ```
 
+## 使用Sealos详细部署教程
+
+[详细教程](https://icloudnative.io/posts/completely-free-to-use-gpt4/)
+
 ## API使用说明
 
 ### 参数介绍
