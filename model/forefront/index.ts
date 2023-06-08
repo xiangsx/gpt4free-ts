@@ -287,21 +287,22 @@ export class Forefrontnew extends Chat {
         // get latest markdown id
         let id = 4;
         (async () => {
-            const selector = `div > .w-full:nth-child(${id}) > .flex > .flex > .post-markdown`;
-            await page.waitForSelector(selector);
-            const result = await page.$(selector)
-            const itl = setInterval(async () => {
-                const text: any = await result?.evaluate(el => {
-                    return el.textContent;
-                });
-                if (text) {
-                    pt.write("data", text);
-                }
-            }, 100)
-            if (!page) {
-                return;
-            }
+            let itl;
             try {
+                const selector = `div > .w-full:nth-child(${id}) > .flex > .flex > .post-markdown`;
+                await page.waitForSelector(selector);
+                const result = await page.$(selector)
+                itl = setInterval(async () => {
+                    const text: any = await result?.evaluate(el => {
+                        return el.textContent;
+                    });
+                    if (text) {
+                        pt.write("data", text);
+                    }
+                }, 100)
+                if (!page) {
+                    return;
+                }
                 await page.waitForSelector('.opacity-100 > .flex > .relative:nth-child(2) > .flex > .cursor-pointer', {timeout: 5 * 60 * 1000})
                 await page.click('.opacity-100 > .flex > .relative:nth-child(2) > .flex > .cursor-pointer')
                 //@ts-ignore
@@ -325,7 +326,9 @@ export class Forefrontnew extends Chat {
                 } else {
                     done(account);
                 }
-                clearInterval(itl);
+                if (itl) {
+                    clearInterval(itl);
+                }
             }
         })().then();
         return {text: pt.stream}
