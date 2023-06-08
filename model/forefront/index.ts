@@ -238,9 +238,9 @@ export class Forefrontnew extends Chat {
             console.log('register successfully');
             account.login_time = moment().format(TimeFormat);
             this.accountPool.syncfile();
-            await page.waitForSelector('.flex > .modal > .modal-box > .flex > .px-3:nth-child(1)', {timeout: 10000})
+            await page.waitForSelector('.flex > .modal > .modal-box > .flex > .px-3:nth-child(1)', {timeout: 120000})
             await page.click('.flex > .modal > .modal-box > .flex > .px-3:nth-child(1)')
-            await page.waitForSelector('.relative > .flex > .w-full > .text-th-primary-dark > div', {timeout: 10000})
+            await page.waitForSelector('.relative > .flex > .w-full > .text-th-primary-dark > div', {timeout: 120000})
             await this.allowClipboard(browser, page);
             await Forefrontnew.switchToGpt4(page);
             return [page, account, account.id];
