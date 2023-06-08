@@ -7,6 +7,8 @@ export enum TempEmailType {
     TempEmail = 'temp-email',
     // not need credit card , hard limit 100/day https://rapidapi.com/calvinloveland335703-0p6BxLYIH8f/api/temp-mail44
     TempEmail44 = 'temp-email44',
+    // not need credit card and not need credit rapid_api_key
+    TempMailLOL = 'tempmail-lol',
 }
 
 export function CreateEmail(tempMailType: TempEmailType, options?: BaseOptions): BaseEmail {
@@ -15,6 +17,8 @@ export function CreateEmail(tempMailType: TempEmailType, options?: BaseOptions):
             return new TempMail44(options);
         case TempEmailType.TempEmail:
             return new TempMail(options);
+        case TempEmailType.TempMailLOL:
+            return new TempMailLOL(options);
         default:
             throw new Error('not support TempEmailType')
     }
@@ -157,6 +161,47 @@ class TempMail44 extends BaseEmail {
                 const response = await this.client.get(`/${this.address}/messages`);
                 if (response.data && response.data.length > 0) {
                     resolve(response.data.map((item: any) => ({...item, content: item.body_html})));
+                    clearInterval(itl);
+                    return;
+                }
+                if (time > 5) {
+                    resolve([]);
+                    clearInterval(itl);
+                    return;
+                }
+                time++;
+            }, 5000);
+        });
+    }
+}
+
+class TempMailLOL extends BaseEmail {
+    private readonly client: AxiosInstance;
+    private address: string = '';
+    private token: string = '';
+
+    constructor(options?: TempMailOptions) {
+        super(options)
+        this.client = CreateAxiosProxy({
+            baseURL: 'https://api.tempmail.lol'
+        } as CreateAxiosDefaults);
+    }
+
+    public async getMailAddress(): Promise<string> {
+        const response = await this.client.get('/generate');
+        this.address = response.data.address;
+        this.token = response.data.token;
+        return this.address;
+    }
+
+    public async waitMails(): Promise<TempMailMessage[]> {
+        return new Promise(resolve => {
+            let time = 0;
+            const itl = setInterval(async () => {
+                const response = await this.client.get(`/auth/${this.token}`);
+
+                if (response.data && response.data.email.length > 0) {
+                    resolve(response.data.email.map((item: any) => ({...item, content: item.html})));
                     clearInterval(itl);
                     return;
                 }
