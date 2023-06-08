@@ -139,6 +139,9 @@ export class Forefrontnew extends Chat {
     }
 
     private static async selectAssistant(page: Page) {
+        await page.waitForSelector('div > .absolute > .relative > .w-full:nth-child(3) > .relative')
+        await page.click('div > .absolute > .relative > .w-full:nth-child(3) > .relative')
+        await page.hover('div > .absolute > .relative > .w-full:nth-child(3) > .relative')
         // click assistant select
         await page.waitForSelector('.px-4 > .flex > .grid > .h-9 > .grow')
         await page.click('.px-4 > .flex > .grid > .h-9 > .grow')
@@ -176,8 +179,7 @@ export class Forefrontnew extends Chat {
             // click never internet
             await page.waitForSelector('.flex > .p-1 > .relative')
             await page.click('.flex > .p-1 > .relative')
-            await this.selectAssistant(page);
-            await Forefrontnew.switchToGpt4(page, triedTimes);
+            await Forefrontnew.selectAssistant(page);
             console.log('switch gpt4 ok!')
         } catch (e) {
             console.log(e);
@@ -271,6 +273,7 @@ export class Forefrontnew extends Chat {
             return {text: pt.stream};
         }
         try {
+            await Forefrontnew.selectAssistant(page);
             console.log('try to find input');
             await page.waitForSelector('.relative > .flex > .w-full > .text-th-primary-dark > div', {
                 timeout: 10000,
