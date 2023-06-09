@@ -58,7 +58,7 @@ class AccountPool {
 
     public get(): Account {
         const now = moment();
-        const minInterval = 3 * 60 * 60 + 10 * 60;// 3hour + 10min
+        const minInterval = 3000 * 60 * 60 + 10 * 60;// 3hour + 10min
         for (const item of this.pool) {
             if (now.unix() - moment(item.last_use_time).unix() > minInterval) {
                 console.log(`find old login account:`, item);
@@ -138,7 +138,7 @@ export class Forefrontnew extends Chat {
         }
     }
 
-    private static async closeVIPPop(page:Page){
+    private static async closeVIPPop(page: Page) {
         await page.waitForSelector('.flex > .w-full:nth-child(1) > .grid:nth-child(2) > .flex > .text-sm')
         await page.click('.flex > .w-full:nth-child(1) > .grid:nth-child(2) > .flex > .text-sm')
     }
@@ -327,7 +327,9 @@ export class Forefrontnew extends Chat {
                 //@ts-ignore
                 const text: any = await page.evaluate(() => navigator.clipboard.text);
                 console.log('chat end: ', text);
-                pt.write("done", text);
+                pt.write("done", text || await result?.evaluate(el => {
+                    return el.textContent;
+                }));
             } catch (e) {
                 console.error(e);
             } finally {
