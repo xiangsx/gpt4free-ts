@@ -271,6 +271,11 @@ export class Forefrontnew extends Chat {
         }
     }
 
+    public static async copyContent(page: Page) {
+        await page.waitForSelector('.opacity-100 > .flex > .relative:nth-child(3) > .flex > .cursor-pointer', {timeout: 5 * 60 * 1000})
+        await page.click('.opacity-100 > .flex > .relative:nth-child(3) > .flex > .cursor-pointer')
+    }
+
     public async askStream(req: Request): Promise<ResponseStream> {
         const [page, account, done, destroy] = this.pagePool.get();
         const pt = new WriteEventStream();
@@ -322,8 +327,7 @@ export class Forefrontnew extends Chat {
                 if (!page) {
                     return;
                 }
-                await page.waitForSelector('.opacity-100 > .flex > .relative:nth-child(2) > .flex > .cursor-pointer', {timeout: 5 * 60 * 1000})
-                await page.click('.opacity-100 > .flex > .relative:nth-child(2) > .flex > .cursor-pointer')
+                await Forefrontnew.copyContent(page);
                 //@ts-ignore
                 const text: any = await page.evaluate(() => navigator.clipboard.text);
                 console.log('chat end: ', text);
