@@ -1,8 +1,17 @@
-[中文](README_zh.md)
+<div align="center">
 
-<p>You may join our discord: <a href="https://discord.gg/bbH68Kzm">discord.gg/gptgod<a> for further updates. <a href="https://discord.gg/bbH68Kzm"><img align="center" alt="gpt4free Discord" width="22px" src="https://raw.githubusercontent.com/peterthehan/peterthehan/master/assets/discord.svg" /></a></p>
+# GPT4Free TypeScript Version 🆓
+###### Providing a free OpenAI GPT-4 API!
+English | [中文](README_zh.md)
 
-## Demo [GPTGOD](http://gptgod.site)
+[![Discord Server](https://discordapp.com/api/guilds/1115852499535020084/widget.png?style=banner2&count=true)](https://discord.gg/bbH68Kzm)
+<p>You can join our discord: <a href="https://discord.gg/bbH68Kzm">discord.gg/gptgod<a> for further updates. <a href="https://discord.gg/bbH68Kzm"><img align="center" alt="gpt4free Discord" width="22px" src="https://raw.githubusercontent.com/peterthehan/peterthehan/master/assets/discord.svg" /></a></p>
+</div>
+
+
+## 👍 GPT4 Website Base on this project [GPTGOD](http://gptgod.site)
+<details>
+<summary><strong>Website Feature(Click to expand)</strong></summary>
 
 ### GPTGOD Support
 
@@ -17,8 +26,9 @@ In the next two weeks, I will open source all the code for GPTGOD. If you need, 
 to receive notifications.
 
 Why now? because there are stil some secret config should be removed from that project.
+</details>
 
-## Reverse target
+## 🚩 Reverse target
 
 Still striving to keep updating.
 
@@ -27,7 +37,7 @@ If you do not want your website to appear here, please raise an issue and I will
 |model|support|status|active time|
 |--|--|--|--|
 |[ai.mcbbs.gq](https://ai.mcbbs.gq)|gpt3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-06-03|
-|[forefront.ai](https://chat.forefront.ai)|GPT-4/gpt3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-06-03|
+|[forefront.ai](https://chat.forefront.ai)|👍GPT-4/gpt3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-06-03|
 |[aidream](http://aidream.cloud)|GPT-3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-05-12|
 |[you.com](you.com)|GPT-3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-05-12
 |[phind.com](https://www.phind.com/)|GPT-4 / Internet / good search|![Active](https://img.shields.io/badge/Active-grey)|
@@ -36,7 +46,29 @@ If you do not want your website to appear here, please raise an issue and I will
 |[writesonic.com](writesonic.com)| GPT-3.5 / Internet||
 |[t3nsor.com](t3nsor.com)|GPT-3.5||
 
-## Run local
+## 🏃‍♂️ Run
+
+First of all, you should create file `.env`. 
+> ***All operation methods require this step.***
+
+```env
+http_proxy=http://host:port
+rapid_api_key=xxxxxxxxxx
+EMAIL_TYPE=temp-email44
+DEBUG=0
+POOL_SIZE=3
+```
+
+- `http_proxy`: config your proxy if you can not access target website directly
+- `rapid_api_key`: you should config this if you use forefront api, this apikey is used for receive register email, get api key here
+- `EMAIL_TYPE`: temp email type includes `temp-email` `temp-email44` `tempmail-lol`
+    - [temp-email](https://rapidapi.com/Privatix/api/temp-mail): soft limit 100req/days, if over use money, need bind credit card! Very Stable!
+    - [temp-email44](https://rapidapi.com/calvinloveland335703-0p6BxLYIH8f/api/temp-mail44): hard limit 100req/days! Stable!
+    - [tempmail-lol](): nothing need, limit 25request/5min. Not Stable.
+- `DEBUG`: Valid when use `forefront` You can set =1 when you run local. show reverse process
+- `POOL_SIZE`: `forefront` concurrency size. You can engage in {POOL_SIZE} conversations concurrently. More pool size, More conversation can be done simultaneously, But use more RAM
+
+### Run local 🖥️ 
 
 ```shell
 # install module
@@ -45,25 +77,13 @@ yarn
 yarn start
 ```
 
-## Run with docker
-
-first, you should create file .env
-
-```env
-http_proxy=http://host:port
-# you should config this if you use forefront api, this apikey is used for receive register email
-# get api key here https://rapidapi.com/calvinloveland335703-0p6BxLYIH8f/api/temp-mail44
-rapid_api_key=xxxxxxxxxx
-EMAIL_TYPE=temp-email44 # temp email type
-DEBUG=0 # default:0 when you set 1 make sure run with chromium ui
-POOL_SIZE=3 # forefront concurrency size. You can engage in {POOL_SIZE} conversations concurrently.
-```
+### Run with docker 🐳 
 
 ```
 docker run -p 3000:3000 --env-file .env xiangsx/gpt4free-ts:latest
 ```
 
-## Deploy with docker-compose
+### Deploy with docker-compose 🎭 
 
 first, you should create file .env; Follow step "Run with docker
 
@@ -73,74 +93,33 @@ deploy
 docker-compose up --build -d
 ```
 
-## Test with curl
+## 🚀 Let's Use GPT4
 
-### params in query
+> Return when chat complete http://127.0.0.1:3000/ask?prompt=***&model=***
 
-```
-prompt: string; // required
-```
+> Return with eventstream http://127.0.0.1:3000/ask/stream?prompt=***&model=***
 
-#### mcbbs options
+ ### Common parameters📝 
+- `prompt`: your question
+- `model`: target web site include:`forefront` `you` `mcbbs`
 
-```typescript
-interface Message {
-    role: string;
-    content: string;
-}
+ ### WebSite Unique parameters🔒
+- mcbbs
+    - `messages`: For example `[{"role":"system","content":"IMPORTANT: You are a virtual assistant powered by the gpt-3.5-turbo model, now time is 2023/6/3 13:42:27}"},{"role":"user","content":"你好\n"},{"role":"assistant","content":"你好！有什么我可以帮助你的吗？"},{"role":"user","content":"写个冒泡排序\n"}]`
+    - `temperature`: 0~1
 
-interface options {
-    parse: string;
-    messages: string; // attattion messages is Message[] json string
-    temperature: number;
-}
+### Example💡
+- `forefront`
+    - http://127.0.0.1:3000/ask?prompt=whoareyou&model=forefront
+    - http://127.0.0.1:3000/ask/stream?prompt=whoareyou&model=forefront
+- `mcbbs`
+    - [http://127.0.0.1:3000/ask?prompt=nothing&model=mcbbs&messages=[{"role":"system","content":"IMPORTANT: You are a virtual assistant powered by the gpt-3.5-turbo model, now time is 2023/6/3 13:42:27}"},{"role":"user","content":"你好\n"},{"role":"assistant","content":"你好！有什么我可以帮助你的吗？"},{"role":"user","content":"写个冒泡排序\n"}]](http://127.0.0.1:3000/ask?prompt=nothing&model=mcbbs&messages=[{%22role%22:%22system%22,%22content%22:%22IMPORTANT:%20You%20are%20a%20virtual%20assistant%20powered%20by%20the%20gpt-3.5-turbo%20model,%20now%20time%20is%202023/6/3%2013:42:27}%22},{%22role%22:%22user%22,%22content%22:%22%E4%BD%A0%E5%A5%BD\n%22},{%22role%22:%22assistant%22,%22content%22:%22%E4%BD%A0%E5%A5%BD%EF%BC%81%E6%9C%89%E4%BB%80%E4%B9%88%E6%88%91%E5%8F%AF%E4%BB%A5%E5%B8%AE%E5%8A%A9%E4%BD%A0%E7%9A%84%E5%90%97%EF%BC%9F%22},{%22role%22:%22user%22,%22content%22:%22%E5%86%99%E4%B8%AA%E5%86%92%E6%B3%A1%E6%8E%92%E5%BA%8F\n%22}])
+- `you`
+    - http://127.0.0.1:3000/ask?prompt=whoareyou&model=you
+    - http://127.0.0.1:3000/ask/stream?prompt=whoareyou&model=you
 
-```
 
-#### aidread options
 
-```typescript
-interface options {
-    parentMessageId: string // if you need context try this
-    systemMessage: string // default: You are ChatGPT, a large language model trained by OpenAI. Follow the user's instructions carefully. Respond using markdown.
-    temperature: number; // default: 1
-    top_p: number // default:1
-    parse: boolean; //  default:true only valid in stream;if set false,return source data contains parentMessageId...
-}
-```
-
-### test now!
-
-common request
-use curl or input url in explorer
-
-```shell
-# test default model mcbbs
-
-curl '127.0.0.1:3000/ask/stream?messages=[{"role":"system","content":"IMPORTANT: You are a virtual assistant powered by the gpt-3.5-turbo model, now time is 2023/6/3 13:42:27}"},{"role":"user","content":"你好\n"},{"role":"assistant","content":"你好！有什么我可以帮助你的吗？"},{"role":"user","content":"写个冒泡排序\n"}]&prompt=test&model=mcbbs&parse=false'
-
-# test aidream
-curl "http://127.0.0.1:3000/ask?prompt=hello&model=aidream"
-
-# test chat.forefront.at Default,use gpt4
-curl "http://127.0.0.1:3000/ask?prompt=hello&model=forefront"
-
-# test you.com
-curl "http://127.0.0.1:3000/ask?prompt=hello&model=you"
-```
-
-request event-stream
-
-```shell
-# test default model aidream
-curl "http://127.0.0.1:3000/ask/stream?prompt=hello&model=aidream"
-
-# test chat.forefront.at Default,use gpt4
-curl "http://127.0.0.1:3000/ask/stream?prompt=hello&model=forefront&gptmodel=gpt-4&resignup=1"
-
-# test you
-curl "http://127.0.0.1:3000/ask/stream?prompt=hello&model=you"
-```
 
 ## 🌟 Star History
 
