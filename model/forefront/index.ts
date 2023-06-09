@@ -138,6 +138,11 @@ export class Forefrontnew extends Chat {
         }
     }
 
+    private static async closeVIPPop(page:Page){
+        await page.waitForSelector('.flex > .w-full:nth-child(1) > .grid:nth-child(2) > .flex > .text-sm')
+        await page.click('.flex > .w-full:nth-child(1) > .grid:nth-child(2) > .flex > .text-sm')
+    }
+
     private static async selectAssistant(page: Page) {
         await page.waitForSelector('div > .absolute > .relative > .w-full:nth-child(3) > .relative')
         await page.click('div > .absolute > .relative > .w-full:nth-child(3) > .relative')
@@ -215,6 +220,7 @@ export class Forefrontnew extends Chat {
             if (account.login_time) {
                 await page.goto("https://chat.forefront.ai/");
                 await page.setViewport({width: 1920, height: 1080});
+                await Forefrontnew.closeVIPPop(page);
                 await Forefrontnew.switchToGpt4(page);
                 await this.allowClipboard(browser, page);
                 return [page, account, account.id];
@@ -252,6 +258,7 @@ export class Forefrontnew extends Chat {
             this.accountPool.syncfile();
             await page.waitForSelector('.flex > .modal > .modal-box > .flex > .px-3:nth-child(1)', {timeout: 120000})
             await page.click('.flex > .modal > .modal-box > .flex > .px-3:nth-child(1)')
+            await Forefrontnew.closeVIPPop(page);
             await page.waitForSelector('.relative > .flex > .w-full > .text-th-primary-dark > div', {timeout: 120000})
             await Forefrontnew.switchToGpt4(page);
             await this.allowClipboard(browser, page);
