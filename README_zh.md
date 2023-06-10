@@ -1,7 +1,7 @@
 <div align="center">
 
 # GPT4Free TypeScript Version 🆓
-###### Providing a free OpenAI GPT-4 API!
+###### 提供免费的GPT4 API
 [English](README.md) | 中文
 
 [![Discord Server](https://discordapp.com/api/guilds/1115852499535020084/widget.png?style=banner2&count=true)](https://discord.gg/bbH68Kzm)
