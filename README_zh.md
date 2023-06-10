@@ -117,6 +117,9 @@ docker-compose up --build -d
    - http://127.0.0.1:3000/ask?prompt=whoareyou&model=you
    - http://127.0.0.1:3000/ask/stream?prompt=whoareyou&model=you
 
+## 👥 加群细聊
+<image src="https://github.com/xiangsx/gpt4free-ts/assets/29322721/0a788688-ab0b-4e95-8438-20af4e7a5362" width=240 />
+
 ## 🌟 Star History
 
 [![Star History Chart](https://api.star-history.com/svg?repos=xiangsx/gpt4free-ts&type=Date)](https://star-history.com/#xiangsx/gpt4free-ts&&type=Date)
