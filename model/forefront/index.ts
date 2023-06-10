@@ -139,8 +139,12 @@ export class Forefrontnew extends Chat {
     }
 
     private static async closeVIPPop(page: Page) {
-        await page.waitForSelector('.flex > .w-full:nth-child(1) > .grid:nth-child(2) > .flex > .text-sm')
-        await page.click('.flex > .w-full:nth-child(1) > .grid:nth-child(2) > .flex > .text-sm')
+        try {
+            await page.waitForSelector('.flex > .w-full:nth-child(1) > .grid:nth-child(2) > .flex > .text-sm', {timeout: 15 * 1000})
+            await page.click('.flex > .w-full:nth-child(1) > .grid:nth-child(2) > .flex > .text-sm')
+        } catch (e) {
+            console.log('not need close vip');
+        }
     }
 
     private static async selectAssistant(page: Page) {
