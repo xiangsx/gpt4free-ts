@@ -1,8 +1,12 @@
-import puppeteer, {Browser, Page, PuppeteerLaunchOptions} from "puppeteer";
+import {Browser, Page, PuppeteerLaunchOptions} from "puppeteer";
 import path from "path";
 import run from "node:test";
 import * as fs from "fs";
 import {shuffleArray, sleep} from "../utils";
+const puppeteer = require('puppeteer-extra');
+const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+
+puppeteer.use(StealthPlugin());
 
 const runPath = path.join(__dirname, 'run');
 
