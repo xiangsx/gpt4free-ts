@@ -17,63 +17,88 @@ export interface PageInfo<T> {
     data?: T;
 }
 
-type PrepareFunc<T> = (id: string, browser: Browser) => Promise<[Page | undefined, T, string]>
+type PrepareFunc<T> = (id: string, browser: Browser) => Promise<[Page | undefined, T]>
+
+export interface BrowserUser<T> {
+    init: PrepareFunc<T>;
+    newID: () => string
+    deleteID: (id: string) => void
+}
 
 export class BrowserPool<T> {
     private readonly pool: PageInfo<T>[] = [];
     private readonly size: number;
-    private readonly prepare: PrepareFunc<T>
+    private readonly user: BrowserUser<T>
 
-    constructor(size: number, initialIDs: string[], prepare: PrepareFunc<T>) {
+    constructor(size: number, user: BrowserUser<T>) {
         this.size = size
-        this.prepare = prepare;
-        this.init(initialIDs);
+        this.user = user;
+        this.init();
     }
 
-    init(initialIDs: string[]) {
+    init() {
         for (let i = 0; i < this.size; i++) {
-            const id = initialIDs[i];
+            const id = this.user.newID();
             const info: PageInfo<T> = {
                 id,
                 ready: false,
             }
-            this.initOne(id).then(([page, data, newID]) => {
-                if (!page) {
-                    return;
-                }
-                info.id = newID;
-                info.page = page;
-                info.data = data;
-                info.ready = true;
-            }).catch(e => {
-                console.error(e);
-            })
             this.pool.push(info)
+            this.initOne(id).then()
         }
     }
 
-    async initOne(id: string): Promise<[Page, T, string]> {
+    find(id: string): PageInfo<T> | undefined {
+        for (const info of this.pool) {
+            if (info.id === id) {
+                return info;
+            }
+        }
+    }
+
+    async initOne(id: string): Promise<void> {
+        const info = this.find(id);
+        if (!info) {
+            console.error('init one failed, not found info');
+            return;
+        }
         const options: PuppeteerLaunchOptions = {
             headless: process.env.DEBUG === "1" ? false : 'new',
             args: ['--no-sandbox', '--disable-setuid-sandbox'],
-            userDataDir: `run/${id}`,
+            userDataDir: `run/${info.id}`,
         };
-        const browser = await puppeteer.launch(options);
-        const [page, data, newID] = await this.prepare(id, browser)
-        if (!page) {
-            console.log(`init ${id} failed, delete! init new ${newID}`);
-            await browser.close();
+        try {
+            const browser = await puppeteer.launch(options);
+            const [page, data] = await this.user.init(info.id, browser);
+            if (!page) {
+                const newID = this.user.newID();
+                console.warn(`init ${info.id} failed, delete! init new ${newID}`);
+                await browser.close();
+                if (options.userDataDir) {
+                    fs.rmdirSync(options.userDataDir, {recursive: true});
+                }
+                await sleep(5000);
+                info.id = newID;
+                return await this.initOne(info.id);
+            }
+            info.page = page;
+            info.data = data
+            info.ready = true;
+        } catch (e) {
+            console.error('init one failed, err:', e);
+            const newID = this.user.newID();
+            console.warn(`init ${info.id} failed, delete! init new ${newID}`);
             if (options.userDataDir) {
                 fs.rmdirSync(options.userDataDir, {recursive: true});
             }
             await sleep(5000);
-            return this.initOne(newID);
+            info.id = newID;
+            return await this.initOne(info.id);
         }
-        return [page, data, newID];
     }
 
     //@ts-ignore
-    get(): [page: Page | undefined, data: T | undefined, done: (data: T) => void, destroy: (newID: string) => void] {
+    get(): [page: Page | undefined, data: T | undefined, done: (data: T) => void, destroy: () => void] {
         for (const item of shuffleArray(this.pool)) {
             if (item.ready) {
                 item.ready = false;
@@ -84,14 +109,11 @@ export class BrowserPool<T> {
                         item.ready = true
                         item.data = data;
                     },
-                    (newID: string) => {
+                    () => {
                         item.page?.close();
-                        this.initOne(newID).then(([page, data, newID]) => {
-                            item.id = newID;
-                            item.page = page
-                            item.data = data;
-                            item.ready = true;
-                        })
+                        this.user.deleteID(item.id);
+                        item.id = this.user.newID();
+                        this.initOne(item.id).then();
                     }
                 ]
             }
