@@ -1,40 +1,40 @@
 <div align="center">
 
-# GPT4Free TypeScript Version 🆓
-###### Providing a free OpenAI GPT-4 API!
-English | [中文](README_zh.md) | [日本語](README_ja.md)
+# GPT4Free の TypeScript バージョン 🆓
+###### OpenAI GPT-4 API を無償で提供！
+[English](README.md) | [中文](README_zh.md) | 日本語
 
 [![Discord Server](https://discordapp.com/api/guilds/1115852499535020084/widget.png?style=banner2&count=true)](https://discord.gg/bbH68Kzm)
-<p>You can join our discord: <a href="https://discord.gg/bbH68Kzm">discord.gg/gptgod<a> for further updates. <a href="https://discord.gg/bbH68Kzm"><img align="center" alt="gpt4free Discord" width="22px" src="https://raw.githubusercontent.com/peterthehan/peterthehan/master/assets/discord.svg" /></a></p>
+<p>私達の discord: <a href="https://discord.gg/bbH68Kzm">discord.gg/gptgod<a> で続報を確認してください。 <a href="https://discord.gg/bbH68Kzm"><img align="center" alt="gpt4free Discord" width="22px" src="https://raw.githubusercontent.com/peterthehan/peterthehan/master/assets/discord.svg" /></a></p>
 </div>
 
 
-## 👍 GPT4 Website Base on this project [GPTGOD](http://gptgod.site)
+## 👍 GPT4 ウェブサイト 本企画のベース [GPTGOD](http://gptgod.site)
 <details>
-<summary><strong>Website Feature(Click to expand)</strong></summary>
+<summary><strong>ウェブサイトの特徴（クリックすると拡大します）</strong></summary>
 
-### GPTGOD Support
+### GPTGOD サポート
 
-- [x] Midjourney The Most Powerful AI Drawing System in History.
+- [x] Midjourney 史上最強の AI 描画システム。
 - [x] Stable Diffusion
 - [x] Claude
-- [x] Chatgpt
-- [x] Chatgpt with internet
-- [x] Create wechat ai robot for yourself, just need one step
+- [x] ChatGPT
+- [x] インターネット接続可能な ChatGPT
+- [x] wechat の AI ロボットを自分で作ろう
 
-In the next two weeks, I will open source all the code for GPTGOD. If you need, Please watch this project or follow me
-to receive notifications.
+今後 2 週間で、GPTGOD の全コードをオープンソース化する予定です。もし必要であれば、このプロジェクトを見るか、私をフォローして通知を受け取ってください。
+をフォローしてください。
 
-Why now? because there are stil some secret config should be removed from that project.
+なぜ今なのかというと、このプロジェクトにはまだいくつかの秘密設定が残っていて、それを削除する必要があるからです。
 </details>
 
-## 🚩 Reverse target
+## 🚩 リバースターゲット
 
-Still striving to keep updating.
+今も更新を続けている。
 
-Have implemented models here:
-If you do not want your website to appear here, please raise an issue and I will remove it immediately.
-|model|support|status|active time|
+ここにモデルを実装しています:
+もし、あなたのウェブサイトがここに表示されることを望まないなら、問題を提起してください、私はすぐにそれを削除します。
+|モデル|サポート|ステータス|アクティブタイム|
 |--|--|--|--|
 |[ai.mcbbs.gq](https://ai.mcbbs.gq)|gpt3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-06-03|
 |[forefront.ai](https://chat.forefront.ai)|👍GPT-4/gpt3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-06-03|
@@ -46,10 +46,10 @@ If you do not want your website to appear here, please raise an issue and I will
 |[writesonic.com](writesonic.com)| GPT-3.5 / Internet||
 |[t3nsor.com](t3nsor.com)|GPT-3.5||
 
-## 🏃‍♂️ Run
+## 🏃‍♂️ 実行
 
-First of all, you should create file `.env`. 
-> ***All operation methods require this step.***
+まず、`.env` というファイルを作成する必要があります。
+> ***すべての操作方法において、このステップが必要です。***
 
 ```env
 http_proxy=http://host:port
@@ -59,16 +59,16 @@ DEBUG=0
 POOL_SIZE=3
 ```
 
-- `http_proxy`: config your proxy if you can not access target website directly
-- `rapid_api_key`: you should config this if you use forefront api, this apikey is used for receive register email, get api key here
-- `EMAIL_TYPE`: temp email type includes `temp-email` `temp-email44` `tempmail-lol`
-    - [temp-email](https://rapidapi.com/Privatix/api/temp-mail): soft limit 100req/days, if over use money, need bind credit card! Very Stable!
-    - [temp-email44](https://rapidapi.com/calvinloveland335703-0p6BxLYIH8f/api/temp-mail44): hard limit 100req/days! Stable!
-    - [tempmail-lol](): nothing need, limit 25request/5min. Not Stable.
-- `DEBUG`: Valid when use `forefront` You can set =1 when you run local. show reverse process
-- `POOL_SIZE`: `forefront` concurrency size. You can engage in {POOL_SIZE} conversations concurrently. More pool size, More conversation can be done simultaneously, But use more RAM
+- `http_proxy`: 直接アクセスできない場合は、プロキシを設定してください
+- `rapid_api_key`: forefront の api を使用する場合、この設定を行う必要があります。この api キーは登録メールの受信に使用されます
+- `EMAIL_TYPE`: temp email type には `temp-email` `temp-email44` `tempmail-lol` があります
+    - [temp-email](https://rapidapi.com/Privatix/api/temp-mail): soft limit 100 req/日、使い過ぎるとクレジットカードの縛りが必要です！非常に安定しています！
+    - [temp-email44](https://rapidapi.com/calvinloveland335703-0p6BxLYIH8f/api/temp-mail44): hard limit 100 req/days！安定している！
+    - [tempmail-lol](): 25 req/5 分まで。安定しない。
+- `DEBUG`: `forefront` 使用時に有効 local 実行時に =1 が設定できます。リバースプロセスを表示します。
+- `POOL_SIZE`: `forefront` の同時実行サイズです。同時に {POOL_SIZE} の会話をすることができます。プールサイズを大きくすると、より多くの会話を同時に行うことができますが、より多くの RAM を使用します
 
-### Run local 🖥️ 
+### ローカル実行 🖥️
 
 ```shell
 # install module
@@ -77,38 +77,38 @@ yarn
 yarn start
 ```
 
-### Run with docker 🐳 
+### docker で実行する 🐳
 
 ```
 docker run -p 3000:3000 --env-file .env xiangsx/gpt4free-ts:latest
 ```
 
-### Deploy with docker-compose 🎭 
+### docker-compose でデプロイする 🎭
 
-first, you should create file .env; Follow step "Run with docker
+まず、.env ファイルを作成します; "docker で実行する"の手順に従ってください
 
-deploy
+デプロイ
 
 ```
 docker-compose up --build -d
 ```
 
-## 🚀 Let's Use GPT4
+## 🚀 GPT4 を使ってみよう
 
-> Return when chat complete http://127.0.0.1:3000/ask?prompt=***&model=***
+> チャットが完了したらリターン http://127.0.0.1:3000/ask?prompt=***&model=***
 
-> Return with eventstream http://127.0.0.1:3000/ask/stream?prompt=***&model=***
+> イベントストリームで返す http://127.0.0.1:3000/ask/stream?prompt=***&model=***
 
- ### Common parameters📝 
-- `prompt`: your question
-- `model`: target web site include:`forefront` `you` `mcbbs`
+ ### 共通パラメータ📝
+- `prompt`: あなたの質問
+- `model`: ターゲット Web サイト:`forefront` `you` `mcbbs`
 
- ### WebSite Unique parameters🔒
+ ### WebSite Unique パラメータ🔒
 - mcbbs
-    - `messages`: For example `[{"role":"system","content":"IMPORTANT: You are a virtual assistant powered by the gpt-3.5-turbo model, now time is 2023/6/3 13:42:27}"},{"role":"user","content":"你好\n"},{"role":"assistant","content":"你好！有什么我可以帮助你的吗？"},{"role":"user","content":"写个冒泡排序\n"}]`
+    - `messages`: 例えば `[{"role":"system","content":"IMPORTANT: You are a virtual assistant powered by the gpt-3.5-turbo model, now time is 2023/6/3 13:42:27}"},{"role":"user","content":"你好\n"},{"role":"assistant","content":"你好！有什么我可以帮助你的吗？"},{"role":"user","content":"写个冒泡排序\n"}]`
     - `temperature`: 0~1
 
-### Example💡
+### 例
 - `forefront`
     - http://127.0.0.1:3000/ask?prompt=whoareyou&model=forefront
     - http://127.0.0.1:3000/ask/stream?prompt=whoareyou&model=forefront

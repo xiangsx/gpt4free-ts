@@ -2,7 +2,7 @@
 
 # GPT4Free TypeScript Version 🆓
 ###### 提供免费的GPT4 API
-[English](README.md) | 中文
+[English](README.md) | 中文 | [日本語](README_ja.md)
 
 [![Discord Server](https://discordapp.com/api/guilds/1115852499535020084/widget.png?style=banner2&count=true)](https://discord.gg/bbH68Kzm)
 <p>你可以加入discord: <a href="https://discord.gg/bbH68Kzm">discord.gg/gptgod<a> 以获取项目最新进展. <a href="https://discord.gg/bbH68Kzm"><img align="center" alt="gpt4free Discord" width="22px" src="https://raw.githubusercontent.com/peterthehan/peterthehan/master/assets/discord.svg" /></a></p>
