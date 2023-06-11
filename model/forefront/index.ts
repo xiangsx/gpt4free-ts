@@ -147,6 +147,15 @@ export class Forefrontnew extends Chat {
         }
     }
 
+    private static async closeWelcomePop(page: Page) {
+        try {
+            await page.waitForSelector('.flex > .modal > .modal-box > .flex > .px-3:nth-child(1)', {timeout: 120 * 1000})
+            await page.click('.flex > .modal > .modal-box > .flex > .px-3:nth-child(1)')
+        } catch (e) {
+            console.log('not need close welcome pop');
+        }
+    }
+
     private static async selectAssistant(page: Page) {
         await page.waitForSelector('div > .absolute > .relative > .w-full:nth-child(3) > .relative')
         await page.click('div > .absolute > .relative > .w-full:nth-child(3) > .relative')
@@ -260,8 +269,7 @@ export class Forefrontnew extends Chat {
             console.log('register successfully');
             account.login_time = moment().format(TimeFormat);
             this.accountPool.syncfile();
-            await page.waitForSelector('.flex > .modal > .modal-box > .flex > .px-3:nth-child(1)', {timeout: 120000})
-            await page.click('.flex > .modal > .modal-box > .flex > .px-3:nth-child(1)')
+            await Forefrontnew.closeWelcomePop(page);
             await Forefrontnew.closeVIPPop(page);
             await page.waitForSelector('.relative > .flex > .w-full > .text-th-primary-dark > div', {timeout: 120000})
             await Forefrontnew.switchToGpt4(page);
