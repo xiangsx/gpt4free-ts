@@ -11,11 +11,11 @@ English | [中文](README_zh.md) | [日本語](README_ja.md)
 
 ## 👍 GPT4 Website Base on this project [GPTGOD](http://gptgod.site)
 <details>
-<summary><strong>Website Feature(Click to expand)</strong></summary>
+<summary><strong>Website Feature (Click to expand)</strong></summary>
 
 ### GPTGOD Support
 
-- [x] Midjourney The Most Powerful AI Drawing System in History.
+- [x] Midjourney The Most Powerful AI Drawing System in History
 - [x] Stable Diffusion
 - [x] Claude
 - [x] Chatgpt
