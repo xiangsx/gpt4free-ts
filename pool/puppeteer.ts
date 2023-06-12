@@ -12,7 +12,12 @@ export interface PageInfo<T> {
     page?: Page;
     data?: T;
 }
-
+export interface PageInfo<T> {
+    id: string;
+    ready: boolean;
+    page?: Page;
+    data?: T;
+}
 type PrepareFunc<T> = (id: string, browser: Browser) => Promise<[Page | undefined, T, string]>
 
 export class BrowserPool<T> {
