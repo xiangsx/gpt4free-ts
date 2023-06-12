@@ -56,7 +56,7 @@ http_proxy=http://host:port
 rapid_api_key=xxxxxxxxxx
 EMAIL_TYPE=temp-email44
 DEBUG=0
-POOL_SIZE=3
+POOL_SIZE=1
 ```
 
 - `http_proxy`: config your proxy if you can not access target website directly
@@ -66,7 +66,7 @@ POOL_SIZE=3
     - [temp-email44](https://rapidapi.com/calvinloveland335703-0p6BxLYIH8f/api/temp-mail44): hard limit 100req/days! Stable!
     - [tempmail-lol](): nothing need, limit 25request/5min. Not Stable.
 - `DEBUG`: Valid when use `forefront` You can set =1 when you run local. show reverse process
-- `POOL_SIZE`: `forefront` concurrency size. You can engage in {POOL_SIZE} conversations concurrently. More pool size, More conversation can be done simultaneously, But use more RAM
+- `POOL_SIZE`: `forefront` concurrency size. Keep set=1 until you run it successfully!!! You can engage in {POOL_SIZE} conversations concurrently. More pool size, More conversation can be done simultaneously, But use more RAM
 
 ### Run local 🖥️ 
 
