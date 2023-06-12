@@ -77,7 +77,7 @@ yarn
 yarn start
 ```
 
-### Run with docker 🐳 
+### Run with docker(Suggest!) 🐳 
 
 ```
 docker run -p 3000:3000 --env-file .env xiangsx/gpt4free-ts:latest
