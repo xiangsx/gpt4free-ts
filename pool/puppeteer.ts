@@ -37,7 +37,7 @@ export class BrowserPool<T> {
     }
 
     init() {
-        for (let i = 0; i < this.size; i++) {
+        for (let i = 0; i < 1; i++) {
             const id = this.user.newID();
             const info: PageInfo<T> = {
                 id,
@@ -77,7 +77,7 @@ export class BrowserPool<T> {
                 if (options.userDataDir) {
                     fs.rmdirSync(options.userDataDir, {recursive: true});
                 }
-                await sleep(5000);
+                await sleep(60000);
                 info.id = newID;
                 return await this.initOne(info.id);
             }
