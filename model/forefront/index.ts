@@ -87,7 +87,7 @@ class AccountPool {
 }
 
 
-export class Forefrontnew extends Chat implements BrowserUser<Account>{
+export class Forefrontnew extends Chat implements BrowserUser<Account> {
     private pagePool: BrowserPool<Account>;
     private accountPool: AccountPool;
 
@@ -139,8 +139,8 @@ export class Forefrontnew extends Chat implements BrowserUser<Account>{
 
     private static async closeVIPPop(page: Page) {
         try {
-            await page.waitForSelector('.flex > .w-full:nth-child(1) > .grid:nth-child(2) > .flex > .text-sm', {timeout: 15 * 1000})
-            await page.click('.flex > .w-full:nth-child(1) > .grid:nth-child(2) > .flex > .text-sm')
+            await page.waitForSelector('.grid > .grid > .w-full > .border-t > .text-th-primary-medium', {timeout: 15 * 1000})
+            await page.click('.grid > .grid > .w-full > .border-t > .text-th-primary-medium')
         } catch (e) {
             console.log('not need close vip');
         }
@@ -148,7 +148,7 @@ export class Forefrontnew extends Chat implements BrowserUser<Account>{
 
     private static async closeWelcomePop(page: Page) {
         try {
-            await page.waitForSelector('.flex > .modal > .modal-box > .flex > .px-3:nth-child(1)', {timeout: 120 * 1000})
+            await page.waitForSelector('.flex > .modal > .modal-box > .flex > .px-3:nth-child(1)', {timeout: 30 * 1000})
             await page.click('.flex > .modal > .modal-box > .flex > .px-3:nth-child(1)')
         } catch (e) {
             console.log('not need close welcome pop');
