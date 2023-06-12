@@ -54,7 +54,7 @@ http_proxy=http://host:port
 rapid_api_key=xxxxxxxxxx
 EMAIL_TYPE=temp-email44
 DEBUG=0
-POOL_SIZE=3
+POOL_SIZE=1
 ```
 
 - `http_proxy`: 你的本地代理，目前仅支持http协议
@@ -64,7 +64,7 @@ POOL_SIZE=3
    - [temp-email44](https://rapidapi.com/calvinloveland335703-0p6BxLYIH8f/api/temp-mail44): 硬限制 免费100req/days! 超过就会报错，也很稳定
    - [tempmail-lol](): 什么都不需要配置 硬限制 25request/5min. 不怎么稳定.
 - `DEBUG`: `forefront`专属配置 设置成1，会显示运行过程
-- `POOL_SIZE`: `forefront` 可以同时进行的对话数目，数值越大，同时进行的对话数越多，但是使用的内存越大，如果个人使用设置3即可
+- `POOL_SIZE`: 默认配置成1，修改之前确定你可以运行成功，并且知道此值的含义！！！`forefront` 可以同时进行的对话数目，数值越大，同时进行的对话数越多，但是使用的内存越大，如果个人使用设置1即可
 
 ### 本地运行 🖥️
 
