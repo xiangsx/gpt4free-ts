@@ -1,30 +1,41 @@
-[English](README.md)
+<div align="center">
 
-<p>你可以加入 <a href="https://discord.gg/bbH68Kzm">discord.gg/gptgod<a>获取最新的项目进展. <a href="https://discord.gg/bbH68Kzm"><img align="center" alt="gpt4free Discord" width="22px" src="https://raw.githubusercontent.com/peterthehan/peterthehan/master/assets/discord.svg" /></a></p>
+# GPT4Free TypeScript Version 🆓
+###### 提供免费的GPT4 API
+[English](README.md) | 中文 | [日本語](README_ja.md)
 
-## 示例项目 [GPTGOD](http://gptgod.site)
+[![Discord Server](https://discordapp.com/api/guilds/1115852499535020084/widget.png?style=banner2&count=true)](https://discord.gg/bbH68Kzm)
+<p>你可以加入discord: <a href="https://discord.gg/bbH68Kzm">discord.gg/gptgod<a> 以获取项目最新进展. <a href="https://discord.gg/bbH68Kzm"><img align="center" alt="gpt4free Discord" width="22px" src="https://raw.githubusercontent.com/peterthehan/peterthehan/master/assets/discord.svg" /></a></p>
+</div>
 
-### GPTGOD 现已支持
 
-- [x] Midjourney 史上最强的AI画图
-- [x] Stable Diffusion 史上最强的开源AI画图
-- [x] Claude 仅次于gpt4的AI语言模型
-- [x] Chatgpt 都知道
-- [x] Chatgpt with internet 联网的chatgpt
-- [x] 以上所有功能，都能在网站中，一个步骤集成到微信机器人中
+## 👍 基于此项目的最强网站 [GPTGOD](http://gptgod.site)
+<details>
+<summary><strong>Website Feature(Click to expand)</strong></summary>
 
-GPTGOD 会在稳定之后，完全开源，如果你感兴趣的话请关注我
+### GPTGOD Support
 
-## 目标
+- [x] Midjourney 史上最强AI画图
+- [x] Stable Diffusion 史上最强开源AI画图
+- [x] Claude 仅次于GPT4的AI对话模型
+- [x] gpt3.5-turbo 都知道
+- [x] gpt4 都知道
+- [x] Chatgpt with internet 联网版本GPT
+- [x] 以上所有功能均可在网站中一键集成到微信机器人中
 
-拼命更新中，期待您的PR....
+在未来的一段时间GPTGOD将开源，进入网站左下角有入群二维码，入群时刻关注最新动态
+</details>
 
-下面是已经可以转成api的网站:
-如果你发现你的网站在此列表，并且不想他出现，请联系我去除
+## 🚩 Reverse target
+
+仍在努力保持更新
+
+这里是已经实现转换成api的网站列表以及支持的对话模型，如果你不幸发现你的网站也在其中，请联系我，我会立刻下线
+
 |model|support|status|active time|
 |--|--|--|--|
 |[ai.mcbbs.gq](https://ai.mcbbs.gq)|gpt3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-06-03|
-|[forefront.ai](https://chat.forefront.ai)|GPT-4/gpt3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-06-03|
+|[forefront.ai](https://chat.forefront.ai)|👍GPT-4/gpt3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-06-03|
 |[aidream](http://aidream.cloud)|GPT-3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-05-12|
 |[you.com](you.com)|GPT-3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-05-12
 |[phind.com](https://www.phind.com/)|GPT-4 / Internet / good search|![Active](https://img.shields.io/badge/Active-grey)|
@@ -33,7 +44,29 @@ GPTGOD 会在稳定之后，完全开源，如果你感兴趣的话请关注我
 |[writesonic.com](writesonic.com)| GPT-3.5 / Internet||
 |[t3nsor.com](t3nsor.com)|GPT-3.5||
 
-## 本地运行
+## 🏃‍♂️ 运行
+
+首先，你需要创建环境变量文件 `.env`.
+> ***所有运行部署方式都需要这个步骤，包括运行在本地.***
+
+```env
+http_proxy=http://host:port
+rapid_api_key=xxxxxxxxxx
+EMAIL_TYPE=temp-email44
+DEBUG=0
+POOL_SIZE=1
+```
+
+- `http_proxy`: 你的本地代理，目前仅支持http协议
+- `rapid_api_key`: 如果你使用forefront，这个必填，为了接收临时邮箱
+- `EMAIL_TYPE`: `forefront`临时邮箱类型 `temp-email` `temp-email44` `tempmail-lol`
+   - [temp-email](https://rapidapi.com/Privatix/api/temp-mail): 软限制 免费100请求/days 如果超过了 每条收0.0038$ 具体查看下方网站，官方api非常稳定 
+   - [temp-email44](https://rapidapi.com/calvinloveland335703-0p6BxLYIH8f/api/temp-mail44): 硬限制 免费100req/days! 超过就会报错，也很稳定
+   - [tempmail-lol](): 什么都不需要配置 硬限制 25request/5min. 不怎么稳定.
+- `DEBUG`: `forefront`专属配置 设置成1，会显示运行过程
+- `POOL_SIZE`: 默认配置成1，修改之前确定你可以运行成功，并且知道此值的含义！！！`forefront` 可以同时进行的对话数目，数值越大，同时进行的对话数越多，但是使用的内存越大，如果个人使用设置1即可
+
+### 本地运行 🖥️
 
 ```shell
 # install module
@@ -42,102 +75,50 @@ yarn
 yarn start
 ```
 
-## 使用Docker运行
-
-### 1. 首先创建环境文件 `.env`
-
-```env
-http_proxy=http://host:port
-# 如果你使用forefront的话，`rapid_api_key` 必填
-# 这里获取 https://rapidapi.com/calvinloveland335703-0p6BxLYIH8f/api/temp-mail44
-# 这里获取 https://rapidapi.com/Privatix/api/temp-mail
-rapid_api_key=xxxxxxxxxx
-# 临时邮箱类型 `temp-email44:不需要绑定信用卡，但是每天限死100条调用` `temp-email: 需要绑定信用卡，每天免费100条，之后付费` 
-EMAIL_TYPE=temp-email44
-DEBUG=0 # 目前仅forefront用到 默认是0 一般本地运行可以设置成1，可以看到网站运行过程
-POOL_SIZE=3 # 目前仅forefront用到 启用线程数，默认3 即代表同时可以进行3个会话
-```
-
-### 2. 运行
+### 使用Docker运行 🐳
 
 ```
 docker run -p 3000:3000 --env-file .env xiangsx/gpt4free-ts:latest
 ```
 
-## 使用`docker-compose`部署
-
-### 1. 参照 docker步骤创建 `.env`文件
-
-### 2. 部署
+### 使用 docker-compose 运行 🎭
 
 ```
 docker-compose up --build -d
 ```
 
-## 使用Sealos详细部署教程
+### 使用Sealos详细部署教程 🌐
 
 [详细教程](https://icloudnative.io/posts/completely-free-to-use-gpt4/)
 
-## API使用说明
 
-### 参数介绍
+## 🚀 开始使用GPT4吧
 
-#### 1. 通用参数
+> 当对话结束时才会返回 http://127.0.0.1:3000/ask?prompt=***&model=***
 
-```typescript
-interface query {
-    prompt: string; // 有些网站不需要    
-    model: string; // 必填
-}
-```
+> 使用eventstream持续返回对话内容 http://127.0.0.1:3000/ask/stream?prompt=***&model=***
 
-#### 2. 各个网站特有参数
+### 公共参数 📝
+- `prompt`: your question
+- `model`: target web site include:`forefront` `you` `mcbbs`
 
-##### forefront(默认使用gpt4,其他模型需要修改代码)
+### 个别网站独有参数 🔒
+- mcbbs
+   - `messages`: For example `[{"role":"system","content":"IMPORTANT: You are a virtual assistant powered by the gpt-3.5-turbo model, now time is 2023/6/3 13:42:27}"},{"role":"user","content":"你好\n"},{"role":"assistant","content":"你好！有什么我可以帮助你的吗？"},{"role":"user","content":"写个冒泡排序\n"}]`
+   - `temperature`: 0~1
 
-无
+### 使用示例 💡
+- `forefront`
+   - http://127.0.0.1:3000/ask?prompt=whoareyou&model=forefront
+   - http://127.0.0.1:3000/ask/stream?prompt=whoareyou&model=forefront
+- `mcbbs`
+   - [http://127.0.0.1:3000/ask?prompt=nothing&model=mcbbs&messages=[{"role":"system","content":"IMPORTANT: You are a virtual assistant powered by the gpt-3.5-turbo model, now time is 2023/6/3 13:42:27}"},{"role":"user","content":"你好\n"},{"role":"assistant","content":"你好！有什么我可以帮助你的吗？"},{"role":"user","content":"写个冒泡排序\n"}]](http://127.0.0.1:3000/ask?prompt=nothing&model=mcbbs&messages=[{%22role%22:%22system%22,%22content%22:%22IMPORTANT:%20You%20are%20a%20virtual%20assistant%20powered%20by%20the%20gpt-3.5-turbo%20model,%20now%20time%20is%202023/6/3%2013:42:27}%22},{%22role%22:%22user%22,%22content%22:%22%E4%BD%A0%E5%A5%BD\n%22},{%22role%22:%22assistant%22,%22content%22:%22%E4%BD%A0%E5%A5%BD%EF%BC%81%E6%9C%89%E4%BB%80%E4%B9%88%E6%88%91%E5%8F%AF%E4%BB%A5%E5%B8%AE%E5%8A%A9%E4%BD%A0%E7%9A%84%E5%90%97%EF%BC%9F%22},{%22role%22:%22user%22,%22content%22:%22%E5%86%99%E4%B8%AA%E5%86%92%E6%B3%A1%E6%8E%92%E5%BA%8F\n%22}])
+- `you`
+   - http://127.0.0.1:3000/ask?prompt=whoareyou&model=you
+   - http://127.0.0.1:3000/ask/stream?prompt=whoareyou&model=you
 
-##### mcbbs
-
-```typescript
-interface Message {
-    role: string;
-    content: string;
-}
-
-interface options {
-    parse: string;
-    messages: string; // attattion messages is Message[] json string
-    temperature: number;
-}
-
-```
-
-### 开始使用
-
-普通API，等待整个会话结束才返回
-
-```shell
-# 使用 mcbbs
-
-curl '127.0.0.1:3000/ask?messages=[{"role":"system","content":"IMPORTANT: You are a virtual assistant powered by the gpt-3.5-turbo model, now time is 2023/6/3 13:42:27}"},{"role":"user","content":"你好\n"},{"role":"assistant","content":"你好！有什么我可以帮助你的吗？"},{"role":"user","content":"写个冒泡排序\n"}]&prompt=test&model=mcbbs&parse=false'
-
-# 使用 chat.forefront Default,use gpt4
-curl "http://127.0.0.1:3000/ask?prompt=hello&model=forefront"
-```
-
-stream类型，会不停地返回，不同网站返回的内容格式有所不同，后面目标是统一返回
-
-```shell
-# test model mcbbs
-curl '127.0.0.1:3000/ask/stream?messages=[{"role":"system","content":"IMPORTANT: You are a virtual assistant powered by the gpt-3.5-turbo model, now time is 2023/6/3 13:42:27}"},{"role":"user","content":"你好\n"},{"role":"assistant","content":"你好！有什么我可以帮助你的吗？"},{"role":"user","content":"写个冒泡排序\n"}]&prompt=test&model=mcbbs&parse=false'
-
-# test model forefront, 返回的是eventstreaam 包含三个事件 data(数据流) error(错误事件) done(会话完成，这个里面会携带完整的数据，这个里面的markdown格式是没有错乱的，data里面的格式可能会有问题)
-curl "http://127.0.0.1:3000/ask/stream?prompt=hello&model=forefront"
-
-# test you
-curl "http://127.0.0.1:3000/ask/stream?prompt=hello&model=you"
-```
+## 👥 加群细聊
+<image src="https://github.com/xiangsx/gpt4free-ts/assets/29322721/0a788688-ab0b-4e95-8438-20af4e7a5362" width=240 />
 
 ## 🌟 Star History
 
@@ -145,6 +126,7 @@ curl "http://127.0.0.1:3000/ask/stream?prompt=hello&model=you"
 
 <p>You may join our discord: <a href="https://discord.com/invite/gpt4free">discord.gg/gpt4free<a> for further updates. <a href="https://discord.gg/gpt4free"><img align="center" alt="gpt4free Discord" width="22px" src="https://raw.githubusercontent.com/peterthehan/peterthehan/master/assets/discord.svg" /></a></p>
 
+This is a replication project for the typescript version of [gpt4free](https://github.com/xtekky/gpt4free)
 
 <img alt="gpt4free logo" src="https://user-images.githubusercontent.com/98614666/233799515-1a7cb6a3-b17f-42c4-956d-8d2a0664466f.png">
 
