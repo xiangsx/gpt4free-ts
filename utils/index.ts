@@ -2,9 +2,8 @@ import es from 'event-stream';
 import {PassThrough, Stream} from 'stream';
 import * as crypto from 'crypto';
 import {v4} from "uuid";
-
-const {encoding_for_model} = require('@dqbd/tiktoken');
-const en = encoding_for_model('gpt-3.5-turbo');
+import  {encoding_for_model} from '@dqbd/tiktoken'
+const en = encoding_for_model("gpt-3.5-turbo");
 
 type eventFunc = (eventName: string, data: string) => void;
 
