@@ -73,7 +73,7 @@ export class You extends Chat {
 
     support(model: ModelType): number {
         switch (model) {
-            case ModelType.GPT3p5:
+            case ModelType.GPT3p5Turbo:
                 return 2000;
             default:
                 return 0;
@@ -124,7 +124,7 @@ export class You extends Chat {
                     break;
                 case 'done':
                     stream.write(Event.done, {content: 'done'})
-                    stream.stream().end();
+                    stream.end();
                     return;
                 default:
                     return;

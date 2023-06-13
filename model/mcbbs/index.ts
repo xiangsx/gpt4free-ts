@@ -36,7 +36,7 @@ export class Mcbbs extends Chat {
 
     support(model: ModelType): number {
         switch (model) {
-            case ModelType.GPT3p5:
+            case ModelType.GPT3p5Turbo:
                 return 2000;
             default:
                 return 0;
@@ -53,7 +53,7 @@ export class Mcbbs extends Chat {
             stream.read((event, data) => {
                 switch (event) {
                     case Event.done:
-                        stream.stream().end();
+                        stream.end();
                         break;
                     case Event.message:
                         result.content = (data as MessageData).content

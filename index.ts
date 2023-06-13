@@ -31,7 +31,7 @@ interface AskRes extends ChatResponse {
 }
 
 router.get('/ask', async (ctx) => {
-    const {prompt, model = ModelType.GPT3p5, site = Site.You} = ctx.query as unknown as AskReq;
+    const {prompt, model = ModelType.GPT3p5Turbo, site = Site.You} = ctx.query as unknown as AskReq;
     if (!prompt) {
         ctx.body = {error: `need prompt in query`} as AskRes;
         return;
@@ -50,7 +50,7 @@ router.get('/ask', async (ctx) => {
 });
 
 router.get('/ask/stream', async (ctx) => {
-    const {prompt, model = ModelType.GPT3p5, site = Site.You} = ctx.query as unknown as AskReq;
+    const {prompt, model = ModelType.GPT3p5Turbo, site = Site.You} = ctx.query as unknown as AskReq;
     ctx.set({
         "Content-Type": "text/event-stream;charset=utf-8",
         "Cache-Control": "no-cache",
@@ -60,16 +60,19 @@ router.get('/ask/stream', async (ctx) => {
     ctx.body = es.stream();
     if (!prompt) {
         es.write(Event.error, {error: 'need prompt in query'})
+        es.end();
         return;
     }
     const chat = chatModel.get(site);
     if (!chat) {
         es.write(Event.error, {error: `not support site: ${site} `})
+        es.end();
         return;
     }
     const tokenLimit = chat.support(model);
     if (!tokenLimit) {
         es.write(Event.error, {error: `${site} not support model ${model}`})
+        es.end();
         return;
     }
     await chat.askStream({prompt: PromptToString(prompt, tokenLimit), model}, es);
