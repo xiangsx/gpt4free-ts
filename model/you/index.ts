@@ -124,6 +124,7 @@ export class You extends Chat {
                     break;
                 case 'done':
                     stream.write(Event.done, {content: 'done'})
+                    stream.stream().end();
                     return;
                 default:
                     return;

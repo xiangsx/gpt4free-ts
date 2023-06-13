@@ -57,6 +57,7 @@ router.get('/ask/stream', async (ctx) => {
         "Connection": "keep-alive",
     });
     const es = new EventStream();
+    ctx.body = es.stream();
     if (!prompt) {
         es.write(Event.error, {error: 'need prompt in query'})
         return;

@@ -23,23 +23,26 @@ export interface ChatRequest {
     model: ModelType;
 }
 
-export function PromptToString(prompt: string | Message[], limit: number): string {
-    if (typeof prompt === "string") {
+export function PromptToString(prompt: string, limit: number): string {
+    try {
+        const messages: Message[] = JSON.parse(prompt);
+        let result: Message[] = [];
+        let tokenSize = 0;
+        for (let i = messages.length - 1; i >= 0; i--) {
+            const item = messages[i];
+            const {role, content} = item;
+            tokenSize += getTokenSize(content);
+            if (tokenSize > limit) {
+                break;
+            }
+            result.push(item);
+        }
+        return `${result.reverse().map(item => `${item.role}
+    : ${item.content}
+        `).join('\n')}\nassistant: `;
+    } catch (e) {
         return prompt;
     }
-    let result: Message[] = [];
-
-    let tokenSize = 0;
-    for (let i = prompt.length - 1; i >= 0; i--) {
-        const item = prompt[i];
-        const {role, content} = item;
-        tokenSize += getTokenSize(content);
-        if (tokenSize > limit) {
-            break;
-        }
-        result.push(item);
-    }
-    return result.reverse().map(item => `${item.role}: ${item.content}`).join('\n');
 }
 
 export abstract class Chat {
