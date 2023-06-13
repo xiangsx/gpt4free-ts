@@ -307,7 +307,8 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
         await page.click('.opacity-100 > .flex > .relative:nth-child(3) > .flex > .cursor-pointer')
     }
 
-    public async askStream(req: ChatRequest, stream:EventStream) {
+    public async askStream(req: ChatRequest, stream: EventStream) {
+        req.prompt = req.prompt.replace(/\n/g, '|');
         const [page, account, done, destroy] = this.pagePool.get();
         if (!account || !page) {
             stream.write(Event.error, {error: 'please wait init.....about 1 min'})
