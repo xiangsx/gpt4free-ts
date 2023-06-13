@@ -37,10 +37,9 @@ export function PromptToString(prompt: string, limit: number): string {
             }
             result.push(item);
         }
-        return `${result.reverse().map(item => `${item.role}
-    : ${item.content}
-        `).join('\n')}\nassistant: `;
+        return `${result.reverse().map(item => `${item.role}: ${item.content}`).join('\n')}\nassistant: `;
     } catch (e) {
+        console.error(e);
         return prompt;
     }
 }
