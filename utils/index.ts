@@ -38,7 +38,7 @@ export function parseJSON<T>(str: string, defaultObj: T): T {
     try {
         return JSON.parse(str)
     } catch (e) {
-        console.error(str, e);
+        console.log(str);
         return defaultObj;
     }
 }
@@ -90,6 +90,10 @@ export type DataCB<T extends Event> = (event: T, data: Data<T>) => void
 export class EventStream {
     private readonly pt: PassThrough = new PassThrough();
 
+    constructor() {
+        this.pt.setEncoding('utf-8');
+    }
+
     write<T extends Event>(event: T, data: Data<T>) {
         this.pt.write(`event: ${event}\n`, 'utf-8');
         this.pt.write(`data: ${JSON.stringify(data)}\n\n`, 'utf-8');
@@ -105,8 +109,11 @@ export class EventStream {
 
     read(dataCB: DataCB<Event>, closeCB: () => void) {
         this.pt.setEncoding('utf-8');
-        this.pt.pipe(es.split('\n\n').pipe(es.map(async (chunk: any, cb: any) => {
+        this.pt.pipe(es.split('\n\n')).pipe(es.map(async (chunk: any, cb: any) => {
             const res = chunk.toString()
+            if (!res) {
+                return;
+            }
             const [eventStr, dataStr] = res.split('\n');
             const event: Event = eventStr.replace('event: ', '');
             if (!(event in Event)) {
@@ -115,7 +122,7 @@ export class EventStream {
             }
             const data = parseJSON(dataStr.replace('data: ', ''), {} as Data<Event>);
             return dataCB(event, data);
-        })))
+        }))
         this.pt.on("close", closeCB)
     }
 }

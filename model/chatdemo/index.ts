@@ -3,7 +3,6 @@ import {AxiosInstance, AxiosRequestConfig, CreateAxiosDefaults} from "axios";
 import {CreateAxiosProxy} from "../../utils/proxyAgent";
 import es from "event-stream";
 import {ErrorData, Event, EventStream, MessageData, parseJSON} from "../../utils";
-import {randomUUID} from "crypto";
 import {v4} from "uuid";
 import moment from "moment";
 
@@ -50,10 +49,10 @@ export class ChatDemo extends Chat {
                     case Event.done:
                         break;
                     case Event.message:
-                        result.content += (data as MessageData).content
+                        result.content += (data as MessageData).content || '';
                         break;
                     case Event.error:
-                        result.error = (data as ErrorData).error
+                        result.error = (data as ErrorData).error;
                         break;
                 }
             }, () => {
@@ -76,7 +75,6 @@ export class ChatDemo extends Chat {
             res.data.pipe(es.split(/\r?\n\r?\n/)).pipe(es.map(async (chunk: any, cb: any) => {
                 const dataStr = chunk.replace('data: ', '');
                 if (!dataStr) {
-                    stream.end();
                     return;
                 }
                 const data = parseJSON(dataStr, {} as any);
@@ -85,7 +83,11 @@ export class ChatDemo extends Chat {
                     stream.end();
                     return;
                 }
-                const [{delta: {content = ""}}] = data.choices;
+                const [{delta: {content = ""}, finish_reason}] = data.choices;
+                if (finish_reason === 'stop') {
+                    stream.end();
+                    return;
+                }
                 stream.write(Event.message, {content});
             }))
         } catch (e: any) {
