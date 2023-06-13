@@ -95,7 +95,7 @@ export class Forefrontnew extends Chat {
         this.accountPool = new AccountPool();
         const maxSize = +(process.env.POOL_SIZE || 2);
         const initialAccounts = this.accountPool.multiGet(maxSize);
-        this.pagePool = new BrowserPool<Account>(maxSize, initialAccounts.map(item => item.id), this.init.bind(this));
+        this.pagePool = new BrowserPool<Account>(0, initialAccounts.map(item => item.id), this.init.bind(this));
     }
 
     support(model: ModelType): number {
