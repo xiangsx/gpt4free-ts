@@ -92,12 +92,16 @@ export class EventStream {
     private readonly pt: PassThrough = new PassThrough();
 
     write<T extends Event>(event: T, data: Data<T>) {
-        this.pt.write(`event: ${event}\n`,'utf-8');
-        this.pt.write(`data: ${JSON.stringify(data)}\n\n`,'utf-8');
+        this.pt.write(`event: ${event}\n`, 'utf-8');
+        this.pt.write(`data: ${JSON.stringify(data)}\n\n`, 'utf-8');
     }
 
     stream() {
         return this.pt;
+    }
+
+    end(cb?: () => void) {
+        this.pt.end(cb)
     }
 
     read(dataCB: DataCB<Event>, closeCB: () => void) {

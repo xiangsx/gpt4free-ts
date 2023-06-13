@@ -293,7 +293,7 @@ export class Forefrontnew extends Chat {
         const [page, account, done, destroy] = this.pagePool.get();
         if (!account || !page) {
             stream.write(Event.error, {error: 'please wait init.....about 1 min'})
-            stream.stream().end();
+            stream.end();
             return;
         }
         try {
@@ -316,7 +316,7 @@ export class Forefrontnew extends Chat {
             const newAccount = this.accountPool.get();
             destroy(newAccount.id);
             stream.write(Event.error, {error: 'some thing error, try again later'});
-            stream.stream().end();
+            stream.end();
             return
         }
 
@@ -351,7 +351,7 @@ export class Forefrontnew extends Chat {
             } catch (e) {
                 console.error(e);
             } finally {
-                stream.stream().end();
+                stream.end();
                 await page.waitForSelector('.flex:nth-child(1) > div:nth-child(2) > .relative > .flex > .cursor-pointer')
                 await page.click('.flex:nth-child(1) > div:nth-child(2) > .relative > .flex > .cursor-pointer')
                 account.gpt4times += 1;
