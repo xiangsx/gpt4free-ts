@@ -111,7 +111,6 @@ export class BrowserPool<T> {
                     },
                     () => {
                         item.page?.close();
-                        this.user.deleteID(item.id);
                         item.id = this.user.newID();
                         this.initOne(item.id).then();
                     }
