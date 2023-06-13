@@ -2,7 +2,8 @@ import es from 'event-stream';
 import {PassThrough, Stream} from 'stream';
 import * as crypto from 'crypto';
 import {v4} from "uuid";
-import  {encoding_for_model} from '@dqbd/tiktoken'
+import {encoding_for_model} from '@dqbd/tiktoken'
+
 const en = encoding_for_model("gpt-3.5-turbo");
 
 type eventFunc = (eventName: string, data: string) => void;
@@ -105,17 +106,20 @@ export class EventStream {
 
     read(dataCB: DataCB<Event>, closeCB: () => void) {
         this.pt.setEncoding('utf-8');
-        this.pt.pipe(es.split('\n\n').pipe(es.map(async (chunk: any, cb: any) => {
+        this.pt.pipe(es.split('\n\n')).pipe(es.map(async (chunk: any, cb: any) => {
             const res = chunk.toString()
+            if (!res) {
+                return;
+            }
             const [eventStr, dataStr] = res.split('\n');
             const event: Event = eventStr.replace('event: ', '');
             if (!(event in Event)) {
-                dataCB(Event.error, {error: `EventStream data read failed, not support event ${event}`});
+                dataCB(Event.error, {error: `EventStream data read failed, not support event ${eventStr}, ${dataStr}`});
                 return;
             }
             const data = parseJSON(dataStr.replace('data: ', ''), {} as Data<Event>);
-            return dataCB(event, data);
-        })))
+            dataCB(event, data);
+        }))
         this.pt.on("close", closeCB)
     }
 }
