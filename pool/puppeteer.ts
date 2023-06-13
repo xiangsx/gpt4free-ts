@@ -3,6 +3,7 @@ import path from "path";
 import run from "node:test";
 import * as fs from "fs";
 import {shuffleArray, sleep} from "../utils";
+
 const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 
@@ -76,7 +77,9 @@ export class BrowserPool<T> {
                 console.warn(`init ${info.id} failed, delete! init new ${newID}`);
                 await browser.close();
                 if (options.userDataDir) {
-                    fs.rmdirSync(options.userDataDir, {recursive: true});
+                    fs.rm(options.userDataDir, {force: true, recursive: true}, () => {
+                        console.log(`${info.id} has been deleted`)
+                    });
                 }
                 await sleep(5000);
                 info.id = newID;
@@ -91,7 +94,9 @@ export class BrowserPool<T> {
             const newID = this.user.newID();
             console.warn(`init ${info.id} failed, delete! init new ${newID}`);
             if (options.userDataDir) {
-                fs.rmdirSync(options.userDataDir, {recursive: true});
+                fs.rm(options.userDataDir, {force: true, recursive: true}, () => {
+                    console.log(`${info.id} has been deleted`)
+                });
             }
             await sleep(5000);
             info.id = newID;
