@@ -34,9 +34,9 @@
 
 |model|support|status|active time|
 |--|--|--|--|
-|[ai.mcbbs.gq](https://ai.mcbbs.gq)|gpt3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-06-03|
+|[chatdemo]()|👍gpt3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-06-13|
 |[forefront.ai](https://chat.forefront.ai)|👍GPT-4/gpt3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-06-03|
-|[you.com](you.com)|GPT-3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-05-12
+|[you.com](you.com)|👍GPT-3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-05-12
 |[phind.com](https://www.phind.com/)|GPT-4 / Internet / good search|![Active](https://img.shields.io/badge/Active-grey)|
 |[bing.com/chat](bing.com/chat)|GPT-4/3.5||
 |[poe.com](poe.com)| GPT-4/3.5||
@@ -102,7 +102,7 @@ docker-compose up --build -d
   - `jsonstr`:包含上下文的json字符串，例如：`[{"role":"user","content":"你好\n"},{"role":"assistant","content":"你好！有什么我可以帮助你的吗？"},{"role":"user","content":"你是谁"}]`
   - `string`: 单次对话 例如：`你是谁`
 - `model`: 默认 `gpt3.5-turbo`. 模型:`gpt4` `gpt3.5-turbo`
-- `site`: 默认 `you`. 目标网站 `forefront` `you` `mcbbs`
+- `site`: 默认 `you`. 目标网站 `forefront` `you` `chatdemo`
 
 
 ### 返回参数 🔙
@@ -116,7 +116,7 @@ interface ChatResponse {
 }
 ```
 
-stream模式返回参数示例(/ask/stream):
+stream模式返回参数示例Suggest!!(/ask/stream):
 
 ```
 event: message
