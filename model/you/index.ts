@@ -3,8 +3,8 @@ import {v4 as uuidv4} from 'uuid';
 import UserAgent from 'user-agents';
 import {Session} from "tls-client/dist/esm/sessions";
 import {Params} from "tls-client/dist/esm/types";
-import {parseJSON, toEventCB, toEventStream} from "../../utils";
-import {Chat, ChatOptions, Request, Response, ResponseStream} from "../base";
+import {Event, EventStream, parseJSON, toEventCB} from "../../utils";
+import {Chat, ChatOptions, ChatRequest, ChatResponse, ModelType} from "../base";
 import {CreateTlsProxy} from "../../utils/proxyAgent";
 
 const userAgent = new UserAgent();
@@ -71,7 +71,16 @@ export class You extends Chat {
         this.session.headers = this.getHeaders();
     }
 
-    private async request(req: Request) {
+    support(model: ModelType): number {
+        switch (model) {
+            case ModelType.GPT3p5Turbo:
+                return 2000;
+            default:
+                return 0;
+        }
+    }
+
+    private async request(req: ChatRequest) {
         let {
             page = 1,
             count = 10,
@@ -81,14 +90,11 @@ export class You extends Chat {
             responseFilter = 'WebPages,Translations,TimeZone,Computation,RelatedSearches',
             domain = 'youchat',
             queryTraceId = null,
-            chat = null,
+            chat = [],
             includeLinks = "False",
             detailed = "False",
             debug = "False",
-        } = req.options || {};
-        if (!chat) {
-            chat = [];
-        }
+        } = {};
         return await this.session.get(
             'https://you.com/api/streamingSearch', {
                 params: {
@@ -100,39 +106,50 @@ export class You extends Chat {
                     mkt: mkt + '',
                     responseFilter: responseFilter + '',
                     domain: domain + '',
-                    queryTraceId: queryTraceId || uuidv4(),
+                    queryTraceId: uuidv4(),
                     chat: JSON.stringify(chat),
                 } as Params,
             }
         );
     }
 
-    public async askStream(req: Request): Promise<ResponseStream> {
+    public async askStream(req: ChatRequest, stream: EventStream) {
         const response = await this.request(req);
-        return {text: toEventStream(response.content), other: {}}
+        toEventCB(response.content, (eventName, data) => {
+            let obj: any;
+            switch (eventName) {
+                case 'youChatToken':
+                    obj = parseJSON(data, {}) as any;
+                    stream.write(Event.message, {content: obj.youChatToken})
+                    break;
+                case 'done':
+                    stream.write(Event.done, {content: 'done'})
+                    stream.end();
+                    return;
+                default:
+                    return;
+            }
+        })
     }
 
     public async ask(
-        req: Request): Promise<Response> {
+        req: ChatRequest): Promise<ChatResponse> {
         const response = await this.request(req);
         return new Promise(resolve => {
-            const res: Response = {
-                text: '',
-                other: {},
+            const res: ChatResponse = {
+                content: '',
             };
             toEventCB(response.content, (eventName, data) => {
                 let obj: any;
                 switch (eventName) {
                     case 'youChatToken':
                         obj = parseJSON(data, {}) as any;
-                        res.text += obj.youChatToken;
+                        res.content += obj.youChatToken;
                         break;
                     case 'done':
                         resolve(res);
                         return;
                     default:
-                        obj = parseJSON(data, {}) as any;
-                        res.other[eventName] = obj;
                         return;
                 }
             });

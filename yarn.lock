@@ -30,6 +30,11 @@
   dependencies:
     "@jridgewell/trace-mapping" "0.3.9"
 
+"@dqbd/tiktoken@^1.0.7":
+  version "1.0.7"
+  resolved "https://registry.npmmirror.com/@dqbd/tiktoken/-/tiktoken-1.0.7.tgz#612871cf91eba5599c804f100c573aa4d8596f57"
+  integrity sha512-bhR5k5W+8GLzysjk8zTMVygQZsgvf7W1F0IlL4ZQ5ugjo5rCyiwGM5d8DYriXspytfu98tv59niang3/T+FoDw==
+
 "@jridgewell/resolve-uri@^3.0.3":
   version "3.1.1"
   resolved "https://registry.npmjs.org/@jridgewell/resolve-uri/-/resolve-uri-3.1.1.tgz"
