@@ -117,7 +117,7 @@ interface ChatResponse {
 }
 ```
 
-Response with stream like(/ask/stream):
+Response with stream like, Suggest!!(/ask/stream):
 
 ```
 event: message

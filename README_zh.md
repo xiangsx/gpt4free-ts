@@ -116,7 +116,7 @@ interface ChatResponse {
 }
 ```
 
-stream模式返回参数示例(/ask/stream):
+stream模式返回参数示例Suggest!!(/ask/stream):
 
 ```
 event: message
