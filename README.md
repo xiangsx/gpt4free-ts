@@ -36,9 +36,9 @@ Have implemented models here:
 If you do not want your website to appear here, please raise an issue and I will remove it immediately.
 |model|support|status|active time|
 |--|--|--|--|
-|[ai.mcbbs.gq](https://ai.mcbbs.gq)|gpt3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-06-03|
-|[forefront.ai](https://chat.forefront.ai)|👍GPT-4/gpt3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-06-03|
-|[you.com](https://you.com)|👍GPT-3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-05-12
+|[chatdemo]()|👍gpt3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-06-13|
+|[forefront.ai](https://chat.forefront.ai)|👍GPT-4/gpt3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-06-13|
+|[you.com](https://you.com)|👍GPT-3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-06-13
 |[phind.com](https://www.phind.com/)|GPT-4 / Internet / good search|![Active](https://img.shields.io/badge/Active-grey)|
 |[bing.com/chat](https://bing.com/chat)|GPT-4/3.5||
 |[poe.com](https://poe.com)| GPT-4/3.5||
@@ -104,7 +104,7 @@ docker-compose up --build -d
   - example `jsonstr`:`[{"role":"user","content":"hello\n"},{"role":"assistant","content":"Hi there! How can I assist you today?"},{"role":"user","content":"who are you"}]`
   - example `string`: `who are you`
 - `model`: default `gpt3.5-turbo`. model include:`gpt4` `gpt3.5-turbo`
-- `site`: default `you`. target site, include `forefront` `you` `mcbbs`
+- `site`: default `you`. target site, include `forefront` `you` `chatdemo`
 
 ### Response Params 🔙
 
