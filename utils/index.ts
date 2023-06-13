@@ -3,6 +3,9 @@ import {PassThrough, Stream} from 'stream';
 import * as crypto from 'crypto';
 import {v4} from "uuid";
 
+const {encoding_for_model} = require('@dqbd/tiktoken');
+const en = encoding_for_model('gpt-3.5-turbo');
+
 type eventFunc = (eventName: string, data: string) => void;
 
 export function toEventCB(arr: Uint8Array, emit: eventFunc) {
@@ -66,3 +69,54 @@ export function shuffleArray<T>(array: T[]): T[] {
     }
     return shuffledArray;
 }
+
+export type ErrorData = { error: string; };
+export type MessageData = { content: string };
+export type DoneData = MessageData;
+
+export enum Event {
+    error = 'error',
+    message = 'message',
+    done = 'done',
+}
+
+export type Data<T extends Event> =
+    T extends Event.error ? ErrorData :
+        T extends Event.message ? MessageData :
+            T extends Event.done ? DoneData : any;
+
+
+export type DataCB<T extends Event> = (event: T, data: Data<T>) => void
+
+export class EventStream {
+    private readonly pt: PassThrough = new PassThrough();
+
+    write<T extends Event>(event: T, data: Data<T>) {
+        this.pt.write(`event: ${event}\n`,'utf-8');
+        this.pt.write(`data: ${JSON.stringify(data)}\n\n`,'utf-8');
+    }
+
+    stream() {
+        return this.pt;
+    }
+
+    read(dataCB: DataCB<Event>, closeCB: () => void) {
+        this.pt.setEncoding('utf-8');
+        this.pt.pipe(es.split('\n\n').pipe(es.map(async (chunk: any, cb: any) => {
+            const res = chunk.toString()
+            const [eventStr, dataStr] = res.split('\n');
+            const event: Event = eventStr.replace('event: ', '');
+            if (!(event in Event)) {
+                dataCB(Event.error, {error: `EventStream data read failed, not support event ${event}`});
+                return;
+            }
+            const data = parseJSON(dataStr.replace('data: ', ''), {} as Data<Event>);
+            return dataCB(event, data);
+        })))
+        this.pt.on("close", closeCB)
+    }
+}
+
+export const getTokenSize = (str: string) => {
+    return en.encode(str).length;
+};
