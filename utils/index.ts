@@ -91,6 +91,10 @@ export type DataCB<T extends Event> = (event: T, data: Data<T>) => void
 export class EventStream {
     private readonly pt: PassThrough = new PassThrough();
 
+    constructor() {
+        this.pt.setEncoding('utf-8');
+    }
+
     write<T extends Event>(event: T, data: Data<T>) {
         this.pt.write(`event: ${event}\n`, 'utf-8');
         this.pt.write(`data: ${JSON.stringify(data)}\n\n`, 'utf-8');
