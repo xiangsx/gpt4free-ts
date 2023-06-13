@@ -102,8 +102,8 @@ docker-compose up --build -d
 ### Request Params 📝
 
 - `prompt`: your question. It can be a `string` or `jsonstr`.
-  - example `jsonstr`:`[{"role":"user","content":"你好\n"},{"role":"assistant","content":"你好！有什么我可以帮助你的吗？"},{"role":"user","content":"你是谁"}]`
-  - example `string`: `你是谁`
+  - example `jsonstr`:`[{"role":"user","content":"hello\n"},{"role":"assistant","content":"Hi there! How can I assist you today?"},{"role":"user","content":"who are you"}]`
+  - example `string`: `who are you`
 - `model`: default `gpt3.5-turbo`. model include:`gpt4` `gpt3.5-turbo`
 - `site`: default `you`. target site, include `forefront` `you` `mcbbs`
 
