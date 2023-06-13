@@ -71,6 +71,7 @@ export class BrowserPool<T> {
             const browser = await puppeteer.launch(options);
             const [page, data] = await this.user.init(info.id, browser);
             if (!page) {
+                this.user.deleteID(info.id);
                 const newID = this.user.newID();
                 console.warn(`init ${info.id} failed, delete! init new ${newID}`);
                 await browser.close();
@@ -86,6 +87,7 @@ export class BrowserPool<T> {
             info.ready = true;
         } catch (e) {
             console.error('init one failed, err:', e);
+            this.user.deleteID(info.id);
             const newID = this.user.newID();
             console.warn(`init ${info.id} failed, delete! init new ${newID}`);
             if (options.userDataDir) {
