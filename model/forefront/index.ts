@@ -1,13 +1,12 @@
-import {Chat, ChatOptions, Request, Response, ResponseStream} from "../base";
+import {Chat, ChatOptions, ChatRequest, ChatResponse, ModelType} from "../base";
 import {Browser, Page} from "puppeteer";
 import {BrowserPool} from "../../pool/puppeteer";
 import {CreateEmail, TempEmailType, TempMailMessage} from "../../utils/emailFactory";
 import {CreateTlsProxy} from "../../utils/proxyAgent";
 import * as fs from "fs";
-import {parseJSON, sleep} from "../../utils";
+import {DoneData, ErrorData, Event, EventStream, MessageData, parseJSON, sleep} from "../../utils";
 import {v4} from "uuid";
 import moment from 'moment';
-import {ReadEventStream, WriteEventStream} from "../../utils/eventstream";
 
 type PageData = {
     gpt4times: number;
@@ -99,28 +98,42 @@ export class Forefrontnew extends Chat {
         this.pagePool = new BrowserPool<Account>(maxSize, initialAccounts.map(item => item.id), this.init.bind(this));
     }
 
-    public async ask(req: Request): Promise<Response> {
-        const res = await this.askStream(req);
-        let text = '';
+    support(model: ModelType): number {
+        switch (model) {
+            case ModelType.GPT4:
+                return 3000;
+            default:
+                return 0;
+        }
+    }
+
+    public async ask(req: ChatRequest): Promise<ChatResponse> {
+        const et = new EventStream();
+        const res = await this.askStream(req, et);
+        const result: ChatResponse = {
+            content: '',
+        };
         return new Promise(resolve => {
-            const et = new ReadEventStream(res.text);
-            et.read(({event, data}) => {
+            et.read((event, data) => {
                 if (!data) {
                     return;
                 }
                 switch (event) {
-                    case 'data':
-                        text = data;
+                    case 'message':
+                        result.content = (data as MessageData).content;
                         break;
                     case 'done':
-                        text = data;
+                        result.content = (data as DoneData).content;
+                        break;
+                    case 'error':
+                        result.error = (data as ErrorData).error;
                         break;
                     default:
                         console.error(data);
                         break;
                 }
             }, () => {
-                resolve({text, other: res.other});
+                resolve(result);
             });
         })
     }
@@ -276,13 +289,12 @@ export class Forefrontnew extends Chat {
         await page.click('.opacity-100 > .flex > .relative:nth-child(3) > .flex > .cursor-pointer')
     }
 
-    public async askStream(req: Request): Promise<ResponseStream> {
+    public async askStream(req: ChatRequest, stream:EventStream) {
         const [page, account, done, destroy] = this.pagePool.get();
-        const pt = new WriteEventStream();
         if (!account || !page) {
-            pt.write("error", 'please wait init.....about 1 min');
-            pt.end();
-            return {text: pt.stream};
+            stream.write(Event.error, {error: 'please wait init.....about 1 min'})
+            stream.stream().end();
+            return;
         }
         try {
             console.log('try to find input');
@@ -303,9 +315,9 @@ export class Forefrontnew extends Chat {
             console.error(e);
             const newAccount = this.accountPool.get();
             destroy(newAccount.id);
-            pt.write("error", 'some thing error, try again later');
-            pt.end();
-            return {text: pt.stream}
+            stream.write(Event.error, {error: 'some thing error, try again later'});
+            stream.stream().end();
+            return
         }
 
         // get latest markdown id
@@ -321,7 +333,7 @@ export class Forefrontnew extends Chat {
                         return el.textContent;
                     });
                     if (text) {
-                        pt.write("data", text);
+                        stream.write(Event.message, {content: text})
                     }
                 }, 100)
                 if (!page) {
@@ -331,13 +343,15 @@ export class Forefrontnew extends Chat {
                 //@ts-ignore
                 const text: any = await page.evaluate(() => navigator.clipboard.text);
                 console.log('chat end: ', text);
-                pt.write("done", text || await result?.evaluate(el => {
-                    return el.textContent;
-                }));
+                stream.write(Event.done, {
+                    content: text || await result?.evaluate(el => {
+                        return el.textContent;
+                    })
+                })
             } catch (e) {
                 console.error(e);
             } finally {
-                pt.end();
+                stream.stream().end();
                 await page.waitForSelector('.flex:nth-child(1) > div:nth-child(2) > .relative > .flex > .cursor-pointer')
                 await page.click('.flex:nth-child(1) > div:nth-child(2) > .relative > .flex > .cursor-pointer')
                 account.gpt4times += 1;
@@ -356,7 +370,7 @@ export class Forefrontnew extends Chat {
                 }
             }
         })().then();
-        return {text: pt.stream}
+        return
     }
 
 }
