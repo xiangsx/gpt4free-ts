@@ -25,6 +25,7 @@
     "typescript": "^5.0.4"
   },
   "dependencies": {
+    "@dqbd/tiktoken": "^1.0.7",
     "axios": "^1.4.0",
     "dotenv": "^16.0.3",
     "event-stream": "^4.0.1",

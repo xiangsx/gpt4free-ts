@@ -91,34 +91,93 @@ docker-compose up --build -d
 
 [详细教程](https://icloudnative.io/posts/completely-free-to-use-gpt4/)
 
+## 🚀 Let's Use GPT4
 
-## 🚀 开始使用GPT4吧
+> 当对话结束时返回示例 http://127.0.0.1:3000/ask?prompt=***&model=***&site=***
 
-> 当对话结束时才会返回 http://127.0.0.1:3000/ask?prompt=***&model=***
+> 以stream模式返回示例 http://127.0.0.1:3000/ask/stream?prompt=***&model=***&site=***
 
-> 使用eventstream持续返回对话内容 http://127.0.0.1:3000/ask/stream?prompt=***&model=***
+### 请求参数，请放在query里 📝
 
-### 公共参数 📝
-- `prompt`: your question
-- `model`: target web site include:`forefront` `you` `mcbbs`
+- `prompt`: 你的问题，类型是`string` 或者 `jsonstr`.
+  - `jsonstr`:包含上下文的json字符串，例如：`[{"role":"user","content":"你好\n"},{"role":"assistant","content":"你好！有什么我可以帮助你的吗？"},{"role":"user","content":"你是谁"}]`
+  - `string`: 单次对话 例如：`你是谁`
+- `model`: 默认 `gpt3.5-turbo`. 模型:`gpt4` `gpt3.5-turbo`
+- `site`: 默认 `you`. 目标网站 `forefront` `you` `mcbbs`
 
-### 个别网站独有参数 🔒
-- mcbbs
-   - `messages`: For example `[{"role":"system","content":"IMPORTANT: You are a virtual assistant powered by the gpt-3.5-turbo model, now time is 2023/6/3 13:42:27}"},{"role":"user","content":"你好\n"},{"role":"assistant","content":"你好！有什么我可以帮助你的吗？"},{"role":"user","content":"写个冒泡排序\n"}]`
-   - `temperature`: 0~1
 
-### 使用示例 💡
-- `forefront`
-   - http://127.0.0.1:3000/ask?prompt=whoareyou&model=forefront
-   - http://127.0.0.1:3000/ask/stream?prompt=whoareyou&model=forefront
-- `mcbbs`
-   - [http://127.0.0.1:3000/ask?prompt=nothing&model=mcbbs&messages=[{"role":"system","content":"IMPORTANT: You are a virtual assistant powered by the gpt-3.5-turbo model, now time is 2023/6/3 13:42:27}"},{"role":"user","content":"你好\n"},{"role":"assistant","content":"你好！有什么我可以帮助你的吗？"},{"role":"user","content":"写个冒泡排序\n"}]](http://127.0.0.1:3000/ask?prompt=nothing&model=mcbbs&messages=[{%22role%22:%22system%22,%22content%22:%22IMPORTANT:%20You%20are%20a%20virtual%20assistant%20powered%20by%20the%20gpt-3.5-turbo%20model,%20now%20time%20is%202023/6/3%2013:42:27}%22},{%22role%22:%22user%22,%22content%22:%22%E4%BD%A0%E5%A5%BD\n%22},{%22role%22:%22assistant%22,%22content%22:%22%E4%BD%A0%E5%A5%BD%EF%BC%81%E6%9C%89%E4%BB%80%E4%B9%88%E6%88%91%E5%8F%AF%E4%BB%A5%E5%B8%AE%E5%8A%A9%E4%BD%A0%E7%9A%84%E5%90%97%EF%BC%9F%22},{%22role%22:%22user%22,%22content%22:%22%E5%86%99%E4%B8%AA%E5%86%92%E6%B3%A1%E6%8E%92%E5%BA%8F\n%22}])
-- `you`
-   - http://127.0.0.1:3000/ask?prompt=whoareyou&model=you
-   - http://127.0.0.1:3000/ask/stream?prompt=whoareyou&model=you
+### 返回参数 🔙
 
+当对话结束时返回参数(/ask):
+
+```typescript
+interface ChatResponse {
+    content: string;
+    error?: string;
+}
+```
+
+stream模式返回参数示例(/ask/stream):
+
+```
+event: message
+data: {"content":"I"}
+
+event: done
+data: {"content":"'m"}
+
+event: error
+data: {"error":"some thind wrong"}
+```
+
+### 真实请求示例💡
+
+1. 请求you.com, 包含上下文
+
+req:
+
+[127.0.0.1:3000/ask?site=you&prompt=[{"role":"user","content":"hello"},{"role":"assistant","content":"Hi there! How can I assist you today?"},{"role":"user","content":"who are you"}]]()
+
+res:
+
+```json
+{
+  "content": "Hi there! How can I assist you today?"
+}
+```
+
+[127.0.0.1:3000/ask?site=you&prompt=[{"role":"user","content":"你好\n"},{"role":"assistant","content":"你好！有什么我可以帮助你的吗？"},{"role":"user","content":"你是谁"}]]()
+
+2. 以stream模式请求you.com
+
+req:
+
+[127.0.0.1:3000/ask/stream?site=you&prompt=who are you]()
+
+res:
+```
+event: message
+data: {"content":"I"}
+
+event: message
+data: {"content":"'m"}
+
+event: message
+data: {"content":" a"}
+
+event: message
+data: {"content":" search"}
+
+event: message
+data: {"content":" assistant"}
+........
+event: done
+data: {"content":"done"}
+```
 ## 👥 加群细聊
+
 <image src="https://github.com/xiangsx/gpt4free-ts/assets/29322721/0a788688-ab0b-4e95-8438-20af4e7a5362" width=240 />
+<image src="https://github.com/xiangsx/gpt4free-ts/assets/29322721/399549fa-34b9-4611-873f-f539d2dca04a" width=240 />
 
 ## 🌟 Star History
 

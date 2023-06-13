@@ -38,13 +38,13 @@ If you do not want your website to appear here, please raise an issue and I will
 |--|--|--|--|
 |[ai.mcbbs.gq](https://ai.mcbbs.gq)|gpt3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-06-03|
 |[forefront.ai](https://chat.forefront.ai)|👍GPT-4/gpt3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-06-03|
-|[aidream](http://aidream.cloud)|GPT-3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-05-12|
-|[you.com](you.com)|GPT-3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-05-12
+|[aidream](https://aidream.cloud)|GPT-3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-05-12|
+|[you.com](https://you.com)|GPT-3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-05-12
 |[phind.com](https://www.phind.com/)|GPT-4 / Internet / good search|![Active](https://img.shields.io/badge/Active-grey)|
-|[bing.com/chat](bing.com/chat)|GPT-4/3.5||
-|[poe.com](poe.com)| GPT-4/3.5||
-|[writesonic.com](writesonic.com)| GPT-3.5 / Internet||
-|[t3nsor.com](t3nsor.com)|GPT-3.5||
+|[bing.com/chat](https://bing.com/chat)|GPT-4/3.5||
+|[poe.com](https://poe.com)| GPT-4/3.5||
+|[writesonic.com](https://writesonic.com)| GPT-3.5 / Internet||
+|[t3nsor.com](https://t3nsor.com)|GPT-3.5||
 
 ## 🏃‍♂️ Run
 
@@ -77,7 +77,7 @@ yarn
 yarn start
 ```
 
-### Run with docker 🐳 
+### Run with docker(Suggest!) 🐳 
 
 ```
 docker run -p 3000:3000 --env-file .env xiangsx/gpt4free-ts:latest
@@ -95,31 +95,91 @@ docker-compose up --build -d
 
 ## 🚀 Let's Use GPT4
 
-> Return when chat complete http://127.0.0.1:3000/ask?prompt=***&model=***
+> Return when chat complete http://127.0.0.1:3000/ask?prompt=***&model=***&site=***
 
-> Return with eventstream http://127.0.0.1:3000/ask/stream?prompt=***&model=***
+> Return with eventstream http://127.0.0.1:3000/ask/stream?prompt=***&model=***&site=***
 
- ### Common parameters📝 
-- `prompt`: your question
-- `model`: target web site include:`forefront` `you` `mcbbs`
+### Request Params 📝
 
- ### WebSite Unique parameters🔒
-- mcbbs
-    - `messages`: For example `[{"role":"system","content":"IMPORTANT: You are a virtual assistant powered by the gpt-3.5-turbo model, now time is 2023/6/3 13:42:27}"},{"role":"user","content":"你好\n"},{"role":"assistant","content":"你好！有什么我可以帮助你的吗？"},{"role":"user","content":"写个冒泡排序\n"}]`
-    - `temperature`: 0~1
+- `prompt`: your question. It can be a `string` or `jsonstr`.
+  - example `jsonstr`:`[{"role":"user","content":"你好\n"},{"role":"assistant","content":"你好！有什么我可以帮助你的吗？"},{"role":"user","content":"你是谁"}]`
+  - example `string`: `你是谁`
+- `model`: default `gpt3.5-turbo`. model include:`gpt4` `gpt3.5-turbo`
+- `site`: default `you`. target site, include `forefront` `you` `mcbbs`
+
+### Response Params 🔙
+
+Response when chat end(/ask):
+
+```typescript
+interface ChatResponse {
+    content: string;
+    error?: string;
+}
+```
+
+Response with stream like(/ask/stream):
+
+```
+event: message
+data: {"content":"I"}
+
+event: done
+data: {"content":"'m"}
+
+event: error
+data: {"error":"some thind wrong"}
+```
 
 ### Example💡
-- `forefront`
-    - http://127.0.0.1:3000/ask?prompt=whoareyou&model=forefront
-    - http://127.0.0.1:3000/ask/stream?prompt=whoareyou&model=forefront
-- `mcbbs`
-    - [http://127.0.0.1:3000/ask?prompt=nothing&model=mcbbs&messages=[{"role":"system","content":"IMPORTANT: You are a virtual assistant powered by the gpt-3.5-turbo model, now time is 2023/6/3 13:42:27}"},{"role":"user","content":"你好\n"},{"role":"assistant","content":"你好！有什么我可以帮助你的吗？"},{"role":"user","content":"写个冒泡排序\n"}]](http://127.0.0.1:3000/ask?prompt=nothing&model=mcbbs&messages=[{%22role%22:%22system%22,%22content%22:%22IMPORTANT:%20You%20are%20a%20virtual%20assistant%20powered%20by%20the%20gpt-3.5-turbo%20model,%20now%20time%20is%202023/6/3%2013:42:27}%22},{%22role%22:%22user%22,%22content%22:%22%E4%BD%A0%E5%A5%BD\n%22},{%22role%22:%22assistant%22,%22content%22:%22%E4%BD%A0%E5%A5%BD%EF%BC%81%E6%9C%89%E4%BB%80%E4%B9%88%E6%88%91%E5%8F%AF%E4%BB%A5%E5%B8%AE%E5%8A%A9%E4%BD%A0%E7%9A%84%E5%90%97%EF%BC%9F%22},{%22role%22:%22user%22,%22content%22:%22%E5%86%99%E4%B8%AA%E5%86%92%E6%B3%A1%E6%8E%92%E5%BA%8F\n%22}])
-- `you`
-    - http://127.0.0.1:3000/ask?prompt=whoareyou&model=you
-    - http://127.0.0.1:3000/ask/stream?prompt=whoareyou&model=you
+
+1. request to site you with history
+
+req:
+
+[127.0.0.1:3000/ask?site=you&prompt=[{"role":"user","content":"hello"},{"role":"assistant","content":"Hi there! How can I assist you today?"},{"role":"user","content":"who are you"}]]()
+
+res:
+
+```json
+{
+  "content": "Hi there! How can I assist you today?"
+}
+```
+
+[127.0.0.1:3000/ask?site=you&prompt=[{"role":"user","content":"你好\n"},{"role":"assistant","content":"你好！有什么我可以帮助你的吗？"},{"role":"user","content":"你是谁"}]]()
+
+2. request to site you with stream return
+
+req:
+
+[127.0.0.1:3000/ask/stream?site=you&prompt=who are you]()
+
+res:
+```
+event: message
+data: {"content":"I"}
+
+event: message
+data: {"content":"'m"}
+
+event: message
+data: {"content":" a"}
+
+event: message
+data: {"content":" search"}
+
+event: message
+data: {"content":" assistant"}
+........
+event: done
+data: {"content":"done"}
+```
 
 ## 👥 Wechat Group
 <image src="https://github.com/xiangsx/gpt4free-ts/assets/29322721/0a788688-ab0b-4e95-8438-20af4e7a5362" width=240 />
+<image src="https://github.com/xiangsx/gpt4free-ts/assets/29322721/399549fa-34b9-4611-873f-f539d2dca04a" width=240 />
+
 
 ## 🌟 Star History
 
