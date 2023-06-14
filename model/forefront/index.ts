@@ -278,7 +278,8 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
             const msgs = (await emailBox.waitMails()) as TempMailMessage[]
             let validateURL: string | undefined;
             for (const msg of msgs) {
-                validateURL = msg.content.match(/https:\/\/clerk\.forefront\.ai\/v1\/verify\?token=[^\s"]+/i)?.[0];
+                validateURL = msg.content.match(/https:\/\/clerk\.forefront\.ai\/v1\/verify\?_clerk_js_version=4.47.0&amp;token=[^\s"]+/i)?.[0];
+                validateURL = validateURL?.replace('amp;', '');
                 if (validateURL) {
                     break;
                 }
