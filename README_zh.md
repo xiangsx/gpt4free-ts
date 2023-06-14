@@ -50,20 +50,26 @@
 
 ```env
 http_proxy=http://host:port
+
 rapid_api_key=xxxxxxxxxx
 EMAIL_TYPE=temp-email44
 DEBUG=0
 POOL_SIZE=1
+
+PHIND_POOL_SIZE=3
 ```
 
 - `http_proxy`: 你的本地代理，目前仅支持http协议
-- `rapid_api_key`: 如果你使用forefront，这个必填，为了接收临时邮箱
-- `EMAIL_TYPE`: `forefront`临时邮箱类型 `temp-email` `temp-email44` `tempmail-lol`
-   - [temp-email](https://rapidapi.com/Privatix/api/temp-mail): 软限制 免费100请求/days 如果超过了 每条收0.0038$ 具体查看下方网站，官方api非常稳定 
-   - [temp-email44](https://rapidapi.com/calvinloveland335703-0p6BxLYIH8f/api/temp-mail44): 硬限制 免费100req/days! 超过就会报错，也很稳定
-   - [tempmail-lol](): 什么都不需要配置 硬限制 25request/5min. 不怎么稳定.
-- `DEBUG`: `forefront`专属配置 设置成1，会显示运行过程
-- `POOL_SIZE`: 默认配置成1，修改之前确定你可以运行成功，并且知道此值的含义！！！`forefront` 可以同时进行的对话数目，数值越大，同时进行的对话数越多，但是使用的内存越大，如果个人使用设置1即可
+- 使用`forefront`才需要配置的env:
+  - `rapid_api_key`: 如果你使用forefront，这个必填，为了接收临时邮箱
+  - `EMAIL_TYPE`: `forefront`临时邮箱类型 `temp-email` `temp-email44` `tempmail-lol`
+     - [temp-email](https://rapidapi.com/Privatix/api/temp-mail): 软限制 免费100请求/days 如果超过了 每条收0.0038$ 具体查看下方网站，官方api非常稳定 
+     - [temp-email44](https://rapidapi.com/calvinloveland335703-0p6BxLYIH8f/api/temp-mail44): 硬限制 免费100req/days! 超过就会报错，也很稳定
+     - [tempmail-lol](): 什么都不需要配置 硬限制 25request/5min. 不怎么稳定.
+  - `DEBUG`: `forefront`专属配置 设置成1，会显示运行过程
+  - `POOL_SIZE`: 默认配置成1，修改之前确定你可以运行成功，并且知道此值的含义！！！`forefront` 可以同时进行的对话数目，数值越大，同时进行的对话数越多，但是使用的内存越大，如果个人使用设置1即可
+- 使用`phind`才需要的配置
+    - `PHIND_POOL_SIZE`: 默认配置成=3，`phind` 可以同时进行的对话数目，数值越大，同时进行的对话数越多，但是使用的内存越大，如果个人使用设置1即可
 
 ### 本地运行 🖥️
 
@@ -104,6 +110,12 @@ docker-compose up --build -d
 - `model`: 默认 `gpt3.5-turbo`. 模型:`gpt4` `gpt3.5-turbo`
 - `site`: 默认 `you`. 目标网站 `forefront` `you` `chatdemo`
 
+### 网站支持模型类型 🧩
+
+- `forefront` :`gpt4`
+- `you`: `gpt3.5-turbo`
+- `chatdemo`: `gpt3.5-turbo`
+- `phind`: `net-gpt3.5-turbo`
 
 ### 返回参数 🔙
 
