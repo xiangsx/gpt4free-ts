@@ -39,7 +39,7 @@ If you do not want your website to appear here, please raise an issue and I will
 |[chatdemo]()|👍gpt3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-06-13|
 |[forefront.ai](https://chat.forefront.ai)|GPT-4/gpt3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-06-13|
 |[you.com](https://you.com)|👍GPT-3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-06-13
-|[phind.com](https://www.phind.com/)|GPT-4 / Internet / good search|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-06-14
+|[phind.com](https://www.phind.com/)|Gpt3.5/ Internet / good search|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-06-14
 |[bing.com/chat](https://bing.com/chat)|GPT-4/3.5||
 |[poe.com](https://poe.com)| GPT-4/3.5||
 |[writesonic.com](https://writesonic.com)| GPT-3.5 / Internet||
