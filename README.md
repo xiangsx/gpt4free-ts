@@ -39,7 +39,7 @@ If you do not want your website to appear here, please raise an issue and I will
 |[chatdemo]()|👍gpt3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-06-13|
 |[forefront.ai](https://chat.forefront.ai)|GPT-4/gpt3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-06-13|
 |[you.com](https://you.com)|👍GPT-3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-06-13
-|[phind.com](https://www.phind.com/)|GPT-4 / Internet / good search|![Active](https://img.shields.io/badge/Active-grey)|
+|[phind.com](https://www.phind.com/)|GPT-4 / Internet / good search|!![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-06-14
 |[bing.com/chat](https://bing.com/chat)|GPT-4/3.5||
 |[poe.com](https://poe.com)| GPT-4/3.5||
 |[writesonic.com](https://writesonic.com)| GPT-3.5 / Internet||
@@ -56,16 +56,20 @@ rapid_api_key=xxxxxxxxxx
 EMAIL_TYPE=temp-email44
 DEBUG=0
 POOL_SIZE=1
+PHIND_POOL_SIZE=3
 ```
 
 - `http_proxy`: config your proxy if you can not access target website directly
-- `rapid_api_key`: you should config this if you use forefront api, this apikey is used for receive register email, get api key here
-- `EMAIL_TYPE`: temp email type includes `temp-email` `temp-email44` `tempmail-lol`
-    - [temp-email](https://rapidapi.com/Privatix/api/temp-mail): soft limit 100req/days, if over use money, need bind credit card! Very Stable!
-    - [temp-email44](https://rapidapi.com/calvinloveland335703-0p6BxLYIH8f/api/temp-mail44): hard limit 100req/days! Stable!
-    - [tempmail-lol](): nothing need, limit 25request/5min. Not Stable.
-- `DEBUG`: Valid when use `forefront` You can set =1 when you run local. show reverse process
-- `POOL_SIZE`: `forefront` concurrency size. Keep set=1 until you run it successfully!!! You can engage in {POOL_SIZE} conversations concurrently. More pool size, More conversation can be done simultaneously, But use more RAM
+- `forefront` use env: 
+  - `rapid_api_key`: you should config this if you use forefront api, this apikey is used for receive register email, get api key here
+  - `EMAIL_TYPE`: temp email type includes `temp-email` `temp-email44` `tempmail-lol`
+      - [temp-email](https://rapidapi.com/Privatix/api/temp-mail): soft limit 100req/days, if over use money, need bind credit card! Very Stable!
+      - [temp-email44](https://rapidapi.com/calvinloveland335703-0p6BxLYIH8f/api/temp-mail44): hard limit 100req/days! Stable!
+      - [tempmail-lol](): nothing need, limit 25request/5min. Not Stable.
+  - `DEBUG`: Valid when use `forefront` You can set =1 when you run local. show reverse process
+  - `POOL_SIZE`: `forefront` concurrency size. Keep set=1 until you run it successfully!!! You can engage in {POOL_SIZE} conversations concurrently. More pool size, More conversation can be done simultaneously, But use more RAM
+- `phind` use env:
+  - `PHIND_POOL_SIZE`: `phind` concurrency size.You can engage in {POOL_SIZE} conversations concurrently. More pool size, More conversation can be done simultaneously, But use more RAM
 
 ### Run local 🖥️ 
 
@@ -103,8 +107,15 @@ docker-compose up --build -d
 - `prompt`: your question. It can be a `string` or `jsonstr`.
   - example `jsonstr`:`[{"role":"user","content":"hello\n"},{"role":"assistant","content":"Hi there! How can I assist you today?"},{"role":"user","content":"who are you"}]`
   - example `string`: `who are you`
-- `model`: default `gpt3.5-turbo`. model include:`gpt4` `gpt3.5-turbo`
-- `site`: default `you`. target site, include `forefront` `you` `chatdemo`
+- `model`: default `gpt3.5-turbo`. model include:`gpt4` `gpt3.5-turbo` `net-gpt3.5-turbo`
+- `site`: default `you`. target site, include `forefront` `you` `chatdemo` `phind`
+
+### Site Support Model 🧩
+
+- `forefront` :`gpt4`
+- `you`: `gpt3.5-turbo`
+- `chatdemo`: `gpt3.5-turbo`
+- `phind`: `net-gpt3.5-turbo`
 
 ### Response Params 🔙
 
