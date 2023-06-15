@@ -57,7 +57,7 @@ class AccountPool {
 
     public get(): Account {
         const now = moment();
-        const minInterval = 3 * 60 * 60 + 10 * 60;// 3hour + 10min
+        const minInterval = 30000 * 60 * 60 + 10 * 60;// 3hour + 10min
         for (const item of this.pool) {
             if (now.unix() - moment(item.last_use_time).unix() > minInterval) {
                 console.log(`find old login account:`, item);
@@ -198,10 +198,34 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
     }
 
     private static async switchToGpt4(page: Page, triedTimes: number = 0) {
-        console.log('switch gpt4....')
+        if (triedTimes === 3) {
+            await page.waitForSelector('div > .absolute > .relative > .w-full:nth-child(3) > .relative')
+            await page.click('div > .absolute > .relative > .w-full:nth-child(3) > .relative');
+            return;
+        }
+        try {
+            console.log('switch gpt4....')
+            triedTimes += 1;
+            await sleep(1000);
+            await page.waitForSelector('div > .absolute > .relative > .w-full:nth-child(3) > .relative')
+            await page.click('div > .absolute > .relative > .w-full:nth-child(3) > .relative');
+            await sleep(1000);
+            await page.waitForSelector('div > .absolute > .relative > .w-full:nth-child(3) > .relative')
+            await page.click('div > .absolute > .relative > .w-full:nth-child(3) > .relative')
+            await sleep(1000);
+            await page.hover('div > .absolute > .relative > .w-full:nth-child(3) > .relative')
+
+            // click never internet
+            await page.waitForSelector('.flex > .p-1 > .relative')
+            await page.click('.flex > .p-1 > .relative')
+            console.log('switch gpt4 ok!')
+        } catch (e) {
+            console.log(e);
+            await page.reload();
+            await Forefrontnew.switchToGpt4(page, triedTimes);
+        }
         await page.waitForSelector('div > .absolute > .relative > .w-full:nth-child(3) > .relative')
         await page.click('div > .absolute > .relative > .w-full:nth-child(3) > .relative');
-        console.log('switch gpt4 ok!')
     }
 
     private async allowClipboard(browser: Browser, page: Page) {
