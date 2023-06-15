@@ -30,6 +30,8 @@ Why now? because there are stil some secret config should be removed from that p
 
 ## 🚩 Reverse target
 
+I suggest you fork this project first. Some websites may go offline at any time.
+
 Still striving to keep updating.
 
 Have implemented models here:
