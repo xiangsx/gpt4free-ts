@@ -4,8 +4,8 @@
 ###### Providing a free OpenAI GPT-4 API!
 English | [中文](README_zh.md) | [日本語](README_ja.md)
 
-[![Discord Server](https://discordapp.com/api/guilds/1115852499535020084/widget.png?style=banner2&count=true)](https://discord.gg/bbH68Kzm)
-<p>You can join our discord: <a href="https://discord.gg/bbH68Kzm">discord.gg/gptgod<a> for further updates. <a href="https://discord.gg/bbH68Kzm"><img align="center" alt="gpt4free Discord" width="22px" src="https://raw.githubusercontent.com/peterthehan/peterthehan/master/assets/discord.svg" /></a></p>
+[![Discord Server](https://discordapp.com/api/guilds/1115852499535020084/widget.png?style=banner2&count=true)](https://discord.gg/cYUU8mCDMd)
+<p>You can join our discord: <a href="https://discord.gg/cYUU8mCDMd">discord.gg/gptgod<a> for further updates. <a href="https://discord.gg/cYUU8mCDMd"><img align="center" alt="gpt4free Discord" width="22px" src="https://raw.githubusercontent.com/peterthehan/peterthehan/master/assets/discord.svg" /></a></p>
 </div>
 
 
