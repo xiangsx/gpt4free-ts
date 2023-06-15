@@ -152,7 +152,7 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
 
     private static async closeVIPPop(page: Page) {
         try {
-            await page.waitForSelector('.grid > .grid > .w-full > .border-t > .text-th-primary-medium', {timeout: 15 * 1000})
+            await page.waitForSelector('.grid > .grid > .w-full > .border-t > .text-th-primary-medium', {timeout: 10 * 1000})
             await page.click('.grid > .grid > .w-full > .border-t > .text-th-primary-medium')
         } catch (e) {
             console.log('not need close vip');
@@ -198,33 +198,10 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
     }
 
     private static async switchToGpt4(page: Page, triedTimes: number = 0) {
-        if (triedTimes === 3) {
-            await page.waitForSelector('div > .absolute > .relative > .w-full:nth-child(3) > .relative')
-            await page.click('div > .absolute > .relative > .w-full:nth-child(3) > .relative');
-            return;
-        }
-        try {
-            console.log('switch gpt4....')
-            triedTimes += 1;
-            await sleep(1000);
-            await page.waitForSelector('div > .absolute > .relative > .w-full:nth-child(3) > .relative')
-            await page.click('div > .absolute > .relative > .w-full:nth-child(3) > .relative');
-            await sleep(1000);
-            await page.waitForSelector('div > .absolute > .relative > .w-full:nth-child(3) > .relative')
-            await page.click('div > .absolute > .relative > .w-full:nth-child(3) > .relative')
-            await sleep(1000);
-            await page.hover('div > .absolute > .relative > .w-full:nth-child(3) > .relative')
-
-            // click never internet
-            await page.waitForSelector('.flex > .p-1 > .relative')
-            await page.click('.flex > .p-1 > .relative')
-            await Forefrontnew.selectAssistant(page);
-            console.log('switch gpt4 ok!')
-        } catch (e) {
-            console.log(e);
-            await page.reload();
-            await Forefrontnew.switchToGpt4(page, triedTimes);
-        }
+        console.log('switch gpt4....')
+        await page.waitForSelector('div > .absolute > .relative > .w-full:nth-child(3) > .relative')
+        await page.click('div > .absolute > .relative > .w-full:nth-child(3) > .relative');
+        console.log('switch gpt4 ok!')
     }
 
     private async allowClipboard(browser: Browser, page: Page) {
