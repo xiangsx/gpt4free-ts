@@ -100,7 +100,7 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
     support(model: ModelType): number {
         switch (model) {
             case ModelType.GPT4:
-                return 3000;
+                return 2000;
             default:
                 return 0;
         }
