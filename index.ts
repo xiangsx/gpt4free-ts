@@ -5,6 +5,7 @@ import {ChatModelFactory, Site} from "./model";
 import dotenv from 'dotenv';
 import {ChatRequest, ChatResponse, ModelType, PromptToString} from "./model/base";
 import {Event, EventStream} from "./utils";
+process.setMaxListeners(20);  // 将限制提高到20个
 
 dotenv.config();
 
