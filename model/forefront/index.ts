@@ -85,22 +85,28 @@ class AccountPool {
     }
 }
 
+interface ForefrontOptions extends ChatOptions {
+    model: ModelType;
+}
+
 
 export class Forefrontnew extends Chat implements BrowserUser<Account> {
     private pagePool: BrowserPool<Account>;
     private accountPool: AccountPool;
+    private readonly model: ModelType;
 
-    constructor(options?: ChatOptions) {
+    constructor(options?: ForefrontOptions) {
         super(options);
         this.accountPool = new AccountPool();
         const maxSize = +(process.env.POOL_SIZE || 2);
         this.pagePool = new BrowserPool<Account>(maxSize, this);
+        this.model = options?.model || ModelType.GPT4;
     }
 
     support(model: ModelType): number {
         switch (model) {
-            case ModelType.GPT4:
-                return 1300;
+            case this.model:
+                return 2300;
             default:
                 return 0;
         }
@@ -197,6 +203,19 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
         await page.click('.relative > .flex > .w-full > .text-th-primary-dark > div')
     }
 
+    private async switch(page: Page) {
+        switch (this.model) {
+            case ModelType.GPT4:
+                await Forefrontnew.switchToGpt4(page);
+                break;
+            case ModelType.ClaudeP:
+                await Forefrontnew.switchToClaudeP(page);
+                break;
+            default:
+                break;
+        }
+    }
+
     private static async switchToGpt4(page: Page, triedTimes: number = 0) {
         if (triedTimes === 3) {
             await page.waitForSelector('div > .absolute > .relative > .w-full:nth-child(3) > .relative')
@@ -228,6 +247,38 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
         await page.click('div > .absolute > .relative > .w-full:nth-child(3) > .relative');
     }
 
+    private static async switchToClaudeP(page: Page, triedTimes: number = 0) {
+        if (triedTimes === 3) {
+            await page.waitForSelector('div > .absolute > .relative > .w-full:nth-child(5) > .relative')
+            await page.click('div > .absolute > .relative > .w-full:nth-child(5) > .relative');
+            return;
+        }
+        try {
+            console.log('switch claude+....')
+            triedTimes += 1;
+            await sleep(1000);
+            await page.waitForSelector('div > .absolute > .relative > .w-full:nth-child(5) > .relative')
+            await page.click('div > .absolute > .relative > .w-full:nth-child(5) > .relative');
+            await sleep(1000);
+            await page.waitForSelector('div > .absolute > .relative > .w-full:nth-child(5) > .relative')
+            await page.click('div > .absolute > .relative > .w-full:nth-child(5) > .relative')
+            await sleep(1000);
+            await page.hover('div > .absolute > .relative > .w-full:nth-child(5) > .relative')
+
+            // click never internet
+            await page.waitForSelector('.flex > .p-1 > .relative')
+            await page.click('.flex > .p-1 > .relative')
+
+            console.log('switch claude+ ok!')
+        } catch (e) {
+            console.log(e);
+            await page.reload();
+            await Forefrontnew.switchToClaudeP(page, triedTimes);
+        }
+        await page.waitForSelector('div > .absolute > .relative > .w-full:nth-child(5) > .relative')
+        await page.click('div > .absolute > .relative > .w-full:nth-child(5) > .relative');
+    }
+
     private async allowClipboard(browser: Browser, page: Page) {
         const context = browser.defaultBrowserContext()
         await context.overridePermissions("https://chat.forefront.ai", [
@@ -256,7 +307,7 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
                 await page.goto("https://chat.forefront.ai/");
                 await page.setViewport({width: 1920, height: 1080});
                 await Forefrontnew.closeVIPPop(page);
-                await Forefrontnew.switchToGpt4(page);
+                await this.switch(page);
                 await this.allowClipboard(browser, page);
                 return [page, account];
             }
@@ -295,7 +346,7 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
             await Forefrontnew.closeWelcomePop(page);
             await Forefrontnew.closeVIPPop(page);
             await page.waitForSelector('.relative > .flex > .w-full > .text-th-primary-dark > div', {timeout: 120000})
-            await Forefrontnew.switchToGpt4(page);
+            await this.switch(page);
             await this.allowClipboard(browser, page);
             return [page, account];
         } catch (e) {
