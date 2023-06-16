@@ -4,8 +4,8 @@
 ###### 提供免费的GPT4 API
 [English](README.md) | 中文 | [日本語](README_ja.md)
 
-[![Discord Server](https://discordapp.com/api/guilds/1115852499535020084/widget.png?style=banner2&count=true)](https://discord.gg/bbH68Kzm)
-<p>你可以加入discord: <a href="https://discord.gg/bbH68Kzm">discord.gg/gptgod<a> 以获取项目最新进展. <a href="https://discord.gg/bbH68Kzm"><img align="center" alt="gpt4free Discord" width="22px" src="https://raw.githubusercontent.com/peterthehan/peterthehan/master/assets/discord.svg" /></a></p>
+[![Discord Server](https://discordapp.com/api/guilds/1115852499535020084/widget.png?style=banner2&count=true)](https://discord.gg/cYUU8mCDMd)
+<p>你可以加入discord: <a href="https://discord.gg/cYUU8mCDMd">discord.gg/gptgod<a> 以获取项目最新进展. <a href="https://discord.gg/cYUU8mCDMd"><img align="center" alt="gpt4free Discord" width="22px" src="https://raw.githubusercontent.com/peterthehan/peterthehan/master/assets/discord.svg" /></a></p>
 </div>
 
 
@@ -34,10 +34,10 @@
 
 |model|support|status|active time|
 |--|--|--|--|
-|[chatdemo]()|👍gpt3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-06-13|
-|[forefront.ai](https://chat.forefront.ai)|👍GPT-4/gpt3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-06-03|
-|[you.com](you.com)|👍GPT-3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-05-12
-|[phind.com](https://www.phind.com/)|GPT-4 / Internet / good search|![Active](https://img.shields.io/badge/Active-grey)|
+|[chatdemo]()|👍gpt3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-06-14|
+|[forefront.ai](https://chat.forefront.ai)|👍GPT-4/gpt3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-06-14|
+|[you.com](you.com)|👍GPT-3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-06-14
+|[phind.com](https://www.phind.com/)|GPT-3.5 / Internet / good search|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-06-14
 |[bing.com/chat](bing.com/chat)|GPT-4/3.5||
 |[poe.com](poe.com)| GPT-4/3.5||
 |[writesonic.com](writesonic.com)| GPT-3.5 / Internet||
@@ -50,20 +50,26 @@
 
 ```env
 http_proxy=http://host:port
+
 rapid_api_key=xxxxxxxxxx
 EMAIL_TYPE=temp-email44
 DEBUG=0
 POOL_SIZE=1
+
+PHIND_POOL_SIZE=3
 ```
 
 - `http_proxy`: 你的本地代理，目前仅支持http协议
-- `rapid_api_key`: 如果你使用forefront，这个必填，为了接收临时邮箱
-- `EMAIL_TYPE`: `forefront`临时邮箱类型 `temp-email` `temp-email44` `tempmail-lol`
-   - [temp-email](https://rapidapi.com/Privatix/api/temp-mail): 软限制 免费100请求/days 如果超过了 每条收0.0038$ 具体查看下方网站，官方api非常稳定 
-   - [temp-email44](https://rapidapi.com/calvinloveland335703-0p6BxLYIH8f/api/temp-mail44): 硬限制 免费100req/days! 超过就会报错，也很稳定
-   - [tempmail-lol](): 什么都不需要配置 硬限制 25request/5min. 不怎么稳定.
-- `DEBUG`: `forefront`专属配置 设置成1，会显示运行过程
-- `POOL_SIZE`: 默认配置成1，修改之前确定你可以运行成功，并且知道此值的含义！！！`forefront` 可以同时进行的对话数目，数值越大，同时进行的对话数越多，但是使用的内存越大，如果个人使用设置1即可
+- 使用`forefront`才需要配置的env:
+  - `rapid_api_key`: 如果你使用forefront，这个必填，为了接收临时邮箱
+  - `EMAIL_TYPE`: `forefront`临时邮箱类型 `temp-email` `temp-email44` `tempmail-lol`
+     - [temp-email](https://rapidapi.com/Privatix/api/temp-mail): 软限制 免费100请求/days 如果超过了 每条收0.0038$ 具体查看下方网站，官方api非常稳定 
+     - [temp-email44](https://rapidapi.com/calvinloveland335703-0p6BxLYIH8f/api/temp-mail44): 硬限制 免费100req/days! 超过就会报错，也很稳定
+     - [tempmail-lol](): 什么都不需要配置 硬限制 25request/5min. 不怎么稳定.
+  - `DEBUG`: `forefront`专属配置 设置成1，会显示运行过程
+  - `POOL_SIZE`: 默认配置成1，修改之前确定你可以运行成功，并且知道此值的含义！！！`forefront` 可以同时进行的对话数目，数值越大，同时进行的对话数越多，但是使用的内存越大，如果个人使用设置1即可
+- 使用`phind`才需要的配置
+    - `PHIND_POOL_SIZE`: 默认配置成=3，`phind` 可以同时进行的对话数目，数值越大，同时进行的对话数越多，但是使用的内存越大，如果个人使用设置1即可
 
 ### 本地运行 🖥️
 
@@ -104,6 +110,12 @@ docker-compose up --build -d
 - `model`: 默认 `gpt3.5-turbo`. 模型:`gpt4` `gpt3.5-turbo`
 - `site`: 默认 `you`. 目标网站 `forefront` `you` `chatdemo`
 
+### 网站支持模型类型 🧩
+
+- `forefront` :`gpt4`
+- `you`: `gpt3.5-turbo`
+- `chatdemo`: `gpt3.5-turbo`
+- `phind`: `net-gpt3.5-turbo`
 
 ### 返回参数 🔙
 
@@ -175,8 +187,7 @@ data: {"content":"done"}
 ```
 ## 👥 加群细聊
 
-<image src="https://github.com/xiangsx/gpt4free-ts/assets/29322721/0a788688-ab0b-4e95-8438-20af4e7a5362" width=240 />
-<image src="https://github.com/xiangsx/gpt4free-ts/assets/29322721/399549fa-34b9-4611-873f-f539d2dca04a" width=240 />
+<image src="https://github.com/xiangsx/gpt4free-ts/assets/29322721/0b605d4d-f189-457c-b2eb-94a12ad69fd8" width=240 />
 
 ## 🌟 Star History
 
