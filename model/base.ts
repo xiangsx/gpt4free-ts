@@ -16,6 +16,7 @@ export type Message = {
 export enum ModelType {
     GPT3p5Turbo = 'gpt3.5-turbo',
     GPT4 = 'gpt4',
+    NetGpt3p5 = 'net-gpt3.5-turbo',
 }
 
 export interface ChatRequest {
