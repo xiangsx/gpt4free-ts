@@ -129,5 +129,5 @@ export class EventStream {
 }
 
 export const getTokenSize = (str: string) => {
-    return en.encode(str).length;
+    return str.length;
 };
