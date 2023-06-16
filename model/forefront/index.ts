@@ -106,7 +106,7 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
     support(model: ModelType): number {
         switch (model) {
             case this.model:
-                return 2300;
+                return 3000;
             default:
                 return 0;
         }
@@ -413,12 +413,15 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
                 await Forefrontnew.copyContent(page);
                 //@ts-ignore
                 const text: any = await page.evaluate(() => navigator.clipboard.text);
-                console.log('chat end: ', text);
-                stream.write(Event.done, {
-                    content: text || await result?.evaluate(el => {
-                        return el.textContent;
-                    })
+                const sourceText: any = await result?.evaluate(el => {
+                    return el.textContent;
                 })
+                console.log('chat end: ', text);
+                if (sourceText.length - text > 100) {
+                    stream.write(Event.done, {content: sourceText});
+                } else {
+                    stream.write(Event.done, {content: text})
+                }
             } catch (e) {
                 console.error(e);
             } finally {
