@@ -8,26 +8,6 @@ English | [中文](README_zh.md) | [日本語](README_ja.md)
 <p>You can join our discord: <a href="https://discord.gg/cYUU8mCDMd">discord.gg/gptgod<a> for further updates. <a href="https://discord.gg/cYUU8mCDMd"><img align="center" alt="gpt4free Discord" width="22px" src="https://raw.githubusercontent.com/peterthehan/peterthehan/master/assets/discord.svg" /></a></p>
 </div>
 
-
-## 👍 GPT4 Website Base on this project [GPTGOD](http://gptgod.site)
-<details>
-<summary><strong>Website Feature (Click to expand)</strong></summary>
-
-### GPTGOD Support
-
-- [x] Midjourney The Most Powerful AI Drawing System in History
-- [x] Stable Diffusion
-- [x] Claude
-- [x] Chatgpt
-- [x] Chatgpt with internet
-- [x] Create wechat ai robot for yourself, just need one step
-
-In the next two weeks, I will open source all the code for GPTGOD. If you need, Please watch this project or follow me
-to receive notifications.
-
-Why now? because there are stil some secret config should be removed from that project.
-</details>
-
 ## 🚩 Reverse target
 
 I suggest you fork this project first. Some websites may go offline at any time.
