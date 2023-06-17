@@ -34,14 +34,15 @@
 
 |model|support|status|active time|
 |--|--|--|--|
-|[chatdemo]()|👍gpt3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-06-14|
-|[forefront.ai](https://chat.forefront.ai)|👍GPT-4/gpt3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-06-14|
-|[you.com](you.com)|👍GPT-3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-06-14
-|[phind.com](https://www.phind.com/)|GPT-3.5 / Internet / good search|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-06-14
-|[bing.com/chat](bing.com/chat)|GPT-4/3.5||
-|[poe.com](poe.com)| GPT-4/3.5||
-|[writesonic.com](writesonic.com)| GPT-3.5 / Internet||
-|[t3nsor.com](t3nsor.com)|GPT-3.5||
+|[vita]()|👍gpt3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-06-17|
+|[chatdemo]()|👍gpt3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-06-13|
+|[you.com](https://you.com)|👍GPT-3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-06-13
+|[phind.com](https://www.phind.com/)|Gpt3.5/ Internet / good search|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-06-14
+|[forefront.ai](https://chat.forefront.ai)|GPT-4/gpt3.5|![Active](https://img.shields.io/badge/Active-lightgrey)|after 2023-06-13|
+|[bing.com/chat](https://bing.com/chat)|GPT-4/3.5||
+|[poe.com](https://poe.com)| GPT-4/3.5||
+|[writesonic.com](https://writesonic.com)| GPT-3.5 / Internet||
+|[t3nsor.com](https://t3nsor.com)|GPT-3.5||
 
 ## 🏃‍♂️ 运行
 
@@ -54,13 +55,13 @@ http_proxy=http://host:port
 rapid_api_key=xxxxxxxxxx
 EMAIL_TYPE=temp-email44
 DEBUG=0
-POOL_SIZE=1
+POOL_SIZE=0
 
 PHIND_POOL_SIZE=3
 ```
 
-- `http_proxy`: 你的本地代理，目前仅支持http协议
-- 使用`forefront`才需要配置的env:
+- `http_proxy`: 你的本地代理，目前仅支持http协议，如果是国外的机器不需要配置此行，直接删除；如果是国内的，必须配置，请务必注意。
+- 使用`forefront`才需要配置的env(该站点已被移除，下面可以不用配置):
   - `rapid_api_key`: 如果你使用forefront，这个必填，为了接收临时邮箱
   - `EMAIL_TYPE`: `forefront`临时邮箱类型 `temp-email` `temp-email44` `tempmail-lol`
      - [temp-email](https://rapidapi.com/Privatix/api/temp-mail): 软限制 免费100请求/days 如果超过了 每条收0.0038$ 具体查看下方网站，官方api非常稳定 
