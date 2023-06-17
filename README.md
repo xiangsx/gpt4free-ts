@@ -8,26 +8,6 @@ English | [中文](README_zh.md) | [日本語](README_ja.md)
 <p>You can join our discord: <a href="https://discord.gg/cYUU8mCDMd">discord.gg/gptgod<a> for further updates. <a href="https://discord.gg/cYUU8mCDMd"><img align="center" alt="gpt4free Discord" width="22px" src="https://raw.githubusercontent.com/peterthehan/peterthehan/master/assets/discord.svg" /></a></p>
 </div>
 
-
-## 👍 GPT4 Website Base on this project [GPTGOD](http://gptgod.site)
-<details>
-<summary><strong>Website Feature (Click to expand)</strong></summary>
-
-### GPTGOD Support
-
-- [x] Midjourney The Most Powerful AI Drawing System in History
-- [x] Stable Diffusion
-- [x] Claude
-- [x] Chatgpt
-- [x] Chatgpt with internet
-- [x] Create wechat ai robot for yourself, just need one step
-
-In the next two weeks, I will open source all the code for GPTGOD. If you need, Please watch this project or follow me
-to receive notifications.
-
-Why now? because there are stil some secret config should be removed from that project.
-</details>
-
 ## 🚩 Reverse target
 
 I suggest you fork this project first. Some websites may go offline at any time.
@@ -38,10 +18,11 @@ Have implemented models here:
 If you do not want your website to appear here, please raise an issue and I will remove it immediately.
 |model|support|status|active time|
 |--|--|--|--|
-|[chatdemo]()|👍gpt3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-06-13|
-|[forefront.ai](https://chat.forefront.ai)|GPT-4/gpt3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-06-13|
-|[you.com](https://you.com)|👍GPT-3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-06-13
-|[phind.com](https://www.phind.com/)|Gpt3.5/ Internet / good search|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-06-14
+|[vita]()|👍gpt3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-06-17|
+|[chatdemo]()|👍gpt3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-06-17|
+|[you.com](https://you.com)|👍GPT-3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-06-17
+|[phind.com](https://www.phind.com/)|Gpt3.5/ Internet / good search|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-06-17
+|[forefront.ai](https://chat.forefront.ai)|GPT-4/gpt3.5|![Active](https://img.shields.io/badge/Active-lightgrey)||
 |[bing.com/chat](https://bing.com/chat)|GPT-4/3.5||
 |[poe.com](https://poe.com)| GPT-4/3.5||
 |[writesonic.com](https://writesonic.com)| GPT-3.5 / Internet||
@@ -57,12 +38,12 @@ http_proxy=http://host:port
 rapid_api_key=xxxxxxxxxx
 EMAIL_TYPE=temp-email44
 DEBUG=0
-POOL_SIZE=1
-PHIND_POOL_SIZE=3
+POOL_SIZE=0
+PHIND_POOL_SIZE=1
 ```
 
-- `http_proxy`: config your proxy if you can not access target website directly
-- `forefront` use env: 
+- `http_proxy`: config your proxy if you can not access target website directly; If you dont need proxy, delete this line;
+- `forefront` use env(this site has been removed): 
   - `rapid_api_key`: you should config this if you use forefront api, this apikey is used for receive register email, get api key here
   - `EMAIL_TYPE`: temp email type includes `temp-email` `temp-email44` `tempmail-lol`
       - [temp-email](https://rapidapi.com/Privatix/api/temp-mail): soft limit 100req/days, if over use money, need bind credit card! Very Stable!
@@ -110,7 +91,7 @@ docker-compose up --build -d
   - example `jsonstr`:`[{"role":"user","content":"hello\n"},{"role":"assistant","content":"Hi there! How can I assist you today?"},{"role":"user","content":"who are you"}]`
   - example `string`: `who are you`
 - `model`: default `gpt3.5-turbo`. model include:`gpt4` `gpt3.5-turbo` `net-gpt3.5-turbo`
-- `site`: default `you`. target site, include `forefront` `you` `chatdemo` `phind`
+- `site`: default `you`. target site, include `forefront` `you` `chatdemo` `phind` `vita`
 
 ### Site Support Model 🧩
 

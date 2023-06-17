@@ -4,6 +4,7 @@ import {Mcbbs} from "./mcbbs";
 import {ChatDemo} from "./chatdemo";
 import {Phind} from "./phind";
 import {Forefrontnew} from "./forefront";
+import {Vita} from "./vita";
 
 export enum Site {
     // define new model here
@@ -13,6 +14,7 @@ export enum Site {
     ForefrontClaudeP = 'forefront_claudep',
     Mcbbs = 'mcbbs',
     ChatDemo = 'chatdemo',
+    Vita = 'vita',
 }
 
 export class ChatModelFactory {
@@ -33,6 +35,7 @@ export class ChatModelFactory {
         this.modelMap.set(Site.Forefront, new Forefrontnew({...this.options, model: ModelType.GPT4}))
         this.modelMap.set(Site.Mcbbs, new Mcbbs(this.options))
         this.modelMap.set(Site.ChatDemo, new ChatDemo(this.options))
+        this.modelMap.set(Site.Vita, new Vita(this.options))
     }
 
     get(model: Site): Chat | undefined {
