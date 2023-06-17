@@ -38,10 +38,11 @@ Have implemented models here:
 If you do not want your website to appear here, please raise an issue and I will remove it immediately.
 |model|support|status|active time|
 |--|--|--|--|
-|[chatdemo]()|👍gpt3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-06-13|
-|[forefront.ai](https://chat.forefront.ai)|GPT-4/gpt3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-06-13|
-|[you.com](https://you.com)|👍GPT-3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-06-13
-|[phind.com](https://www.phind.com/)|Gpt3.5/ Internet / good search|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-06-14
+|[vita]()|👍gpt3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-06-17|
+|[chatdemo]()|👍gpt3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-06-17|
+|[you.com](https://you.com)|👍GPT-3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-06-17
+|[phind.com](https://www.phind.com/)|Gpt3.5/ Internet / good search|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-06-17
+|[forefront.ai](https://chat.forefront.ai)|GPT-4/gpt3.5|![Active](https://img.shields.io/badge/Active-lightgrey)||
 |[bing.com/chat](https://bing.com/chat)|GPT-4/3.5||
 |[poe.com](https://poe.com)| GPT-4/3.5||
 |[writesonic.com](https://writesonic.com)| GPT-3.5 / Internet||
@@ -57,12 +58,12 @@ http_proxy=http://host:port
 rapid_api_key=xxxxxxxxxx
 EMAIL_TYPE=temp-email44
 DEBUG=0
-POOL_SIZE=1
-PHIND_POOL_SIZE=3
+POOL_SIZE=0
+PHIND_POOL_SIZE=1
 ```
 
-- `http_proxy`: config your proxy if you can not access target website directly
-- `forefront` use env: 
+- `http_proxy`: config your proxy if you can not access target website directly; If you dont need proxy, delete this line;
+- `forefront` use env(this site has been removed): 
   - `rapid_api_key`: you should config this if you use forefront api, this apikey is used for receive register email, get api key here
   - `EMAIL_TYPE`: temp email type includes `temp-email` `temp-email44` `tempmail-lol`
       - [temp-email](https://rapidapi.com/Privatix/api/temp-mail): soft limit 100req/days, if over use money, need bind credit card! Very Stable!
@@ -110,7 +111,7 @@ docker-compose up --build -d
   - example `jsonstr`:`[{"role":"user","content":"hello\n"},{"role":"assistant","content":"Hi there! How can I assist you today?"},{"role":"user","content":"who are you"}]`
   - example `string`: `who are you`
 - `model`: default `gpt3.5-turbo`. model include:`gpt4` `gpt3.5-turbo` `net-gpt3.5-turbo`
-- `site`: default `you`. target site, include `forefront` `you` `chatdemo` `phind`
+- `site`: default `you`. target site, include `forefront` `you` `chatdemo` `phind` `vita`
 
 ### Site Support Model 🧩
 
