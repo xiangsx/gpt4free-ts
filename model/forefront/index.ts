@@ -307,6 +307,11 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
                 await page.goto("https://chat.forefront.ai/");
                 await page.setViewport({width: 1920, height: 1080});
                 await Forefrontnew.closeVIPPop(page);
+                const ok = await Forefrontnew.ifLogin(page);
+                if (!ok) {
+                    console.log(`logins status expired, delete ${account.id}`);
+                    return [undefined, account];
+                }
                 await this.switch(page);
                 await this.allowClipboard(browser, page);
                 return [page, account];
@@ -352,6 +357,16 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
         } catch (e) {
             console.warn('something error happened,err:', e);
             return [] as any;
+        }
+    }
+
+    public static async ifLogin(page: Page): Promise<boolean> {
+        try {
+            await page.waitForSelector('.flex:nth-child(2) > .relative > .sticky > .flex > .px-3:nth-child(1)', {timeout: 5000});
+            await page.waitForSelector('.flex:nth-child(2) > .relative > .sticky > .flex > .border', {timeout: 5000});
+            return false;
+        } catch (e) {
+            return true;
         }
     }
 
