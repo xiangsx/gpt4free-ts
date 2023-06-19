@@ -432,7 +432,7 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
                     return el.textContent;
                 })
                 console.log('chat end: ', text, sourceText.length, text?.length || 0);
-                if (sourceText.length - text?.length || 0 > 50) {
+                if (sourceText.length - (text?.length || 0) > 50) {
                     stream.write(Event.done, {content: sourceText});
                 } else {
                     stream.write(Event.done, {content: text})
