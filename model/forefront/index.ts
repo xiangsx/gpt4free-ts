@@ -431,8 +431,8 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
                 const sourceText: any = await result?.evaluate(el => {
                     return el.textContent;
                 })
-                console.log('chat end: ', text);
-                if (sourceText.length - text > 50) {
+                console.log('chat end: ', text, sourceText.length, text.length);
+                if (sourceText.length - text.length > 50) {
                     stream.write(Event.done, {content: sourceText});
                 } else {
                     stream.write(Event.done, {content: text})
