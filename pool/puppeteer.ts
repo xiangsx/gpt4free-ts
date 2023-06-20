@@ -104,8 +104,14 @@ export class BrowserPool<T> {
         }
     }
 
+    deleteIDFile(id: string) {
+        fs.rm(`run/${id}`, {force: true, recursive: true}, () => {
+            console.log(`${id} has been deleted`)
+        })
+    }
+
     //@ts-ignore
-    get(): [page: Page | undefined, data: T | undefined, done: (data: T) => void, destroy: () => void] {
+    get(): [page: Page | undefined, data: T | undefined, done: (data: T) => void, destroy: (force?:boolean) => void] {
         for (const item of shuffleArray(this.pool)) {
             if (item.ready) {
                 item.ready = false;
@@ -116,8 +122,12 @@ export class BrowserPool<T> {
                         item.ready = true
                         item.data = data;
                     },
-                    () => {
+                    (force?:boolean) => {
                         item.page?.close();
+                        if (force) {
+                            this.user.deleteID(item.id);
+                            this.deleteIDFile(item.id);
+                        }
                         item.id = this.user.newID();
                         this.initOne(item.id).then();
                     }
