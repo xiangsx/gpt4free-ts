@@ -439,6 +439,9 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
                     return;
                 }
                 await Forefrontnew.copyContent(page);
+                if (itl) {
+                    clearInterval(itl);
+                }
                 //@ts-ignore
                 const text: any = await page.evaluate(() => navigator.clipboard.text);
                 const sourceText: any = await result?.evaluate(el => {
@@ -462,16 +465,19 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
                 } else {
                     done(account);
                 }
+            } catch (e) {
                 if (itl) {
                     clearInterval(itl);
                 }
-            } catch (e) {
                 console.error(e);
                 account.gpt4times = 0;
                 account.last_use_time = moment().format(TimeFormat);
                 this.accountPool.syncfile();
                 stream.end();
                 destroy();
+            }
+            if (itl) {
+                clearInterval(itl);
             }
         })().then().catch((e)=> {
             console.error(e);
