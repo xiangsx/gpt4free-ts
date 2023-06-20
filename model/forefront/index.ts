@@ -304,8 +304,8 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
 
             const [page] = await browser.pages();
             if (account.login_time) {
+                // await page.setViewport({width: 2560, height: 1280});
                 await page.goto("https://chat.forefront.ai/");
-                await page.setViewport({width: 1920, height: 1080});
                 await Forefrontnew.closeVIPPop(page);
                 const ok = await Forefrontnew.ifLogin(page);
                 if (!ok) {
@@ -316,8 +316,8 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
                 await this.allowClipboard(browser, page);
                 return [page, account];
             }
+            // await page.setViewport({width: 2560, height: 1280});
             await page.goto("https://accounts.forefront.ai/sign-up");
-            await page.setViewport({width: 1920, height: 1080});
             await page.waitForSelector('#emailAddress-field');
             await page.click('#emailAddress-field')
 
@@ -366,6 +366,7 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
             await page.waitForSelector('.flex:nth-child(2) > .relative > .sticky > .flex > .border', {timeout: 5000});
             return false;
         } catch (e) {
+            console.log('still login in');
             return true;
         }
     }
