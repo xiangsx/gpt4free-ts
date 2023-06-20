@@ -464,11 +464,11 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
                 }
             } catch (e) {
                 console.error(e);
-                account.gpt4times = 0;
+                account.gpt4times += 1;
                 account.last_use_time = moment().format(TimeFormat);
                 this.accountPool.syncfile();
                 stream.end();
-                destroy();
+                done(account);
             }
         })().then().catch((e)=> {
             console.error(e);
