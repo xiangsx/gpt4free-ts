@@ -470,7 +470,7 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
                 stream.end();
                 destroy();
             }
-        })().then();
+        })().then().catch(console.error);
         return
     }
 
