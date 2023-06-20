@@ -422,7 +422,7 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
             let itl;
             try {
                 const selector = `div > .w-full:nth-child(${id}) > .flex > .flex > .post-markdown`;
-                await page.waitForSelector(selector,{timeout: 60 * 1000});
+                await page.waitForSelector(selector,{timeout: 120 * 1000});
                 const result = await page.$(selector)
                 itl = setInterval(async () => {
                     const text: any = await result?.evaluate(el => {
@@ -464,11 +464,11 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
                 }
             } catch (e) {
                 console.error(e);
-                account.gpt4times += 1;
+                account.gpt4times = 0;
                 account.last_use_time = moment().format(TimeFormat);
                 this.accountPool.syncfile();
                 stream.end();
-                done(account);
+                destroy();
             }
         })().then().catch((e)=> {
             console.error(e);
