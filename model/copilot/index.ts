@@ -106,7 +106,7 @@ export class Copilot extends Chat implements BrowserUser<Account> {
         super(options);
         this.model = options?.model || ModelType.GPT4;
         this.accountPool = new AccountPool();
-        let maxSize = +(process.env.COPILOT_POOL_SIZE || 1);
+        let maxSize = +(process.env.COPILOT_POOL_SIZE || 0);
         this.pagePool = new BrowserPool<Account>(maxSize, this);
     }
 
