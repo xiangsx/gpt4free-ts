@@ -97,10 +97,13 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
 
     constructor(options?: ForefrontOptions) {
         super(options);
-        this.accountPool = new AccountPool();
-        const maxSize = +(process.env.POOL_SIZE || 2);
-        this.pagePool = new BrowserPool<Account>(maxSize, this);
         this.model = options?.model || ModelType.GPT4;
+        this.accountPool = new AccountPool();
+        let maxSize = +(process.env.POOL_SIZE || 1);
+        if (this.model === ModelType.ClaudeP) {
+            maxSize = +(process.env.CLAUDE_POOL_SIZE || 1);
+        }
+        this.pagePool = new BrowserPool<Account>(maxSize, this);
     }
 
     support(model: ModelType): number {
