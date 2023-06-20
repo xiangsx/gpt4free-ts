@@ -91,5 +91,8 @@ app.use(router.routes());
             process.exit(0);
         });
     });
+    process.on('uncaughtException',(e)=>{
+        console.error(e);
+    })
 })()
 
