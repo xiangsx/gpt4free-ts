@@ -422,7 +422,7 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
             let itl;
             try {
                 const selector = `div > .w-full:nth-child(${id}) > .flex > .flex > .post-markdown`;
-                await page.waitForSelector(selector);
+                await page.waitForSelector(selector,{timeout: 60 * 1000});
                 const result = await page.$(selector)
                 itl = setInterval(async () => {
                     const text: any = await result?.evaluate(el => {
