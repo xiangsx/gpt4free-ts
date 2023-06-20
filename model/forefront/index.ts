@@ -447,8 +447,8 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
                 destroy();
             } finally {
                 stream.end();
-                await page.waitForSelector('.flex:nth-child(1) > div:nth-child(2) > .relative > .flex > .cursor-pointer')
-                await page.click('.flex:nth-child(1) > div:nth-child(2) > .relative > .flex > .cursor-pointer')
+                await page.waitForSelector('.flex:nth-child(1) > div > .relative > .flex:nth-child(2) > .cursor-pointer').catch(console.error)
+                await page.click('.flex:nth-child(1) > div > .relative > .flex:nth-child(2) > .cursor-pointer').catch(console.error);
                 account.gpt4times += 1;
                 this.accountPool.syncfile();
                 if (account.gpt4times >= MaxGptTimes) {
