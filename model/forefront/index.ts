@@ -376,6 +376,15 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
         await page.click('.opacity-100 > .flex > .relative:nth-child(3) > .flex > .cursor-pointer')
     }
 
+    public static async newSession(page: Page) {
+        try {
+            await page.waitForSelector('div:nth-child(2) > .relative > .flex > .cursor-pointer > .text-sm').catch(console.error)
+            await page.click('div:nth-child(2) > .relative > .flex > .cursor-pointer > .text-sm').catch(console.error);
+        } catch (e){
+            console.error(e);
+        }
+    }
+
     public async askStream(req: ChatRequest, stream: EventStream) {
         req.prompt = req.prompt.replace(/\n/g, '|');
         const [page, account, done, destroy] = this.pagePool.get();
@@ -438,17 +447,8 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
                 } else {
                     stream.write(Event.done, {content: text})
                 }
-            } catch (e) {
-                console.error(e);
-                account.gpt4times = 0;
-                account.last_use_time = moment().format(TimeFormat);
-                this.accountPool.syncfile();
+                await Forefrontnew.newSession(page);
                 stream.end();
-                destroy();
-            } finally {
-                stream.end();
-                await page.waitForSelector('.flex:nth-child(1) > div > .relative > .flex:nth-child(2) > .cursor-pointer').catch(console.error)
-                await page.click('.flex:nth-child(1) > div > .relative > .flex:nth-child(2) > .cursor-pointer').catch(console.error);
                 account.gpt4times += 1;
                 this.accountPool.syncfile();
                 if (account.gpt4times >= MaxGptTimes) {
@@ -462,6 +462,13 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
                 if (itl) {
                     clearInterval(itl);
                 }
+            } catch (e) {
+                console.error(e);
+                account.gpt4times = 0;
+                account.last_use_time = moment().format(TimeFormat);
+                this.accountPool.syncfile();
+                stream.end();
+                destroy();
             }
         })().then();
         return
