@@ -371,7 +371,7 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
     }
 
     public static async copyContent(page: Page) {
-        await page.waitForSelector('.opacity-100 > .flex > .relative:nth-child(3) > .flex > .cursor-pointer', {timeout: 5 * 60 * 1000})
+        await page.waitForSelector('.opacity-100 > .flex > .relative:nth-child(3) > .flex > .cursor-pointer', {timeout: 10 * 60 * 1000})
         await page.click('.opacity-100 > .flex > .relative:nth-child(3) > .flex > .cursor-pointer')
     }
 
@@ -432,7 +432,7 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
                     return el.textContent;
                 })
                 console.log('chat end: ', text, sourceText.length, text?.length || 0);
-                if (sourceText.length - (text?.length || 0) > 50) {
+                if (!text || sourceText.length - (text?.length || 0) > 50) {
                     stream.write(Event.done, {content: sourceText});
                 } else {
                     stream.write(Event.done, {content: text})
