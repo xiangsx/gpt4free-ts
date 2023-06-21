@@ -115,7 +115,7 @@ export class Copilot extends Chat implements BrowserUser<Account> {
     support(model: ModelType): number {
         switch (model) {
             case this.model:
-                return 7500;
+                return 8000;
             default:
                 return 0;
         }
