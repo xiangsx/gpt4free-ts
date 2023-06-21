@@ -3,7 +3,7 @@ import {Browser, Page} from "puppeteer";
 import {BrowserPool, BrowserUser} from "../../pool/puppeteer";
 import {CreateEmail, TempEmailType, TempMailMessage} from "../../utils/emailFactory";
 import * as fs from "fs";
-import {DoneData, ErrorData, Event, EventStream, MessageData, parseJSON, sleep} from "../../utils";
+import {DoneData, ErrorData, Event, EventStream, MessageData, parseJSON} from "../../utils";
 import {v4} from "uuid";
 import moment from 'moment';
 
@@ -31,16 +31,17 @@ type HistoryData = {
     }[]
 }
 
-class AccountPool {
+class CopilotAccountPool {
     private pool: Account[] = [];
-    private readonly account_file_path = './run/copilot/account.json';
+    private readonly account_file_path = './run/account_copilot.json';
+    private using = new Set<string>();
 
     constructor() {
         if (fs.existsSync(this.account_file_path)) {
             const accountStr = fs.readFileSync(this.account_file_path, 'utf-8');
             this.pool = parseJSON(accountStr, [] as Account[]);
         } else {
-            fs.mkdirSync('./run/copilot', {recursive: true});
+            fs.mkdirSync('./run', {recursive: true});
             this.syncfile();
         }
     }
@@ -64,12 +65,12 @@ class AccountPool {
 
     public get(): Account {
         const now = moment();
-        const minInterval = 3 * 60 * 60 + 10 * 60;// 3hour + 10min
         for (const item of this.pool) {
-            if (item.gpt4times + 15 <= MaxGptTimes) {
+            if (item.gpt4times + 15 <= MaxGptTimes && !this.using.has(item.id)) {
                 console.log(`find old login account:`, item);
                 item.last_use_time = now.format(TimeFormat);
                 this.syncfile();
+                this.using.add(item.id);
                 return item;
             }
         }
@@ -80,6 +81,7 @@ class AccountPool {
         }
         this.pool.push(newAccount);
         this.syncfile();
+        this.using.add(newAccount.id);
         return newAccount
     }
 
@@ -99,13 +101,13 @@ interface CopilotOptions extends ChatOptions {
 
 export class Copilot extends Chat implements BrowserUser<Account> {
     private pagePool: BrowserPool<Account>;
-    private accountPool: AccountPool;
+    private accountPool: CopilotAccountPool;
     private readonly model: ModelType;
 
     constructor(options?: CopilotOptions) {
         super(options);
         this.model = options?.model || ModelType.GPT4;
-        this.accountPool = new AccountPool();
+        this.accountPool = new CopilotAccountPool();
         let maxSize = +(process.env.COPILOT_POOL_SIZE || 0);
         this.pagePool = new BrowserPool<Account>(maxSize, this);
     }
@@ -211,12 +213,12 @@ export class Copilot extends Chat implements BrowserUser<Account> {
                 throw new Error('Error while obtaining verfication URL!')
             }
             await page.goto(validateURL);
-            console.log('register successfully');
             account.login_time = moment().format(TimeFormat);
             account.gpt4times = 0;
             this.accountPool.syncfile();
             await Copilot.closeWelcomePop(page);
             await Copilot.newChat(page);
+            console.log('register copilot successfully');
             return [page, account];
         } catch (e) {
             console.warn('something error happened,err:', e);
@@ -273,7 +275,6 @@ export class Copilot extends Chat implements BrowserUser<Account> {
             try {
                 //@ts-ignore
                 const length: number = await page.evaluate(() => document.querySelector(".MessageContainer > .PullToRefresh > .PullToRefresh-inner > .PullToRefresh-content > .MessageList").children.length)
-                console.log(`length: ${length}`);
                 const selector = `.Message:nth-child(${length}) > .Message-main > .Message-inner > .Message-content > .Bubble`;
                 console.log(selector);
                 await page.waitForSelector(selector, {timeout: 120 * 1000});
@@ -283,7 +284,6 @@ export class Copilot extends Chat implements BrowserUser<Account> {
                         console.log(el.textContent);
                         return el.textContent;
                     });
-                    console.log(text);
                     if (text) {
                         stream.write(Event.message, {content: text})
                     }
@@ -311,13 +311,12 @@ export class Copilot extends Chat implements BrowserUser<Account> {
                 stream.write(Event.done, {content: finalText});
                 stream.end();
                 await Copilot.clear(page);
-                account.gpt4times += 1;
+                account.gpt4times += 15;
+                account.last_use_time = moment().format(TimeFormat);
                 this.accountPool.syncfile();
-                if (account.gpt4times >= MaxGptTimes) {
-                    account.gpt4times = 15;
-                    account.last_use_time = moment().format(TimeFormat);
+                if (account.gpt4times + 15 > MaxGptTimes) {
                     this.accountPool.syncfile();
-                    destroy();
+                    destroy(true);
                 } else {
                     done(account);
                 }
