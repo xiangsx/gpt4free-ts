@@ -276,7 +276,6 @@ export class Copilot extends Chat implements BrowserUser<Account> {
                 //@ts-ignore
                 const length: number = await page.evaluate(() => document.querySelector(".MessageContainer > .PullToRefresh > .PullToRefresh-inner > .PullToRefresh-content > .MessageList").children.length)
                 const selector = `.Message:nth-child(${length}) > .Message-main > .Message-inner > .Message-content > .Bubble`;
-                console.log(selector);
                 await page.waitForSelector(selector, {timeout: 120 * 1000});
                 itl = setInterval(async () => {
                     const result = await page.$(selector)
