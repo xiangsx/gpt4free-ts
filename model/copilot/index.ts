@@ -3,7 +3,7 @@ import {Browser, Page} from "puppeteer";
 import {BrowserPool, BrowserUser} from "../../pool/puppeteer";
 import {CreateEmail, TempEmailType, TempMailMessage} from "../../utils/emailFactory";
 import * as fs from "fs";
-import {DoneData, ErrorData, Event, EventStream, MessageData, parseJSON} from "../../utils";
+import {DoneData, ErrorData, Event, EventStream, MessageData, parseJSON, sleep} from "../../utils";
 import {v4} from "uuid";
 import moment from 'moment';
 
@@ -290,10 +290,11 @@ export class Copilot extends Chat implements BrowserUser<Account> {
                 if (!page) {
                     return;
                 }
-                await Copilot.clear(page);
+                await page.waitForSelector('.ChatApp > .ChatFooter > .tool-bar > .semi-button:nth-child(1) > .semi-button-content', {timeout: 10 * 60 * 1000});
                 if (itl) {
                     clearInterval(itl);
                 }
+                await sleep(1000);
                 //@ts-ignore
                 const result = await page.$(selector)
                 const sourceText: any = await result?.evaluate(el => {
@@ -307,7 +308,7 @@ export class Copilot extends Chat implements BrowserUser<Account> {
                 const finalRes = parseJSON<HistoryData>(await finalResponse.text(), {data: []});
                 const finalText = finalRes.data[finalRes.data.length - 1].result || '';
                 console.log('chat end: ', finalText);
-                stream.write(Event.done, {content: finalText});
+                stream.write(Event.done, {content: finalText || sourceText});
                 stream.end();
                 await Copilot.clear(page);
                 account.gpt4times += 15;
