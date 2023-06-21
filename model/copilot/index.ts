@@ -228,7 +228,7 @@ export class Copilot extends Chat implements BrowserUser<Account> {
 
     public static async ifLogin(page: Page): Promise<boolean> {
         try {
-            await page.waitForSelector('.app > .header > .header-right > .semi-avatar > img', {timeout: 10 * 1000})
+            await page.waitForSelector('.app > .header > .header-right > .semi-avatar > img', {timeout: 5 * 1000})
             await page.click('.app > .header > .header-right > .semi-avatar > img')
             console.log('still login in');
             return true;
