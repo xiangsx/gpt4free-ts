@@ -187,8 +187,8 @@ export class Copilot extends Chat implements BrowserUser<Account> {
                 return [page, account];
             }
             await page.goto("https://app.copilothub.ai/login");
-            await page.waitForSelector('#root > div > .login-wrapper > .semi-input-wrapper > .semi-input')
-            await page.click('#root > div > .login-wrapper > .semi-input-wrapper > .semi-input')
+            await page.waitForSelector('div > .login-wrapper > .login-form-container > .semi-input-wrapper > .semi-input')
+            await page.click('div > .login-wrapper > .login-form-container > .semi-input-wrapper > .semi-input')
 
             const emailBox = CreateEmail(process.env.EMAIL_TYPE as TempEmailType || TempEmailType.TempEmail44)
             const emailAddress = await emailBox.getMailAddress();
@@ -198,8 +198,8 @@ export class Copilot extends Chat implements BrowserUser<Account> {
             // 将文本键入焦点元素
             await page.keyboard.type(emailAddress, {delay: 10});
 
-            await page.waitForSelector('div > .login-wrapper > .semi-button > .semi-button-content > .semi-button-content-left')
-            await page.click('div > .login-wrapper > .semi-button > .semi-button-content > .semi-button-content-left')
+            await page.waitForSelector('.login-wrapper > .login-form-container > .semi-button > .semi-button-content > .semi-button-content-left')
+            await page.click('.login-wrapper > .login-form-container > .semi-button > .semi-button-content > .semi-button-content-left')
 
             const msgs = (await emailBox.waitMails()) as TempMailMessage[]
             let validateURL: string | undefined;
