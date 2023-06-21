@@ -59,6 +59,7 @@ export class BrowserPool<T> {
 
     async initOne(id: string): Promise<void> {
         const info = this.find(id);
+        console.log(id);
         if (!info) {
             console.error('init one failed, not found info');
             return;
