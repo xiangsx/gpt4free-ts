@@ -5,7 +5,6 @@ import {ChatDemo} from "./chatdemo";
 import {Phind} from "./phind";
 import {Forefrontnew} from "./forefront";
 import {Vita} from "./vita";
-import {Copilot} from "./copilot";
 
 export enum Site {
     // define new model here
