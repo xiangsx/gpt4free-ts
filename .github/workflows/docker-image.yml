@@ -26,7 +26,7 @@ jobs:  # workflow中的job
         id: meta
         uses: docker/metadata-action@v3  # 抽取项目信息，主要是镜像的tag
         with:
-          images: xiangsx/gpt4free-ts-private
+          images: ${{ DOCKER_IMAGE_NAME }}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v2 # docker build & push
