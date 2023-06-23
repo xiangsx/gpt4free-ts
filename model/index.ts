@@ -16,7 +16,6 @@ export enum Site {
     Mcbbs = 'mcbbs',
     ChatDemo = 'chatdemo',
     Vita = 'vita',
-    Copilot = 'copilot'
 }
 
 export class ChatModelFactory {
@@ -38,7 +37,6 @@ export class ChatModelFactory {
         this.modelMap.set(Site.Mcbbs, new Mcbbs(this.options))
         this.modelMap.set(Site.ChatDemo, new ChatDemo(this.options))
         this.modelMap.set(Site.Vita, new Vita(this.options))
-        this.modelMap.set(Site.Copilot, new Copilot({...this.options, model: ModelType.GPT4}))
     }
 
     get(model: Site): Chat | undefined {
