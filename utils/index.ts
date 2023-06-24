@@ -3,6 +3,8 @@ import {PassThrough, Stream} from 'stream';
 import * as crypto from 'crypto';
 import {v4} from "uuid";
 import {encoding_for_model} from '@dqbd/tiktoken'
+import TurndownService from "turndown";
+const turndownService = new TurndownService({codeBlockStyle:'fenced'});
 
 const en = encoding_for_model("gpt-3.5-turbo");
 
@@ -131,3 +133,7 @@ export class EventStream {
 export const getTokenSize = (str: string) => {
     return str.length;
 };
+
+export const htmlToMarkdown = (html:string):string=>{
+    return turndownService.turndown(html);
+}

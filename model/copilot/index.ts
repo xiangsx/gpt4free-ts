@@ -3,9 +3,12 @@ import {Browser, Page} from "puppeteer";
 import {BrowserPool, BrowserUser} from "../../pool/puppeteer";
 import {CreateEmail, TempEmailType, TempMailMessage} from "../../utils/emailFactory";
 import * as fs from "fs";
-import {DoneData, ErrorData, Event, EventStream, MessageData, parseJSON, sleep} from "../../utils";
+import {DoneData, ErrorData, Event, EventStream, htmlToMarkdown, MessageData, parseJSON, sleep} from "../../utils";
 import {v4} from "uuid";
 import moment from 'moment';
+import TurndownService from 'turndown';
+
+const turndownService = new TurndownService({codeBlockStyle:'fenced'});
 
 type PageData = {
     gpt4times: number;
@@ -280,11 +283,10 @@ export class Copilot extends Chat implements BrowserUser<Account> {
                 itl = setInterval(async () => {
                     const result = await page.$(selector)
                     const text: any = await result?.evaluate(el => {
-                        console.log(el.textContent);
-                        return el.textContent;
+                        return el.outerHTML;
                     });
                     if (text) {
-                        stream.write(Event.message, {content: text})
+                        stream.write(Event.message, {content: htmlToMarkdown(text)})
                     }
                 }, 100)
                 if (!page) {
@@ -298,7 +300,7 @@ export class Copilot extends Chat implements BrowserUser<Account> {
                 //@ts-ignore
                 const result = await page.$(selector)
                 const sourceText: any = await result?.evaluate(el => {
-                    return el.textContent;
+                    return el.outerHTML;
                 })
                 page.reload().then();
                 const finalResponse = await page.waitForResponse(
@@ -308,7 +310,7 @@ export class Copilot extends Chat implements BrowserUser<Account> {
                 const finalRes = parseJSON<HistoryData>(await finalResponse.text(), {data: []});
                 const finalText = finalRes.data[finalRes.data.length - 1].result || '';
                 console.log('chat end: ', finalText);
-                stream.write(Event.done, {content: finalText || sourceText});
+                stream.write(Event.done, {content: finalText || htmlToMarkdown(sourceText)});
                 stream.end();
                 await Copilot.clear(page);
                 account.gpt4times += 15;

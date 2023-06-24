@@ -4,7 +4,7 @@ import {BrowserPool, BrowserUser} from "../../pool/puppeteer";
 import {CreateEmail, TempEmailType, TempMailMessage} from "../../utils/emailFactory";
 import {CreateTlsProxy} from "../../utils/proxyAgent";
 import * as fs from "fs";
-import {DoneData, ErrorData, Event, EventStream, MessageData, parseJSON, sleep} from "../../utils";
+import {DoneData, ErrorData, Event, EventStream, htmlToMarkdown, MessageData, parseJSON, sleep} from "../../utils";
 import {v4} from "uuid";
 import moment from 'moment';
 
@@ -429,10 +429,10 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
                 const result = await page.$(selector)
                 itl = setInterval(async () => {
                     const text: any = await result?.evaluate(el => {
-                        return el.textContent;
+                        return el.outerHTML;
                     });
                     if (text) {
-                        stream.write(Event.message, {content: text})
+                        stream.write(Event.message, {content: htmlToMarkdown(text)})
                     }
                 }, 100)
                 if (!page) {
@@ -445,11 +445,11 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
                 //@ts-ignore
                 const text: any = await page.evaluate(() => navigator.clipboard.text);
                 const sourceText: any = await result?.evaluate(el => {
-                    return el.textContent;
+                    return el.outerHTML;
                 })
                 console.log('chat end: ', text, sourceText.length, text?.length || 0);
                 if (!text || sourceText.length - (text?.length || 0) > 50) {
-                    stream.write(Event.done, {content: sourceText});
+                    stream.write(Event.done, {content: htmlToMarkdown(sourceText)});
                 } else {
                     stream.write(Event.done, {content: text})
                 }

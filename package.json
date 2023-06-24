@@ -20,6 +20,7 @@
     "@types/koa-bodyparser": "^4.3.10",
     "@types/koa-router": "^7.4.4",
     "@types/node": "^18.16.3",
+    "@types/turndown": "^5.0.1",
     "@types/uuid": "^9.0.1",
     "ts-node": "^10.9.1",
     "typescript": "^5.0.4"
@@ -40,6 +41,7 @@
     "puppeteer-extra": "^3.3.6",
     "puppeteer-extra-plugin-stealth": "^2.11.2",
     "tls-client": "^0.0.5",
+    "turndown": "^7.1.2",
     "user-agents": "^1.0.1367",
     "uuid": "^9.0.0"
   }
