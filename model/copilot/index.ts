@@ -3,12 +3,22 @@ import {Browser, Page} from "puppeteer";
 import {BrowserPool, BrowserUser} from "../../pool/puppeteer";
 import {CreateEmail, TempEmailType, TempMailMessage} from "../../utils/emailFactory";
 import * as fs from "fs";
-import {DoneData, ErrorData, Event, EventStream, htmlToMarkdown, MessageData, parseJSON, sleep} from "../../utils";
+import {
+    DoneData,
+    ErrorData,
+    Event,
+    EventStream,
+    htmlToMarkdown,
+    isSimilarity,
+    MessageData,
+    parseJSON,
+    sleep
+} from "../../utils";
 import {v4} from "uuid";
 import moment from 'moment';
 import TurndownService from 'turndown';
 
-const turndownService = new TurndownService({codeBlockStyle:'fenced'});
+const turndownService = new TurndownService({codeBlockStyle: 'fenced'});
 
 type PageData = {
     gpt4times: number;
@@ -296,10 +306,9 @@ export class Copilot extends Chat implements BrowserUser<Account> {
                 if (itl) {
                     clearInterval(itl);
                 }
-                await sleep(1000);
                 //@ts-ignore
                 const result = await page.$(selector)
-                const sourceText: any = await result?.evaluate(el => {
+                let sourceText: any = await result?.evaluate(el => {
                     return el.outerHTML;
                 })
                 page.reload().then();
@@ -310,8 +319,14 @@ export class Copilot extends Chat implements BrowserUser<Account> {
                 const finalRes = parseJSON<HistoryData>(await finalResponse.text(), {data: []});
                 const finalText = finalRes.data[finalRes.data.length - 1].result || '';
                 console.log('chat end: ', finalText);
-                stream.write(Event.done, {content: finalText || htmlToMarkdown(sourceText)});
-                stream.end();
+                sourceText = htmlToMarkdown(sourceText);
+                if (isSimilarity(finalText, sourceText)) {
+                    stream.write(Event.done, {content: finalText});
+                    stream.end();
+                } else {
+                    stream.write(Event.done, {content: sourceText});
+                    stream.end();
+                }
                 await Copilot.clear(page);
                 account.gpt4times += 15;
                 account.last_use_time = moment().format(TimeFormat);
