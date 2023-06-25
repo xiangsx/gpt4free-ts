@@ -437,12 +437,14 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
                 const selector = `div > .w-full:nth-child(${id}) > .flex > .flex > .post-markdown`;
                 await page.waitForSelector(selector, {timeout: 120 * 1000});
                 const result = await page.$(selector)
+                let old = '';
                 itl = setInterval(async () => {
                     const text: any = await result?.evaluate(el => {
                         return el.outerHTML;
                     });
-                    if (text) {
-                        stream.write(Event.message, {content: htmlToMarkdown(text)})
+                    if (text && text.length !== old.length) {
+                        stream.write(Event.message, {content: htmlToMarkdown(text)});
+                        old = text;
                     }
                 }, 100)
                 if (!page) {
