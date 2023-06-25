@@ -4,7 +4,17 @@ import {BrowserPool, BrowserUser} from "../../pool/puppeteer";
 import {CreateEmail, TempEmailType, TempMailMessage} from "../../utils/emailFactory";
 import {CreateTlsProxy} from "../../utils/proxyAgent";
 import * as fs from "fs";
-import {DoneData, ErrorData, Event, EventStream, MessageData, parseJSON, sleep} from "../../utils";
+import {
+    DoneData,
+    ErrorData,
+    Event,
+    EventStream,
+    htmlToMarkdown,
+    isSimilarity,
+    MessageData,
+    parseJSON,
+    sleep
+} from "../../utils";
 import {v4} from "uuid";
 import moment from 'moment';
 
@@ -383,7 +393,7 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
         try {
             await page.waitForSelector('div:nth-child(2) > .relative > .flex > .cursor-pointer > .text-sm').catch(console.error)
             await page.click('div:nth-child(2) > .relative > .flex > .cursor-pointer > .text-sm').catch(console.error);
-        } catch (e){
+        } catch (e) {
             console.error(e);
         }
     }
@@ -425,14 +435,14 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
             let itl;
             try {
                 const selector = `div > .w-full:nth-child(${id}) > .flex > .flex > .post-markdown`;
-                await page.waitForSelector(selector,{timeout: 120 * 1000});
+                await page.waitForSelector(selector, {timeout: 120 * 1000});
                 const result = await page.$(selector)
                 itl = setInterval(async () => {
                     const text: any = await result?.evaluate(el => {
-                        return el.textContent;
+                        return el.outerHTML;
                     });
                     if (text) {
-                        stream.write(Event.message, {content: text})
+                        stream.write(Event.message, {content: htmlToMarkdown(text)})
                     }
                 }, 100)
                 if (!page) {
@@ -444,14 +454,15 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
                 }
                 //@ts-ignore
                 const text: any = await page.evaluate(() => navigator.clipboard.text);
-                const sourceText: any = await result?.evaluate(el => {
-                    return el.textContent;
+                let sourceText: any = await result?.evaluate(el => {
+                    return el.outerHTML;
                 })
                 console.log('chat end: ', text, sourceText.length, text?.length || 0);
-                if (!text || sourceText.length - (text?.length || 0) > 50) {
-                    stream.write(Event.done, {content: sourceText});
+                sourceText = htmlToMarkdown(sourceText);
+                if (isSimilarity(sourceText, text || '')) {
+                    stream.write(Event.done, {content: text});
                 } else {
-                    stream.write(Event.done, {content: text})
+                    stream.write(Event.done, {content: sourceText});
                 }
                 await Forefrontnew.newSession(page);
                 stream.end();
@@ -479,7 +490,7 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
             if (itl) {
                 clearInterval(itl);
             }
-        })().then().catch((e)=> {
+        })().then().catch((e) => {
             console.error(e);
             stream.end();
             destroy();

@@ -3,6 +3,9 @@ import {PassThrough, Stream} from 'stream';
 import * as crypto from 'crypto';
 import {v4} from "uuid";
 import {encoding_for_model} from '@dqbd/tiktoken'
+import TurndownService from "turndown";
+const turndownService = new TurndownService({codeBlockStyle:'fenced'});
+import stringSimilarity from 'string-similarity';
 
 const en = encoding_for_model("gpt-3.5-turbo");
 
@@ -131,3 +134,13 @@ export class EventStream {
 export const getTokenSize = (str: string) => {
     return str.length;
 };
+
+export const htmlToMarkdown = (html:string):string=>{
+    return turndownService.turndown(html);
+}
+
+export const isSimilarity=(s1:string,s2:string):boolean=>{
+    const similarity = stringSimilarity.compareTwoStrings(s1, s2);
+    console.log(similarity);
+    return similarity > 0.3;
+}
