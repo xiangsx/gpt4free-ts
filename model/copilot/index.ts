@@ -290,13 +290,15 @@ export class Copilot extends Chat implements BrowserUser<Account> {
                 const length: number = await page.evaluate(() => document.querySelector(".MessageContainer > .PullToRefresh > .PullToRefresh-inner > .PullToRefresh-content > .MessageList").children.length)
                 const selector = `.Message:nth-child(${length}) > .Message-main > .Message-inner > .Message-content > .Bubble`;
                 await page.waitForSelector(selector, {timeout: 120 * 1000});
+                let old = '';
                 itl = setInterval(async () => {
                     const result = await page.$(selector)
                     const text: any = await result?.evaluate(el => {
                         return el.outerHTML;
                     });
-                    if (text) {
-                        stream.write(Event.message, {content: htmlToMarkdown(text)})
+                    if (text && text.length !== old.length) {
+                        stream.write(Event.message, {content: htmlToMarkdown(text)});
+                        old = text;
                     }
                 }, 100)
                 if (!page) {
