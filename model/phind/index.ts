@@ -22,7 +22,7 @@ export class Phind extends Chat implements BrowserUser<Account> {
 
     constructor(options?: ChatOptions) {
         super(options);
-        const maxSize = +(process.env.PHIND_POOL_SIZE || 2);
+        const maxSize = +(process.env.PHIND_POOL_SIZE || 0);
         this.pagePool = new BrowserPool<Account>(maxSize, this);
     }
 

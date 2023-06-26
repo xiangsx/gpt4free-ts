@@ -39,7 +39,7 @@ rapid_api_key=xxxxxxxxxx
 EMAIL_TYPE=temp-email44
 DEBUG=0
 POOL_SIZE=0
-PHIND_POOL_SIZE=1
+PHIND_POOL_SIZE=0
 ```
 
 - `http_proxy`: config your proxy if you can not access target website directly; If you dont need proxy, delete this line;
