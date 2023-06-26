@@ -101,6 +101,7 @@ export class Phind extends Chat implements BrowserUser<Account> {
         await sleep(2000);
         await page.waitForSelector('.mb-3 > div > div > .mt-6 > .btn-primary')
         await Phind.allowClipboard(browser, page);
+        console.log('phind init ok!');
         return [page, {id}]
     }
 
