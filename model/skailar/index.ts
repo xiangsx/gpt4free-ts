@@ -90,12 +90,13 @@ export class Skailar extends Chat {
             const res = await this.client.post('/chat', data, {
                 responseType: 'stream',
             } as AxiosRequestConfig);
+            res.data.on('end',()=>{
+                stream.write(Event.done, {content: ''});
+                stream.end();
+            });
             res.data.pipe(es.map(async (chunk: any, cb: any) => {
                 stream.write(Event.message, {content: chunk.toString()});
             }))
-            res.data.on('end',()=>{
-                stream.write(Event.done, {content: ''});
-            });
         } catch (e: any) {
             console.error(e);
             stream.write(Event.error, {error: e.message})
