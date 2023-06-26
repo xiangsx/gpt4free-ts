@@ -4,6 +4,10 @@ import * as crypto from 'crypto';
 import {v4} from "uuid";
 import  {encoding_for_model} from '@dqbd/tiktoken'
 const en = encoding_for_model("gpt-3.5-turbo");
+import TurndownService from "turndown";
+const turndownService = new TurndownService({codeBlockStyle:'fenced'});
+import stringSimilarity from 'string-similarity';
+
 
 type eventFunc = (eventName: string, data: string) => void;
 
@@ -130,3 +134,13 @@ export class EventStream {
 export const getTokenSize = (str: string) => {
     return en.encode(str).length;
 };
+
+export const htmlToMarkdown = (html:string):string=>{
+    return turndownService.turndown(html);
+}
+
+export const isSimilarity=(s1:string,s2:string):boolean=>{
+    const similarity = stringSimilarity.compareTwoStrings(s1, s2);
+    console.log(similarity);
+    return similarity > 0.3;
+}
