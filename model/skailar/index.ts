@@ -42,7 +42,7 @@ export class Skailar extends Chat {
     support(model: ModelType): number {
         switch (model) {
             case ModelType.GPT4:
-                return 8000;
+                return 2500;
             default:
                 return 0;
         }
