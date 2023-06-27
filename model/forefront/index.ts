@@ -250,7 +250,7 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
             // click never internet
             // await page.waitForSelector('.flex > .p-1 > .relative')
             // await page.click('.flex > .p-1 > .relative')
-            // console.log('switch gpt4 ok!')
+            console.log('switch gpt4 ok!')
         } catch (e) {
             console.log(e);
             await page.reload();
