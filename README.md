@@ -39,7 +39,7 @@ rapid_api_key=xxxxxxxxxx
 EMAIL_TYPE=temp-email44
 DEBUG=0
 POOL_SIZE=0
-PHIND_POOL_SIZE=1
+PHIND_POOL_SIZE=0
 ```
 
 - `http_proxy`: config your proxy if you can not access target website directly; If you dont need proxy, delete this line;
@@ -171,6 +171,7 @@ data: {"content":"done"}
 
 ## 👥 Wechat Group
 
+<image src="https://github.com/xiangsx/gpt4free-ts/assets/29322721/b07fff99-f501-41ed-b857-7049c4572e47" width=240 />
 <image src="https://github.com/xiangsx/gpt4free-ts/assets/29322721/0b605d4d-f189-457c-b2eb-94a12ad69fd8" width=240 />
 
 ## 🌟 Star History

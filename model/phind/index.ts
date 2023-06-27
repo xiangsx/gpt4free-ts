@@ -1,9 +1,13 @@
 import {Chat, ChatOptions, ChatRequest, ChatResponse, ModelType} from "../base";
 import {Browser, Page} from "puppeteer";
 import {BrowserPool, BrowserUser} from "../../pool/puppeteer";
-import {DoneData, ErrorData, Event, EventStream, MessageData, sleep} from "../../utils";
+import {DoneData, ErrorData, Event, EventStream, isSimilarity, MessageData, sleep} from "../../utils";
 import {v4} from "uuid";
+import TurndownService from "turndown";
 
+let turndownService = new TurndownService({codeBlockStyle: 'fenced'}).remove('h6');
+turndownService = turndownService.remove('h6');
+const preText = `###### Answer | gpt-3.5 Model\n\n`;
 type PageData = {
     gpt4times: number;
 }
@@ -95,9 +99,9 @@ export class Phind extends Chat implements BrowserUser<Account> {
 
         await page.goto(url);
         await sleep(2000);
-        await page.waitForSelector('div > .mt-4 > div > .form-check > .form-check-label')
-        await page.click('div > .mt-4 > div > .form-check > .form-check-label')
+        await page.waitForSelector('.mb-3 > div > div > .mt-6 > .btn-primary')
         await Phind.allowClipboard(browser, page);
+        console.log('phind init ok!');
         return [page, {id}]
     }
 
@@ -123,12 +127,16 @@ export class Phind extends Chat implements BrowserUser<Account> {
             await page.keyboard.press('Enter');
             await page.waitForSelector('.col-lg-10 > .row > .col-lg-8:nth-child(4) > .container-xl > div:nth-child(1)');
             const output = await page.$('.col-lg-10 > .row > .col-lg-8:nth-child(4) > .container-xl > div:nth-child(1)');
+            let old = '';
             const itl = setInterval(async () => {
                 try {
                     const content: any = await output?.evaluate(el => {
-                        return el.textContent;
+                        return el.outerHTML;
                     });
-                    stream.write(Event.message, {content});
+                    if (old !== content) {
+                        stream.write(Event.message, {content: turndownService.turndown(content).replace(preText,'')});
+                        old = content;
+                    }
                 } catch (e) {
                     console.error(e);
                 }
@@ -137,18 +145,22 @@ export class Phind extends Chat implements BrowserUser<Account> {
                 await Phind.copyContent(page);
                 clearInterval(itl);
                 //@ts-ignore
-                const text: any = await page.evaluate(() => navigator.clipboard.text);
-                console.log('chat end: ', text);
-                stream.write(Event.done, {
-                    content: text || await output?.evaluate((el: any) => {
-                        return el.textContent;
-                    })
+                const text: any = (await page.evaluate(() => navigator.clipboard.text)) || '';
+                const sourcehtml: any = await output?.evaluate((el: any) => {
+                    return el.outerHTML;
                 })
+                console.log('chat end: ', text);
+                const sourceText = turndownService.turndown(sourcehtml).replace(preText,'');
+                if (isSimilarity(text, sourceText)) {
+                    stream.write(Event.done, {content: text});
+                } else {
+                    stream.write(Event.done, {content: sourceText});
+                }
                 stream.end();
                 done(account);
                 await page.goto(url);
             }
-            wait().then().catch(async (e)=>{
+            wait().then().catch(async (e) => {
                 console.error(e);
                 stream.write(Event.error, {error: e.message})
                 stream.end();

@@ -8,6 +8,10 @@ const turndownService = new TurndownService({codeBlockStyle:'fenced'});
 import stringSimilarity from 'string-similarity';
 
 const en = encoding_for_model("gpt-3.5-turbo");
+import TurndownService from "turndown";
+const turndownService = new TurndownService({codeBlockStyle:'fenced'});
+import stringSimilarity from 'string-similarity';
+
 
 type eventFunc = (eventName: string, data: string) => void;
 

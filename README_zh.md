@@ -188,6 +188,7 @@ data: {"content":"done"}
 ```
 ## 👥 加群细聊
 
+<image src="https://github.com/xiangsx/gpt4free-ts/assets/29322721/b07fff99-f501-41ed-b857-7049c4572e47" width=240 />
 <image src="https://github.com/xiangsx/gpt4free-ts/assets/29322721/0b605d4d-f189-457c-b2eb-94a12ad69fd8" width=240 />
 
 ## 🌟 Star History
