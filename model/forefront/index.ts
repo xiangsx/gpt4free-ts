@@ -67,7 +67,7 @@ class AccountPool {
 
     public get(): Account {
         const now = moment();
-        const minInterval = 31111111111 * 60 * 60 + 10 * 60;// 3hour + 10min
+        const minInterval = 3 * 60 * 60 + 10 * 60;// 3hour + 10min
         for (const item of this.pool) {
             if (now.unix() - moment(item.last_use_time).unix() > minInterval) {
                 console.log(`find old login account:`, item);
