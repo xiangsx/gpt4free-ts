@@ -1,4 +1,4 @@
-import Koa, {Context, Next} from 'koa';
+import Koa, {Context, Middleware, Next} from 'koa';
 import Router from 'koa-router'
 import bodyParser from 'koa-bodyparser';
 import {ChatModelFactory, Site} from "./model";
@@ -21,7 +21,7 @@ const errorHandler = async (ctx: Context, next: Next) => {
     }
 };
 app.use(errorHandler);
-app.use(bodyParser());
+app.use(bodyParser({jsonLimit: '10mb'}));
 const chatModel = new ChatModelFactory();
 
 interface AskReq extends ChatRequest {
@@ -31,8 +31,8 @@ interface AskReq extends ChatRequest {
 interface AskRes extends ChatResponse {
 }
 
-router.get('/ask', async (ctx) => {
-    const {prompt, model = ModelType.GPT3p5Turbo, site = Site.You} = ctx.query as unknown as AskReq;
+const AskHandle: Middleware = async (ctx) => {
+    const {prompt, model = ModelType.GPT3p5Turbo, site = Site.You} = {...ctx.query as any, ...ctx.request.body as any} as AskReq;
     if (!prompt) {
         ctx.body = {error: `need prompt in query`} as AskRes;
         return;
@@ -48,10 +48,10 @@ router.get('/ask', async (ctx) => {
         return;
     }
     ctx.body = await chat.ask({prompt: PromptToString(prompt, tokenLimit), model});
-});
+}
 
-router.get('/ask/stream', async (ctx) => {
-    const {prompt, model = ModelType.GPT3p5Turbo, site = Site.You} = ctx.query as unknown as AskReq;
+const AskStreamHandle: Middleware = async (ctx) => {
+    const {prompt, model = ModelType.GPT3p5Turbo, site = Site.You} = {...ctx.query as any, ...ctx.request.body as any} as AskReq;
     ctx.set({
         "Content-Type": "text/event-stream;charset=utf-8",
         "Cache-Control": "no-cache",
@@ -78,7 +78,12 @@ router.get('/ask/stream', async (ctx) => {
     }
     await chat.askStream({prompt: PromptToString(prompt, tokenLimit), model}, es);
     ctx.body = es.stream();
-})
+}
+
+router.get('/ask', AskHandle);
+router.post('/ask', AskHandle);
+router.get('/ask/stream', AskStreamHandle)
+router.post('/ask/stream', AskStreamHandle)
 
 app.use(router.routes());
 
@@ -91,7 +96,7 @@ app.use(router.routes());
             process.exit(0);
         });
     });
-    process.on('uncaughtException',(e)=>{
+    process.on('uncaughtException', (e) => {
         console.error(e);
     })
 })()
