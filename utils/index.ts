@@ -2,12 +2,6 @@ import es from 'event-stream';
 import {PassThrough, Stream} from 'stream';
 import * as crypto from 'crypto';
 import {v4} from "uuid";
-import {encoding_for_model} from '@dqbd/tiktoken'
-import TurndownService from "turndown";
-const turndownService = new TurndownService({codeBlockStyle:'fenced'});
-import stringSimilarity from 'string-similarity';
-
-const en = encoding_for_model("gpt-3.5-turbo");
 import TurndownService from "turndown";
 const turndownService = new TurndownService({codeBlockStyle:'fenced'});
 import stringSimilarity from 'string-similarity';
