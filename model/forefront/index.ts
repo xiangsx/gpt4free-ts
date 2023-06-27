@@ -279,8 +279,8 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
             await page.hover('div > .absolute > .relative > .w-full:nth-child(5) > .relative')
 
             // click never internet
-            await page.waitForSelector('.flex > .p-1 > .relative')
-            await page.click('.flex > .p-1 > .relative')
+            // await page.waitForSelector('.flex > .p-1 > .relative')
+            // await page.click('.flex > .p-1 > .relative')
 
             console.log('switch claude+ ok!')
         } catch (e) {
