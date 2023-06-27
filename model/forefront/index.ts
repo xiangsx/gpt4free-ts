@@ -67,7 +67,7 @@ class AccountPool {
 
     public get(): Account {
         const now = moment();
-        const minInterval = 3 * 60 * 60 + 10 * 60;// 3hour + 10min
+        const minInterval = 31111111111 * 60 * 60 + 10 * 60;// 3hour + 10min
         for (const item of this.pool) {
             if (now.unix() - moment(item.last_use_time).unix() > minInterval) {
                 console.log(`find old login account:`, item);
@@ -248,8 +248,8 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
             await page.hover('div > .absolute > .relative > .w-full:nth-child(3) > .relative')
 
             // click never internet
-            // await page.waitForSelector('.flex > .p-1 > .relative')
-            // await page.click('.flex > .p-1 > .relative')
+            await page.waitForSelector('.px-4:nth-child(3) > .flex > .w-48 > .relative > .text-th-primary-light')
+            await page.click('.px-4:nth-child(3) > .flex > .w-48 > .relative > .text-th-primary-light')
             console.log('switch gpt4 ok!')
         } catch (e) {
             console.log(e);
@@ -279,8 +279,8 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
             await page.hover('div > .absolute > .relative > .w-full:nth-child(5) > .relative')
 
             // click never internet
-            // await page.waitForSelector('.flex > .p-1 > .relative')
-            // await page.click('.flex > .p-1 > .relative')
+            await page.waitForSelector('.px-4:nth-child(3) > .flex > .w-48 > .relative > .text-th-primary-light')
+            await page.click('.px-4:nth-child(3) > .flex > .w-48 > .relative > .text-th-primary-light')
 
             console.log('switch claude+ ok!')
         } catch (e) {
