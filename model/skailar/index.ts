@@ -76,7 +76,7 @@ export class Skailar extends Chat {
     public async askStream(req: ChatRequest, stream: EventStream) {
         const data: RealReq = {
             temperature: 1,
-            key: "",
+            key: process.env.SKAILAR_KEY || "",
             messages: [{role: 'user', content: req.prompt}],
             model: {
                 "id": "gpt-4",
@@ -90,7 +90,7 @@ export class Skailar extends Chat {
             const res = await this.client.post('/chat', data, {
                 responseType: 'stream',
             } as AxiosRequestConfig);
-            res.data.on('end',()=>{
+            res.data.on('end', () => {
                 stream.write(Event.done, {content: ''});
                 stream.end();
             });
