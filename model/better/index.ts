@@ -83,11 +83,6 @@ export class Better extends Chat {
                 if (!dataStr) {
                     return;
                 }
-                if (dataStr === '[DONE]') {
-                    stream.write(Event.done, {content: ''})
-                    stream.end();
-                    return;
-                }
                 const data = parseJSON(dataStr, {} as any);
                 if (!data?.choices) {
                     stream.write(Event.error, {error: 'not found data.choices'})
@@ -96,6 +91,8 @@ export class Better extends Chat {
                 }
                 const [{delta: {content = ""}, finish_reason}] = data.choices;
                 if (finish_reason === 'stop') {
+                    stream.write(Event.done, {content: ''})
+                    stream.end();
                     return;
                 }
                 stream.write(Event.message, {content});
