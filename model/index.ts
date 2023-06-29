@@ -8,6 +8,7 @@ import {Vita} from "./vita";
 import {Copilot} from "./copilot";
 import {Skailar} from "./skailar";
 import {FakeOpen} from "./fakeopen";
+import {EasyChat} from "./easychat";
 
 export enum Site {
     // define new model here
@@ -21,6 +22,7 @@ export enum Site {
     Copilot = 'copilot',
     Skailar = 'skailar',
     FakeOpen = 'fakeopen',
+    EasyChat = 'easychat',
 }
 
 export class ChatModelFactory {
@@ -45,6 +47,7 @@ export class ChatModelFactory {
         this.modelMap.set(Site.Copilot, new Copilot({...this.options, model: ModelType.GPT4}))
         this.modelMap.set(Site.Skailar, new Skailar(this.options))
         this.modelMap.set(Site.FakeOpen, new FakeOpen(this.options))
+        this.modelMap.set(Site.EasyChat, new EasyChat({...this.options, model: ModelType.GPT4}))
     }
 
     get(model: Site): Chat | undefined {
