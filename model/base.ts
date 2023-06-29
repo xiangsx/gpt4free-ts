@@ -19,6 +19,7 @@ export enum ModelType {
     GPT4 = 'gpt4',
     NetGpt3p5 = 'net-gpt3.5-turbo',
     ClaudeP = 'claudep',
+    Claude100k = 'claude-100k'
 }
 
 export interface ChatRequest {
