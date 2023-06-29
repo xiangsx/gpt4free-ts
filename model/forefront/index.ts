@@ -248,8 +248,8 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
             await page.hover('div > .absolute > .relative > .w-full:nth-child(3) > .relative')
 
             // click never internet
-            await page.waitForSelector('.px-4:nth-child(3) > .flex > .w-48 > .relative > .text-th-primary-light')
-            await page.click('.px-4:nth-child(3) > .flex > .w-48 > .relative > .text-th-primary-light')
+            await page.waitForSelector('.px-4:nth-child(3) > .flex > .w-48 > .relative > .text-th-primary-dark')
+            await page.click('.px-4:nth-child(3) > .flex > .w-48 > .relative > .text-th-primary-dark')
             console.log('switch gpt4 ok!')
         } catch (e) {
             console.log(e);
@@ -279,8 +279,8 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
             await page.hover('div > .absolute > .relative > .w-full:nth-child(5) > .relative')
 
             // click never internet
-            await page.waitForSelector('.px-4:nth-child(3) > .flex > .w-48 > .relative > .text-th-primary-light')
-            await page.click('.px-4:nth-child(3) > .flex > .w-48 > .relative > .text-th-primary-light')
+            await page.waitForSelector('.px-4:nth-child(3) > .flex > .w-48 > .relative > .text-th-primary-dark')
+            await page.click('.px-4:nth-child(3) > .flex > .w-48 > .relative > .text-th-primary-dark')
 
             console.log('switch claude+ ok!')
         } catch (e) {
