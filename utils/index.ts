@@ -1,10 +1,10 @@
 import es from 'event-stream';
 import {PassThrough, Stream} from 'stream';
 import * as crypto from 'crypto';
-import {v4} from "uuid";
 import TurndownService from "turndown";
-const turndownService = new TurndownService({codeBlockStyle:'fenced'});
 import stringSimilarity from 'string-similarity';
+
+const turndownService = new TurndownService({codeBlockStyle: 'fenced'});
 
 
 type eventFunc = (eventName: string, data: string) => void;
@@ -32,8 +32,14 @@ export function md5(str: string): string {
     return crypto.createHash('md5').update(str).digest('hex');
 }
 
-export function randomStr(): string {
-    return v4().split('-').join('').slice(-6);
+const charactersForRandom = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+export function randomStr(length: number = 6): string {
+    let result = '';
+    const charactersLength = charactersForRandom.length;
+    for (let i = 0; i < length; i++) {
+        result += charactersForRandom.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
 }
 
 export function parseJSON<T>(str: string, defaultObj: T): T {
@@ -133,11 +139,11 @@ export const getTokenSize = (str: string) => {
     return str.length;
 };
 
-export const htmlToMarkdown = (html:string):string=>{
+export const htmlToMarkdown = (html: string): string => {
     return turndownService.turndown(html);
 }
 
-export const isSimilarity=(s1:string,s2:string):boolean=>{
+export const isSimilarity = (s1: string, s2: string): boolean => {
     const similarity = stringSimilarity.compareTwoStrings(s1, s2);
     console.log(similarity);
     return similarity > 0.3;
