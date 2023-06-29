@@ -258,7 +258,7 @@ export class EasyChat extends Chat implements BrowserUser<Account> {
             await EasyChat.closeWelcomePop(page);
             const cookies = await page.cookies();
             account.cookies = cookies.map(item => `${item.name}=${item.value}`).join(';')
-            console.log(account.cookies);
+            this.accountPool.syncfile();
             console.log('register EasyChat successfully');
             return [page, account];
         } catch (e) {
