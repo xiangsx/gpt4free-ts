@@ -109,7 +109,7 @@ docker-compose up --build -d
   - `jsonstr`:包含上下文的json字符串，例如：`[{"role":"user","content":"你好\n"},{"role":"assistant","content":"你好！有什么我可以帮助你的吗？"},{"role":"user","content":"你是谁"}]`
   - `string`: 单次对话 例如：`你是谁`
 - `model`: 默认 `gpt3.5-turbo`. 模型:`gpt4` `gpt3.5-turbo`
-- `site`: 默认 `you`. 目标网站 `forefront` `you` `chatdemo`
+- `site`: 默认 `you`. 目标网站 `fakeopen` `better` `forefront` `you` `chatdemo`
 
 ### 网站支持模型类型 🧩
 

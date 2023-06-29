@@ -90,8 +90,8 @@ docker-compose up --build -d
 - `prompt`: your question. It can be a `string` or `jsonstr`.
   - example `jsonstr`:`[{"role":"user","content":"hello\n"},{"role":"assistant","content":"Hi there! How can I assist you today?"},{"role":"user","content":"who are you"}]`
   - example `string`: `who are you`
-- `model`: default `gpt3.5-turbo`. model include:`gpt4` `gpt3.5-turbo` `net-gpt3.5-turbo`
-- `site`: default `you`. target site, include `forefront` `you` `chatdemo` `phind` `vita`
+- `model`: default `gpt3.5-turbo`. model include:`gpt4` `gpt3.5-turbo` `net-gpt3.5-turbo` `gpt-3.5-turbo-16k`
+- `site`: default `you`. target site, include `fakeopen` `better` `forefront` `you` `chatdemo` `phind` `vita`
 
 ### Site Support Model 🧩
 
