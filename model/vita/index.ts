@@ -74,6 +74,7 @@ export class Vita extends Chat {
                     return;
                 }
                 if (dataStr === '[DONE]') {
+                    stream.write(Event.done, {content: ""})
                     stream.end();
                     return;
                 }

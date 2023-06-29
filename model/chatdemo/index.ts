@@ -85,6 +85,7 @@ export class ChatDemo extends Chat {
                 }
                 const [{delta: {content = ""}, finish_reason}] = data.choices;
                 if (finish_reason === 'stop') {
+                    stream.write(Event.done, {content: ''})
                     stream.end();
                     return;
                 }
