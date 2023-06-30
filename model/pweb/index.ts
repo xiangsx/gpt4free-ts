@@ -68,7 +68,7 @@ export class PWeb extends Chat {
         this.client = CreateAxiosProxy({
             baseURL: 'https://p.v50.ltd/api/',
             headers: {
-                "Accept": "application/json, text/plain, */*",
+                "Accept": "application/octet-stream",
                 "Accept-Encoding": "gzip, deflate, br",
                 'Pragma': 'no-cache',
                 'Content-Type': 'application/json',
