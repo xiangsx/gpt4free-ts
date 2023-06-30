@@ -318,7 +318,7 @@ export class EasyChat extends Chat implements BrowserUser<Account> {
                         return;
                     }
                     const [{delta: {content = ""}, finish_reason}] = data.choices;
-                    if (finish_reason === 'stop') {
+                    if (finish_reason === 'stop' || content.indexOf(`https://discord.gg/cattogpt`) !== -1) {
                         return;
                     }
                     old = content;
