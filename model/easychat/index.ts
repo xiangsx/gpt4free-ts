@@ -258,6 +258,9 @@ export class EasyChat extends Chat implements BrowserUser<Account> {
             await EasyChat.closeWelcomePop(page);
             const cookies = await page.cookies();
             account.cookies = cookies.map(item => `${item.name}=${item.value}`).join(';')
+            if (!account.cookies) {
+                throw new Error('cookies got failed!');
+            }
             this.accountPool.syncfile();
             console.log('register EasyChat successfully');
             return [page, account];
@@ -296,6 +299,7 @@ export class EasyChat extends Chat implements BrowserUser<Account> {
                     "Cookie": account.cookies,
                 },
             } as AxiosRequestConfig);
+            let old = '';
             res.data.pipe(es.split(/\r?\n\r?\n/)).pipe(es.map(async (chunk: any, cb: any) => {
                 try {
                     const dataStr = chunk.replace('data: ', '');
@@ -303,7 +307,7 @@ export class EasyChat extends Chat implements BrowserUser<Account> {
                         return;
                     }
                     if (dataStr === '[DONE]') {
-                        stream.write(Event.done, {content: ''})
+                        stream.write(Event.done, {content: old})
                         stream.end();
                         return;
                     }
@@ -317,6 +321,7 @@ export class EasyChat extends Chat implements BrowserUser<Account> {
                     if (finish_reason === 'stop') {
                         return;
                     }
+                    old = content;
                     stream.write(Event.message, {content});
                 } catch (e) {
                     console.error(e);

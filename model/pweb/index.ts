@@ -103,9 +103,10 @@ export class PWeb extends Chat {
             stream.read((event, data) => {
                 switch (event) {
                     case Event.done:
+                        result.content = (data as MessageData).content || '';
                         break;
                     case Event.message:
-                        result.content += (data as MessageData).content || '';
+                        result.content = (data as MessageData).content || '';
                         break;
                     case Event.error:
                         result.error = (data as ErrorData).error;
@@ -132,7 +133,8 @@ export class PWeb extends Chat {
             } as AxiosRequestConfig);
             res.data.pipe(es.split(/\r?\n/)).pipe(es.map(async (chunk: any, cb: any) => {
                 const data = parseJSON(chunk.toString(), {} as RealRsp);
-                if (data.delta === "") {
+                console.log("==", chunk);
+                if (!data.delta) {
                     stream.write(Event.done, {content: data.text})
                     stream.end();
                     return;
