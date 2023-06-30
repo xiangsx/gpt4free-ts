@@ -103,10 +103,10 @@ export class PWeb extends Chat {
             stream.read((event, data) => {
                 switch (event) {
                     case Event.done:
-                        result.content = (data as MessageData).content || '';
+                        result.content += (data as MessageData).content || '';
                         break;
                     case Event.message:
-                        result.content = (data as MessageData).content || '';
+                        result.content += (data as MessageData).content || '';
                         break;
                     case Event.error:
                         result.error = (data as ErrorData).error;
@@ -135,11 +135,11 @@ export class PWeb extends Chat {
                 const data = parseJSON(chunk.toString(), {} as RealRsp);
                 console.log("==", chunk);
                 if (!data.delta) {
-                    stream.write(Event.done, {content: data.text})
+                    stream.write(Event.done, {content: data.delta || ''})
                     stream.end();
                     return;
                 }
-                stream.write(Event.message, {content: data.text})
+                stream.write(Event.message, {content: data.delta})
             }))
         } catch (e: any) {
             console.error(e);
