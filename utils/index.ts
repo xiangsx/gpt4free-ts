@@ -3,6 +3,8 @@ import {PassThrough, Stream} from 'stream';
 import * as crypto from 'crypto';
 import TurndownService from "turndown";
 import stringSimilarity from 'string-similarity';
+//@ts-ignore
+import UserAgent from 'user-agents';
 
 const turndownService = new TurndownService({codeBlockStyle: 'fenced'});
 
@@ -33,6 +35,7 @@ export function md5(str: string): string {
 }
 
 const charactersForRandom = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+
 export function randomStr(length: number = 6): string {
     let result = '';
     const charactersLength = charactersForRandom.length;
@@ -147,4 +150,8 @@ export const isSimilarity = (s1: string, s2: string): boolean => {
     const similarity = stringSimilarity.compareTwoStrings(s1, s2);
     console.log(similarity);
     return similarity > 0.3;
+}
+
+export const randomUserAgent = (): string => {
+    return new UserAgent().toString();
 }
