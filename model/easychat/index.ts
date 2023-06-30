@@ -297,37 +297,44 @@ export class EasyChat extends Chat implements BrowserUser<Account> {
                 },
             } as AxiosRequestConfig);
             res.data.pipe(es.split(/\r?\n\r?\n/)).pipe(es.map(async (chunk: any, cb: any) => {
-                const dataStr = chunk.replace('data: ', '');
-                if (!dataStr) {
-                    return;
-                }
-                if (dataStr === '[DONE]') {
-                    stream.write(Event.done, {content: ''})
-                    stream.end();
-                    account.gpt4times += 1;
-                    this.accountPool.syncfile();
-                    if (account.gpt4times >= MaxGptTimes) {
-                        account.gpt4times = 0;
-                        account.last_use_time = moment().format(TimeFormat);
-                        this.accountPool.syncfile();
-                        destroy();
-                    } else {
-                        done(account);
+                try {
+                    const dataStr = chunk.replace('data: ', '');
+                    if (!dataStr) {
+                        return;
                     }
-                    return;
+                    if (dataStr === '[DONE]') {
+                        stream.write(Event.done, {content: ''})
+                        stream.end();
+                        return;
+                    }
+                    const data = parseJSON(dataStr, {} as any);
+                    if (!data?.choices) {
+                        stream.write(Event.error, {error: 'not found data.choices'})
+                        stream.end();
+                        return;
+                    }
+                    const [{delta: {content = ""}, finish_reason}] = data.choices;
+                    if (finish_reason === 'stop') {
+                        return;
+                    }
+                    stream.write(Event.message, {content});
+                } catch (e) {
+                    console.error(e);
                 }
-                const data = parseJSON(dataStr, {} as any);
-                if (!data?.choices) {
-                    stream.write(Event.error, {error: 'not found data.choices'})
-                    stream.end();
-                    return;
-                }
-                const [{delta: {content = ""}, finish_reason}] = data.choices;
-                if (finish_reason === 'stop') {
-                    return;
-                }
-                stream.write(Event.message, {content});
             }))
+            res.data.on('close', () => {
+                console.log('easy chat close');
+                account.gpt4times += 1;
+                this.accountPool.syncfile();
+                if (account.gpt4times >= MaxGptTimes) {
+                    account.gpt4times = 0;
+                    account.last_use_time = moment().format(TimeFormat);
+                    this.accountPool.syncfile();
+                    destroy();
+                } else {
+                    done(account);
+                }
+            })
         } catch (e: any) {
             console.error(e);
             stream.write(Event.error, {error: e.message})
