@@ -3,6 +3,10 @@ import {AxiosInstance, AxiosRequestConfig, CreateAxiosDefaults} from "axios";
 import {CreateAxiosProxy} from "../../utils/proxyAgent";
 import es from "event-stream";
 import {ErrorData, Event, EventStream, MessageData, parseJSON} from "../../utils";
+//@ts-ignore
+import UserAgent from 'user-agents';
+
+const userAgent = new UserAgent();
 
 interface Message {
     role: string;
@@ -31,6 +35,7 @@ interface RealReq {
     temperature: number;
     top_p: number;
     model: Model;
+    user: string;
 }
 
 export interface RealRsp {
@@ -68,12 +73,13 @@ export class PWeb extends Chat {
         this.client = CreateAxiosProxy({
             baseURL: 'https://p.v50.ltd/api/',
             headers: {
-                "Accept": "application/octet-stream",
+                "Accept": "application/json, text/plain, */*",
                 "Accept-Encoding": "gzip, deflate, br",
                 'Pragma': 'no-cache',
                 'Content-Type': 'application/json',
                 "Cache-Control": "no-cache",
                 "Proxy-Connection": "keep-alive",
+                "User-Agent": userAgent.toString(),
             }
         } as CreateAxiosDefaults);
     }
@@ -125,7 +131,8 @@ export class PWeb extends Chat {
             prompt: req.prompt,
             systemMessage: "You are GPT4.0, a large language model trained by OpenAI. Follow the user's instructions carefully. Respond using markdown.",
             temperature: 1,
-            top_p: 1
+            top_p: 1,
+            user: "127504812.07895058",
         };
         try {
             const res = await this.client.post('/chat-process', data, {
@@ -133,14 +140,12 @@ export class PWeb extends Chat {
             } as AxiosRequestConfig);
             res.data.pipe(es.split(/\r?\n/)).pipe(es.map(async (chunk: any, cb: any) => {
                 const data = parseJSON(chunk.toString(), {} as RealRsp);
-                console.log("==", chunk);
-                if (!data.delta) {
-                    stream.write(Event.done, {content: data.delta || ''})
-                    stream.end();
-                    return;
-                }
-                stream.write(Event.message, {content: data.delta})
+                stream.write(Event.message, {content: data.delta || ''})
             }))
+            res.data.on('close', () => {
+                stream.write(Event.done, {content: ''})
+                stream.end();
+            })
         } catch (e: any) {
             console.error(e);
             stream.write(Event.error, {error: e.message})
