@@ -146,7 +146,7 @@ export class EasyChat extends Chat implements BrowserUser<Account> {
     support(model: ModelType): number {
         switch (model) {
             case this.model:
-                return 8000;
+                return 6000;
             default:
                 return 0;
         }
