@@ -69,8 +69,8 @@ export class BrowserPool<T> {
             args: ['--no-sandbox', '--disable-setuid-sandbox'],
             userDataDir: `run/${info.id}`,
         };
+        const browser = await puppeteer.launch(options);
         try {
-            const browser = await puppeteer.launch(options);
             const [page, data] = await this.user.init(info.id, browser);
             if (!page) {
                 this.user.deleteID(info.id);
@@ -90,6 +90,7 @@ export class BrowserPool<T> {
             info.data = data
             info.ready = true;
         } catch (e) {
+            await browser.close();
             console.error('init one failed, err:', e);
             this.user.deleteID(info.id);
             const newID = this.user.newID();

@@ -43,7 +43,7 @@ export class Better extends Chat {
             case ModelType.GPT3p5_16k:
                 return 15000;
             case ModelType.GPT4:
-                return 8000;
+                return 6000;
             case ModelType.GPT3p5Turbo:
                 return 4000;
             default:
