@@ -99,13 +99,13 @@ export type Data<T extends Event> =
 export type DataCB<T extends Event> = (event: T, data: Data<T>) => void
 
 export class EventStream {
-    private readonly pt: PassThrough = new PassThrough();
+    protected readonly pt: PassThrough = new PassThrough();
 
     constructor() {
         this.pt.setEncoding('utf-8');
     }
 
-    write<T extends Event>(event: T, data: Data<T>) {
+    public write<T extends Event>(event: T, data: Data<T>) {
         this.pt.write(`event: ${event}\n`, 'utf-8');
         this.pt.write(`data: ${JSON.stringify(data)}\n\n`, 'utf-8');
     }
@@ -118,7 +118,7 @@ export class EventStream {
         this.pt.end(cb)
     }
 
-    read(dataCB: DataCB<Event>, closeCB: () => void) {
+    public read(dataCB: DataCB<Event>, closeCB: () => void) {
         this.pt.setEncoding('utf-8');
         this.pt.pipe(es.split('\n\n')).pipe(es.map(async (chunk: any, cb: any) => {
             const res = chunk.toString()
@@ -133,6 +133,48 @@ export class EventStream {
             }
             const data = parseJSON(dataStr.replace('data: ', ''), {} as Data<Event>);
             dataCB(event, data);
+        }))
+        this.pt.on("close", closeCB)
+    }
+}
+
+export class OpenaiEventStream extends EventStream {
+    private id: string = "chatcmpl-" + randomStr() + randomStr();
+
+    write<T extends Event>(event: T, data: Data<T>) {
+        switch (event) {
+            case Event.done:
+                this.pt.write(`data: [DONE]\n\n`, 'utf-8');
+                break;
+            default:
+                this.pt.write(`data: ${JSON.stringify({
+                    id: this.id,
+                    object: "chat.completion.chunk",
+                    choices: [{index: 0, delta: data}],
+                    finish_reason: null
+                })}\n\n`, 'utf-8');
+                break;
+        }
+    }
+
+    read(dataCB: DataCB<Event>, closeCB: () => void) {
+        this.pt.setEncoding('utf-8');
+        this.pt.pipe(es.split(/\r?\n\r?\n/)).pipe(es.map(async (chunk: any, cb: any) => {
+            const dataStr = chunk.replace('data: ', '');
+            if (!dataStr) {
+                return;
+            }
+            if (dataStr === "[DONE]") {
+                dataCB(Event.done, {content: ""})
+                return;
+            }
+            const data = parseJSON(dataStr, {} as any);
+            if (!data?.choices) {
+                dataCB(Event.error, {error: `EventStream data read failed`});
+                return;
+            }
+            const [{delta: {content = ""}, finish_reason}] = data.choices;
+            dataCB(Event.message, {content});
         }))
         this.pt.on("close", closeCB)
     }

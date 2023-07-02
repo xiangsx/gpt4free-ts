@@ -109,7 +109,7 @@ docker-compose up --build -d
   - `jsonstr`:包含上下文的json字符串，例如：`[{"role":"user","content":"你好\n"},{"role":"assistant","content":"你好！有什么我可以帮助你的吗？"},{"role":"user","content":"你是谁"}]`
   - `string`: 单次对话 例如：`你是谁`
 - `model`: 默认 `gpt3.5-turbo`. 模型:`gpt4` `gpt3.5-turbo`
-- `site`: 默认 `you`. 目标网站 `forefront` `you` `chatdemo`
+- `site`: 默认 `you`. 目标网站 `fakeopen` `better` `forefront` `you` `chatdemo`
 
 ### 网站支持模型类型 🧩
 
@@ -188,8 +188,9 @@ data: {"content":"done"}
 ```
 ## 👥 加群细聊
 
-<image src="https://github.com/xiangsx/gpt4free-ts/assets/29322721/b07fff99-f501-41ed-b857-7049c4572e47" width=240 />
-<image src="https://github.com/xiangsx/gpt4free-ts/assets/29322721/0b605d4d-f189-457c-b2eb-94a12ad69fd8" width=240 />
+<image src="https://github.com/xiangsx/gpt4free-ts/assets/29322721/d926db6d-1711-479e-aae4-726cbcecd6ed" width=240 />
+<image src="https://github.com/xiangsx/gpt4free-ts/assets/29322721/6a1b6f3f-f4f3-4483-b379-4de931b546eb" width=240 />
+<image src="https://github.com/xiangsx/gpt4free-ts/assets/29322721/51125eb9-4032-4fa0-aa32-f3c527100ac2" width=240 />
 
 ## 🌟 Star History
 
