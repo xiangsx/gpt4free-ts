@@ -90,8 +90,8 @@ docker-compose up --build -d
 - `prompt`: your question. It can be a `string` or `jsonstr`.
   - example `jsonstr`:`[{"role":"user","content":"hello\n"},{"role":"assistant","content":"Hi there! How can I assist you today?"},{"role":"user","content":"who are you"}]`
   - example `string`: `who are you`
-- `model`: default `gpt3.5-turbo`. model include:`gpt4` `gpt3.5-turbo` `net-gpt3.5-turbo`
-- `site`: default `you`. target site, include `forefront` `you` `chatdemo` `phind` `vita`
+- `model`: default `gpt3.5-turbo`. model include:`gpt4` `gpt3.5-turbo` `net-gpt3.5-turbo` `gpt-3.5-turbo-16k`
+- `site`: default `you`. target site, include `fakeopen` `better` `forefront` `you` `chatdemo` `phind` `vita`
 
 ### Site Support Model 🧩
 
@@ -171,8 +171,9 @@ data: {"content":"done"}
 
 ## 👥 Wechat Group
 
-<image src="https://github.com/xiangsx/gpt4free-ts/assets/29322721/b07fff99-f501-41ed-b857-7049c4572e47" width=240 />
-<image src="https://github.com/xiangsx/gpt4free-ts/assets/29322721/0b605d4d-f189-457c-b2eb-94a12ad69fd8" width=240 />
+<image src="https://github.com/xiangsx/gpt4free-ts/assets/29322721/d926db6d-1711-479e-aae4-726cbcecd6ed" width=240 />
+<image src="https://github.com/xiangsx/gpt4free-ts/assets/29322721/6a1b6f3f-f4f3-4483-b379-4de931b546eb" width=240 />
+<image src="https://github.com/xiangsx/gpt4free-ts/assets/29322721/51125eb9-4032-4fa0-aa32-f3c527100ac2" width=240 />
 
 ## 🌟 Star History
 
