@@ -140,10 +140,26 @@ export class EventStream {
 
 export class OpenaiEventStream extends EventStream {
     private id: string = "chatcmpl-" + randomStr() + randomStr();
+    private start: boolean = false;
 
     write<T extends Event>(event: T, data: Data<T>) {
+        if (!this.start) {
+            this.pt.write(`data: ${JSON.stringify({
+                id: this.id,
+                object: "chat.completion.chunk",
+                choices: [{index: 0, delta: {role: "assistant", content: ""}}],
+                finish_reason: null
+            })}\n\n`, 'utf-8');
+            this.start = true;
+        }
         switch (event) {
             case Event.done:
+                this.pt.write(`data: ${JSON.stringify({
+                    id: this.id,
+                    object: "chat.completion.chunk",
+                    choices: [{index: 0, delta: {}, finish_reason: "stop"}],
+                    finish_reason: null
+                })}\n\n`, 'utf-8');
                 this.pt.write(`data: [DONE]\n\n`, 'utf-8');
                 break;
             default:
