@@ -3,8 +3,9 @@ import Router from 'koa-router'
 import bodyParser from 'koa-bodyparser';
 import {ChatModelFactory, Site} from "./model";
 import dotenv from 'dotenv';
-import {ChatRequest, ChatResponse, ModelType, PromptToString} from "./model/base";
-import {Event, EventStream} from "./utils";
+import {ChatRequest, ChatResponse, Message, ModelType, PromptToString} from "./model/base";
+import {Event, EventStream, getTokenSize, OpenaiEventStream, randomStr} from "./utils";
+import moment from "moment";
 
 process.setMaxListeners(30);  // 将限制提高到20个
 
@@ -33,7 +34,11 @@ interface AskRes extends ChatResponse {
 }
 
 const AskHandle: Middleware = async (ctx) => {
-    const {prompt, model = ModelType.GPT3p5Turbo, site = Site.You} = {...ctx.query as any, ...ctx.request.body as any} as AskReq;
+    const {
+        prompt,
+        model = ModelType.GPT3p5Turbo,
+        site = Site.You
+    } = {...ctx.query as any, ...ctx.request.body as any} as AskReq;
     if (!prompt) {
         ctx.body = {error: `need prompt in query`} as AskRes;
         return;
@@ -51,14 +56,18 @@ const AskHandle: Middleware = async (ctx) => {
     ctx.body = await chat.ask({prompt: PromptToString(prompt, tokenLimit), model});
 }
 
-const AskStreamHandle: Middleware = async (ctx) => {
-    const {prompt, model = ModelType.GPT3p5Turbo, site = Site.You} = {...ctx.query as any, ...ctx.request.body as any} as AskReq;
+const AskStreamHandle: (ESType: new () => EventStream) => Middleware = (ESType) => async (ctx) => {
+    const {
+        prompt,
+        model = ModelType.GPT3p5Turbo,
+        site = Site.You
+    } = {...ctx.query as any, ...ctx.request.body as any} as AskReq;
     ctx.set({
         "Content-Type": "text/event-stream;charset=utf-8",
         "Cache-Control": "no-cache",
         "Connection": "keep-alive",
     });
-    const es = new EventStream();
+    let es = new ESType();
     ctx.body = es.stream();
     if (!prompt) {
         es.write(Event.error, {error: 'need prompt in query'})
@@ -81,10 +90,45 @@ const AskStreamHandle: Middleware = async (ctx) => {
     ctx.body = es.stream();
 }
 
+interface OpenAIReq {
+    site: Site;
+    stream: boolean;
+    model: ModelType;
+    messages: Message[];
+}
+
 router.get('/ask', AskHandle);
 router.post('/ask', AskHandle);
-router.get('/ask/stream', AskStreamHandle)
-router.post('/ask/stream', AskStreamHandle)
+router.get('/ask/stream', AskStreamHandle(EventStream))
+router.post('/ask/stream', AskStreamHandle(EventStream))
+router.post('/v1/chat/completions', async (ctx, next) => {
+    const {stream} = {...ctx.query as any, ...ctx.request.body as any} as OpenAIReq;
+    (ctx.request.body as any).prompt = JSON.stringify((ctx.request.body as any).messages);
+    if (stream) {
+        AskStreamHandle(OpenaiEventStream)(ctx, next);
+        return;
+    }
+    await AskHandle(ctx, next);
+    console.log(ctx.body);
+    ctx.body = {
+        "id": `chatcmpl-${randomStr()}`,
+        "object": "chat.completion",
+        "created": moment().unix(),
+        "choices": [{
+            "index": 0,
+            "message": {
+                "role": "assistant",
+                "content": ctx.body.content,
+            },
+            "finish_reason": "stop"
+        }],
+        "usage": {
+            "prompt_tokens": 100,
+            "completion_tokens": getTokenSize(ctx.body.content),
+            "total_tokens": 100 + getTokenSize(ctx.body.content)
+        }
+    }
+})
 
 app.use(router.routes());
 

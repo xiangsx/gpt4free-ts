@@ -9,6 +9,12 @@ interface Message {
     content: string;
 }
 
+const modelMap = {
+    [ModelType.GPT3p5_16k]: 'gpt-3.5-turbo-16k',
+    [ModelType.GPT4]: 'gpt-4',
+    [ModelType.GPT3p5Turbo]: 'gpt-3.5-turbo'
+} as Record<ModelType, string>
+
 interface RealReq {
     messages: Message[];
     temperature: number;
@@ -24,11 +30,10 @@ export class Better extends Chat {
         this.client = CreateAxiosProxy({
             baseURL: 'https://openai-proxy-api.vercel.app/v1/',
             headers: {
-                'Content-Type': 'application/json',
-                "accept": "text/event-stream",
-                "Cache-Control": "no-cache",
-                "Proxy-Connection": "keep-alive",
-                "Authorization": `Bearer ${process.env.FAKE_OPEN_KEY || 'pk-this-is-a-real-free-api-key-pk-for-everyone'}`,
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36 Edg/114.0.1823.58',
+                'Referer': 'https://chat.ylokh.xyz/',
+                'Origin': 'https://chat.ylokh.xyz',
+                'Content-Type': 'application/json'
             }
         } as CreateAxiosDefaults);
     }
@@ -37,6 +42,8 @@ export class Better extends Chat {
         switch (model) {
             case ModelType.GPT3p5_16k:
                 return 15000;
+            case ModelType.GPT3p5Turbo:
+                return 4000;
             default:
                 return 0;
         }
@@ -71,7 +78,7 @@ export class Better extends Chat {
         const data: RealReq = {
             messages: [{role: 'user', content: req.prompt}],
             temperature: 1.0,
-            model: req.model,
+            model: modelMap[req.model],
             stream: true
         };
         try {
@@ -83,11 +90,6 @@ export class Better extends Chat {
                 if (!dataStr) {
                     return;
                 }
-                if (dataStr === '[DONE]') {
-                    stream.write(Event.done, {content: ''})
-                    stream.end();
-                    return;
-                }
                 const data = parseJSON(dataStr, {} as any);
                 if (!data?.choices) {
                     stream.write(Event.error, {error: 'not found data.choices'})
@@ -96,6 +98,8 @@ export class Better extends Chat {
                 }
                 const [{delta: {content = ""}, finish_reason}] = data.choices;
                 if (finish_reason === 'stop') {
+                    stream.write(Event.done, {content: ''})
+                    stream.end();
                     return;
                 }
                 stream.write(Event.message, {content});

@@ -2,11 +2,12 @@ import es from 'event-stream';
 import {PassThrough, Stream} from 'stream';
 import * as crypto from 'crypto';
 import {v4} from "uuid";
-import  {encoding_for_model} from '@dqbd/tiktoken'
-const en = encoding_for_model("gpt-3.5-turbo");
+import {encoding_for_model} from '@dqbd/tiktoken'
 import TurndownService from "turndown";
-const turndownService = new TurndownService({codeBlockStyle:'fenced'});
 import stringSimilarity from 'string-similarity';
+
+const en = encoding_for_model("gpt-3.5-turbo");
+const turndownService = new TurndownService({codeBlockStyle: 'fenced'});
 
 
 type eventFunc = (eventName: string, data: string) => void;
@@ -92,13 +93,13 @@ export type Data<T extends Event> =
 export type DataCB<T extends Event> = (event: T, data: Data<T>) => void
 
 export class EventStream {
-    private readonly pt: PassThrough = new PassThrough();
+    protected readonly pt: PassThrough = new PassThrough();
 
     constructor() {
         this.pt.setEncoding('utf-8');
     }
 
-    write<T extends Event>(event: T, data: Data<T>) {
+    public write<T extends Event>(event: T, data: Data<T>) {
         this.pt.write(`event: ${event}\n`, 'utf-8');
         this.pt.write(`data: ${JSON.stringify(data)}\n\n`, 'utf-8');
     }
@@ -111,7 +112,7 @@ export class EventStream {
         this.pt.end(cb)
     }
 
-    read(dataCB: DataCB<Event>, closeCB: () => void) {
+    public read(dataCB: DataCB<Event>, closeCB: () => void) {
         this.pt.setEncoding('utf-8');
         this.pt.pipe(es.split('\n\n')).pipe(es.map(async (chunk: any, cb: any) => {
             const res = chunk.toString()
@@ -131,15 +132,57 @@ export class EventStream {
     }
 }
 
+export class OpenaiEventStream extends EventStream {
+    private id: string = "chatcmpl-" + randomStr() + randomStr();
+
+    write<T extends Event>(event: T, data: Data<T>) {
+        switch (event) {
+            case Event.done:
+                this.pt.write(`data: [DONE]\n\n`, 'utf-8');
+                break;
+            default:
+                this.pt.write(`data: ${JSON.stringify({
+                    id: this.id,
+                    object: "chat.completion.chunk",
+                    choices: [{index: 0, delta: data}],
+                    finish_reason:null
+                })}\n\n`, 'utf-8');
+                break;
+        }
+    }
+
+    read(dataCB: DataCB<Event>, closeCB: () => void) {
+        this.pt.setEncoding('utf-8');
+        this.pt.pipe(es.split(/\r?\n\r?\n/)).pipe(es.map(async (chunk: any, cb: any) => {
+            const dataStr = chunk.replace('data: ', '');
+            if (!dataStr) {
+                return;
+            }
+            if (dataStr === "[DONE]") {
+                dataCB(Event.done, {content: ""})
+                return;
+            }
+            const data = parseJSON(dataStr, {} as any);
+            if (!data?.choices) {
+                dataCB(Event.error, {error: `EventStream data read failed`});
+                return;
+            }
+            const [{delta: {content = ""}, finish_reason}] = data.choices;
+            dataCB(Event.message, {content});
+        }))
+        this.pt.on("close", closeCB)
+    }
+}
+
 export const getTokenSize = (str: string) => {
     return en.encode(str).length;
 };
 
-export const htmlToMarkdown = (html:string):string=>{
+export const htmlToMarkdown = (html: string): string => {
     return turndownService.turndown(html);
 }
 
-export const isSimilarity=(s1:string,s2:string):boolean=>{
+export const isSimilarity = (s1: string, s2: string): boolean => {
     const similarity = stringSimilarity.compareTwoStrings(s1, s2);
     console.log(similarity);
     return similarity > 0.3;
