@@ -146,7 +146,7 @@ export class EasyChat extends Chat implements BrowserUser<Account> {
     support(model: ModelType): number {
         switch (model) {
             case this.model:
-                return 6000;
+                return 5000;
             default:
                 return 0;
         }
@@ -209,7 +209,8 @@ export class EasyChat extends Chat implements BrowserUser<Account> {
             }
             const [page] = await browser.pages();
             await page.setViewport({width: 1920, height: 1080});
-            if (await account.login_time) {
+            if (account.login_time) {
+                await browser.close();
                 return [page, account];
             }
             await page.goto("https://free.easychat.work/#/register");
