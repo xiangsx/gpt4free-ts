@@ -81,6 +81,8 @@ docker-compose up --build -d
 
 ## 🚀 Let's Use GPT4
 
+> The same as openai http://127.0.0.1:3000/v1/chat/completions [POST]
+
 > Return when chat complete http://127.0.0.1:3000/ask?prompt=***&model=***&site=***
 
 > Return with eventstream http://127.0.0.1:3000/ask/stream?prompt=***&model=***&site=***
