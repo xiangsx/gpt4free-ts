@@ -69,7 +69,7 @@ export class Bai extends Chat implements BrowserUser<Account> {
     support(model: ModelType): number {
         switch (model) {
             case ModelType.GPT3p5Turbo:
-                return 5000;
+                return 0;
             default:
                 return 0;
         }
