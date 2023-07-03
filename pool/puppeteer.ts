@@ -128,7 +128,9 @@ export class BrowserPool<T> {
                         item.data = data;
                     },
                     (force?:boolean) => {
-                        item.page?.close();
+                        if (!item.page?.isClosed()) {
+                            item.page?.close();
+                        }
                         if (force) {
                             this.user.deleteID(item.id);
                             this.deleteIDFile(item.id);
