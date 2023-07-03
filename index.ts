@@ -97,6 +97,31 @@ interface OpenAIReq {
     messages: Message[];
 }
 
+interface Support {
+    site: string;
+    models: string[];
+}
+
+router.get('/supports', (ctx) => {
+    const result: Support[] = [];
+    for (const key in Site) {
+        //@ts-ignore
+        const site = Site[key];
+        //@ts-ignore
+        const chat = chatModel.get(site);
+        const support: Support = {site:site, models: []}
+        for (const mKey in ModelType) {
+            //@ts-ignore
+            const model = ModelType[mKey];
+            //@ts-ignore
+            if (chat?.support(model)) {
+                support.models.push(model);
+            }
+        }
+        result.push(support)
+    }
+    ctx.body = result;
+});
 router.get('/ask', AskHandle);
 router.post('/ask', AskHandle);
 router.get('/ask/stream', AskStreamHandle(EventStream))
