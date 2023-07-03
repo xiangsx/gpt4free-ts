@@ -36,6 +36,8 @@ export class Gra extends Chat {
         switch (model) {
             case ModelType.GPT3p5Turbo:
                 return 4000;
+            case ModelType.GPT3p5_16k:
+                return 15000;
             default:
                 return 0;
         }
