@@ -345,16 +345,7 @@ export class EasyChat extends Chat implements BrowserUser<Account> {
             console.error(e);
             stream.write(Event.error, {error: e.message})
             stream.end();
-            account.gpt4times += 1;
-            this.accountPool.syncfile();
-            if (account.gpt4times >= MaxGptTimes) {
-                account.gpt4times = 0;
-                account.last_use_time = moment().format(TimeFormat);
-                this.accountPool.syncfile();
-                destroy();
-            } else {
-                done(account);
-            }
+            destroy();
         }
 
     }
