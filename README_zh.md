@@ -99,9 +99,13 @@ docker-compose up --build -d
 
 ## 🚀 Let's Use GPT4
 
-> 当对话结束时返回示例 http://127.0.0.1:3000/ask?prompt=***&model=***&site=***
+> 查看目前支持的site以及model http://127.0.0.1:3000/supports [GET]
 
-> 以stream模式返回示例 http://127.0.0.1:3000/ask/stream?prompt=***&model=***&site=***
+> 和openai一致的返回格式 http://127.0.0.1:3000/v1/chat/completions [POST]
+
+> 会话完成之后返回示例 http://127.0.0.1:3000/ask?prompt=***&model=***&site=*** [POST/GET]
+
+> 以stream模式返回示例 http://127.0.0.1:3000/ask/stream?prompt=***&model=***&site=*** [POST/GET]
 
 ### 请求参数，请放在query里 📝
 
