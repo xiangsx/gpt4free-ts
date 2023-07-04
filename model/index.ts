@@ -19,7 +19,7 @@ export enum Site {
     You = 'you',
     Phind = 'phind',
     Forefront = 'forefront',
-    ForefrontClaudeP = 'forefront_claudep',
+    ForefrontNet = 'forefront_net',
     Mcbbs = 'mcbbs',
     ChatDemo = 'chatdemo',
     Vita = 'vita',
@@ -47,8 +47,8 @@ export class ChatModelFactory {
         // register new model here
         this.modelMap.set(Site.You, new You(this.options))
         this.modelMap.set(Site.Phind, new Phind(this.options))
-        this.modelMap.set(Site.ForefrontClaudeP, new Forefrontnew({...this.options, model: ModelType.ClaudeP}))
-        this.modelMap.set(Site.Forefront, new Forefrontnew({...this.options, model: ModelType.GPT4}))
+        // this.modelMap.set(Site.ForefrontNet, new Forefrontnew({...this.options, net: true}))
+        this.modelMap.set(Site.Forefront, new Forefrontnew({...this.options, net: false}))
         this.modelMap.set(Site.Mcbbs, new Mcbbs(this.options))
         this.modelMap.set(Site.ChatDemo, new ChatDemo(this.options))
         this.modelMap.set(Site.Vita, new Vita(this.options))

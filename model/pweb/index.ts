@@ -17,14 +17,14 @@ enum Model {
     Sage = 'capybara',
     Gpt4 = 'beaver',
     ClaudeInstance = 'a2',
-    ClaudeP = 'a2_2',
+    Claude = 'a2_2',
     Claude100k = 'a2_100k',
     Gpt3p5Turbo = 'chinchilla',
 }
 
 const modelMap = {
     [ModelType.GPT4]: Model.Gpt4,
-    [ModelType.ClaudeP]: Model.ClaudeP,
+    [ModelType.Claude]: Model.Claude,
     [ModelType.GPT3p5Turbo]: Model.Gpt3p5Turbo,
     [ModelType.Claude100k]: Model.Claude100k,
 } as Record<ModelType, Model>
@@ -88,7 +88,7 @@ export class PWeb extends Chat {
         switch (model) {
             case ModelType.GPT3p5Turbo:
                 return 2500;
-            case ModelType.ClaudeP:
+            case ModelType.Claude:
                 return 10000;
             case ModelType.Claude100k:
                 return 100 * 1000

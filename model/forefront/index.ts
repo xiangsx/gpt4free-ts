@@ -2,21 +2,13 @@ import {Chat, ChatOptions, ChatRequest, ChatResponse, ModelType} from "../base";
 import {Browser, Page} from "puppeteer";
 import {BrowserPool, BrowserUser} from "../../pool/puppeteer";
 import {CreateEmail, TempEmailType, TempMailMessage} from "../../utils/emailFactory";
-import {CreateTlsProxy} from "../../utils/proxyAgent";
+import {CreateAxiosProxy, CreateTlsProxy} from "../../utils/proxyAgent";
 import * as fs from "fs";
-import {
-    DoneData,
-    ErrorData,
-    Event,
-    EventStream,
-    htmlToMarkdown,
-    isSimilarity,
-    MessageData,
-    parseJSON,
-    sleep
-} from "../../utils";
+import {DoneData, ErrorData, Event, EventStream, MessageData, parseJSON, sleep} from "../../utils";
 import {v4} from "uuid";
 import moment from 'moment';
+import {AxiosInstance, AxiosRequestConfig, CreateAxiosDefaults} from "axios";
+import es from "event-stream";
 
 type PageData = {
     gpt4times: number;
@@ -32,6 +24,21 @@ type Account = {
     login_time?: string;
     last_use_time?: string;
     gpt4times: number;
+    headers?: Record<string, string>;
+    chatID?: string;
+}
+
+interface RealReq {
+    text: string;
+    action: string;
+    id: string;
+    parentId: string;
+    workspaceId: string;
+    messagePersona: string;
+    model: string;
+    messages: string[];
+    internetMode: string;
+    hidden: boolean;
 }
 
 class AccountPool {
@@ -96,29 +103,41 @@ class AccountPool {
 }
 
 interface ForefrontOptions extends ChatOptions {
-    model: ModelType;
+    net: boolean;
 }
-
 
 export class Forefrontnew extends Chat implements BrowserUser<Account> {
     private pagePool: BrowserPool<Account>;
     private accountPool: AccountPool;
-    private readonly model: ModelType;
+    private client: AxiosInstance;
+    private net: boolean | undefined;
 
     constructor(options?: ForefrontOptions) {
         super(options);
-        this.model = options?.model || ModelType.GPT4;
         this.accountPool = new AccountPool();
+        this.net = options?.net;
         let maxSize = +(process.env.POOL_SIZE || 0);
-        if (this.model === ModelType.ClaudeP) {
-            maxSize = +(process.env.CLAUDE_POOL_SIZE || 1);
-        }
         this.pagePool = new BrowserPool<Account>(maxSize, this);
+        this.client = CreateAxiosProxy({
+            baseURL: 'https://streaming-worker.forefront.workers.dev',
+            headers: {
+                Accept: "*/*",
+                "Connection": "Keep-alive",
+                "Cache-Control": 'no-cache',
+                "Content-Type": 'application/json',
+            }
+        } as CreateAxiosDefaults);
     }
 
     support(model: ModelType): number {
         switch (model) {
-            case this.model:
+            case ModelType.GPT4:
+                return 3000;
+            case ModelType.GPT3p5Turbo:
+                return 3000;
+            case ModelType.Claude:
+                return 3000;
+            case ModelType.ClaudeInstance:
                 return 3000;
             default:
                 return 0;
@@ -171,8 +190,10 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
 
     private static async closeVIPPop(page: Page) {
         try {
+            console.log('try close vip');
             await page.waitForSelector('.grid > .grid > .w-full > .border-t > .text-th-primary-medium', {timeout: 10 * 1000})
             await page.click('.grid > .grid > .w-full > .border-t > .text-th-primary-medium')
+            console.log('try close vip ok');
         } catch (e) {
             console.log('not need close vip');
         }
@@ -180,8 +201,10 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
 
     private static async closeWelcomePop(page: Page) {
         try {
+            console.log('try close welcome pop');
             await page.waitForSelector('.flex > .modal > .modal-box > .flex > .px-3:nth-child(1)', {timeout: 30 * 1000})
             await page.click('.flex > .modal > .modal-box > .flex > .px-3:nth-child(1)')
+            console.log('close welcome pop ok');
         } catch (e) {
             console.log('not need close welcome pop');
         }
@@ -196,116 +219,10 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
         return account.id;
     }
 
-    private static async selectAssistant(page: Page) {
-        await page.waitForSelector('div > .absolute > .relative > .w-full:nth-child(3) > .relative')
-        await page.click('div > .absolute > .relative > .w-full:nth-child(3) > .relative')
-        await page.hover('div > .absolute > .relative > .w-full:nth-child(3) > .relative')
-        // click assistant select
-        await page.waitForSelector('.px-4 > .flex > .grid > .h-9 > .grow')
-        await page.click('.px-4 > .flex > .grid > .h-9 > .grow')
-
-        // focus search input
-        await page.waitForSelector('.flex > .grid > .block > .sticky > .text-sm')
-        await page.click('.flex > .grid > .block > .sticky > .text-sm')
-        await page.keyboard.type('helpful', {delay: 10});
-
-        // select helpful assistant
-        await page.waitForSelector('.px-4 > .flex > .grid > .block > .group')
-        await page.click('.px-4 > .flex > .grid > .block > .group')
-
-        await page.click('.relative > .flex > .w-full > .text-th-primary-dark > div')
-    }
-
-    private async switch(page: Page) {
-        switch (this.model) {
-            case ModelType.GPT4:
-                await Forefrontnew.switchToGpt4(page);
-                break;
-            case ModelType.ClaudeP:
-                await Forefrontnew.switchToClaudeP(page);
-                break;
-            default:
-                break;
-        }
-    }
-
-    private static async switchToGpt4(page: Page, triedTimes: number = 0) {
-        if (triedTimes === 3) {
-            await page.waitForSelector('div > .absolute > .relative > .w-full:nth-child(3) > .relative')
-            await page.click('div > .absolute > .relative > .w-full:nth-child(3) > .relative');
-            return;
-        }
-        try {
-            console.log('switch gpt4....')
-            triedTimes += 1;
-            await sleep(1000);
-            await page.waitForSelector('div > .absolute > .relative > .w-full:nth-child(3) > .relative')
-            await page.click('div > .absolute > .relative > .w-full:nth-child(3) > .relative');
-            await sleep(1000);
-            await page.waitForSelector('div > .absolute > .relative > .w-full:nth-child(3) > .relative')
-            await page.click('div > .absolute > .relative > .w-full:nth-child(3) > .relative')
-            await sleep(1000);
-            await page.hover('div > .absolute > .relative > .w-full:nth-child(3) > .relative')
-
-            // click never internet
-            await page.waitForSelector('.px-4:nth-child(3) > .flex > .w-48 > .relative > .text-th-primary-dark')
-            await page.click('.px-4:nth-child(3) > .flex > .w-48 > .relative > .text-th-primary-dark')
-            console.log('switch gpt4 ok!')
-        } catch (e) {
-            console.log(e);
-            await page.reload();
-            await Forefrontnew.switchToGpt4(page, triedTimes);
-        }
-        await page.waitForSelector('div > .absolute > .relative > .w-full:nth-child(3) > .relative')
-        await page.click('div > .absolute > .relative > .w-full:nth-child(3) > .relative');
-    }
-
-    private static async switchToClaudeP(page: Page, triedTimes: number = 0) {
-        if (triedTimes === 3) {
-            await page.waitForSelector('div > .absolute > .relative > .w-full:nth-child(5) > .relative')
-            await page.click('div > .absolute > .relative > .w-full:nth-child(5) > .relative');
-            return;
-        }
-        try {
-            console.log('switch claude+....')
-            triedTimes += 1;
-            await sleep(1000);
-            await page.waitForSelector('div > .absolute > .relative > .w-full:nth-child(5) > .relative')
-            await page.click('div > .absolute > .relative > .w-full:nth-child(5) > .relative');
-            await sleep(1000);
-            await page.waitForSelector('div > .absolute > .relative > .w-full:nth-child(5) > .relative')
-            await page.click('div > .absolute > .relative > .w-full:nth-child(5) > .relative')
-            await sleep(1000);
-            await page.hover('div > .absolute > .relative > .w-full:nth-child(5) > .relative')
-
-            // click never internet
-            await page.waitForSelector('.px-4:nth-child(3) > .flex > .w-48 > .relative > .text-th-primary-dark')
-            await page.click('.px-4:nth-child(3) > .flex > .w-48 > .relative > .text-th-primary-dark')
-
-            console.log('switch claude+ ok!')
-        } catch (e) {
-            console.log(e);
-            await page.reload();
-            await Forefrontnew.switchToClaudeP(page, triedTimes);
-        }
-        await page.waitForSelector('div > .absolute > .relative > .w-full:nth-child(5) > .relative')
-        await page.click('div > .absolute > .relative > .w-full:nth-child(5) > .relative');
-    }
-
-    private async allowClipboard(browser: Browser, page: Page) {
-        const context = browser.defaultBrowserContext()
-        await context.overridePermissions("https://chat.forefront.ai", [
-            'clipboard-read',
-            'clipboard-write',
-        ])
-        await page.evaluate(() => Object.defineProperty(navigator, 'clipboard', {
-            value: {
-                //@ts-ignore
-                writeText(text) {
-                    this.text = text;
-                },
-            }
-        }));
+    private static async getChatID(page: Page): Promise<string> {
+        const res = await page.waitForResponse(res => res.request().method() === "GET" && res.url().indexOf('listWorkspaces') !== -1);
+        const data: any = await res.json()
+        return data[0].result.data.json[0].id
     }
 
     async init(id: string, browser: Browser): Promise<[Page | undefined, Account]> {
@@ -319,14 +236,13 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
             if (account.login_time) {
                 await page.setViewport({width: 1920, height: 1080});
                 await page.goto("https://chat.forefront.ai/");
-                await Forefrontnew.closeVIPPop(page);
+                Forefrontnew.getChatID(page).then(id => account.chatID = id);
                 const ok = await Forefrontnew.ifLogin(page);
                 if (!ok) {
                     console.log(`logins status expired, delete ${account.id}`);
                     return [undefined, account];
                 }
-                await this.switch(page);
-                await this.allowClipboard(browser, page);
+                account.headers = await this.getAuth(page);
                 return [page, account];
             }
             await page.setViewport({width: 1920, height: 1080});
@@ -361,11 +277,11 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
             console.log('register successfully');
             account.login_time = moment().format(TimeFormat);
             this.accountPool.syncfile();
+            Forefrontnew.getChatID(page).then(id => account.chatID = id);
             await Forefrontnew.closeWelcomePop(page);
             await Forefrontnew.closeVIPPop(page);
             await page.waitForSelector('.relative > .flex > .w-full > .text-th-primary-dark > div', {timeout: 120000})
-            await this.switch(page);
-            await this.allowClipboard(browser, page);
+            account.headers = await this.getAuth(page);
             return [page, account];
         } catch (e) {
             console.warn('something error happened,err:', e);
@@ -384,92 +300,84 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
         }
     }
 
-    public static async copyContent(page: Page) {
-        await page.waitForSelector('.opacity-100 > .flex > .relative:nth-child(3) > .flex > .cursor-pointer', {timeout: 10 * 60 * 1000})
-        await page.click('.opacity-100 > .flex > .relative:nth-child(3) > .flex > .cursor-pointer')
-    }
-
-    public static async newSession(page: Page) {
-        try {
-            await page.waitForSelector('div:nth-child(2) > .relative > .flex > .cursor-pointer > .text-sm').catch(console.error)
-            await page.click('div:nth-child(2) > .relative > .flex > .cursor-pointer > .text-sm').catch(console.error);
-        } catch (e) {
-            console.error(e);
+    private async getAuth(page: Page): Promise<Record<string, string>> {
+        await page.waitForSelector('.relative > .flex > .w-full > .text-th-primary-dark > div', {
+            timeout: 10000,
+            visible: true
+        })
+        console.log('try get auth');
+        await page.click('.relative > .flex > .w-full > .text-th-primary-dark > div')
+        await page.focus('.relative > .flex > .w-full > .text-th-primary-dark > div')
+        await page.keyboard.type('say 1');
+        page.keyboard.press('Enter').then();
+        const res = await page.waitForResponse(r => {
+            return r.request().method() === "POST" && r.url() === "https://streaming-worker.forefront.workers.dev/chat"
+        })
+        const headers = res.request().headers();
+        const auth = headers['authorization'];
+        const sign = headers['x-signature'];
+        if (!auth || !sign) {
+            await sleep(2000);
+            return this.getAuth(page)
         }
+        console.log('get auth ok!');
+        return headers;
     }
 
     public async askStream(req: ChatRequest, stream: EventStream) {
         req.prompt = req.prompt.replace(/\n/g, ' ');
         const [page, account, done, destroy] = this.pagePool.get();
-        if (!account || !page) {
+        if (!account || !page || !account.chatID || !account.headers) {
             stream.write(Event.error, {error: 'please wait init.....about 1 min'})
             stream.end();
             return;
         }
+        const data: RealReq = {
+            "text": req.prompt,
+            "action": "new",
+            "id": '',
+            "parentId": account.chatID || '',
+            "workspaceId": account.chatID || '',
+            "messagePersona": "default",
+            "model": req.model,
+            "messages": [],
+            "internetMode": this.net ? "always" : "never",
+            "hidden": true
+        };
         try {
-            console.log('try to find input');
-            await page.waitForSelector('.relative > .flex > .w-full > .text-th-primary-dark > div', {
-                timeout: 10000,
-                visible: true
-            })
-            console.log('found input');
-            await page.click('.relative > .flex > .w-full > .text-th-primary-dark > div')
-            await page.focus('.relative > .flex > .w-full > .text-th-primary-dark > div')
-            await page.keyboard.type(req.prompt);
-            await page.keyboard.press('Enter');
-            await page.waitForSelector('#__next > .flex > .relative > .relative > .w-full:nth-child(1) > div');
-            // find markdown list container
-            const mdList = await page.$('#__next > .flex > .relative > .relative > .w-full:nth-child(1) > div');
-            const md = mdList;
-        } catch (e) {
-            console.error(e);
-            destroy();
-            stream.write(Event.error, {error: 'some thing error, try again later'});
-            stream.end();
-            return
-        }
-
-        // get latest markdown id
-        let id = 4;
-        (async () => {
-            let itl;
-            try {
-                const selector = `div > .w-full:nth-child(${id}) > .flex > .flex > .post-markdown`;
-                await page.waitForSelector(selector, {timeout: 120 * 1000});
-                const result = await page.$(selector)
-                let old = '';
-                itl = setInterval(async () => {
-                    const text: any = await result?.evaluate(el => {
-                        return el.outerHTML;
-                    });
-                    if (text && text.length !== old.length) {
-                        stream.write(Event.message, {content: htmlToMarkdown(text)});
-                        old = text;
-                    }
-                }, 100)
-                if (!page) {
+            const res = await this.client.post('/chat', data, {
+                responseType: 'stream',
+                headers: {
+                    ...account.headers
+                },
+            } as AxiosRequestConfig);
+            let old = '';
+            res.data.pipe(es.split('\n\n')).pipe(es.map(async (chunk: any, cb: any) => {
+                console.log(chunk);
+                const res = chunk.toString()
+                if (!res) {
                     return;
                 }
-                await Forefrontnew.copyContent(page);
-                if (itl) {
-                    clearInterval(itl);
+                const [eventStr, dataStr] = res.split('\n');
+                const event: string = eventStr.replace('event: ', '');
+                if (event == "end") {
+                    stream.write(Event.done, {content: ''});
+                    return;
                 }
-                //@ts-ignore
-                const text: any = await page.evaluate(() => navigator.clipboard.text);
-                let sourceText: any = await result?.evaluate(el => {
-                    return el.outerHTML;
-                })
-                console.log('chat end: ', text, sourceText.length, text?.length || 0);
-                sourceText = htmlToMarkdown(sourceText);
-                if (isSimilarity(sourceText, text || '')) {
-                    stream.write(Event.done, {content: text});
-                } else {
-                    stream.write(Event.done, {content: sourceText});
+                const data = parseJSON(dataStr.replace('data: ', ''), {delta: '', error: {message: ""}});
+                if (data?.error?.message && data?.error?.message?.indexOf("rate limit") !== -1) {
+                    stream.write(Event.error, {error: 'please retry!'});
+                    stream.end();
+                    return;
                 }
-                await Forefrontnew.newSession(page);
+                stream.write(Event.message, {content: data.delta});
+            }))
+            res.data.on('close', () => {
                 stream.end();
-                account.gpt4times += 1;
-                this.accountPool.syncfile();
+                if (req.model === ModelType.GPT4 || req.model === ModelType.Claude100k) {
+                    account.gpt4times += 1;
+                    this.accountPool.syncfile();
+                }
                 if (account.gpt4times >= MaxGptTimes) {
                     account.gpt4times = 0;
                     account.last_use_time = moment().format(TimeFormat);
@@ -478,26 +386,13 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
                 } else {
                     done(account);
                 }
-            } catch (e) {
-                if (itl) {
-                    clearInterval(itl);
-                }
-                console.error(e);
-                account.gpt4times = 0;
-                account.last_use_time = moment().format(TimeFormat);
-                this.accountPool.syncfile();
-                stream.end();
-                destroy();
-            }
-            if (itl) {
-                clearInterval(itl);
-            }
-        })().then().catch((e) => {
+            })
+        } catch (e: any) {
             console.error(e);
+            stream.write(Event.error, {error: e.message})
             stream.end();
             destroy();
-        });
-        return
+        }
     }
 
 }
