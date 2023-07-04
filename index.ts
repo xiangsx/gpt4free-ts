@@ -109,7 +109,7 @@ router.get('/supports', (ctx) => {
         const site = Site[key];
         //@ts-ignore
         const chat = chatModel.get(site);
-        const support: Support = {site:site, models: []}
+        const support: Support = {site: site, models: []}
         for (const mKey in ModelType) {
             //@ts-ignore
             const model = ModelType[mKey];
@@ -143,14 +143,14 @@ router.post('/v1/chat/completions', async (ctx, next) => {
             "index": 0,
             "message": {
                 "role": "assistant",
-                "content": ctx.body.content,
+                "content": ctx.body.content || ctx.body.error,
             },
             "finish_reason": "stop"
         }],
         "usage": {
             "prompt_tokens": 100,
-            "completion_tokens": getTokenSize(ctx.body.content),
-            "total_tokens": 100 + getTokenSize(ctx.body.content)
+            "completion_tokens": getTokenSize(ctx.body.content || ''),
+            "total_tokens": 100 + getTokenSize(ctx.body.content || '')
         }
     }
 })
