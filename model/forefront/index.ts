@@ -370,7 +370,7 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
                     stream.end();
                     return;
                 }
-                stream.write(Event.message, {content: data.delta});
+                stream.write(Event.message, {content: data.delta || ''});
             }))
             res.data.on('close', () => {
                 stream.end();
