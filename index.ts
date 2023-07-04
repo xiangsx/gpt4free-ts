@@ -38,7 +38,7 @@ const AskHandle: Middleware = async (ctx) => {
         prompt,
         model = ModelType.GPT3p5Turbo,
         site = Site.You
-    } = {...ctx.query as any, ...ctx.request.body as any} as AskReq;
+    } = {...ctx.query as any, ...ctx.request.body as any, ...ctx.params as any} as AskReq;
     if (!prompt) {
         ctx.body = {error: `need prompt in query`} as AskRes;
         return;
@@ -61,7 +61,7 @@ const AskStreamHandle: (ESType: new () => EventStream) => Middleware = (ESType) 
         prompt,
         model = ModelType.GPT3p5Turbo,
         site = Site.You
-    } = {...ctx.query as any, ...ctx.request.body as any} as AskReq;
+    } = {...ctx.query as any, ...ctx.request.body as any, ...ctx.params as any} as AskReq;
     ctx.set({
         "Content-Type": "text/event-stream;charset=utf-8",
         "Cache-Control": "no-cache",
@@ -126,8 +126,8 @@ router.get('/ask', AskHandle);
 router.post('/ask', AskHandle);
 router.get('/ask/stream', AskStreamHandle(EventStream))
 router.post('/ask/stream', AskStreamHandle(EventStream))
-router.post('/v1/chat/completions', async (ctx, next) => {
-    const {stream} = {...ctx.query as any, ...ctx.request.body as any} as OpenAIReq;
+const openAIHandle: Middleware = async (ctx, next) => {
+    const {stream} = {...ctx.query as any, ...ctx.request.body as any, ...ctx.params as any} as OpenAIReq;
     (ctx.request.body as any).prompt = JSON.stringify((ctx.request.body as any).messages);
     if (stream) {
         AskStreamHandle(OpenaiEventStream)(ctx, next);
@@ -153,7 +153,10 @@ router.post('/v1/chat/completions', async (ctx, next) => {
             "total_tokens": 100 + getTokenSize(ctx.body.content || '')
         }
     }
-})
+};
+
+router.post('/v1/chat/completions', openAIHandle)
+router.post('/:site/v1/chat/completions', openAIHandle)
 
 app.use(router.routes());
 
