@@ -132,13 +132,13 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
     support(model: ModelType): number {
         switch (model) {
             case ModelType.GPT4:
-                return 3000;
+                return 2500;
             case ModelType.GPT3p5Turbo:
-                return 3000;
+                return 2500;
             case ModelType.Claude:
-                return 3000;
+                return 2500;
             case ModelType.ClaudeInstance:
-                return 3000;
+                return 2500;
             default:
                 return 0;
         }
@@ -353,7 +353,6 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
             } as AxiosRequestConfig);
             let old = '';
             res.data.pipe(es.split('\n\n')).pipe(es.map(async (chunk: any, cb: any) => {
-                console.log(chunk);
                 const res = chunk.toString()
                 if (!res) {
                     return;
