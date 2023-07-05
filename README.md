@@ -101,10 +101,56 @@ docker-compose up --build -d
 
 ### Site Support Model 🧩
 
-- `forefront` :`gpt4`
-- `you`: `gpt3.5-turbo`
-- `chatdemo`: `gpt3.5-turbo`
-- `phind`: `net-gpt3.5-turbo`
+query supports site and models with api `127.0.0.1:3000/supports`
+
+```json
+[
+    {
+        "site": "you",
+        "models": [
+            "gpt-3.5-turbo"
+        ]
+    },
+    {
+        "site": "phind",
+        "models": [
+            "net-gpt3.5-turbo"
+        ]
+    },
+    {
+        "site": "mcbbs",
+        "models": [
+            "gpt-3.5-turbo"
+        ]
+    },
+    {
+        "site": "chatdemo",
+        "models": [
+            "gpt-3.5-turbo"
+        ]
+    },
+    {
+        "site": "vita",
+        "models": [
+            "gpt-3.5-turbo"
+        ]
+    },
+    {
+        "site": "fakeopen",
+        "models": [
+            "gpt-3.5-turbo-16k"
+        ]
+    },
+    {
+        "site": "better",
+        "models": [
+            "gpt-3.5-turbo",
+            "gpt-3.5-turbo-16k",
+            "gpt-4"
+        ]
+    }
+]
+```
 
 ### Response Params 🔙
 
