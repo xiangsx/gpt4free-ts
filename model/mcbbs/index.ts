@@ -37,7 +37,9 @@ export class Mcbbs extends Chat {
     support(model: ModelType): number {
         switch (model) {
             case ModelType.GPT3p5Turbo:
-                return 2000;
+                return 4000;
+            case ModelType.GPT3p5_16k:
+                return 15000;
             default:
                 return 0;
         }
@@ -83,8 +85,8 @@ export class Mcbbs extends Chat {
             } as AxiosRequestConfig);
             res.data.pipe(es.split(/\r?\n\r?\n/)).pipe(es.map(async (chunk: any, cb: any) => {
                 const dataStr = chunk.replace('data: ', '');
-                if (dataStr === '[Done]') {
-                    stream.write(Event.done, dataStr);
+                if (dataStr === '[DONE]') {
+                    stream.write(Event.done, {content: ''});
                     return;
                 }
                 const data = parseJSON(dataStr, {} as any);
@@ -95,6 +97,9 @@ export class Mcbbs extends Chat {
                 const [{delta: {content = ""}}] = data.choices;
                 stream.write(Event.message, {content});
             }))
+            res.data.on('close', () => {
+                stream.end();
+            })
         } catch (e: any) {
             console.error(e);
             stream.write(Event.error, {error: e.message})
