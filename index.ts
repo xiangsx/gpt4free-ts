@@ -1,6 +1,7 @@
 import Koa, {Context, Middleware, Next} from 'koa';
 import Router from 'koa-router'
 import bodyParser from 'koa-bodyparser';
+import cors from '@koa/cors'
 import {ChatModelFactory, Site} from "./model";
 import dotenv from 'dotenv';
 import {ChatRequest, ChatResponse, Message, ModelType, PromptToString} from "./model/base";
@@ -12,6 +13,7 @@ process.setMaxListeners(30);  // 将限制提高到20个
 dotenv.config();
 
 const app = new Koa();
+app.use(cors())
 const router = new Router();
 const errorHandler = async (ctx: Context, next: Next) => {
     try {

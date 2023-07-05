@@ -101,7 +101,9 @@ docker-compose up --build -d
 
 > 查看目前支持的site以及model http://127.0.0.1:3000/supports [GET]
 
-> 和openai一致的返回格式 http://127.0.0.1:3000/v1/chat/completions [POST]
+> 和openai一致的返回格式 http://127.0.0.1:3000/:site/v1/chat/completions [POST]
+> 
+> 和openai一致的返回格式 http://127.0.0.1:3000/v1/chat/completions?site=xxx [POST]
 
 > 会话完成之后返回示例 http://127.0.0.1:3000/ask?prompt=***&model=***&site=*** [POST/GET]
 

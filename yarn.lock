@@ -53,6 +53,13 @@
     "@jridgewell/resolve-uri" "^3.0.3"
     "@jridgewell/sourcemap-codec" "^1.4.10"
 
+"@koa/cors@^4.0.0":
+  version "4.0.0"
+  resolved "https://registry.npmmirror.com/@koa/cors/-/cors-4.0.0.tgz#b2d300d7368d2e0ad6faa1d918eff6d0cde0859a"
+  integrity sha512-Y4RrbvGTlAaa04DBoPBWJqDR5gPj32OOz827ULXfgB1F7piD1MB/zwn8JR2LAnvdILhxUbXbkXGWuNVsFuVFCQ==
+  dependencies:
+    vary "^1.1.2"
+
 "@puppeteer/browsers@1.1.0":
   version "1.1.0"
   resolved "https://registry.npmjs.org/@puppeteer/browsers/-/browsers-1.1.0.tgz#72342a0f3d83f34547ea655aaf579b73d1a69249"
@@ -220,6 +227,13 @@
     "@types/keygrip" "*"
     "@types/koa-compose" "*"
     "@types/node" "*"
+
+"@types/koa__cors@^4.0.0":
+  version "4.0.0"
+  resolved "https://registry.npmmirror.com/@types/koa__cors/-/koa__cors-4.0.0.tgz#36ee90bc2e0e3f0abc3af20d18ba1ebb132d4603"
+  integrity sha512-qpwswNgQ2GxiDGNnKbDSBY5XmQTVJ6fspNvInLsAJ+jSwINxihvVzblj5anujNBg2BtL0xpUrcIt3UYwGzu05A==
+  dependencies:
+    "@types/koa" "*"
 
 "@types/mime@*", "@types/mime@^1":
   version "1.3.2"
