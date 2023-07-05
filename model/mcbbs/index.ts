@@ -24,7 +24,7 @@ export class Mcbbs extends Chat {
     constructor(options?: ChatOptions) {
         super(options);
         this.client = CreateAxiosProxy({
-            baseURL: 'https://ai.mcbbs.gq/api',
+            baseURL: 'https://ai.88lin.eu.org/api',
             headers: {
                 'Content-Type': 'application/json',
                 "accept": "text/event-stream",
