@@ -9,7 +9,7 @@
 </div>
 
 
-## 👍 基于此项目的最强网站 [GPTGOD](http://gptgod.site)
+## 👍 基于此项目的最强网站 [GPTGOD](http://gptgod.online)
 <details>
 <summary><strong>Website Feature(Click to expand)</strong></summary>
 
