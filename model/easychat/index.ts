@@ -17,7 +17,7 @@ type PageData = {
     gpt4times: number;
 }
 
-const MaxGptTimes = 1;
+const MaxGptTimes = 10;
 
 const TimeFormat = "YYYY-MM-DD HH:mm:ss";
 
