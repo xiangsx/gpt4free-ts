@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "ts-node test.ts",
-    "start": "ts-node index.ts"
+    "start": "ts-node index.ts",
+    "build": "tsc"
   },
   "keywords": [
     "git4free",
