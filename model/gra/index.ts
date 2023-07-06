@@ -22,7 +22,7 @@ export class Gra extends Chat {
     constructor(options?: ChatOptions) {
         super(options);
         this.client = CreateAxiosProxy({
-            baseURL: 'https://gpt4.gravityengine.cc/api/openai/v1/',
+            baseURL: 'https://gpt4.xunika.uk/api/openai/v1/',
             headers: {
                 'Content-Type': 'application/json',
                 "accept": "text/event-stream",
