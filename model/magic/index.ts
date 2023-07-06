@@ -71,9 +71,9 @@ export class Magic extends Chat {
             case ModelType.Claude:
                 return 4000;
             case ModelType.GPT4:
-                return 8000;
+                return 5000;
             case ModelType.GPT3p5Turbo:
-                return 4000;
+                return 2500;
             default:
                 return 0;
         }
