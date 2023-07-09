@@ -14,9 +14,9 @@ const reqProxy = (config: any) => {
     return config;
 }
 
-export function CreateAxiosProxy(config: CreateAxiosDefaults, proxy?: string): AxiosInstance {
+export function CreateAxiosProxy(config: CreateAxiosDefaults, useReqProxy = true): AxiosInstance {
     const createConfig = {...config};
-    const useProxy = process.env.http_proxy || proxy;
+    const useProxy = process.env.http_proxy;
     if (useProxy) {
         createConfig.proxy = false;
         createConfig.httpAgent = HttpsProxyAgent(useProxy);
@@ -24,7 +24,7 @@ export function CreateAxiosProxy(config: CreateAxiosDefaults, proxy?: string): A
     }
     const client = axios.create(createConfig);
     const retryClient = axios.create(createConfig);
-    if (process.env.REQ_PROXY) {
+    if (useReqProxy && process.env.REQ_PROXY) {
         client.interceptors.request.use(
             (config) => {
                 config.params = {
