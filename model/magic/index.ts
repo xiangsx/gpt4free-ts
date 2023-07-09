@@ -12,7 +12,7 @@ type PageData = {
     gpt4times: number;
 }
 
-const MaxGptTimes = 10000;
+const MaxGptTimes = 20;
 
 const TimeFormat = "YYYY-MM-DD HH:mm:ss";
 
@@ -210,15 +210,6 @@ export class Magic extends Chat implements BrowserUser<Account> {
         })
     }
 
-    private static async closeWelcomePop(page: Page) {
-        try {
-            await page.waitForSelector('.fixed > #radix-\\:r0\\: > .flex > .button_icon-button__BC_Ca > .button_icon-button-text__k3vob')
-            await page.click('.fixed > #radix-\\:r0\\: > .flex > .button_icon-button__BC_Ca > .button_icon-button-text__k3vob')
-        } catch (e) {
-            console.log('not need close welcome pop');
-        }
-    }
-
     deleteID(id: string): void {
         this.accountPool.delete(id);
     }
@@ -283,6 +274,17 @@ export class Magic extends Chat implements BrowserUser<Account> {
                 stream.write(Event.done, {content: ''})
                 stream.end();
                 done(account);
+                console.log('easy chat close');
+                account.gpt4times += 1;
+                this.accountPool.syncfile();
+                if (account.gpt4times >= MaxGptTimes) {
+                    account.gpt4times = 0;
+                    account.last_use_time = moment().format(TimeFormat);
+                    this.accountPool.syncfile();
+                    destroy();
+                } else {
+                    done(account);
+                }
             })
         } catch (e: any) {
             console.error(e);
