@@ -245,7 +245,6 @@ export class Magic extends Chat implements BrowserUser<Account> {
     }
 
     public async askStream(req: ChatRequest, stream: EventStream) {
-        req.prompt = req.prompt.replace(/\n/g, ' ');
         const [page, account, done, destroy] = this.pagePool.get();
         if (!account || !page) {
             stream.write(Event.error, {error: 'please wait init.....about 1 min'})
@@ -255,7 +254,7 @@ export class Magic extends Chat implements BrowserUser<Account> {
         const data: RealReq = {
             key: "",
             prompt: "",
-            messages: [{role: 'user', content: req.prompt}],
+            messages: req.messages,
             model: modelMap[req.model],
             temperature: 1
         };

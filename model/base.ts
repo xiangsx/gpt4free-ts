@@ -26,9 +26,10 @@ export enum ModelType {
 export interface ChatRequest {
     prompt: string;
     model: ModelType;
+    messages: Message[];
 }
 
-export function PromptToString(prompt: string, limit: number): string {
+export function PromptToString(prompt: string, limit: number): [string, Message[]] {
     try {
         const messages: Message[] = JSON.parse(prompt);
         const res = `${messages.map(item => `${item.role}: ${item.content}`).join('\n')}\nassistant: `;
@@ -36,9 +37,9 @@ export function PromptToString(prompt: string, limit: number): string {
         if (getTokenSize(res) >= limit && messages.length > 1) {
             return PromptToString(JSON.stringify(messages.slice(1, messages.length)), limit);
         }
-        return res;
+        return [res, messages];
     } catch (e) {
-        return prompt;
+        return [prompt, [{role: 'user', content: prompt}]];
     }
 }
 
