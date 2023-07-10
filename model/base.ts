@@ -17,10 +17,13 @@ export enum ModelType {
     GPT3p5Turbo = 'gpt-3.5-turbo',
     GPT3p5_16k = 'gpt-3.5-turbo-16k',
     GPT4 = 'gpt-4',
+    Sage = 'sage',
     NetGpt3p5 = 'net-gpt3.5-turbo',
     ClaudeInstance = 'claude-instance',
     Claude = 'claude',
     Claude100k = 'claude-100k',
+    Gpt4free = 'gpt4free',
+    GooglePalm = 'google-palm',
 }
 
 export interface ChatRequest {
