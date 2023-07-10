@@ -56,7 +56,7 @@ const AskHandle: Middleware = async (ctx) => {
         return;
     }
     const [content, messages] = PromptToString(prompt, tokenLimit);
-    ctx.body = await chat.ask({prompt, messages, model});
+    ctx.body = await chat.ask({prompt: content, messages, model});
 }
 
 const AskStreamHandle: (ESType: new () => EventStream) => Middleware = (ESType) => async (ctx) => {
@@ -90,7 +90,7 @@ const AskStreamHandle: (ESType: new () => EventStream) => Middleware = (ESType) 
         return;
     }
     const [content, messages] = PromptToString(prompt, tokenLimit);
-    await chat.askStream({prompt, messages, model}, es);
+    await chat.askStream({prompt: content, messages, model}, es);
     ctx.body = es.stream();
 }
 
