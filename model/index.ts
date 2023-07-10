@@ -14,6 +14,7 @@ import {PWeb} from "./pweb";
 import {Bai} from "./bai";
 import {Gra} from "./gra";
 import {Magic} from "./magic";
+import {Chim} from "./chim";
 
 export enum Site {
     // define new model here
@@ -33,6 +34,7 @@ export enum Site {
     Bai = 'bai',
     Gra = 'gra',
     Magic = 'magic',
+    Chim = 'chim',
 }
 
 export class ChatModelFactory {
@@ -63,6 +65,7 @@ export class ChatModelFactory {
         this.modelMap.set(Site.Bai, new Bai(this.options))
         this.modelMap.set(Site.Gra, new Gra(this.options))
         this.modelMap.set(Site.Magic, new Magic(this.options))
+        this.modelMap.set(Site.Chim, new Chim(this.options))
     }
 
     get(model: Site): Chat | undefined {
