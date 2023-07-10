@@ -13,6 +13,7 @@ import {Better} from "./better";
 import {PWeb} from "./pweb";
 import {Bai} from "./bai";
 import {Gra} from "./gra";
+import {Poe} from "./poe";
 
 export enum Site {
     // define new model here
@@ -31,6 +32,7 @@ export enum Site {
     PWeb = 'pweb',
     Bai = 'bai',
     Gra = 'gra',
+    Poe = 'poe',
 }
 
 export class ChatModelFactory {
@@ -47,7 +49,7 @@ export class ChatModelFactory {
         // register new model here
         this.modelMap.set(Site.You, new You(this.options))
         this.modelMap.set(Site.Phind, new Phind(this.options))
-        this.modelMap.set(Site.ForefrontClaudeP, new Forefrontnew({...this.options, model: ModelType.ClaudeP}))
+        this.modelMap.set(Site.ForefrontClaudeP, new Forefrontnew({...this.options, model: ModelType.Claude}))
         this.modelMap.set(Site.Forefront, new Forefrontnew({...this.options, model: ModelType.GPT4}))
         this.modelMap.set(Site.Mcbbs, new Mcbbs(this.options))
         this.modelMap.set(Site.ChatDemo, new ChatDemo(this.options))
@@ -60,6 +62,7 @@ export class ChatModelFactory {
         this.modelMap.set(Site.PWeb, new PWeb(this.options))
         this.modelMap.set(Site.Bai, new Bai(this.options))
         this.modelMap.set(Site.Gra, new Gra(this.options))
+        this.modelMap.set(Site.Poe, new Poe(this.options))
     }
 
     get(model: Site): Chat | undefined {

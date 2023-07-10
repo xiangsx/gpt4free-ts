@@ -17,17 +17,22 @@ export enum ModelType {
     GPT3p5Turbo = 'gpt-3.5-turbo',
     GPT3p5_16k = 'gpt-3.5-turbo-16k',
     GPT4 = 'gpt-4',
+    Sage = 'sage',
     NetGpt3p5 = 'net-gpt3.5-turbo',
-    ClaudeP = 'claudep',
-    Claude100k = 'claude-100k'
+    ClaudeInstance = 'claude-instance',
+    Claude = 'claude',
+    Claude100k = 'claude-100k',
+    Gpt4free = 'gpt4free',
+    GooglePalm = 'google-palm',
 }
 
 export interface ChatRequest {
     prompt: string;
     model: ModelType;
+    messages: Message[];
 }
 
-export function PromptToString(prompt: string, limit: number): string {
+export function PromptToString(prompt: string, limit: number): [string, Message[]] {
     try {
         const messages: Message[] = JSON.parse(prompt);
         const res = `${messages.map(item => `${item.role}: ${item.content}`).join('\n')}\nassistant: `;
@@ -35,9 +40,9 @@ export function PromptToString(prompt: string, limit: number): string {
         if (getTokenSize(res) >= limit && messages.length > 1) {
             return PromptToString(JSON.stringify(messages.slice(1, messages.length)), limit);
         }
-        return res;
+        return [res, messages];
     } catch (e) {
-        return prompt;
+        return [prompt, [{role: 'user', content: prompt}]];
     }
 }
 

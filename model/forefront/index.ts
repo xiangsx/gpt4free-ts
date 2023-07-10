@@ -110,7 +110,7 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
         this.model = options?.model || ModelType.GPT4;
         this.accountPool = new AccountPool();
         let maxSize = +(process.env.POOL_SIZE || 0);
-        if (this.model === ModelType.ClaudeP) {
+        if (this.model === ModelType.Claude) {
             maxSize = +(process.env.CLAUDE_POOL_SIZE || 1);
         }
         this.pagePool = new BrowserPool<Account>(maxSize, this);
@@ -221,7 +221,7 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
             case ModelType.GPT4:
                 await Forefrontnew.switchToGpt4(page);
                 break;
-            case ModelType.ClaudeP:
+            case ModelType.Claude:
                 await Forefrontnew.switchToClaudeP(page);
                 break;
             default:

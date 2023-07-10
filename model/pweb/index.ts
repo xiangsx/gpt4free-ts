@@ -24,7 +24,7 @@ enum Model {
 
 const modelMap = {
     [ModelType.GPT4]: Model.Gpt4,
-    [ModelType.ClaudeP]: Model.ClaudeP,
+    [ModelType.Claude]: Model.ClaudeP,
     [ModelType.GPT3p5Turbo]: Model.Gpt3p5Turbo,
     [ModelType.Claude100k]: Model.Claude100k,
 } as Record<ModelType, Model>
@@ -88,7 +88,7 @@ export class PWeb extends Chat {
         switch (model) {
             case ModelType.GPT3p5Turbo:
                 return 2500;
-            case ModelType.ClaudeP:
+            case ModelType.Claude:
                 return 10000;
             case ModelType.Claude100k:
                 return 100 * 1000

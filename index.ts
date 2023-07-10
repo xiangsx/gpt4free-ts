@@ -55,7 +55,8 @@ const AskHandle: Middleware = async (ctx) => {
         ctx.body = {error: `${site} not support model ${model}`} as AskRes;
         return;
     }
-    ctx.body = await chat.ask({prompt: PromptToString(prompt, tokenLimit), model});
+    const [content, messages] = PromptToString(prompt, tokenLimit);
+    ctx.body = await chat.ask({prompt: content, messages, model});
 }
 
 const AskStreamHandle: (ESType: new () => EventStream) => Middleware = (ESType) => async (ctx) => {
@@ -88,7 +89,8 @@ const AskStreamHandle: (ESType: new () => EventStream) => Middleware = (ESType) 
         es.end();
         return;
     }
-    await chat.askStream({prompt: PromptToString(prompt, tokenLimit), model}, es);
+    const [content, messages] = PromptToString(prompt, tokenLimit);
+    await chat.askStream({prompt: content, messages, model}, es);
     ctx.body = es.stream();
 }
 
