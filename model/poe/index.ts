@@ -34,6 +34,7 @@ type Account = {
     login_time?: string;
     last_use_time?: string;
     gpt4times: number;
+    pb: string;
 }
 
 type HistoryData = {
@@ -89,13 +90,11 @@ class PoeAccountPool {
     private using = new Set<string>();
 
     constructor() {
-        if (fs.existsSync(this.account_file_path)) {
-            const accountStr = fs.readFileSync(this.account_file_path, 'utf-8');
-            this.pool = parseJSON(accountStr, [] as Account[]);
-        } else {
-            fs.mkdirSync('./run', {recursive: true});
-            this.syncfile();
-        }
+        this.pool = (process.env.POE_PB || '').split('|').map(pb => ({
+            id: v4(),
+            gpt4times: 0,
+            pb,
+        } as Account));
     }
 
     public syncfile() {
@@ -117,32 +116,20 @@ class PoeAccountPool {
 
     public get(): Account {
         const now = moment();
+        const usingAccount: Account[] = [];
+        this.using.forEach(id => {
+            const v = this.getByID(id);
+            if (v) {
+                usingAccount.push(v);
+            }
+        });
         for (const item of this.pool) {
-            if (item.gpt4times + 15 <= MaxGptTimes && !this.using.has(item.id)) {
-                console.log(`find old login account:`, item);
-                item.last_use_time = now.format(TimeFormat);
-                this.syncfile();
+            if (!usingAccount.find(v => item.pb === v.pb)) {
                 this.using.add(item.id);
                 return item;
             }
         }
-        const newAccount: Account = {
-            id: v4(),
-            last_use_time: now.format(TimeFormat),
-            gpt4times: 0,
-        }
-        this.pool.push(newAccount);
-        this.syncfile();
-        this.using.add(newAccount.id);
-        return newAccount
-    }
-
-    public multiGet(size: number): Account[] {
-        const result: Account[] = [];
-        for (let i = 0; i < size; i++) {
-            result.push(this.get());
-        }
-        return result
+        throw new Error('no new poe pb');
     }
 }
 
@@ -155,7 +142,7 @@ export class Poe extends Chat implements BrowserUser<Account> {
     constructor(options?: ChatOptions) {
         super(options);
         this.accountPool = new PoeAccountPool();
-        let maxSize = +(process.env.POE_POOL_SIZE || 0);
+        let maxSize = (process.env.POE_PB || '').split('|').length;
         this.pagePool = new BrowserPool<Account>(maxSize, this);
     }
 
@@ -238,7 +225,7 @@ export class Poe extends Chat implements BrowserUser<Account> {
                 throw new Error("account undefined, something error");
             }
             const [page] = await browser.pages();
-            await page.setCookie({name: 'p-b', value: 'QGmPaGaHaDgOgzo4KcZo3g%3D%3D', domain: 'poe.com'});
+            await page.setCookie({name: 'p-b', value: account.pb, domain: 'poe.com'});
             await page.goto('https://poe.com')
             const client = await page.target().createCDPSession();
             await client.send('Network.enable');
@@ -309,6 +296,7 @@ export class Poe extends Chat implements BrowserUser<Account> {
             console.log('send msg ok!');
         } catch (e) {
             console.error(e);
+            console.error(`failed account: pb=${account.pb}`);
             destroy();
             stream.write(Event.error, {error: 'some thing error, try again later'});
             stream.end();
