@@ -30,7 +30,7 @@ export class Chim extends Chat {
         this.client = CreateAxiosProxy({
             baseURL: 'https://chimeragpt.adventblocks.cc/v1',
             headers: {
-                Authorization:`Bearer ${process.env.CHIM_KEY}`
+                Authorization: `Bearer ${process.env.CHIM_KEY}`
             }
         } as CreateAxiosDefaults);
     }
@@ -86,7 +86,7 @@ export class Chim extends Chat {
             } as AxiosRequestConfig);
             res.data.pipe(es.split(/\r?\n\r?\n/)).pipe(es.map(async (chunk: any, cb: any) => {
                 const dataStr = chunk.replace('data: ', '');
-                if (!dataStr) {
+                if (!dataStr || dataStr === "[DONE]") {
                     return;
                 }
                 const data = parseJSON(dataStr, {} as any);
@@ -99,7 +99,7 @@ export class Chim extends Chat {
                 }
                 stream.write(Event.message, {content});
             }))
-            res.data.on('close',()=>{
+            res.data.on('close', () => {
                 stream.write(Event.done, {content: ''})
                 stream.end();
             })
