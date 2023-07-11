@@ -289,7 +289,7 @@ export class Poe extends Chat implements BrowserUser<Account> {
         } catch (e) {
             console.error(e);
             console.error(`failed account: pb=${account.pb}`);
-            destroy();
+            done(account);
             stream.write(Event.error, {error: 'some thing error, try again later'});
             stream.end();
             return
