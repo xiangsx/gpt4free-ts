@@ -137,7 +137,6 @@ class PoeAccountPool {
 export class Poe extends Chat implements BrowserUser<Account> {
     private pagePool: BrowserPool<Account>;
     private accountPool: PoeAccountPool;
-    private client?: CDPSession;
 
     constructor(options?: ChatOptions) {
         super(options);
@@ -200,15 +199,6 @@ export class Poe extends Chat implements BrowserUser<Account> {
         })
     }
 
-    private static async closeWelcomePop(page: Page) {
-        try {
-            await page.waitForSelector('div > div > button > .semi-typography > strong', {timeout: 10 * 1000})
-            await page.click('div > div > button > .semi-typography > strong')
-        } catch (e) {
-            console.log('not need close welcome pop');
-        }
-    }
-
     deleteID(id: string): void {
         this.accountPool.delete(id);
     }
@@ -227,9 +217,6 @@ export class Poe extends Chat implements BrowserUser<Account> {
             const [page] = await browser.pages();
             await page.setCookie({name: 'p-b', value: account.pb, domain: 'poe.com'});
             await page.goto('https://poe.com')
-            const client = await page.target().createCDPSession();
-            await client.send('Network.enable');
-            this.client = client;
             return [page, account];
         } catch (e) {
             console.warn('something error happened,err:', e);
@@ -247,17 +234,47 @@ export class Poe extends Chat implements BrowserUser<Account> {
     public static EndFlag = '.PageWithSidebarLayout_mainSection__i1yOg > .ChatPageMain_container__1aaCT > .InfiniteScroll_container__kzp7X > .ChatMessagesView_messagePair__CsQMW > .ChatMessageFeedbackButtons_feedbackButtonsContainer__0Xd3I';
 
     public async askStream(req: ChatRequest, stream: EventStream) {
-        req.prompt = req.prompt.replace(/\n/g, ' ');
+        // req.prompt = req.prompt.replace(/\n/g, ' ');
         const [page, account, done, destroy] = this.pagePool.get();
         if (page?.url().indexOf(ModelMap[req.model]) === -1) {
             await page?.goto(`https://poe.com/${ModelMap[req.model]}`);
         }
         if (!account || !page) {
-            stream.write(Event.error, {error: 'please wait init.....about 1 min'});
+            stream.write(Event.error, {error: 'please retry later!'});
             stream.end();
             return;
         }
         try {
+            let old = '';
+            const client = await page.target().createCDPSession();
+            await client.send('Network.enable');
+            const et = client.on('Network.webSocketFrameReceived', async ({response}) => {
+                const data = parseJSON(response.payloadData, {} as RealAck);
+                const obj = parseJSON(data.messages[0], {} as RootObject);
+                const message = obj.payload.data.messageAdded;
+                if (!message) {
+                    return;
+                }
+                const {author, state, text} = message;
+                if (author === 'human' || author === 'chat_break') {
+                    return;
+                }
+                // console.log({author,state,text});
+                switch (state) {
+                    case 'complete':
+                        et.removeAllListeners();
+                        stream.write(Event.done, {content: ''});
+                        stream.end()
+                        await page.waitForSelector(Poe.ClearSelector);
+                        await page.click(Poe.ClearSelector);
+                        done(account);
+                        return;
+                    case 'incomplete':
+                        stream.write(Event.message, {content: text.substring(old.length)})
+                        old = text;
+                        return;
+                }
+            })
             await page.waitForSelector(Poe.ClearSelector);
             await page.click(Poe.ClearSelector);
             console.log('try to find input');
@@ -267,31 +284,6 @@ export class Poe extends Chat implements BrowserUser<Account> {
             const input = await page.$(Poe.InputSelector);
             //@ts-ignore
             await input?.evaluate((el, content) => el.value = content, req.prompt);
-            let old = '';
-            this.client?.on('Network.webSocketFrameReceived', async ({response}) => {
-                const data = parseJSON(response.payloadData, {} as RealAck);
-                const obj = parseJSON(data.messages[0], {} as RootObject);
-                const message = obj.payload.data.messageAdded;
-                if (!message) {
-                    return;
-                }
-                if (message.author === 'human') {
-                    return;
-                }
-                switch (message.state) {
-                    case 'complete':
-                        stream.write(Event.done, {content: ''});
-                        stream.end()
-                        await page.waitForSelector(Poe.ClearSelector);
-                        await page.click(Poe.ClearSelector);
-                        done(account);
-                        return;
-                    case 'incomplete':
-                        stream.write(Event.message, {content: message.text.substring(old.length)})
-                        old = message.text;
-                        return;
-                }
-            })
             await page.keyboard.press('Enter');
             console.log('send msg ok!');
         } catch (e) {
