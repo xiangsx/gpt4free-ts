@@ -240,7 +240,7 @@ export class Poe extends Chat implements BrowserUser<Account> {
             await page?.goto(`https://poe.com/${ModelMap[req.model]}`);
         }
         if (!account || !page) {
-            stream.write(Event.error, {error: 'please wait init.....about 1 min'});
+            stream.write(Event.error, {error: 'please retry later!'});
             stream.end();
             return;
         }

@@ -259,7 +259,7 @@ export class Copilot extends Chat implements BrowserUser<Account> {
         req.prompt = req.prompt.replace(/\n/g, ' ');
         const [page, account, done, destroy] = this.pagePool.get();
         if (!account || !page) {
-            stream.write(Event.error, {error: 'please wait init.....about 1 min'})
+            stream.write(Event.error, {error: 'please retry later!'})
             stream.end();
             return;
         }
