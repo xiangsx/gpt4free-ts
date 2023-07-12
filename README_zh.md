@@ -28,7 +28,180 @@
 
 ## 🚩 Reverse target
 
-仍在努力保持更新
+仍在努力保持更新,使用人数太多， 更新赶不上封的速度
+现不公开部分站点了
+
+<details>
+<summary><strong> ⭐最新站点支持，部分站点未公开，加群获取⭐ </strong></summary>
+
+```json
+  [
+    {
+        "site": "you",
+        "models": [
+            "gpt-3.5-turbo"
+        ]
+    },
+    {
+        "site": "phind",
+        "models": [
+            "net-gpt3.5-turbo"
+        ]
+    },
+    {
+        "site": "forefront",
+        "models": [
+            "gpt-3.5-turbo",
+            "gpt-4",
+            "claude-instance",
+            "claude"
+        ]
+    },
+    {
+        "site": "forefront_net",
+        "models": []
+    },
+    {
+        "site": "mcbbs",
+        "models": [
+            "gpt-3.5-turbo",
+            "gpt-3.5-turbo-16k"
+        ]
+    },
+    {
+        "site": "chatdemo",
+        "models": [
+            "gpt-3.5-turbo"
+        ]
+    },
+    {
+        "site": "vita",
+        "models": [
+            "gpt-3.5-turbo"
+        ]
+    },
+    {
+        "site": "copilot",
+        "models": [
+            "gpt-4"
+        ]
+    },
+    {
+        "site": "skailar",
+        "models": [
+            "gpt-4"
+        ]
+    },
+    {
+        "site": "fakeopen",
+        "models": [
+            "gpt-3.5-turbo-16k"
+        ]
+    },
+    {
+        "site": "easychat",
+        "models": [
+            "gpt-4"
+        ]
+    },
+    {
+        "site": "better",
+        "models": [
+            "gpt-3.5-turbo",
+            "gpt-3.5-turbo-16k",
+            "gpt-4"
+        ]
+    },
+    {
+        "site": "pweb",
+        "models": [
+            "gpt-3.5-turbo",
+            "gpt-4",
+            "claude",
+            "claude-100k"
+        ]
+    },
+    {
+        "site": "bai",
+        "models": []
+    },
+    {
+        "site": "gra",
+        "models": [
+            "gpt-3.5-turbo",
+            "gpt-3.5-turbo-16k"
+        ]
+    },
+    {
+        "site": "magic",
+        "models": [
+            "gpt-3.5-turbo",
+            "gpt-4",
+            "claude-instance",
+            "claude",
+            "claude-100k"
+        ]
+    },
+    {
+        "site": "chim",
+        "models": [
+            "gpt-3.5-turbo",
+            "gpt-3.5-turbo-16k",
+            "gpt-4"
+        ]
+    },
+    {
+        "site": "poe",
+        "models": [
+            "gpt-3.5-turbo",
+            "gpt-3.5-turbo-16k",
+            "gpt-4",
+            "gpt-4-32k",
+            "sage",
+            "claude-instance",
+            "claude",
+            "claude-100k",
+            "claude-2-100k",
+            "gpt4free",
+            "google-palm"
+        ]
+    },
+    {
+        "site": "ram",
+        "models": [
+            "gpt-3.5-turbo",
+            "gpt-3.5-turbo-16k",
+            "gpt-4",
+            "claude-100k",
+            "claude-2-100k"
+        ]
+    },
+    {
+        "site": "chur",
+        "models": [
+            "gpt-3.5-turbo",
+            "gpt-3.5-turbo-16k"
+        ]
+    },
+    {
+        "site": "xun",
+        "models": [
+            "gpt-3.5-turbo",
+            "gpt-3.5-turbo-16k"
+        ]
+    },
+    {
+        "site": "vvm",
+        "models": [
+            "gpt-3.5-turbo",
+            "gpt-3.5-turbo-16k",
+            "gpt-4"
+        ]
+    }
+]
+```
+
+</details>
 
 这里是已经实现转换成api的网站列表以及支持的对话模型，如果你不幸发现你的网站也在其中，请联系我，我会立刻下线
 
