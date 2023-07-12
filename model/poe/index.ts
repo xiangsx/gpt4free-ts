@@ -190,13 +190,13 @@ export class Poe extends Chat implements BrowserUser<Account> {
                 }
                 switch (event) {
                     case 'message':
-                        result.content = (data as MessageData).content;
+                        result.content += (data as MessageData).content;
                         break;
                     case 'done':
-                        result.content = (data as DoneData).content;
+                        result.content += (data as DoneData).content;
                         break;
                     case 'error':
-                        result.error = (data as ErrorData).error;
+                        result.error += (data as ErrorData).error;
                         break;
                     default:
                         console.error(data);
