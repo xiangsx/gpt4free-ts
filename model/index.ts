@@ -16,6 +16,7 @@ import {Gra} from "./gra";
 import {Magic} from "./magic";
 import {Chim} from "./chim";
 import {Poe} from "./poe";
+import {Ram} from "./ram";
 
 export enum Site {
     // define new model here
@@ -37,6 +38,7 @@ export enum Site {
     Magic = 'magic',
     Chim = 'chim',
     Poe = 'poe',
+    Ram = 'ram',
 }
 
 export class ChatModelFactory {
@@ -69,6 +71,7 @@ export class ChatModelFactory {
         this.modelMap.set(Site.Magic, new Magic(this.options))
         this.modelMap.set(Site.Chim, new Chim(this.options))
         this.modelMap.set(Site.Poe, new Poe(this.options))
+        this.modelMap.set(Site.Ram, new Ram(this.options))
     }
 
     get(model: Site): Chat | undefined {
