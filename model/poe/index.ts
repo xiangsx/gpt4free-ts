@@ -1,5 +1,5 @@
 import {Chat, ChatOptions, ChatRequest, ChatResponse, ModelType} from "../base";
-import {Browser, CDPSession, Page} from "puppeteer";
+import {Browser, Page} from "puppeteer";
 import {BrowserPool, BrowserUser} from "../../pool/puppeteer";
 import * as fs from "fs";
 import {DoneData, ErrorData, Event, EventStream, MessageData, parseJSON} from "../../utils";
@@ -20,8 +20,10 @@ const ModelMap: Partial<Record<ModelType, any>> = {
     [ModelType.Claude100k]: 'Claude-instant-100k+',
     [ModelType.ClaudeInstance]: 'Claude-instant',
     [ModelType.GPT3p5Turbo]: 'ChatGPT',
+    [ModelType.GPT3p5_16k]: 'ChatGPT-16k',
     [ModelType.Gpt4free]: '1GPT4Free',
     [ModelType.GooglePalm]: 'Google-PaLM',
+    [ModelType.Claude2_100k]: 'Claude-2-100k',
     [ModelType.GPT4_32k]: 'GPT-4-32K',
 }
 
@@ -158,6 +160,8 @@ export class Poe extends Chat implements BrowserUser<Account> {
                 return 6000;
             case ModelType.GPT3p5Turbo:
                 return 3000;
+            case ModelType.GPT3p5_16k:
+                return 15000;
             case ModelType.Gpt4free:
                 return 4000;
             case ModelType.Sage:
@@ -166,6 +170,8 @@ export class Poe extends Chat implements BrowserUser<Account> {
                 return 4000;
             case ModelType.GPT4_32k:
                 return 28000;
+            case ModelType.Claude2_100k:
+                return 80000
             default:
                 return 0;
         }
@@ -266,6 +272,7 @@ export class Poe extends Chat implements BrowserUser<Account> {
                 switch (state) {
                     case 'complete':
                         et.removeAllListeners();
+                        stream.write(Event.message, {content: text.substring(old.length)})
                         stream.write(Event.done, {content: ''});
                         stream.end()
                         await page.waitForSelector(Poe.ClearSelector);

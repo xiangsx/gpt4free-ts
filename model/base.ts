@@ -23,6 +23,7 @@ export enum ModelType {
     ClaudeInstance = 'claude-instance',
     Claude = 'claude',
     Claude100k = 'claude-100k',
+    Claude2_100k = 'claude-2-100k',
     Gpt4free = 'gpt4free',
     GooglePalm = 'google-palm',
 }
