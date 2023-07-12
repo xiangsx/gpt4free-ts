@@ -11,7 +11,7 @@
 
 ## 👍 基于此项目的最强网站 [GPTGOD](http://gptgod.online)
 <details>
-<summary><strong>Website Feature(Click to expand)</strong></summary>
+<summary><strong>网站功能(点击展开)</strong></summary>
 
 ### GPTGOD Support
 
@@ -20,6 +20,8 @@
 - [x] Claude 仅次于GPT4的AI对话模型
 - [x] gpt3.5-turbo 都知道
 - [x] gpt4 都知道
+- [x] gpt-4-32k 都知道
+- [x] claude-2-100k 无敌的上下文 
 - [x] Chatgpt with internet 联网版本GPT
 - [x] 以上所有功能均可在网站中一键集成到微信机器人中
 
