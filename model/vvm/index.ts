@@ -93,7 +93,7 @@ export class VVM extends Chat {
         const data: RealReq = {
             temperature: 1,
             key: "",
-            messages: [{role: 'user', content: req.prompt}],
+            messages: req.messages,
             model: modelMap[req.model],
             prompt: ""
         };
