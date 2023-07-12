@@ -111,7 +111,7 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
         this.accountPool = new AccountPool();
         let maxSize = +(process.env.POOL_SIZE || 0);
         if (this.model === ModelType.Claude) {
-            maxSize = +(process.env.CLAUDE_POOL_SIZE || 1);
+            maxSize = +(process.env.CLAUDE_POOL_SIZE || 0);
         }
         this.pagePool = new BrowserPool<Account>(maxSize, this);
     }
