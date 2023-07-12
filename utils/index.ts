@@ -158,7 +158,7 @@ export class OpenaiEventStream extends EventStream {
                     id: this.id,
                     object: "chat.completion.chunk",
                     choices: [{index: 0, delta: {}, finish_reason: "stop"}],
-                    finish_reason: stop
+                    finish_reason: 'stop'
                 })}\n\n`, 'utf-8');
                 this.pt.write(`data: [DONE]\n\n`, 'utf-8');
                 break;
