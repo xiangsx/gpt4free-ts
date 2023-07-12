@@ -89,7 +89,6 @@ interface RealAck {
 
 class PoeAccountPool {
     private pool: Account[] = [];
-    private readonly account_file_path = './run/account_Poe.json';
     private using = new Set<string>();
 
     constructor() {
@@ -101,7 +100,6 @@ class PoeAccountPool {
     }
 
     public syncfile() {
-        fs.writeFileSync(this.account_file_path, JSON.stringify(this.pool));
     }
 
     public getByID(id: string) {
@@ -259,7 +257,7 @@ export class Poe extends Chat implements BrowserUser<Account> {
             const client = await page.target().createCDPSession();
             await client.send('Network.enable');
             let et: EventEmitter;
-            let tt = setTimeout(async () => {
+            const tt = setTimeout(async () => {
                 if (et) {
                     et.removeAllListeners();
                 }
@@ -270,9 +268,7 @@ export class Poe extends Chat implements BrowserUser<Account> {
                 console.error('poe wait ack ws timeout, reload page ok!');
             }, 30 * 1000)
             et = client.on('Network.webSocketFrameReceived', async ({response}) => {
-                if (tt) {
-                    clearTimeout(tt);
-                }
+                tt.refresh();
                 const data = parseJSON(response.payloadData, {} as RealAck);
                 const obj = parseJSON(data.messages[0], {} as RootObject);
                 const message = obj.payload.data.messageAdded;
@@ -286,8 +282,9 @@ export class Poe extends Chat implements BrowserUser<Account> {
                 // console.log({author,state,text});
                 switch (state) {
                     case 'complete':
+                        clearTimeout(tt);
                         et.removeAllListeners();
-                        stream.write(Event.message, {content: text.substring(old.length)})
+                        stream.write(Event.message, {content: text.substring(old.length)});
                         stream.write(Event.done, {content: ''});
                         stream.end()
                         await page.waitForSelector(Poe.ClearSelector);
