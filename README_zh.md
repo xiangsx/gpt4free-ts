@@ -32,7 +32,7 @@
 现不公开部分站点了
 
 <details>
-<summary><strong> ⭐最新站点支持，部分站点未公开，加群获取⭐ </strong></summary>
+<summary><strong> ⭐最新站点支持，部分站点未公开，加群获取, 点击展开⭐ </strong></summary>
 
 ```json
   [
