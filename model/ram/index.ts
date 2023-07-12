@@ -58,11 +58,15 @@ export class Ram extends Chat {
     support(model: ModelType): number {
         switch (model) {
             case ModelType.GPT4:
-                return 4000;
+                return 5000;
             case ModelType.GPT3p5Turbo:
-                return 4000;
+                return 3000;
             case ModelType.GPT3p5_16k:
                 return 15000;
+            case ModelType.Claude2_100k:
+                return 80000
+            case ModelType.Claude100k:
+                return 80000;
             default:
                 return 0;
         }
@@ -106,7 +110,7 @@ export class Ram extends Chat {
                     internet_access: false,
                     parts: [req.messages[req.messages.length - 1]]
                 }
-            }, model: "gpt-4"
+            }, model: req.model
         };
         try {
             const res = await this.client.post('/v2/conversation', data, {
