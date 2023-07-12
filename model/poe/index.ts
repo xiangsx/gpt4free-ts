@@ -22,6 +22,7 @@ const ModelMap: Partial<Record<ModelType, any>> = {
     [ModelType.GPT3p5Turbo]: 'ChatGPT',
     [ModelType.Gpt4free]: '1GPT4Free',
     [ModelType.GooglePalm]: 'Google-PaLM',
+    [ModelType.GPT4_32k]: 'GPT-4-32K',
 }
 
 const MaxGptTimes = 500;
@@ -163,6 +164,8 @@ export class Poe extends Chat implements BrowserUser<Account> {
                 return 4000;
             case ModelType.GooglePalm:
                 return 4000;
+            case ModelType.GPT4_32k:
+                return 28000;
             default:
                 return 0;
         }
