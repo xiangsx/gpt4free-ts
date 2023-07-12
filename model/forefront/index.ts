@@ -386,7 +386,7 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
                 }
             })
         } catch (e: any) {
-            console.error(e);
+            console.error("forefront ask stream failed, err",e);
             stream.write(Event.error, {error: e.message})
             stream.end();
             destroy();

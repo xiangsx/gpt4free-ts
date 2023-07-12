@@ -271,7 +271,7 @@ export class Poe extends Chat implements BrowserUser<Account> {
                 tt.refresh();
                 const data = parseJSON(response.payloadData, {} as RealAck);
                 const obj = parseJSON(data.messages[0], {} as RootObject);
-                const message = obj.payload.data.messageAdded;
+                const message = obj?.payload?.data?.messageAdded;
                 if (!message) {
                     return;
                 }
@@ -309,7 +309,7 @@ export class Poe extends Chat implements BrowserUser<Account> {
             await page.keyboard.press('Enter');
             console.log('send msg ok!');
         } catch (e) {
-            console.error(e);
+            console.error("poe ask stream failed:",e);
             console.error(`failed account: pb=${account.pb}`);
             done(account);
             stream.write(Event.error, {error: 'some thing error, try again later'});
