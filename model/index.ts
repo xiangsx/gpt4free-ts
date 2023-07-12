@@ -19,6 +19,7 @@ import {Poe} from "./poe";
 import {Ram} from "./ram";
 import {Chur} from "./chur";
 import {Xun} from "./xun";
+import {VVM} from "./vvm";
 
 export enum Site {
     // define new model here
@@ -43,6 +44,7 @@ export enum Site {
     Ram = 'ram',
     Chur = 'chur',
     Xun = 'xun',
+    VVM = 'vvm',
 }
 
 export class ChatModelFactory {
@@ -78,6 +80,7 @@ export class ChatModelFactory {
         this.modelMap.set(Site.Ram, new Ram(this.options))
         this.modelMap.set(Site.Chur, new Chur(this.options))
         this.modelMap.set(Site.Xun, new Xun(this.options))
+        this.modelMap.set(Site.VVM, new VVM(this.options))
     }
 
     get(model: Site): Chat | undefined {
