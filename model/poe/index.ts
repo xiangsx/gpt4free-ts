@@ -1,5 +1,5 @@
 import {Chat, ChatOptions, ChatRequest, ChatResponse, ModelType} from "../base";
-import {Browser, Page} from "puppeteer";
+import {Browser, EventEmitter, Page} from "puppeteer";
 import {BrowserPool, BrowserUser} from "../../pool/puppeteer";
 import * as fs from "fs";
 import {DoneData, ErrorData, Event, EventStream, MessageData, parseJSON} from "../../utils";
@@ -114,6 +114,7 @@ class PoeAccountPool {
 
     public delete(id: string) {
         this.pool = this.pool.filter(item => item.id !== id);
+        this.using.delete(id);
         this.syncfile();
     }
 
@@ -257,7 +258,21 @@ export class Poe extends Chat implements BrowserUser<Account> {
             let old = '';
             const client = await page.target().createCDPSession();
             await client.send('Network.enable');
-            const et = client.on('Network.webSocketFrameReceived', async ({response}) => {
+            let et: EventEmitter;
+            let tt = setTimeout(async () => {
+                if (et) {
+                    et.removeAllListeners();
+                }
+                stream.write(Event.error, {error: 'timeout, try again later'});
+                stream.end();
+                done(account);
+                await page.reload();
+                console.error('poe wait ack ws timeout, reload page ok!');
+            }, 30 * 1000)
+            et = client.on('Network.webSocketFrameReceived', async ({response}) => {
+                if (tt) {
+                    clearTimeout(tt);
+                }
                 const data = parseJSON(response.payloadData, {} as RealAck);
                 const obj = parseJSON(data.messages[0], {} as RootObject);
                 const message = obj.payload.data.messageAdded;
