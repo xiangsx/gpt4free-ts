@@ -17,6 +17,7 @@ export enum ModelType {
     GPT3p5Turbo = 'gpt-3.5-turbo',
     GPT3p5_16k = 'gpt-3.5-turbo-16k',
     GPT4 = 'gpt-4',
+    GPT4_32k = 'gpt-4-32k',
     Sage = 'sage',
     NetGpt3p5 = 'net-gpt3.5-turbo',
     ClaudeInstance = 'claude-instance',
