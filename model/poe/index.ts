@@ -312,6 +312,7 @@ export class Poe extends Chat implements BrowserUser<Account> {
                         stream.end();
                         await page.waitForSelector(Poe.ClearSelector);
                         await page.click(Poe.ClearSelector);
+                        account.failedCnt = 0;
                         done(account);
                         return;
                     case 'incomplete':
