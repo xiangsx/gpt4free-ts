@@ -224,6 +224,7 @@ export class Poe extends Chat implements BrowserUser<Account> {
             const [page] = await browser.pages();
             await page.setCookie({name: 'p-b', value: account.pb, domain: 'poe.com'});
             await page.goto('https://poe.com')
+            await page.waitForSelector(Poe.InputSelector, {timeout: 10 * 24 * 60 * 60 * 1000});
             return [page, account];
         } catch (e) {
             console.warn('something error happened,err:', e);
