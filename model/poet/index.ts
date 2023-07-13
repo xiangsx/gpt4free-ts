@@ -37,7 +37,6 @@ type Account = {
     last_use_time?: string;
     gpt4times: number;
     pb: string;
-    failedCnt: number;
 }
 
 type HistoryData = {
@@ -96,7 +95,6 @@ class PoeAccountPool {
             id: v4(),
             gpt4times: 0,
             pb,
-            failedCnt: 0,
         } as Account));
     }
 
@@ -227,6 +225,21 @@ export class Poe extends Chat implements BrowserUser<Account> {
             await page.setCookie({name: 'p-b', value: account.pb, domain: 'poe.com'});
             await page.goto('https://poe.com')
             await page.waitForSelector(Poe.InputSelector, {timeout: 10 * 24 * 60 * 60 * 1000});
+            // 输入邮箱
+            await page.waitForSelector('.LoggedOutSection_main__QtksL > .LoggedOutSection_appSpecificSection__C5YEM > .MainSignupLoginSection_inputAndMetaTextGroup__5ITsJ > .EmailInput_wrapper__D9Dss > .EmailInput_emailInput__4v_bn')
+            await page.click('.LoggedOutSection_main__QtksL > .LoggedOutSection_appSpecificSection__C5YEM > .MainSignupLoginSection_inputAndMetaTextGroup__5ITsJ > .EmailInput_wrapper__D9Dss > .EmailInput_emailInput__4v_bn')
+
+            // 发送code
+            await page.waitForSelector('body > #__next > .LoggedOutSection_main__QtksL > .LoggedOutSection_appSpecificSection__C5YEM > .Button_primary__pIDjn')
+            await page.click('body > #__next > .LoggedOutSection_main__QtksL > .LoggedOutSection_appSpecificSection__C5YEM > .Button_primary__pIDjn')
+
+            // 输入code
+            await page.waitForSelector('.LoggedOutSection_main__QtksL > .LoggedOutSection_appSpecificSection__C5YEM > .SignupOrLoginWithCodeSection_inputAndMetaTextGroup__ubLLI > .VerificationCodeInput_wrapper__ayRfN > .VerificationCodeInput_verificationCodeInput__YD3KV')
+            await page.click('.LoggedOutSection_main__QtksL > .LoggedOutSection_appSpecificSection__C5YEM > .SignupOrLoginWithCodeSection_inputAndMetaTextGroup__ubLLI > .VerificationCodeInput_wrapper__ayRfN > .VerificationCodeInput_verificationCodeInput__YD3KV')
+
+            // 提交code
+            await page.waitForSelector('body > #__next > .LoggedOutSection_main__QtksL > .LoggedOutSection_appSpecificSection__C5YEM > .Button_primary__pIDjn')
+            await page.click('body > #__next > .LoggedOutSection_main__QtksL > .LoggedOutSection_appSpecificSection__C5YEM > .Button_primary__pIDjn')
             return [page, account];
         } catch (e) {
             console.warn('something error happened,err:', e);
@@ -248,8 +261,6 @@ export class Poe extends Chat implements BrowserUser<Account> {
         const [page, account, done, destroy] = this.pagePool.get();
         if (page?.url().indexOf(ModelMap[req.model]) === -1) {
             await page?.goto(`https://poe.com/${ModelMap[req.model]}`, {waitUntil: 'networkidle0'});
-        } else {
-            await page?.reload({waitUntil: 'networkidle0'});
         }
         if (!account || !page) {
             stream.write(Event.error, {error: 'please retry later!'});
@@ -265,21 +276,12 @@ export class Poe extends Chat implements BrowserUser<Account> {
                 if (et) {
                     et.removeAllListeners();
                 }
-                account.failedCnt += 1;
-                if (account.failedCnt >= 3) {
-                    destroy(true, true);
-                    console.log(`poe account failed cnt > 3, destroy ok`);
-                } else {
-                    await page.reload();
-                    done(account);
-                }
-                if (!stream.stream().writableEnded && !stream.stream().closed) {
-                    console.error('poe wait ack ws timeout, retry!');
-                    await this.askStream(req, stream);
-                }
                 stream.write(Event.error, {error: 'timeout, try again later'});
                 stream.end();
-            }, 10 * 1000);
+                done(account);
+                await page.reload();
+                console.error('poe wait ack ws timeout, reload page ok!');
+            }, 30 * 1000)
             et = client.on('Network.webSocketFrameReceived', async ({response}) => {
                 tt.refresh();
                 const data = parseJSON(response.payloadData, {} as RealAck);

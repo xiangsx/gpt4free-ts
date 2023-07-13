@@ -116,7 +116,7 @@ export class BrowserPool<T> {
     }
 
     //@ts-ignore
-    get(): [page: Page | undefined, data: T | undefined, done: (data: T) => void, destroy: (force?:boolean) => void] {
+    get(): [page: Page | undefined, data: T | undefined, done: (data: T) => void, destroy: (force?: boolean, notCreate?: boolean) => void] {
         for (const item of shuffleArray(this.pool)) {
             if (item.ready) {
                 item.ready = false;
@@ -127,7 +127,7 @@ export class BrowserPool<T> {
                         item.ready = true
                         item.data = data;
                     },
-                    (force?:boolean) => {
+                    (force?: boolean, notCreate?: boolean) => {
                         if (!item.page?.isClosed()) {
                             item.page?.close();
                         }
@@ -135,8 +135,10 @@ export class BrowserPool<T> {
                             this.user.deleteID(item.id);
                             this.deleteIDFile(item.id);
                         }
-                        item.id = this.user.newID();
-                        this.initOne(item.id).then();
+                        if (!notCreate) {
+                            item.id = this.user.newID();
+                            this.initOne(item.id).then();
+                        }
                     }
                 ]
             }
