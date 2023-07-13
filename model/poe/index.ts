@@ -248,8 +248,6 @@ export class Poe extends Chat implements BrowserUser<Account> {
         const [page, account, done, destroy] = this.pagePool.get();
         if (page?.url().indexOf(ModelMap[req.model]) === -1) {
             await page?.goto(`https://poe.com/${ModelMap[req.model]}`, {waitUntil: 'networkidle0'});
-        } else {
-            await page?.reload({waitUntil: 'networkidle0'});
         }
         if (!account || !page) {
             stream.write(Event.error, {error: 'please retry later!'});
@@ -266,7 +264,7 @@ export class Poe extends Chat implements BrowserUser<Account> {
                     et.removeAllListeners();
                 }
                 account.failedCnt += 1;
-                if (account.failedCnt >= 10) {
+                if (account.failedCnt >= 5) {
                     destroy(true, true);
                     console.log(`poe account failed cnt > 3, destroy ok`);
                 } else {
@@ -280,32 +278,41 @@ export class Poe extends Chat implements BrowserUser<Account> {
                 stream.write(Event.error, {error: 'timeout, try again later'});
                 stream.end();
             }, 10 * 1000);
+            let currMsgID = '';
             et = client.on('Network.webSocketFrameReceived', async ({response}) => {
                 tt.refresh();
                 const data = parseJSON(response.payloadData, {} as RealAck);
                 const obj = parseJSON(data.messages[0], {} as RootObject);
+                const {unique_id} = obj.payload || {};
                 const message = obj?.payload?.data?.messageAdded;
                 if (!message) {
+                    console.log(response);
                     return;
                 }
-                const {author, state, text} = message;
+                const {author, state, text, messageId, id} = message;
                 if (author === 'human' || author === 'chat_break') {
+                    if (text.length === req.prompt.length) {
+                        currMsgID = unique_id;
+                    }
                     return;
                 }
-                // console.log({author,state,text});
+                if (unique_id !== currMsgID) {
+                    console.log(`message id different`, {unique_id, currMsgID});
+                    return;
+                }
                 switch (state) {
                     case 'complete':
                         clearTimeout(tt);
                         et.removeAllListeners();
                         stream.write(Event.message, {content: text.substring(old.length)});
                         stream.write(Event.done, {content: ''});
-                        stream.end()
+                        stream.end();
                         await page.waitForSelector(Poe.ClearSelector);
                         await page.click(Poe.ClearSelector);
                         done(account);
                         return;
                     case 'incomplete':
-                        stream.write(Event.message, {content: text.substring(old.length)})
+                        stream.write(Event.message, {content: text.substring(old.length)});
                         old = text;
                         return;
                 }
