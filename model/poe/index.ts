@@ -275,7 +275,6 @@ export class Poe extends Chat implements BrowserUser<Account> {
                 if (!stream.stream().writableEnded && !stream.stream().closed) {
                     console.error('poe wait ack ws timeout, retry!');
                     await this.askStream(req, stream);
-                    await sleep(10 * 1000);
                 }
                 stream.write(Event.error, {error: 'timeout, try again later'});
                 stream.end();
