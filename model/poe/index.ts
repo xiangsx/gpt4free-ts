@@ -1,7 +1,7 @@
 import {Chat, ChatOptions, ChatRequest, ChatResponse, ModelType} from "../base";
 import {Browser, EventEmitter, Page} from "puppeteer";
 import {BrowserPool, BrowserUser} from "../../pool/puppeteer";
-import {DoneData, ErrorData, Event, EventStream, MessageData, parseJSON} from "../../utils";
+import {DoneData, ErrorData, Event, EventStream, isSimilarity, MessageData, parseJSON} from "../../utils";
 import {v4} from "uuid";
 import moment from 'moment';
 import TurndownService from 'turndown';
@@ -291,8 +291,10 @@ export class Poe extends Chat implements BrowserUser<Account> {
                 }
                 const {author, state, text, messageId, id} = message;
                 if (author === 'human' || author === 'chat_break') {
-                    if (text.length === req.prompt.length) {
+                    if (isSimilarity(text, req.prompt)) {
                         currMsgID = unique_id;
+                    } else {
+                        console.log(text, req.prompt);
                     }
                     return;
                 }
