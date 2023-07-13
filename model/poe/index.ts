@@ -1,7 +1,6 @@
 import {Chat, ChatOptions, ChatRequest, ChatResponse, ModelType} from "../base";
 import {Browser, EventEmitter, Page} from "puppeteer";
 import {BrowserPool, BrowserUser} from "../../pool/puppeteer";
-import * as fs from "fs";
 import {DoneData, ErrorData, Event, EventStream, MessageData, parseJSON} from "../../utils";
 import {v4} from "uuid";
 import moment from 'moment';
@@ -245,7 +244,7 @@ export class Poe extends Chat implements BrowserUser<Account> {
         // req.prompt = req.prompt.replace(/\n/g, ' ');
         const [page, account, done, destroy] = this.pagePool.get();
         if (page?.url().indexOf(ModelMap[req.model]) === -1) {
-            await page?.goto(`https://poe.com/${ModelMap[req.model]}`);
+            await page?.goto(`https://poe.com/${ModelMap[req.model]}`, {waitUntil: 'networkidle0'});
         }
         if (!account || !page) {
             stream.write(Event.error, {error: 'please retry later!'});
@@ -309,7 +308,7 @@ export class Poe extends Chat implements BrowserUser<Account> {
             await page.keyboard.press('Enter');
             console.log('send msg ok!');
         } catch (e) {
-            console.error("poe ask stream failed:",e);
+            console.error("poe ask stream failed:", e);
             console.error(`failed account: pb=${account.pb}`);
             done(account);
             stream.write(Event.error, {error: 'some thing error, try again later'});
