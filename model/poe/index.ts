@@ -246,6 +246,8 @@ export class Poe extends Chat implements BrowserUser<Account> {
         const [page, account, done, destroy] = this.pagePool.get();
         if (page?.url().indexOf(ModelMap[req.model]) === -1) {
             await page?.goto(`https://poe.com/${ModelMap[req.model]}`, {waitUntil: 'networkidle0'});
+        } else {
+            await page?.reload({waitUntil: 'networkidle0'});
         }
         if (!account || !page) {
             stream.write(Event.error, {error: 'please retry later!'});
