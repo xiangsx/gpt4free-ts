@@ -266,7 +266,7 @@ export class Poe extends Chat implements BrowserUser<Account> {
                     et.removeAllListeners();
                 }
                 account.failedCnt += 1;
-                if (account.failedCnt >= 3) {
+                if (account.failedCnt >= 10) {
                     destroy(true, true);
                     console.log(`poe account failed cnt > 3, destroy ok`);
                 } else {
