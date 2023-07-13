@@ -251,6 +251,7 @@ export class Poe extends Chat implements BrowserUser<Account> {
         }
         if (!account || !page) {
             stream.write(Event.error, {error: 'please retry later!'});
+            stream.write(Event.done, {content: ''})
             stream.end();
             return;
         }
@@ -335,6 +336,7 @@ export class Poe extends Chat implements BrowserUser<Account> {
             console.error(`failed account: pb=${account.pb}`);
             done(account);
             stream.write(Event.error, {error: 'some thing error, try again later'});
+            stream.write(Event.done, {content: ''})
             stream.end();
             return
         }
