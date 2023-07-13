@@ -1,7 +1,7 @@
 import {Chat, ChatOptions, ChatRequest, ChatResponse, ModelType} from "../base";
 import {Browser, EventEmitter, Page} from "puppeteer";
 import {BrowserPool, BrowserUser} from "../../pool/puppeteer";
-import {DoneData, ErrorData, Event, EventStream, isSimilarity, MessageData, parseJSON} from "../../utils";
+import {DoneData, ErrorData, Event, EventStream, isSimilarity, MessageData, parseJSON, sleep} from "../../utils";
 import {v4} from "uuid";
 import moment from 'moment';
 import TurndownService from 'turndown';
@@ -275,6 +275,7 @@ export class Poe extends Chat implements BrowserUser<Account> {
                 if (!stream.stream().writableEnded && !stream.stream().closed) {
                     console.error('poe wait ack ws timeout, retry!');
                     await this.askStream(req, stream);
+                    await sleep(10 * 1000);
                 }
                 stream.write(Event.error, {error: 'timeout, try again later'});
                 stream.end();
