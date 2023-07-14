@@ -132,7 +132,12 @@ class PoeAccountPool {
                 return item;
             }
         }
-        throw new Error('no new poe pb');
+        return {
+            id: v4(),
+            gpt4times: 0,
+            pb: '',
+            failedCnt: 0,
+        } as Account
     }
 }
 
@@ -219,18 +224,36 @@ export class Poe extends Chat implements BrowserUser<Account> {
 
     async init(id: string, browser: Browser): Promise<[Page | undefined, Account]> {
         const account = this.accountPool.getByID(id);
+        if (!account) {
+            await sleep(10 * 24 * 60 * 60 * 1000);
+            return [] as any;
+        }
+        const [page] = await browser.pages();
         try {
-            if (!account) {
-                throw new Error("account undefined, something error");
-            }
-            const [page] = await browser.pages();
             await page.setCookie({name: 'p-b', value: account.pb, domain: 'poe.com'});
-            await page.goto('https://poe.com')
-            await page.waitForSelector(Poe.InputSelector, {timeout: 10 * 24 * 60 * 60 * 1000});
+            await page.goto(`https://poe.com/GPT-4-32K`)
+            await page.waitForSelector(Poe.InputSelector, {timeout: 30 * 1000, visible: true});
+            await page.click(Poe.InputSelector);
+            await page.type(Poe.InputSelector, `1`);
+            const isVip = await Poe.isVIP(page);
+            if (!isVip) {
+                console.warn(`account:${account?.pb}, not vip`);
+                await sleep(10 * 24 * 60 * 60 * 1000);
+            }
             return [page, account];
         } catch (e) {
-            console.warn('something error happened,err:', e);
+            console.warn(`account:${account?.pb}, something error happened,err:`, e);
+            await sleep(10 * 24 * 60 * 60 * 1000);
             return [] as any;
+        }
+    }
+
+    public static async isVIP(page: Page) {
+        try {
+            await page.waitForSelector(Poe.FreeModal, {timeout: 10 * 1000});
+            return false;
+        } catch (e) {
+            return true;
         }
     }
 
@@ -241,7 +264,7 @@ export class Poe extends Chat implements BrowserUser<Account> {
 
     public static InputSelector = '.ChatPageMainFooter_footer__Hm4Rt > .ChatMessageInputFooter_footer__1cb8J > .ChatMessageInputContainer_inputContainer__SQvPA > .GrowingTextArea_growWrap___1PZM > .GrowingTextArea_textArea__eadlu';
     public static ClearSelector = '.ChatPageMainFooter_footer__Hm4Rt > .ChatMessageInputFooter_footer__1cb8J > .Button_buttonBase__0QP_m > svg > path';
-    public static EndFlag = '.PageWithSidebarLayout_mainSection__i1yOg > .ChatPageMain_container__1aaCT > .InfiniteScroll_container__kzp7X > .ChatMessagesView_messagePair__CsQMW > .ChatMessageFeedbackButtons_feedbackButtonsContainer__0Xd3I';
+    public static FreeModal = ".ReactModal__Body--open > .ReactModalPortal > .ReactModal__Overlay > .ReactModal__Content";
 
     public async askStream(req: ChatRequest, stream: EventStream) {
         // req.prompt = req.prompt.replace(/\n/g, ' ');
@@ -276,8 +299,6 @@ export class Poe extends Chat implements BrowserUser<Account> {
                     console.error('poe wait ack ws timeout, retry!');
                     await this.askStream(req, stream);
                 }
-                stream.write(Event.error, {error: 'timeout, try again later'});
-                stream.end();
             }, 10 * 1000);
             let currMsgID = '';
             et = client.on('Network.webSocketFrameReceived', async ({response}) => {
@@ -287,16 +308,17 @@ export class Poe extends Chat implements BrowserUser<Account> {
                 const {unique_id} = obj.payload || {};
                 const message = obj?.payload?.data?.messageAdded;
                 if (!message) {
-                    console.log(response);
+                    console.log("not find message", response);
                     return;
                 }
-                const {author, state, text, messageId, id} = message;
-                if (author === 'human' || author === 'chat_break') {
-                    if (isSimilarity(text, req.prompt)) {
-                        currMsgID = unique_id;
-                    } else {
-                        console.log(text, req.prompt);
-                    }
+                const {author, state, text} = message;
+                // console.log(author, state, text, unique_id);
+
+                if (author === 'chat_break') {
+                    return;
+                }
+                if (author === 'human' && isSimilarity(text, req.prompt)) {
+                    currMsgID = unique_id;
                     return;
                 }
                 if (unique_id !== currMsgID) {
@@ -306,7 +328,7 @@ export class Poe extends Chat implements BrowserUser<Account> {
                 switch (state) {
                     case 'complete':
                         clearTimeout(tt);
-                        et.removeAllListeners();
+                        client.removeAllListeners('Network.webSocketFrameReceived');
                         stream.write(Event.message, {content: text.substring(old.length)});
                         stream.write(Event.done, {content: ''});
                         stream.end();
