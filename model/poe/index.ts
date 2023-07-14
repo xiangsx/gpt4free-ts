@@ -306,7 +306,6 @@ export class Poe extends Chat implements BrowserUser<Account> {
                 const {unique_id} = obj.payload || {};
                 const message = obj?.payload?.data?.messageAdded;
                 if (!message) {
-                    console.log("not find message", response);
                     return;
                 }
                 const {author, state, text} = message;
@@ -320,7 +319,7 @@ export class Poe extends Chat implements BrowserUser<Account> {
                     return;
                 }
                 if (unique_id !== currMsgID) {
-                    console.log(`message id different`, {unique_id, currMsgID});
+                    // console.log(`message id different`, {unique_id, currMsgID});
                     return;
                 }
                 switch (state) {
