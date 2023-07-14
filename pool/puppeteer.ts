@@ -37,7 +37,7 @@ export class BrowserPool<T> {
         this.init();
     }
 
-    init() {
+    async init() {
         for (let i = 0; i < this.size; i++) {
             const id = this.user.newID();
             const info: PageInfo<T> = {
@@ -46,6 +46,7 @@ export class BrowserPool<T> {
             }
             this.pool.push(info)
             this.initOne(id).then()
+            await sleep(5 * 1000);
         }
     }
 

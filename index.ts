@@ -138,7 +138,6 @@ const openAIHandle: Middleware = async (ctx, next) => {
         return;
     }
     await AskHandle(ctx, next);
-    console.log(ctx.body);
     ctx.body = {
         "id": `chatcmpl-${randomStr()}`,
         "object": "chat.completion",
