@@ -278,19 +278,17 @@ export class Poe extends Chat implements BrowserUser<Account> {
             stream.end();
             return;
         }
+        const client = await page.target().createCDPSession();
+        await client.send('Network.enable');
         try {
             let old = '';
-            const client = await page.target().createCDPSession();
-            await client.send('Network.enable');
             let et: EventEmitter;
             const tt = setTimeout(async () => {
-                if (et) {
-                    et.removeAllListeners();
-                }
+                client.removeAllListeners('Network.webSocketFrameReceived');
                 account.failedCnt += 1;
                 if (account.failedCnt >= 5) {
                     destroy(true, true);
-                    console.log(`poe account failed cnt > 3, destroy ok`);
+                    console.log(`poe account failed cnt > 5, destroy ok`);
                 } else {
                     await page.reload();
                     done(account);
@@ -355,6 +353,7 @@ export class Poe extends Chat implements BrowserUser<Account> {
             await page.keyboard.press('Enter');
             console.log('send msg ok!');
         } catch (e) {
+            client.removeAllListeners('Network.webSocketFrameReceived');
             console.error("poe ask stream failed:", e);
             console.error(`failed account: pb=${account.pb}`);
             done(account);
