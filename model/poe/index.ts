@@ -333,6 +333,7 @@ export class Poe extends Chat implements BrowserUser<Account> {
                         await page.click(Poe.ClearSelector);
                         account.failedCnt = 0;
                         done(account);
+                        console.log('poe recv msg complete')
                         return;
                     case 'incomplete':
                         stream.write(Event.message, {content: text.substring(old.length)});
@@ -353,8 +354,7 @@ export class Poe extends Chat implements BrowserUser<Account> {
             console.log('send msg ok!');
         } catch (e) {
             client.removeAllListeners('Network.webSocketFrameReceived');
-            console.error("poe ask stream failed:", e);
-            console.error(`failed account: pb=${account.pb}`);
+            console.error(`account: pb=${account.pb}, poe ask stream failed:`, e);
             done(account);
             stream.write(Event.error, {error: 'some thing error, try again later'});
             stream.write(Event.done, {content: ''})
