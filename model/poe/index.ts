@@ -341,12 +341,13 @@ export class Poe extends Chat implements BrowserUser<Account> {
                         return;
                 }
             })
+            console.log('poe start send msg');
             await page.waitForSelector(Poe.ClearSelector);
             await page.click(Poe.ClearSelector);
-            console.log('try to find input');
             await page.waitForSelector(Poe.InputSelector)
             await page.click(Poe.InputSelector);
             await page.type(Poe.InputSelector, `1`);
+            console.log('poe find input ok');
             const input = await page.$(Poe.InputSelector);
             //@ts-ignore
             await input?.evaluate((el, content) => el.value = content, req.prompt);

@@ -206,7 +206,6 @@ export const htmlToMarkdown = (html: string): string => {
 
 export const isSimilarity = (s1: string, s2: string): boolean => {
     const similarity = stringSimilarity.compareTwoStrings(s1, s2);
-    console.log(similarity);
     return similarity > 0.3;
 }
 
