@@ -286,9 +286,9 @@ export class Poe extends Chat implements BrowserUser<Account> {
             const tt = setTimeout(async () => {
                 client.removeAllListeners('Network.webSocketFrameReceived');
                 account.failedCnt += 1;
-                if (account.failedCnt >= 5) {
+                if (account.failedCnt >= 20) {
                     destroy(true, true);
-                    console.log(`poe account failed cnt > 5, destroy ok`);
+                    console.log(`poe account failed cnt > 20, destroy ok`);
                 } else {
                     await page.reload();
                     done(account);
