@@ -285,6 +285,8 @@ export class Poe extends Chat implements BrowserUser<Account> {
             let et: EventEmitter;
             const tt = setTimeout(async () => {
                 client.removeAllListeners('Network.webSocketFrameReceived');
+                await page.waitForSelector(Poe.ClearSelector);
+                await page.click(Poe.ClearSelector);
                 account.failedCnt += 1;
                 if (account.failedCnt >= 20) {
                     destroy(true, true);
