@@ -3,14 +3,7 @@ import {Browser, EventEmitter, Page} from "puppeteer";
 import {BrowserPool, BrowserUser} from "../../pool/puppeteer";
 import {DoneData, ErrorData, Event, EventStream, isSimilarity, MessageData, parseJSON, sleep} from "../../utils";
 import {v4} from "uuid";
-import moment from 'moment';
-import TurndownService from 'turndown';
-
-const turndownService = new TurndownService({codeBlockStyle: 'fenced'});
-
-type PageData = {
-    gpt4times: number;
-}
+import fs from "fs";
 
 const ModelMap: Partial<Record<ModelType, any>> = {
     [ModelType.GPT4]: 'GPT-4',
@@ -35,9 +28,9 @@ type Account = {
     email?: string;
     login_time?: string;
     last_use_time?: string;
-    gpt4times: number;
     pb: string;
     failedCnt: number;
+    invalid?: boolean;
 }
 
 type HistoryData = {
@@ -88,53 +81,64 @@ interface RealAck {
 }
 
 class PoeAccountPool {
-    private pool: Account[] = [];
+    private pool: Record<string, Account> = {};
     private using = new Set<string>();
+    private readonly account_file_path = './run/account_poe.json';
 
     constructor() {
-        this.pool = (process.env.POE_PB || '').split('|').map(pb => ({
-            id: v4(),
-            gpt4times: 0,
-            pb,
-            failedCnt: 0,
-        } as Account));
+        const pbList = (process.env.POE_PB || '').split('|');
+        if (fs.existsSync(this.account_file_path)) {
+            const accountStr = fs.readFileSync(this.account_file_path, 'utf-8');
+            this.pool = parseJSON(accountStr, {} as Record<string, Account>);
+        } else {
+            fs.mkdirSync('./run', {recursive: true});
+            this.syncfile();
+        }
+        for (const pb of pbList) {
+            if (this.pool[pb]) {
+                continue;
+            }
+            this.pool[pb] = {
+                id: v4(),
+                pb,
+                failedCnt: 0,
+                invalid: false,
+            };
+        }
+        this.syncfile();
     }
 
     public syncfile() {
+        fs.writeFileSync(this.account_file_path, JSON.stringify(this.pool));
     }
 
     public getByID(id: string) {
-        for (const item of this.pool) {
-            if (item.id === id) {
-                return item;
+        for (const item in this.pool) {
+            if (this.pool[item].id === id) {
+                return this.pool[item];
             }
         }
     }
 
     public delete(id: string) {
-        this.pool = this.pool.filter(item => item.id !== id);
+        for (const v in this.pool) {
+            const vv = this.pool[v];
+        }
         this.using.delete(id);
         this.syncfile();
     }
 
     public get(): Account {
-        const now = moment();
-        const usingAccount: Account[] = [];
-        this.using.forEach(id => {
-            const v = this.getByID(id);
-            if (v) {
-                usingAccount.push(v);
-            }
-        });
-        for (const item of this.pool) {
-            if (!usingAccount.find(v => item.pb === v.pb)) {
-                this.using.add(item.id);
-                return item;
+        for (const v in this.pool) {
+            const vv = this.pool[v];
+            if (!vv.invalid) {
+                this.using.add(vv.id);
+                return vv;
             }
         }
+        console.log('poe pb run out!!!!!!');
         return {
             id: v4(),
-            gpt4times: 0,
             pb: '',
             failedCnt: 0,
         } as Account
@@ -149,8 +153,7 @@ export class Poe extends Chat implements BrowserUser<Account> {
     constructor(options?: ChatOptions) {
         super(options);
         this.accountPool = new PoeAccountPool();
-        let maxSize = (process.env.POE_PB || '').split('|').length;
-        this.pagePool = new BrowserPool<Account>(maxSize, this);
+        this.pagePool = new BrowserPool<Account>(+(process.env.POE_POOL_SIZE || 0), this, false);
     }
 
     support(model: ModelType): number {
@@ -237,13 +240,15 @@ export class Poe extends Chat implements BrowserUser<Account> {
             await page.type(Poe.InputSelector, `1`);
             const isVip = await Poe.isVIP(page);
             if (!isVip) {
-                console.warn(`account:${account?.pb}, not vip`);
-                await sleep(10 * 24 * 60 * 60 * 1000);
+                account.invalid = true;
+                this.accountPool.syncfile();
+                throw new Error(`account:${account?.pb}, not vip`);
             }
             return [page, account];
         } catch (e) {
+            account.failedCnt += 1;
+            this.accountPool.syncfile();
             console.warn(`account:${account?.pb}, something error happened,err:`, e);
-            await sleep(10 * 24 * 60 * 60 * 1000);
             return [] as any;
         }
     }
@@ -288,8 +293,11 @@ export class Poe extends Chat implements BrowserUser<Account> {
                 await page.waitForSelector(Poe.ClearSelector);
                 await page.click(Poe.ClearSelector);
                 account.failedCnt += 1;
+                this.accountPool.syncfile();
                 if (account.failedCnt >= 20) {
                     destroy(true, true);
+                    account.invalid = true;
+                    this.accountPool.syncfile();
                     console.log(`poe account failed cnt > 20, destroy ok`);
                 } else {
                     await page.reload();
@@ -334,6 +342,7 @@ export class Poe extends Chat implements BrowserUser<Account> {
                         await page.waitForSelector(Poe.ClearSelector);
                         await page.click(Poe.ClearSelector);
                         account.failedCnt = 0;
+                        this.accountPool.syncfile();
                         done(account);
                         console.log('poe recv msg complete')
                         return;

@@ -30,10 +30,12 @@ export class BrowserPool<T> {
     private readonly pool: PageInfo<T>[] = [];
     private readonly size: number;
     private readonly user: BrowserUser<T>
+    private savefile: boolean;
 
-    constructor(size: number, user: BrowserUser<T>) {
+    constructor(size: number, user: BrowserUser<T>, saveFile: boolean = true) {
         this.size = size
         this.user = user;
+        this.savefile = saveFile;
         this.init();
     }
 
@@ -68,7 +70,7 @@ export class BrowserPool<T> {
         const options: PuppeteerLaunchOptions = {
             headless: process.env.DEBUG === "1" ? false : 'new',
             args: ['--no-sandbox', '--disable-setuid-sandbox'],
-            userDataDir: `run/${info.id}`,
+            userDataDir: this.savefile ? `run/${info.id}` : undefined,
         };
         let browser;
         try {
