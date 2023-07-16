@@ -131,7 +131,7 @@ class PoeAccountPool {
     public get(): Account {
         for (const v in this.pool) {
             const vv = this.pool[v];
-            if (!vv.invalid) {
+            if (!vv.invalid && !this.using.has(vv.id)) {
                 this.using.add(vv.id);
                 return vv;
             }
@@ -244,6 +244,11 @@ export class Poe extends Chat implements BrowserUser<Account> {
                 this.accountPool.syncfile();
                 throw new Error(`account:${account?.pb}, not vip`);
             }
+            if (!await Poe.isLogin(page)) {
+                account.invalid = true;
+                this.accountPool.syncfile();
+                throw new Error(`account:${account?.pb}, no login status`);
+            }
             return [page, account];
         } catch (e) {
             account.failedCnt += 1;
@@ -262,6 +267,15 @@ export class Poe extends Chat implements BrowserUser<Account> {
         }
     }
 
+    public static async isLogin(page: Page) {
+        try {
+            await page.waitForSelector(Poe.TalkToGpt, {timeout: 10 * 1000});
+            return false;
+        } catch (e) {
+            return true;
+        }
+    }
+
     public static async clear(page: Page) {
         await page.waitForSelector('.ChatApp > .ChatFooter > .tool-bar > .semi-button:nth-child(1) > .semi-button-content', {timeout: 10 * 60 * 1000});
         await page.click('.ChatApp > .ChatFooter > .tool-bar > .semi-button:nth-child(1) > .semi-button-content')
@@ -270,6 +284,7 @@ export class Poe extends Chat implements BrowserUser<Account> {
     public static InputSelector = '.ChatPageMainFooter_footer__Hm4Rt > .ChatMessageInputFooter_footer__1cb8J > .ChatMessageInputContainer_inputContainer__SQvPA > .GrowingTextArea_growWrap___1PZM > .GrowingTextArea_textArea__eadlu';
     public static ClearSelector = '.ChatPageMainFooter_footer__Hm4Rt > .ChatMessageInputFooter_footer__1cb8J > .Button_buttonBase__0QP_m > svg > path';
     public static FreeModal = ".ReactModal__Body--open > .ReactModalPortal > .ReactModal__Overlay > .ReactModal__Content";
+    public static TalkToGpt = "body > #__next > .LoggedOutBotInfoPage_layout__Y_z0i > .LoggedOutBotInfoPage_botInfo__r2z3X > .LoggedOutBotInfoPage_appButton__UO6NU";
 
     public async askStream(req: ChatRequest, stream: EventStream) {
         // req.prompt = req.prompt.replace(/\n/g, ' ');
