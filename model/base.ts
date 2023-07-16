@@ -17,33 +17,34 @@ export enum ModelType {
     GPT3p5Turbo = 'gpt-3.5-turbo',
     GPT3p5_16k = 'gpt-3.5-turbo-16k',
     GPT4 = 'gpt-4',
+    GPT4_32k = 'gpt-4-32k',
+    Sage = 'sage',
     NetGpt3p5 = 'net-gpt3.5-turbo',
+    ClaudeInstance = 'claude-instance',
+    Claude = 'claude',
+    Claude100k = 'claude-100k',
+    Claude2_100k = 'claude-2-100k',
+    Gpt4free = 'gpt4free',
+    GooglePalm = 'google-palm',
 }
 
 export interface ChatRequest {
     prompt: string;
     model: ModelType;
+    messages: Message[];
 }
 
-export function PromptToString(prompt: string, limit: number): string {
+export function PromptToString(prompt: string, limit: number): [string, Message[]] {
     try {
         const messages: Message[] = JSON.parse(prompt);
-        let result: Message[] = [];
-        let tokenSize = 0;
-        for (let i = messages.length - 1; i >= 0; i--) {
-            const item = messages[i];
-            const {role, content} = item;
-            tokenSize += getTokenSize(content);
-            if (tokenSize > limit) {
-                break;
-            }
-            result.push(item);
+        const res = `${messages.map(item => `${item.role}: ${item.content}`).join('\n')}\nassistant: `;
+        console.log(prompt.length, limit, getTokenSize(res));
+        if (getTokenSize(res) >= limit && messages.length > 1) {
+            return PromptToString(JSON.stringify(messages.slice(1, messages.length)), limit);
         }
-        return `${result.reverse().map(item => `${item.role}
-    : ${item.content}
-        `).join('\n')}\nassistant: `;
+        return [res, messages];
     } catch (e) {
-        return prompt;
+        return [prompt, [{role: 'user', content: prompt}]];
     }
 }
 
