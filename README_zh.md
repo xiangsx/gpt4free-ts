@@ -11,7 +11,7 @@
 
 ## 👍 基于此项目的最强网站 [GPTGOD](http://gptgod.online)
 <details>
-<summary><strong>Website Feature(Click to expand)</strong></summary>
+<summary><strong>网站功能(点击展开)</strong></summary>
 
 ### GPTGOD Support
 
@@ -20,6 +20,8 @@
 - [x] Claude 仅次于GPT4的AI对话模型
 - [x] gpt3.5-turbo 都知道
 - [x] gpt4 都知道
+- [x] gpt-4-32k 都知道
+- [x] claude-2-100k 无敌的上下文 
 - [x] Chatgpt with internet 联网版本GPT
 - [x] 以上所有功能均可在网站中一键集成到微信机器人中
 
@@ -28,7 +30,180 @@
 
 ## 🚩 Reverse target
 
-仍在努力保持更新
+仍在努力保持更新,使用人数太多， 更新赶不上封的速度
+现不公开部分站点了
+
+<details>
+<summary><strong> ⭐最新站点支持，部分站点未公开，加群获取, 点击展开⭐ </strong></summary>
+
+```json
+  [
+    {
+        "site": "you",
+        "models": [
+            "gpt-3.5-turbo"
+        ]
+    },
+    {
+        "site": "phind",
+        "models": [
+            "net-gpt3.5-turbo"
+        ]
+    },
+    {
+        "site": "forefront",
+        "models": [
+            "gpt-3.5-turbo",
+            "gpt-4",
+            "claude-instance",
+            "claude"
+        ]
+    },
+    {
+        "site": "forefront_net",
+        "models": []
+    },
+    {
+        "site": "mcbbs",
+        "models": [
+            "gpt-3.5-turbo",
+            "gpt-3.5-turbo-16k"
+        ]
+    },
+    {
+        "site": "chatdemo",
+        "models": [
+            "gpt-3.5-turbo"
+        ]
+    },
+    {
+        "site": "vita",
+        "models": [
+            "gpt-3.5-turbo"
+        ]
+    },
+    {
+        "site": "copilot",
+        "models": [
+            "gpt-4"
+        ]
+    },
+    {
+        "site": "skailar",
+        "models": [
+            "gpt-4"
+        ]
+    },
+    {
+        "site": "fakeopen",
+        "models": [
+            "gpt-3.5-turbo-16k"
+        ]
+    },
+    {
+        "site": "easychat",
+        "models": [
+            "gpt-4"
+        ]
+    },
+    {
+        "site": "better",
+        "models": [
+            "gpt-3.5-turbo",
+            "gpt-3.5-turbo-16k",
+            "gpt-4"
+        ]
+    },
+    {
+        "site": "pweb",
+        "models": [
+            "gpt-3.5-turbo",
+            "gpt-4",
+            "claude",
+            "claude-100k"
+        ]
+    },
+    {
+        "site": "bai",
+        "models": []
+    },
+    {
+        "site": "gra",
+        "models": [
+            "gpt-3.5-turbo",
+            "gpt-3.5-turbo-16k"
+        ]
+    },
+    {
+        "site": "magic",
+        "models": [
+            "gpt-3.5-turbo",
+            "gpt-4",
+            "claude-instance",
+            "claude",
+            "claude-100k"
+        ]
+    },
+    {
+        "site": "chim",
+        "models": [
+            "gpt-3.5-turbo",
+            "gpt-3.5-turbo-16k",
+            "gpt-4"
+        ]
+    },
+    {
+        "site": "poe",
+        "models": [
+            "gpt-3.5-turbo",
+            "gpt-3.5-turbo-16k",
+            "gpt-4",
+            "gpt-4-32k",
+            "sage",
+            "claude-instance",
+            "claude",
+            "claude-100k",
+            "claude-2-100k",
+            "gpt4free",
+            "google-palm"
+        ]
+    },
+    {
+        "site": "ram",
+        "models": [
+            "gpt-3.5-turbo",
+            "gpt-3.5-turbo-16k",
+            "gpt-4",
+            "claude-100k",
+            "claude-2-100k"
+        ]
+    },
+    {
+        "site": "chur",
+        "models": [
+            "gpt-3.5-turbo",
+            "gpt-3.5-turbo-16k"
+        ]
+    },
+    {
+        "site": "xun",
+        "models": [
+            "gpt-3.5-turbo",
+            "gpt-3.5-turbo-16k"
+        ]
+    },
+    {
+        "site": "vvm",
+        "models": [
+            "gpt-3.5-turbo",
+            "gpt-3.5-turbo-16k",
+            "gpt-4"
+        ]
+    }
+]
+```
+
+</details>
 
 这里是已经实现转换成api的网站列表以及支持的对话模型，如果你不幸发现你的网站也在其中，请联系我，我会立刻下线
 
@@ -249,9 +424,8 @@ data: {"content":"done"}
 ```
 ## 👥 加群细聊
 
-<image src="https://github.com/xiangsx/gpt4free-ts/assets/29322721/d926db6d-1711-479e-aae4-726cbcecd6ed" width=240 />
-<image src="https://github.com/xiangsx/gpt4free-ts/assets/29322721/6a1b6f3f-f4f3-4483-b379-4de931b546eb" width=240 />
-<image src="https://github.com/xiangsx/gpt4free-ts/assets/29322721/51125eb9-4032-4fa0-aa32-f3c527100ac2" width=240 />
+<image src="https://github.com/xiangsx/gpt4free-ts/assets/29322721/213d34c6-0640-4f49-b65f-e6178720d8af" width=240 />
+<image src="https://github.com/xiangsx/gpt4free-ts/assets/29322721/5c79b921-f744-4b26-872d-e05436316215" width=240 />
 
 ## 🌟 Star History
 
