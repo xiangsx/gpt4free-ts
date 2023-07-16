@@ -138,9 +138,8 @@ export class PWeb extends Chat {
             const res = await this.client.post('/chat-process', data, {
                 responseType: 'stream',
             } as AxiosRequestConfig);
-            res.data.pipe(es.split(/\r?\n/)).pipe(es.map(async (chunk: any, cb: any) => {
-                const data = parseJSON(chunk.toString(), {} as RealRsp);
-                stream.write(Event.message, {content: data.delta || ''})
+            res.data.pipe(es.map(async (chunk: any, cb: any) => {
+                stream.write(Event.message, {content: chunk.toString()})
             }))
             res.data.on('close', () => {
                 stream.write(Event.done, {content: ''})
