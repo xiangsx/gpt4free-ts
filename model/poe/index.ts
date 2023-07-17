@@ -29,6 +29,8 @@ const ModelMap: Partial<Record<ModelType, any>> = {
     [ModelType.GPT4_32k]: 'GPT-4-32K',
 }
 
+
+const MaxFailedTimes = 10;
 const MaxGptTimes = 500;
 
 const TimeFormat = "YYYY-MM-DD HH:mm:ss";
@@ -142,7 +144,7 @@ class PoeAccountPool {
     public get(): Account {
         for (const v of shuffleArray(Object.keys(this.pool))) {
             const vv = this.pool[v];
-            if (!vv.invalid && !this.using.has(vv.id)) {
+            if (!vv.invalid && !this.using.has(vv.id) && vv.failedCnt <= MaxFailedTimes) {
                 this.using.add(vv.id);
                 return vv;
             }
@@ -322,7 +324,7 @@ export class Poe extends Chat implements BrowserUser<Account> {
                 await page.click(Poe.ClearSelector);
                 account.failedCnt += 1;
                 this.accountPool.syncfile();
-                if (account.failedCnt >= 10) {
+                if (account.failedCnt >= MaxFailedTimes) {
                     destroy(true);
                     account.invalid = true;
                     this.accountPool.syncfile();
@@ -396,7 +398,16 @@ export class Poe extends Chat implements BrowserUser<Account> {
             client.removeAllListeners('Network.webSocketFrameReceived');
             console.error(`account: pb=${account.pb}, poe ask stream failed:`, e);
             account.failedCnt += 1;
-            this.accountPool.syncfile();
+            if (account.failedCnt >= MaxFailedTimes) {
+                destroy(true);
+                account.invalid = true;
+                this.accountPool.syncfile();
+                console.log(`poe account failed cnt > 10, destroy ok`);
+            } else {
+                this.accountPool.syncfile();
+                await page.reload();
+                done(account);
+            }
             done(account);
             stream.write(Event.error, {error: 'some thing error, try again later'});
             stream.write(Event.done, {content: ''})
