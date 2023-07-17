@@ -274,7 +274,7 @@ export class Poe extends Chat implements BrowserUser<Account> {
 
     public static async isVIP(page: Page) {
         try {
-            await page.waitForSelector(Poe.FreeModal, {timeout: 10 * 1000});
+            await page.waitForSelector(Poe.FreeModal, {timeout: 5 * 1000});
             return false;
         } catch (e) {
             return true;
