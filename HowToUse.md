@@ -10,7 +10,7 @@
 注意一下参数都不是必须，按需配置，不需要可以直接删除整行
 
 - `http_proxy`: 国内使用的代理，国外的机器不需要填
-- `POE_PB`: poe的p-b,登录poe之后F12看一下cookie中有个p-b字段，复制下来填入，如果有多个使用|分割 比如 xxxxxxxxx|xxxxxxxxxxx
+- `POE_PB`: poe的p-b,登录poe之后F12看一下cookie中有个p-b字段，复制下来填入，如果有多个使用|分割 比如 xxxxxxxxx|xxxxxxxxxxx, 运行之后该字段的值会被保存在run/account_poe.json中，为了防止容器更新丢失，请映射到本地，映射规则       `./run:/usr/src/app/run`
 - `POE_POOL_SIZE`: 默认0， poe默认使用的线程数目，不能大于POE_PB填的数量
 
 
