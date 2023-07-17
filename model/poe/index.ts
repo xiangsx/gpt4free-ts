@@ -248,26 +248,25 @@ export class Poe extends Chat implements BrowserUser<Account> {
         try {
             await page.setCookie({name: 'p-b', value: account.pb, domain: 'poe.com'});
             await page.goto(`https://poe.com/GPT-4-32K`)
-            await page.waitForSelector(Poe.InputSelector, {timeout: 30 * 1000, visible: true});
-            await page.click(Poe.InputSelector);
-            await page.type(Poe.InputSelector, `1`);
-            const isVip = await Poe.isVIP(page);
-            if (!isVip) {
-                account.invalid = true;
-                this.accountPool.syncfile();
-                throw new Error(`account:${account?.pb}, not vip`);
-            }
             if (!(await Poe.isLogin(page))) {
                 account.invalid = true;
                 this.accountPool.syncfile();
                 throw new Error(`account:${account?.pb}, no login status`);
             }
-            console.log(`poe init ok!`);
+            await page.waitForSelector(Poe.InputSelector, {timeout: 30 * 1000, visible: true});
+            await page.click(Poe.InputSelector);
+            await page.type(Poe.InputSelector, `1`);
+            if (!(await Poe.isVIP(page))) {
+                account.invalid = true;
+                this.accountPool.syncfile();
+                throw new Error(`account:${account?.pb}, not vip`);
+            }
+            console.log(`poe init ok! ${account.pb}`);
             return [page, account];
         } catch (e) {
             account.failedCnt += 1;
             this.accountPool.syncfile();
-            console.warn(`account:${account?.pb}, something error happened,err:`, e);
+            console.warn(`account:${account?.pb}, something error happened.`);
             return [] as any;
         }
     }
