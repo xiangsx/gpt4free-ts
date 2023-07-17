@@ -336,7 +336,7 @@ export class Poe extends Chat implements BrowserUser<Account> {
                     console.error('poe wait ack ws timeout, retry!');
                     await this.askStream(req, stream);
                 }
-            }, 10 * 1000);
+            }, 20 * 1000);
             let currMsgID = '';
             et = client.on('Network.webSocketFrameReceived', async ({response}) => {
                 tt.refresh();
