@@ -310,7 +310,7 @@ export class Poe extends Chat implements BrowserUser<Account> {
                 await page.click(Poe.ClearSelector);
                 account.failedCnt += 1;
                 this.accountPool.syncfile();
-                if (account.failedCnt >= 20) {
+                if (account.failedCnt >= 10) {
                     destroy(true);
                     account.invalid = true;
                     this.accountPool.syncfile();
