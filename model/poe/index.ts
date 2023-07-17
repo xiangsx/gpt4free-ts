@@ -1,7 +1,17 @@
 import {Chat, ChatOptions, ChatRequest, ChatResponse, ModelType} from "../base";
 import {Browser, EventEmitter, Page} from "puppeteer";
 import {BrowserPool, BrowserUser} from "../../pool/puppeteer";
-import {DoneData, ErrorData, Event, EventStream, isSimilarity, MessageData, parseJSON, sleep} from "../../utils";
+import {
+    DoneData,
+    ErrorData,
+    Event,
+    EventStream,
+    isSimilarity,
+    MessageData,
+    parseJSON,
+    shuffleArray,
+    sleep
+} from "../../utils";
 import {v4} from "uuid";
 import fs from "fs";
 
@@ -105,6 +115,7 @@ class PoeAccountPool {
                 invalid: false,
             };
         }
+        console.log(`read poe account total:${Object.keys(this.pool).length}`)
         this.syncfile();
     }
 
@@ -129,7 +140,7 @@ class PoeAccountPool {
     }
 
     public get(): Account {
-        for (const v in this.pool) {
+        for (const v of shuffleArray(Object.keys(this.pool))) {
             const vv = this.pool[v];
             if (!vv.invalid && !this.using.has(vv.id)) {
                 this.using.add(vv.id);
@@ -384,6 +395,8 @@ export class Poe extends Chat implements BrowserUser<Account> {
         } catch (e) {
             client.removeAllListeners('Network.webSocketFrameReceived');
             console.error(`account: pb=${account.pb}, poe ask stream failed:`, e);
+            account.failedCnt += 1;
+            this.accountPool.syncfile();
             done(account);
             stream.write(Event.error, {error: 'some thing error, try again later'});
             stream.write(Event.done, {content: ''})
