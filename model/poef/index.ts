@@ -242,7 +242,7 @@ export class Poef extends Chat implements BrowserUser<Account> {
         const [page] = await browser.pages();
         try {
             await page.setCookie({name: 'p-b', value: account.pb, domain: 'poe.com'});
-            await page.goto(`https://poe.com/${ModelMap[ModelType.Gpt4free]}`)
+            await page.goto(`https://poe.com/1GPT4Free`)
             if (!(await Poef.isLogin(page))) {
                 account.invalid = true;
                 this.accountPool.syncfile();
