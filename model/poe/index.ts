@@ -288,7 +288,8 @@ export class Poe extends Chat implements BrowserUser<Account> {
 
     public async askStream(req: ChatRequest, stream: EventStream) {
         // req.prompt = req.prompt.replace(/\n/g, ' ');
-        const [page, account, done, destroy] = this.pagePool.get();
+        const [page, account, done,
+            destroy] = this.pagePool.get();
         if (page?.url().indexOf(ModelMap[req.model]) === -1) {
             await page?.goto(`https://poe.com/${ModelMap[req.model]}`, {waitUntil: 'networkidle0'});
         }
@@ -310,7 +311,7 @@ export class Poe extends Chat implements BrowserUser<Account> {
                 account.failedCnt += 1;
                 this.accountPool.syncfile();
                 if (account.failedCnt >= 20) {
-                    destroy(true, true);
+                    destroy(true);
                     account.invalid = true;
                     this.accountPool.syncfile();
                     console.log(`poe account failed cnt > 20, destroy ok`);
