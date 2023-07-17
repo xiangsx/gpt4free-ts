@@ -16,17 +16,16 @@ import {v4} from "uuid";
 import fs from "fs";
 
 const ModelMap: Partial<Record<ModelType, any>> = {
-    [ModelType.GPT4]: 'GPT-4',
     [ModelType.Sage]: 'Sage',
     [ModelType.Claude]: 'Claude+',
     [ModelType.Claude100k]: 'Claude-instant-100k+',
     [ModelType.ClaudeInstance]: 'Claude-instant',
     [ModelType.GPT3p5Turbo]: 'ChatGPT',
-    [ModelType.GPT3p5_16k]: 'ChatGPT-16k',
-    [ModelType.Gpt4free]: '1GPT4Free',
+    [ModelType.GPT3p5_16k]: 'ChatGPT',
+    [ModelType.GPT4]: '1GPT4Free',
     [ModelType.GooglePalm]: 'Google-PaLM',
     [ModelType.Claude2_100k]: 'Claude-2-100k',
-    [ModelType.GPT4_32k]: 'GPT-4-32K',
+    [ModelType.GPT4_32k]: '1GPT4Free',
 }
 
 
