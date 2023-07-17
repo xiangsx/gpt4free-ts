@@ -249,6 +249,7 @@ export class Poe extends Chat implements BrowserUser<Account> {
                 this.accountPool.syncfile();
                 throw new Error(`account:${account?.pb}, no login status`);
             }
+            console.log(`poe init ok!`);
             return [page, account];
         } catch (e) {
             account.failedCnt += 1;
