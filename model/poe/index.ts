@@ -244,7 +244,7 @@ export class Poe extends Chat implements BrowserUser<Account> {
                 this.accountPool.syncfile();
                 throw new Error(`account:${account?.pb}, not vip`);
             }
-            if (!await Poe.isLogin(page)) {
+            if (!(await Poe.isLogin(page))) {
                 account.invalid = true;
                 this.accountPool.syncfile();
                 throw new Error(`account:${account?.pb}, no login status`);
