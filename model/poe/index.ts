@@ -30,7 +30,7 @@ const ModelMap: Partial<Record<ModelType, any>> = {
 }
 
 
-const MaxFailedTimes = 10;
+const MaxFailedTimes = 20;
 const MaxGptTimes = 500;
 
 const TimeFormat = "YYYY-MM-DD HH:mm:ss";
