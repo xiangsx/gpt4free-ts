@@ -131,13 +131,17 @@ router.post('/ask', AskHandle);
 router.get('/ask/stream', AskStreamHandle(EventStream))
 router.post('/ask/stream', AskStreamHandle(EventStream))
 const openAIHandle: Middleware = async (ctx, next) => {
-    const {stream} = {...ctx.query as any, ...ctx.request.body as any, ...ctx.params as any} as OpenAIReq;
+    const {stream, messages} = {...ctx.query as any, ...ctx.request.body as any, ...ctx.params as any} as OpenAIReq;
     (ctx.request.body as any).prompt = JSON.stringify((ctx.request.body as any).messages);
     if (stream) {
         AskStreamHandle(OpenaiEventStream)(ctx, next);
         return;
     }
     await AskHandle(ctx, next);
+    let reqLen = 0;
+    for (const v of messages) {
+        reqLen += getTokenSize(v.content);
+    }
     ctx.body = {
         "id": `chatcmpl-${randomStr()}`,
         "object": "chat.completion",
@@ -151,9 +155,9 @@ const openAIHandle: Middleware = async (ctx, next) => {
             "finish_reason": "stop"
         }],
         "usage": {
-            "prompt_tokens": 100,
+            "prompt_tokens": reqLen,
             "completion_tokens": getTokenSize(ctx.body.content || ''),
-            "total_tokens": 100 + getTokenSize(ctx.body.content || '')
+            "total_tokens": reqLen + getTokenSize(ctx.body.content || '')
         }
     }
 };

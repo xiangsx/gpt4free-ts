@@ -9,6 +9,7 @@ export enum TempEmailType {
     TempEmail44 = 'temp-email44',
     // not need credit card and not need credit rapid_api_key
     TempMailLOL = 'tempmail-lol',
+    Inbox = 'inbox',
 }
 
 export function CreateEmail(tempMailType: TempEmailType, options?: BaseOptions): BaseEmail {
@@ -19,6 +20,8 @@ export function CreateEmail(tempMailType: TempEmailType, options?: BaseOptions):
             return new TempMail(options);
         case TempEmailType.TempMailLOL:
             return new TempMailLOL(options);
+        case TempEmailType.Inbox:
+            return new Inbox(options);
         default:
             throw new Error('not support TempEmailType')
     }
@@ -66,6 +69,64 @@ abstract class BaseEmail {
 export interface TempMailOptions extends BaseOptions {
     apikey?: string;
 }
+
+class Inbox extends BaseEmail {
+    private readonly client: AxiosInstance;
+    private address: string | undefined;
+
+    constructor(options?: TempMailOptions) {
+        super(options)
+        const apikey = options?.apikey || process.env.rapid_api_key;
+        if (!apikey) {
+            throw new Error('Need apikey for TempMail')
+        }
+        this.client = CreateAxiosProxy({
+            baseURL: 'https://inboxes-com.p.rapidapi.com',
+            headers: {
+                'X-RapidAPI-Key': apikey,
+                'X-RapidAPI-Host': 'inboxes-com.p.rapidapi.com'
+            }
+        } as CreateAxiosDefaults,false);
+    }
+
+    public async getMailAddress(): Promise<string> {
+        this.address = `${randomStr()}@${await this.randomDomain()}`;
+        const res = await this.client.post(`inboxes/${this.address}`)
+        console.log(res.data);
+        return this.address;
+    }
+
+    public async waitMails(): Promise<TempMailMessage[]> {
+        return new Promise(resolve => {
+            let time = 0;
+            const itl = setInterval(async () => {
+                const response = await this.client.get(`inboxes/${this.address}`);
+                if (response.data && response.data.length > 0) {
+                    resolve(response.data.map((item: any) => ({...item, content: item.mail_html})));
+                    clearInterval(itl);
+                    return;
+                }
+                if (time > 5) {
+                    resolve([]);
+                    clearInterval(itl);
+                    return;
+                }
+                time++;
+            }, 10000);
+        });
+    }
+
+    async getDomainsList(): Promise<string[]> {
+        const res = await this.client.get(`/domains`);
+        return res.data.map((item: any) => item.qdn);
+    }
+
+    async randomDomain(): Promise<string> {
+        const domainList = await this.getDomainsList();
+        return domainList[Math.floor(Math.random() * domainList.length)];
+    }
+}
+
 
 class TempMail extends BaseEmail {
     private readonly client: AxiosInstance;
