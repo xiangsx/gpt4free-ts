@@ -180,11 +180,15 @@ export class Poef extends Chat implements BrowserUser<Account> {
                 return 6000;
             case ModelType.GPT3p5Turbo:
                 return 3000;
+            case ModelType.GPT3p5_16k:
+                return 15000;
             case ModelType.Gpt4free:
                 return 4000;
             case ModelType.Sage:
                 return 4000;
             case ModelType.GooglePalm:
+                return 4000;
+            case ModelType.GPT4_32k:
                 return 4000;
             case ModelType.Claude2_100k:
                 return 80000
