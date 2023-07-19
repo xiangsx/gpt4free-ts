@@ -361,6 +361,16 @@ export class Poe extends Chat implements BrowserUser<Account> {
                     // console.log(`message id different`, {unique_id, currMsgID});
                     return;
                 }
+                if (text.indexOf(`Sorry, you've exceeded your monthly usage limit for this bot`) === -1) {
+                    clearTimeout(tt);
+                    client.removeAllListeners('Network.webSocketFrameReceived');
+                    await page.waitForSelector(Poe.ClearSelector);
+                    await page.click(Poe.ClearSelector);
+                    account.invalid = true;
+                    destroy(true);
+                    await this.askStream(req, stream);
+                    return;
+                }
                 switch (state) {
                     case 'complete':
                         clearTimeout(tt);
@@ -373,7 +383,7 @@ export class Poe extends Chat implements BrowserUser<Account> {
                         account.failedCnt = 0;
                         this.accountPool.syncfile();
                         done(account);
-                        console.log('poe recv msg complete')
+                        console.log('poe recv msg complete');
                         return;
                     case 'incomplete':
                         stream.write(Event.message, {content: text.substring(old.length)});
