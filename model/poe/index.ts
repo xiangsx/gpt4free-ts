@@ -361,7 +361,7 @@ export class Poe extends Chat implements BrowserUser<Account> {
                     // console.log(`message id different`, {unique_id, currMsgID});
                     return;
                 }
-                if (text.indexOf(`Sorry, you've exceeded your monthly usage limit for this bot`) === -1) {
+                if (text.indexOf(`Sorry, you've exceeded your monthly usage limit for this bot`) !== -1) {
                     clearTimeout(tt);
                     client.removeAllListeners('Network.webSocketFrameReceived');
                     await page.waitForSelector(Poe.ClearSelector);
