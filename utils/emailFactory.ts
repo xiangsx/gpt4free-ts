@@ -10,6 +10,7 @@ export enum TempEmailType {
     // not need credit card and not need credit rapid_api_key
     TempMailLOL = 'tempmail-lol',
     Inbox = 'inbox',
+    Internal = 'internal',
 }
 
 export function CreateEmail(tempMailType: TempEmailType, options?: BaseOptions): BaseEmail {
@@ -22,6 +23,8 @@ export function CreateEmail(tempMailType: TempEmailType, options?: BaseOptions):
             return new TempMailLOL(options);
         case TempEmailType.Inbox:
             return new Inbox(options);
+        case TempEmailType.Internal:
+            return new Internal(options);
         default:
             throw new Error('not support TempEmailType')
     }
@@ -86,7 +89,7 @@ class Inbox extends BaseEmail {
                 'X-RapidAPI-Key': apikey,
                 'X-RapidAPI-Host': 'inboxes-com.p.rapidapi.com'
             }
-        } as CreateAxiosDefaults,false);
+        } as CreateAxiosDefaults, false);
     }
 
     public async getMailAddress(): Promise<string> {
@@ -274,5 +277,65 @@ class TempMailLOL extends BaseEmail {
                 time++;
             }, 10000);
         });
+    }
+}
+
+class Internal extends BaseEmail {
+    private apiUrl: string;
+    private client: AxiosInstance;
+
+    constructor(options?: BaseOptions) {
+        super(options);
+        this.apiUrl = "https://api.internal.temp-mail.io/api/v3";
+        this.client = CreateAxiosProxy({
+            baseURL: "https://api.internal.temp-mail.io/api/v3",
+        });
+    }
+
+    public async getMailAddress(): Promise<string> {
+        const length = Math.floor(Math.random() * (15 - 8 + 1)) + 8;
+        const characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        let address = "";
+        for (let i = 0; i < length; i++) {
+            address += characters.charAt(Math.floor(Math.random() * characters.length));
+        }
+        const data = {
+            name: address,
+            domain: "gixenmixen.com",
+        };
+        const response = await this.client.post('/email/new', data);
+        const result = response.data;
+        console.log(data);
+        console.log(result);
+        return result.email;
+    }
+
+    public async waitMails(): Promise<BaseMailMessage[]> {
+        const mailAddress = await this.getMailAddress();
+        let times = 0;
+        while (true) {
+            const response = await this.client.get(`/email/${mailAddress}/messages`);
+            console.log(`正在获取邮件：${times}`);
+            if (response.status === 200) {
+                const data = response.data;
+                if (data.length > 0) {
+                    try {
+                        const mail = data[0];
+                        const content = mail.body_html;
+                        const parser = new DOMParser();
+                        const htmlDoc = parser.parseFromString(content, "text/html");
+                        const codeDiv = htmlDoc.querySelector("div[style='font-family:system-ui, Segoe UI, sans-serif;font-size:19px;font-weight:700;line-height:1.6;text-align:center;color:#333333;']");
+                        const code = codeDiv?.textContent||'';
+                        return [{content: code}]
+                    } catch (error) {
+                        console.log("error");
+                    }
+                    break;
+                }
+            }
+            await new Promise((resolve) => setTimeout(resolve, 200));
+            times++;
+        }
+        return [];
     }
 }
