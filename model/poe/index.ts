@@ -30,7 +30,7 @@ const ModelMap: Partial<Record<ModelType, any>> = {
 }
 
 
-const MaxFailedTimes = 20;
+const MaxFailedTimes = 10;
 const MaxGptTimes = 500;
 
 const TimeFormat = "YYYY-MM-DD HH:mm:ss";
@@ -325,9 +325,8 @@ export class Poe extends Chat implements BrowserUser<Account> {
                 this.accountPool.syncfile();
                 if (account.failedCnt >= MaxFailedTimes) {
                     destroy(true);
-                    account.invalid = true;
                     this.accountPool.syncfile();
-                    console.log(`poe account failed cnt > 20, destroy ok`);
+                    console.log(`poe account failed cnt > 10, destroy ok`);
                 } else {
                     await page.reload();
                     done(account);
@@ -336,7 +335,7 @@ export class Poe extends Chat implements BrowserUser<Account> {
                     console.error('poe wait ack ws timeout, retry!');
                     await this.askStream(req, stream);
                 }
-            }, 20 * 1000);
+            }, 10 * 1000);
             let currMsgID = '';
             et = client.on('Network.webSocketFrameReceived', async ({response}) => {
                 tt.refresh();
@@ -409,7 +408,6 @@ export class Poe extends Chat implements BrowserUser<Account> {
             account.failedCnt += 1;
             if (account.failedCnt >= MaxFailedTimes) {
                 destroy(true);
-                account.invalid = true;
                 this.accountPool.syncfile();
                 console.log(`poe account failed cnt > 10, destroy ok`);
             } else {
