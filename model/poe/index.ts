@@ -106,6 +106,9 @@ class PoeAccountPool {
             fs.mkdirSync('./run', {recursive: true});
             this.syncfile();
         }
+        for (const key in this.pool) {
+            this.pool[key].failedCnt = 0;
+        }
         for (const pb of pbList) {
             if (this.pool[pb]) {
                 continue;
