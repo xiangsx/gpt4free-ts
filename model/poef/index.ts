@@ -116,7 +116,7 @@ class PoeAccountPool {
                 invalid: false,
             };
         }
-        console.log(`read poe account total:${Object.keys(this.pool).length}`)
+        console.log(`read poef account total:${Object.keys(this.pool).length}`)
         this.syncfile();
     }
 

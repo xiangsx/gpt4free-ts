@@ -144,7 +144,7 @@ class PoeAccountPool {
     public get(): Account {
         for (const v of shuffleArray(Object.keys(this.pool))) {
             const vv = this.pool[v];
-            if (!vv.invalid && !this.using.has(vv.id) && vv.failedCnt <= MaxFailedTimes) {
+            if (!vv.invalid && !this.using.has(vv.id)) {
                 this.using.add(vv.id);
                 return vv;
             }
