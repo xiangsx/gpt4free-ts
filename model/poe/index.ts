@@ -149,6 +149,7 @@ class PoeAccountPool {
             const vv = this.pool[v];
             if (!vv.invalid && !this.using.has(vv.id)) {
                 this.using.add(vv.id);
+                vv.failedCnt = 0;
                 return vv;
             }
         }
