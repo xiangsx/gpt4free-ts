@@ -251,7 +251,7 @@ export class Poe extends Chat implements BrowserUser<Account> {
         const [page] = await browser.pages();
         try {
             await page.setCookie({name: 'p-b', value: account.pb, domain: 'poe.com'});
-            await page.goto(`https://poe.com/GPT-4-32K`)
+            await page.goto(`https://poe.com/GPT-4`)
             if (!(await Poe.isLogin(page))) {
                 account.invalid = true;
                 this.accountPool.syncfile();
