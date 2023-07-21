@@ -312,10 +312,11 @@ export class Poe extends Chat implements BrowserUser<Account> {
             await page?.reload();
             url = page?.url();
         }
-        console.log("poe now in", url);
-        if (page?.url().indexOf(ModelMap[req.model]) === -1) {
-            console.log(`poe go to ${ModelMap[req.model]}`);
-            await page?.goto(`https://poe.com/${ModelMap[req.model]}`, {waitUntil: 'networkidle0'});
+        const target = ModelMap[req.model];
+        console.log(`poe now in ${url}, target:${target}`,);
+        if (page?.url().indexOf(target) === -1) {
+            await page?.goto(`https://poe.com/${target}`);
+            console.log(`poe go to ${target} ok`);
         }
         if (!account || !page) {
             stream.write(Event.error, {error: 'please retry later!'});
