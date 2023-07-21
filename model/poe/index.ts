@@ -248,7 +248,7 @@ export class Poe extends Chat implements BrowserUser<Account> {
             await sleep(10 * 24 * 60 * 60 * 1000);
             return [] as any;
         }
-        const [page] = await browser.pages();
+        const page = await browser.newPage();
         try {
             await page.setCookie({name: 'p-b', value: account.pb, domain: 'poe.com'});
             await page.goto(`https://poe.com/GPT-4-32K`)
