@@ -314,7 +314,7 @@ export class Poe extends Chat implements BrowserUser<Account> {
         }
         const target = ModelMap[req.model];
         console.log(`poe now in ${url}, target:${target}`,);
-        if (url?.indexOf(target) === -1) {
+        if (!url?.endsWith(target)) {
             await page?.goto(`https://poe.com/${target}`);
             console.log(`poe go to ${target} ok`);
         }
