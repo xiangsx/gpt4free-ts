@@ -251,7 +251,7 @@ export class Poe extends Chat implements BrowserUser<Account> {
         const [page] = await browser.pages();
         try {
             await page.setCookie({name: 'p-b', value: account.pb, domain: 'poe.com'});
-            await page.goto(`https://poe.com/GPT-4`)
+            await page.goto(`https://poe.com/GPT-4-32K`)
             if (!(await Poe.isLogin(page))) {
                 account.invalid = true;
                 this.accountPool.syncfile();
@@ -307,8 +307,14 @@ export class Poe extends Chat implements BrowserUser<Account> {
         // req.prompt = req.prompt.replace(/\n/g, ' ');
         const [page, account, done,
             destroy] = this.pagePool.get();
-        console.log(page?.url());
+        let url = page?.url();
+        if (!url) {
+            await page?.reload();
+            url = page?.url();
+        }
+        console.log("poe now in", url);
         if (page?.url().indexOf(ModelMap[req.model]) === -1) {
+            console.log(`poe go to ${ModelMap[req.model]}`);
             await page?.goto(`https://poe.com/${ModelMap[req.model]}`, {waitUntil: 'networkidle0'});
         }
         if (!account || !page) {
@@ -340,7 +346,7 @@ export class Poe extends Chat implements BrowserUser<Account> {
                     console.error('poe wait ack ws timeout, retry!');
                     await this.askStream(req, stream);
                 }
-            }, 10 * 1000);
+            }, 20 * 1000);
             let currMsgID = '';
             et = client.on('Network.webSocketFrameReceived', async ({response}) => {
                 tt.refresh();
