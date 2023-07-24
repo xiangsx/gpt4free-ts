@@ -424,8 +424,8 @@ data: {"content":"done"}
 ```
 ## 👥 加群细聊
 
-<image src="https://github.com/xiangsx/gpt4free-ts/assets/29322721/213d34c6-0640-4f49-b65f-e6178720d8af" width=240 />
-<image src="https://github.com/xiangsx/gpt4free-ts/assets/29322721/5c79b921-f744-4b26-872d-e05436316215" width=240 />
+<image src="https://github.com/xiangsx/gpt4free-ts/assets/29322721/45b7c50c-0a08-4a6b-8fc8-9018ff1248cd" width=240 />
+<image src="https://github.com/xiangsx/gpt4free-ts/assets/29322721/a1e881cb-6021-407c-8e43-58fa48bc1999" width=240 />
 
 ## 🌟 Star History
 
