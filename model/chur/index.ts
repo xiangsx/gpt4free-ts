@@ -26,7 +26,7 @@ export class Chur extends Chat {
                 "Cache-Control": "no-cache",
                 "Proxy-Connection": "keep-alive"
             }
-        } as CreateAxiosDefaults);
+        } as CreateAxiosDefaults,false);
     }
 
     support(model: ModelType): number {
