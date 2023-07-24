@@ -17,7 +17,37 @@
 ## 3. 部署教程
 
 ### 3.1 Docker 
-### 3.2 Docker Compose
+### 3.2 Docker Compose（推荐）
+
+安装docker-compose 自行寻找教程安装
+
+私人镜像需要运行命令
+```shell
+docker login
+# 输入用户名密码
+```
+以使用poe为例,首先创建`docker-compose.yaml`文件
+```
+version: "3.9"
+services:
+  gpt4free:
+    image: gpt4freets/gpt4free-ts:0.0.46-private
+    ports:
+      - "3000:3000"
+    restart: always
+    volumes:
+      - ./run:/usr/src/app/run
+    environment:
+      - http_proxy=http://127.0.0.1:7890
+      - POE_PB=xxxxxxx|xxxxxxxxxxxxx
+      - POE_POOL_SIZE=1
+```
+在`docker-compose.yaml`同级目录下，使用命令
+```
+docker-compose up -d
+```
+成功运行！访问 `服务地址:3000/poe/v1/chat/completions` 即可使用api
+
 ### 3.3 Sealos
 ### 3.4 Windows 版本docker
 
