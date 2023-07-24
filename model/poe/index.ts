@@ -348,6 +348,7 @@ export class Poe extends Chat implements BrowserUser<Account> {
                 }
                 if (!stream.stream().writableEnded && !stream.stream().closed) {
                     if ((req?.retry||0) > 3) {
+                        console.log('poe try times > 3, return error');
                         stream.write(Event.error, {error: 'please retry later!'});
                         stream.write(Event.done, {content: ''})
                         stream.end();
