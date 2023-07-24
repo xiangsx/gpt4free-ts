@@ -162,6 +162,9 @@ class PoeAccountPool {
     }
 }
 
+interface PoeChatRequest extends ChatRequest {
+    retry?: number;
+}
 
 export class Poe extends Chat implements BrowserUser<Account> {
     private pagePool: BrowserPool<Account>;
@@ -303,7 +306,7 @@ export class Poe extends Chat implements BrowserUser<Account> {
     public static FreeModal = ".ReactModal__Body--open > .ReactModalPortal > .ReactModal__Overlay > .ReactModal__Content";
     public static TalkToGpt = "body > #__next > .LoggedOutBotInfoPage_layout__Y_z0i > .LoggedOutBotInfoPage_botInfo__r2z3X > .LoggedOutBotInfoPage_appButton__UO6NU";
 
-    public async askStream(req: ChatRequest, stream: EventStream) {
+    public async askStream(req: PoeChatRequest, stream: EventStream) {
         req.prompt = req.prompt.replace(/assistant/g, 'result');
         const [page, account, done,
             destroy] = this.pagePool.get();
@@ -344,7 +347,14 @@ export class Poe extends Chat implements BrowserUser<Account> {
                     done(account);
                 }
                 if (!stream.stream().writableEnded && !stream.stream().closed) {
+                    if ((req?.retry||0) > 3) {
+                        stream.write(Event.error, {error: 'please retry later!'});
+                        stream.write(Event.done, {content: ''})
+                        stream.end();
+                        return;
+                    }
                     console.error('poe wait ack ws timeout, retry!');
+                    req.retry = req.retry ? req.retry + 1 : 1;
                     await this.askStream(req, stream);
                 }
             }, 20 * 1000);
