@@ -299,7 +299,7 @@ export class Poef extends Chat implements BrowserUser<Account> {
     public static TalkToGpt = "body > #__next > .LoggedOutBotInfoPage_layout__Y_z0i > .LoggedOutBotInfoPage_botInfo__r2z3X > .LoggedOutBotInfoPage_appButton__UO6NU";
 
     public async askStream(req: ChatRequest, stream: EventStream) {
-        // req.prompt = req.prompt.replace(/\n/g, ' ');
+        req.prompt = req.prompt.replace(/assistant/g, 'result');
         const [page, account, done,
             destroy] = this.pagePool.get();
         if (page?.url().indexOf(ModelMap[req.model]) === -1) {
