@@ -80,6 +80,8 @@ export async function CreateNewPage(url: string, options?: { allowExtensions?: b
     const browser = await puppeteer.launch({
         headless: process.env.DEBUG === "1" ? false : 'new',
         args: [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
             `--proxy-server=${proxy}`,
             `--disable-extensions-except=${process.env.EXTENSIONS_PATH}`,
             `--load-extension=${process.env.EXTENSIONS_PATH}`,
