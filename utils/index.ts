@@ -212,3 +212,16 @@ export const isSimilarity = (s1: string, s2: string): boolean => {
 export const randomUserAgent = (): string => {
     return new UserAgent().toString();
 }
+
+export function extractStrNumber(input: string): number {
+    // 使用正则表达式匹配所有的数字
+    let matches = input.match(/\d+/g);
+    if (matches) {
+        // 将所有匹配的数字组合成一个新的字符串
+        let numberString = matches.join('');
+        // 将新的字符串转换为整数
+        return parseInt(numberString);
+    }
+    // 如果输入的字符串中没有数字，返回0
+    return 0;
+}

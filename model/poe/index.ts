@@ -6,6 +6,7 @@ import {
     ErrorData,
     Event,
     EventStream,
+    extractStrNumber,
     isSimilarity,
     MessageData,
     parseJSON,
@@ -31,9 +32,8 @@ const ModelMap: Partial<Record<ModelType, any>> = {
 
 
 const MaxFailedTimes = 10;
-const MaxGptTimes = 500;
 
-const TimeFormat = "YYYY-MM-DD HH:mm:ss";
+type UseLeft = Partial<Record<ModelType, number>>;
 
 type Account = {
     id: string;
@@ -43,6 +43,7 @@ type Account = {
     pb: string;
     failedCnt: number;
     invalid?: boolean;
+    use_left?: UseLeft;
 }
 
 type HistoryData = {
@@ -245,6 +246,27 @@ export class Poe extends Chat implements BrowserUser<Account> {
         return account.id;
     }
 
+
+    public static SelectorGpt4Left = '.SettingsSubscriptionSection_sectionBubble__nlU_b:nth-child(3) > .SettingsSubscriptionSection_countsSection__48sVJ > .SettingsSubscriptionSection_countRowContainer__ZJ419:nth-child(2) > .SettingsSubscriptionSection_countRow__GMItW > .SettingsSubscriptionSection_subtitle__Z7mcW:nth-child(2)';
+    public static SelectorGpt4_32kLeft = '.SettingsSubscriptionSection_sectionBubble__nlU_b:nth-child(4) > .SettingsSubscriptionSection_countsSection__48sVJ > .SettingsSubscriptionSection_countRowContainer__ZJ419 > .SettingsSubscriptionSection_countRow__GMItW > .SettingsSubscriptionSection_subtitle__Z7mcW:nth-child(2)';
+    public static SelectorGpt3_16kLeft = '.SettingsSubscriptionSection_sectionBubble__nlU_b:nth-child(5) > .SettingsSubscriptionSection_countsSection__48sVJ > .SettingsSubscriptionSection_countRowContainer__ZJ419 > .SettingsSubscriptionSection_countRow__GMItW > .SettingsSubscriptionSection_subtitle__Z7mcW:nth-child(2)';
+    public static SelectorClaude2_100k = '.SettingsSubscriptionSection_sectionBubble__nlU_b:nth-child(1) > .SettingsSubscriptionSection_countsSection__48sVJ > .SettingsSubscriptionSection_countRowContainer__ZJ419:nth-child(2) > .SettingsSubscriptionSection_countRow__GMItW > .SettingsSubscriptionSection_subtitle__Z7mcW:nth-child(2)';
+
+    public static async getUseLeft(page: Page): Promise<UseLeft> {
+        await page.goto("https://poe.com/settings");
+        return {
+            [ModelType.GPT4]: await Poe.getSelectorCnt(page, Poe.SelectorGpt4Left),
+            [ModelType.GPT4_32k]: await Poe.getSelectorCnt(page, Poe.SelectorGpt4_32kLeft),
+            [ModelType.GPT3p5_16k]: await Poe.getSelectorCnt(page, Poe.SelectorGpt3_16kLeft),
+            [ModelType.Claude2_100k]: await Poe.getSelectorCnt(page, Poe.SelectorClaude2_100k),
+        };
+    }
+
+    public static async getSelectorCnt(page: Page, selector: string): Promise<number> {
+        const v: string = await page.evaluate((arg1) => document.querySelector(arg1)?.textContent || '', selector);
+        return extractStrNumber(v);
+    }
+
     async init(id: string, browser: Browser): Promise<[Page | undefined, Account]> {
         const account = this.accountPool.getByID(id);
         if (!account) {
@@ -268,12 +290,14 @@ export class Poe extends Chat implements BrowserUser<Account> {
                 this.accountPool.syncfile();
                 throw new Error(`account:${account?.pb}, not vip`);
             }
+            account.use_left = await Poe.getUseLeft(page);
+            this.accountPool.syncfile();
             console.log(`poe init ok! ${account.pb}`);
             return [page, account];
         } catch (e) {
             account.failedCnt += 1;
             this.accountPool.syncfile();
-            console.warn(`account:${account?.pb}, something error happened.`);
+            console.warn(`account:${account?.pb}, something error happened.`, e);
             return [] as any;
         }
     }
@@ -309,10 +333,26 @@ export class Poe extends Chat implements BrowserUser<Account> {
     public async askStream(req: PoeChatRequest, stream: EventStream) {
         req.prompt = req.prompt.replace(/assistant/g, 'result');
         if (req.model === ModelType.Claude2_100k || req.model === ModelType.Claude100k || req.model === ModelType.Claude || req.model === ModelType.ClaudeInstance) {
-            req.prompt = req.messages?.[req.messages.length-1]?.content || '';
+            req.prompt = req.messages?.[req.messages.length - 1]?.content || '';
         }
         const [page, account, done,
             destroy] = this.pagePool.get();
+        if (!account || !page) {
+            stream.write(Event.error, {error: 'please retry later!'});
+            stream.write(Event.done, {content: ''})
+            stream.end();
+            return;
+        }
+        if (!((account.use_left?.[req.model] || 1) > 0)) {
+            done(account);
+            this.askStream(req, stream).then();
+            return;
+        }
+        if (account.use_left && account.use_left[req.model]) {
+            //@ts-ignore
+            account.use_left[req.model] -= 1;
+            this.accountPool.syncfile();
+        }
         let url = page?.url();
         if (!url) {
             await page?.reload();
@@ -323,12 +363,6 @@ export class Poe extends Chat implements BrowserUser<Account> {
         if (!url?.endsWith(target)) {
             await page?.goto(`https://poe.com/${target}`);
             console.log(`poe go to ${target} ok`);
-        }
-        if (!account || !page) {
-            stream.write(Event.error, {error: 'please retry later!'});
-            stream.write(Event.done, {content: ''})
-            stream.end();
-            return;
         }
         const client = await page.target().createCDPSession();
         await client.send('Network.enable');
