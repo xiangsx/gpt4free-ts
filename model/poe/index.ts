@@ -309,7 +309,7 @@ export class Poe extends Chat implements BrowserUser<Account> {
     public async askStream(req: PoeChatRequest, stream: EventStream) {
         req.prompt = req.prompt.replace(/assistant/g, 'result');
         if (req.model === ModelType.Claude2_100k || req.model === ModelType.Claude100k || req.model === ModelType.Claude || req.model === ModelType.ClaudeInstance) {
-            req.prompt = req.messages?.[0]?.content || '';
+            req.prompt = req.messages?.[req.messages.length-1]?.content || '';
         }
         const [page, account, done,
             destroy] = this.pagePool.get();
