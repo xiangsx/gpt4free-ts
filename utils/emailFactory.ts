@@ -474,7 +474,7 @@ class Gmail extends BaseEmail {
                     return;
                 }
                 time++;
-            }, 10000);
+            }, 30*1000);
         });
     }
 }
