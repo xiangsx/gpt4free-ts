@@ -13,6 +13,7 @@ export enum TempEmailType {
     Inbox = 'inbox',
     Internal = 'internal',
     SmailPro = 'smail-pro',
+    Gmail = 'gmail',
 }
 
 export function CreateEmail(tempMailType: TempEmailType, options?: BaseOptions): BaseEmail {
@@ -29,6 +30,8 @@ export function CreateEmail(tempMailType: TempEmailType, options?: BaseOptions):
             return new Internal(options);
         case TempEmailType.SmailPro:
             return new SmailPro(options);
+        case TempEmailType.Gmail:
+            return new Gmail(options);
         default:
             throw new Error('not support TempEmailType')
     }
@@ -209,7 +212,7 @@ class TempMail44 extends BaseEmail {
                 'X-RapidAPI-Key': apikey,
                 'X-RapidAPI-Host': 'temp-mail44.p.rapidapi.com'
             }
-        } as CreateAxiosDefaults);
+        } as CreateAxiosDefaults,false);
     }
 
     public async getMailAddress(): Promise<string> {
@@ -411,5 +414,67 @@ export class SmailPro extends BaseEmail {
 
 
         return []
+    }
+}
+
+class Gmail extends BaseEmail {
+    private readonly client: AxiosInstance;
+    private address: string = '';
+    private timestamp?: number = 0;
+
+    constructor(options?: TempMailOptions) {
+        super(options)
+        const apikey = options?.apikey || process.env.rapid_api_key;
+        if (!apikey) {
+            throw new Error('Need apikey for TempMail')
+        }
+        this.client = CreateAxiosProxy({
+            baseURL: 'https://temp-gmail.p.rapidapi.com/',
+            headers: {
+                'X-RapidAPI-Key': apikey,
+                'X-RapidAPI-Host': 'temp-gmail.p.rapidapi.com',
+                'content-type': 'application/json',
+            }
+        } as CreateAxiosDefaults,false);
+    }
+
+    public async getMailAddress(): Promise<string> {
+        const response:any = await this.client.get('/get', {
+            params: {
+                domain: 'gmail.com',
+                username: 'random',
+                server: 'server-1',
+                type: 'real'
+            },
+        } as AxiosRequestConfig);
+        this.address = response.data.items.email;
+        this.timestamp = response.data.items.timestamp;
+        return this.address;
+    }
+
+    public async waitMails(): Promise<TempMailMessage[]> {
+        return new Promise(resolve => {
+            let time = 0;
+            const itl = setInterval(async () => {
+                const checkres = await this.client.get(`/check`,{params:{email:this.address, timestamp: this.timestamp}});
+                const mid = checkres.data.items[0]?.mid;
+                if (!mid) {
+                    return;
+                }
+                const response = await this.client.get(`/read`,{params:{email:this.address, message_id: mid}});
+                if (response.data && response.data.items) {
+                    const item = response.data.items;
+                    resolve([{...item, content: item.body}]);
+                    clearInterval(itl);
+                    return;
+                }
+                if (time > 5) {
+                    resolve([]);
+                    clearInterval(itl);
+                    return;
+                }
+                time++;
+            }, 10000);
+        });
     }
 }

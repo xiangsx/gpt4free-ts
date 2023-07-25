@@ -115,7 +115,7 @@ export class Copilot extends Chat implements BrowserUser<Account> {
         this.model = options?.model || ModelType.GPT4;
         this.accountPool = new CopilotAccountPool();
         let maxSize = +(process.env.COPILOT_POOL_SIZE || 0);
-        this.pagePool = new BrowserPool<Account>(maxSize, this, true, 60 * 1000);
+        this.pagePool = new BrowserPool<Account>(maxSize, this, true, 3 * 1000);
         this.client = CreateAxiosProxy({
             baseURL: 'https://api.pipe3.xyz/api',
             headers:{
@@ -239,7 +239,7 @@ export class Copilot extends Chat implements BrowserUser<Account> {
                 throw new Error('Error while obtaining verfication URL!')
             }
             await page.goto(validateURL);
-            await sleep(1000);
+            await sleep(2000);
             const password = randomStr(10);
             await page.waitForSelector('#password')
             await page.click('#password')
@@ -270,7 +270,7 @@ export class Copilot extends Chat implements BrowserUser<Account> {
 
     public static async ifLogin(page: Page): Promise<boolean> {
         try {
-            await page.waitForSelector('#root > .app > .sider > .premium > .user-info')
+            await page.waitForSelector('#root > .app > .sider > .premium > .user-info',{timeout: 10 * 1000})
             await page.click('#root > .app > .sider > .premium > .user-info')
             console.log('still login in');
             return true;
