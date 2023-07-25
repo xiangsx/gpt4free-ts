@@ -346,9 +346,11 @@ export class Poe extends Chat implements BrowserUser<Account> {
         if (!((account.use_left?.[req.model] || 1) > 0)) {
             done(account);
             this.askStream(req, stream).then();
+            console.log(`pb ${account.pb} ${req.model} left = 0, change pb ok!`);
             return;
         }
         if (account.use_left && account.use_left[req.model]) {
+            console.log(`pb ${account.pb} ${req.model} left ${account.use_left[req.model]}`)
             //@ts-ignore
             account.use_left[req.model] -= 1;
             this.accountPool.syncfile();
