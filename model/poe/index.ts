@@ -393,7 +393,7 @@ export class Poe extends Chat implements BrowserUser<Account> {
                         stream.end();
                         return;
                     }
-                    console.error('poe wait ack ws timeout, retry!');
+                    console.error(`pb ${account.pb} wait ack ws timeout, retry!`);
                     req.retry = req.retry ? req.retry + 1 : 1;
                     await this.askStream(req, stream);
                 }
