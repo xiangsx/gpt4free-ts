@@ -308,6 +308,9 @@ export class Poe extends Chat implements BrowserUser<Account> {
 
     public async askStream(req: PoeChatRequest, stream: EventStream) {
         req.prompt = req.prompt.replace(/assistant/g, 'result');
+        if (req.model === ModelType.Claude2_100k || req.model === ModelType.Claude100k || req.model === ModelType.Claude || req.model === ModelType.ClaudeInstance) {
+            req.prompt = req.messages?.[0]?.content || '';
+        }
         const [page, account, done,
             destroy] = this.pagePool.get();
         let url = page?.url();
@@ -347,7 +350,7 @@ export class Poe extends Chat implements BrowserUser<Account> {
                     done(account);
                 }
                 if (!stream.stream().writableEnded && !stream.stream().closed) {
-                    if ((req?.retry||0) > 3) {
+                    if ((req?.retry || 0) > 3) {
                         console.log('poe try times > 3, return error');
                         stream.write(Event.error, {error: 'please retry later!'});
                         stream.write(Event.done, {content: ''})
