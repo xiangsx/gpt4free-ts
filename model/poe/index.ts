@@ -149,6 +149,10 @@ class PoeAccountPool {
         for (const v of shuffleArray(Object.keys(this.pool))) {
             const vv = this.pool[v];
             if (!vv.invalid && !this.using.has(vv.id)) {
+                if (vv.use_left && vv.use_left[ModelType.GPT4] === 0 && vv.use_left[ModelType.GPT4_32k] === 0) {
+                    vv.invalid = true;
+                    continue;
+                }
                 this.using.add(vv.id);
                 vv.failedCnt = 0;
                 return vv;
