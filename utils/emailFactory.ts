@@ -1,6 +1,7 @@
 import {AxiosInstance, AxiosRequestConfig, CreateAxiosDefaults} from 'axios';
-import {md5, randomStr} from "./index";
-import {CreateAxiosProxy} from "./proxyAgent";
+import {md5, randomStr, sleep} from "./index";
+import {CreateAxiosProxy, CreateNewPage} from "./proxyAgent";
+import {Page} from "puppeteer";
 
 export enum TempEmailType {
     // need credit card https://rapidapi.com/Privatix/api/temp-mail
@@ -11,6 +12,7 @@ export enum TempEmailType {
     TempMailLOL = 'tempmail-lol',
     Inbox = 'inbox',
     Internal = 'internal',
+    SmailPro = 'smail-pro',
 }
 
 export function CreateEmail(tempMailType: TempEmailType, options?: BaseOptions): BaseEmail {
@@ -25,6 +27,8 @@ export function CreateEmail(tempMailType: TempEmailType, options?: BaseOptions):
             return new Inbox(options);
         case TempEmailType.Internal:
             return new Internal(options);
+        case TempEmailType.SmailPro:
+            return new SmailPro(options);
         default:
             throw new Error('not support TempEmailType')
     }
@@ -61,7 +65,7 @@ interface BaseOptions {
 }
 
 abstract class BaseEmail {
-    protected constructor(options?: BaseOptions) {
+    public constructor(options?: BaseOptions) {
     }
 
     public abstract getMailAddress(): Promise<string>
@@ -325,7 +329,7 @@ class Internal extends BaseEmail {
                         const parser = new DOMParser();
                         const htmlDoc = parser.parseFromString(content, "text/html");
                         const codeDiv = htmlDoc.querySelector("div[style='font-family:system-ui, Segoe UI, sans-serif;font-size:19px;font-weight:700;line-height:1.6;text-align:center;color:#333333;']");
-                        const code = codeDiv?.textContent||'';
+                        const code = codeDiv?.textContent || '';
                         return [{content: code}]
                     } catch (error) {
                         console.log("error");
@@ -337,5 +341,75 @@ class Internal extends BaseEmail {
             times++;
         }
         return [];
+    }
+}
+
+export class SmailPro extends BaseEmail {
+    private page?: Page;
+
+    async getMailAddress() {
+        if (!this.page) {
+            this.page = await CreateNewPage('http://smailpro.com/advanced');
+        }
+        const page = this.page;
+        await page.waitForSelector('.grid > .md\\:rounded-md > .absolute:nth-child(2) > .w-6 > path');
+        await page.click('.grid > .md\\:rounded-md > .absolute:nth-child(2) > .w-6 > path');
+
+        await page.waitForSelector('.relative > .absolute > .text-gray-500 > .h-6 > path')
+        await page.click('.relative > .absolute > .text-gray-500 > .h-6 > path')
+        await page.waitForSelector('#autosuggest__input')
+        await page.click('#autosuggest__input')
+        await page.type("#autosuggest__input", 'random@googlemail.com', {delay: 100});
+        await page.waitForSelector('.w-full > .relative > .absolute > .px-2 > span');
+        await page.click('.w-full > .relative > .absolute > .px-2 > span');
+
+        await page.waitForSelector('.w-full > .relative > .absolute > .px-2 > span');
+        await page.click('.w-full > .relative > .absolute > .px-2 > span');
+        while (true) {
+            await page.waitForSelector('#app > .mb-auto > .grid > .md\\:rounded-md > .w-full');
+            // await page.click('#app > .mb-auto > .grid > .md\\:rounded-md > .w-full');
+            const email = await page.evaluate(() => document.querySelector('#app > .mb-auto > .grid > .md\\:rounded-md > .w-full')?.textContent || '');
+            await sleep(5 * 1000);
+            if (email.indexOf('googlemail') !== -1) {
+                return email.replace(/ /g, '');
+            }
+        }
+    }
+
+    async waitMails(): Promise<BaseMailMessage[]> {
+        const page = this.page;
+        if (!page) {
+            return [];
+        }
+        let times = 0;
+        while (true) {
+            try {
+                await page.waitForSelector('.flex-auto > .flex > .inline-flex > .order-last > .h-6', {timeout: 5 * 1000});
+                await page.click('.flex-auto > .flex > .inline-flex > .order-last > .h-6');
+
+                await page.waitForSelector('.flex-auto > .flex > .py-2 > .scrollbar > .px-2', {timeout: 5 * 1000});
+                await page.click('.flex-auto > .flex > .py-2 > .scrollbar > .px-2');
+
+                await page.waitForSelector(".flex > div > div > .mt-2 > .w-full", {timeout: 5 * 1000});
+                // 获取 srcdoc 属性
+                //@ts-ignore
+                const content = await page.evaluate(() => {return document.querySelector(".flex > div > div > .mt-2 > .w-full")?.contentDocument.documentElement.outerHTML || '';});
+                if (content) {
+                    await this.page?.browser().close();
+                    return [{content}];
+                }
+                await sleep(5 * 1000);
+            } catch (e) {
+                if (times >= 6) {
+                    await this.page?.browser().close();
+                    throw new Error('got mails failed');
+                }
+            } finally {
+                times += 1;
+            }
+        }
+
+
+        return []
     }
 }

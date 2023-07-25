@@ -31,11 +31,13 @@ export class BrowserPool<T> {
     private readonly size: number;
     private readonly user: BrowserUser<T>
     private savefile: boolean;
+    private poolDelay: number;
 
-    constructor(size: number, user: BrowserUser<T>, saveFile: boolean = true) {
+    constructor(size: number, user: BrowserUser<T>, saveFile: boolean = true, poolDelay: number = 5 * 1000) {
         this.size = size
         this.user = user;
         this.savefile = saveFile;
+        this.poolDelay = poolDelay;
         this.init();
     }
 
@@ -48,7 +50,7 @@ export class BrowserPool<T> {
             }
             this.pool.push(info)
             this.initOne(id).then()
-            await sleep(5 * 1000);
+            await sleep(this.poolDelay);
         }
     }
 

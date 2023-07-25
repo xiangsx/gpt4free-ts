@@ -3,6 +3,11 @@ import HttpsProxyAgent from "https-proxy-agent";
 import {SessionConstructorOptions} from "tls-client/dist/esm/types";
 import {Session} from "tls-client/dist/esm/sessions";
 import tlsClient from "tls-client";
+import puppeteer from "puppeteer-extra";
+import {PuppeteerLaunchOptions} from "puppeteer";
+import StealthPlugin from "puppeteer-extra-plugin-stealth";
+
+puppeteer.use(StealthPlugin());
 
 const reqProxy = (config: any) => {
     config.params = {
@@ -64,4 +69,25 @@ export function CreateTlsProxy(config: SessionConstructorOptions, proxy?: string
         client.proxy = useProxy;
     }
     return client;
+}
+
+export async function CreateNewPage(url: string, options?: { allowExtensions?: boolean; proxy?: string; args?: string[] }) {
+    const {
+        allowExtensions = false,
+        proxy = process.env.http_proxy,
+        args = [],
+    } = options || {};
+    const browser = await puppeteer.launch({
+        headless: process.env.DEBUG === "1" ? false : 'new',
+        args: [
+            `--proxy-server=${proxy}`,
+            `--disable-extensions-except=${process.env.EXTENSIONS_PATH}`,
+            `--load-extension=${process.env.EXTENSIONS_PATH}`,
+            ...args
+        ]
+    } as PuppeteerLaunchOptions)
+    const page = await browser.newPage();
+    await page.goto(url);
+    await page.setViewport({width: 1920, height: 1080})
+    return page;
 }
