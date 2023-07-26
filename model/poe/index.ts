@@ -326,22 +326,22 @@ export class Poe extends Chat implements BrowserUser<Account> {
 
     public static async isLogin(page: Page) {
         try {
-            await page.waitForSelector(Poe.TalkToGpt, {timeout: 10 * 1000});
+            await page.waitForSelector(Poe.TalkToGpt, {timeout: 5 * 1000});
             return false;
         } catch (e) {
             return true;
         }
     }
 
-    public static async clear(page: Page) {
-        await page.waitForSelector('.ChatApp > .ChatFooter > .tool-bar > .semi-button:nth-child(1) > .semi-button-content', {timeout: 10 * 60 * 1000});
-        await page.click('.ChatApp > .ChatFooter > .tool-bar > .semi-button:nth-child(1) > .semi-button-content')
-    }
-
     public static InputSelector = '.ChatPageMainFooter_footer__Hm4Rt > .ChatMessageInputFooter_footer__1cb8J > .ChatMessageInputContainer_inputContainer__SQvPA > .GrowingTextArea_growWrap___1PZM > .GrowingTextArea_textArea__eadlu';
     public static ClearSelector = '.ChatPageMainFooter_footer__Hm4Rt > .ChatMessageInputFooter_footer__1cb8J > .Button_buttonBase__0QP_m > svg > path';
     public static FreeModal = ".ReactModal__Body--open > .ReactModalPortal > .ReactModal__Overlay > .ReactModal__Content";
     public static TalkToGpt = "body > #__next > .LoggedOutBotInfoPage_layout__Y_z0i > .LoggedOutBotInfoPage_botInfo__r2z3X > .LoggedOutBotInfoPage_appButton__UO6NU";
+
+    public static async clearContext(page: Page) {
+        await page.waitForSelector(Poe.ClearSelector, {timeout: 10 * 60 * 1000});
+        await page.click(Poe.ClearSelector);
+    }
 
     public async askStream(req: PoeChatRequest, stream: EventStream) {
         req.prompt = req.prompt.replace(/assistant/g, 'result');
@@ -387,8 +387,8 @@ export class Poe extends Chat implements BrowserUser<Account> {
             let et: EventEmitter;
             const tt = setTimeout(async () => {
                 client.removeAllListeners('Network.webSocketFrameReceived');
-                await page.waitForSelector(Poe.ClearSelector);
-                await page.click(Poe.ClearSelector);
+                await Poe.clearContext(page);
+                await sleep(2000);
                 account.failedCnt += 1;
                 this.accountPool.syncfile();
                 if (account.failedCnt >= MaxFailedTimes) {
@@ -439,8 +439,6 @@ export class Poe extends Chat implements BrowserUser<Account> {
                 if (text.indexOf(`Sorry, you've exceeded your monthly usage limit for this bot`) !== -1) {
                     clearTimeout(tt);
                     client.removeAllListeners('Network.webSocketFrameReceived');
-                    await page.waitForSelector(Poe.ClearSelector);
-                    await page.click(Poe.ClearSelector);
                     account.invalid = true;
                     destroy(true);
                     await this.askStream(req, stream);
@@ -453,8 +451,8 @@ export class Poe extends Chat implements BrowserUser<Account> {
                         stream.write(Event.message, {content: text.substring(old.length)});
                         stream.write(Event.done, {content: ''});
                         stream.end();
-                        await page.waitForSelector(Poe.ClearSelector);
-                        await page.click(Poe.ClearSelector);
+                        await Poe.clearContext(page);
+                        await sleep(2000);
                         account.failedCnt = 0;
                         this.accountPool.syncfile();
                         done(account);
@@ -467,8 +465,7 @@ export class Poe extends Chat implements BrowserUser<Account> {
                 }
             })
             console.log('poe start send msg');
-            await page.waitForSelector(Poe.ClearSelector);
-            await page.click(Poe.ClearSelector);
+            await Poe.clearContext(page);
             await page.waitForSelector(Poe.InputSelector)
             await page.click(Poe.InputSelector);
             await page.type(Poe.InputSelector, `1`);
