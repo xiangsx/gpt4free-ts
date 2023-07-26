@@ -443,7 +443,7 @@ class Gmail extends BaseEmail {
             params: {
                 domain: 'gmail.com',
                 username: 'random',
-                server: 'server-1',
+                server: 'server-2',
                 type: 'real'
             },
         } as AxiosRequestConfig);
@@ -456,23 +456,28 @@ class Gmail extends BaseEmail {
         return new Promise(resolve => {
             let time = 0;
             const itl = setInterval(async () => {
-                const checkres = await this.client.get(`/check`,{params:{email:this.address, timestamp: this.timestamp}});
-                const mid = checkres.data.items[0]?.mid;
-                if (!mid) {
-                    return;
+                try {
+                    const checkres = await this.client.get(`/check`,{params:{email:this.address, timestamp: this.timestamp}});
+                    const mid = checkres.data.items[0]?.mid;
+                    if (!mid) {
+                        return;
+                    }
+                    const response = await this.client.get(`/read`,{params:{email:this.address, message_id: mid}});
+                    if (response.data && response.data.items) {
+                        const item = response.data.items;
+                        resolve([{...item, content: item.body}]);
+                        clearInterval(itl);
+                        return;
+                    }
+                    if (time > 5) {
+                        resolve([]);
+                        clearInterval(itl);
+                        return;
+                    }
+                }catch (e:any){
+                    console.error(e.message);
                 }
-                const response = await this.client.get(`/read`,{params:{email:this.address, message_id: mid}});
-                if (response.data && response.data.items) {
-                    const item = response.data.items;
-                    resolve([{...item, content: item.body}]);
-                    clearInterval(itl);
-                    return;
-                }
-                if (time > 5) {
-                    resolve([]);
-                    clearInterval(itl);
-                    return;
-                }
+
                 time++;
             }, 30*1000);
         });

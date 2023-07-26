@@ -115,7 +115,7 @@ export class Copilot extends Chat implements BrowserUser<Account> {
         this.model = options?.model || ModelType.GPT4;
         this.accountPool = new CopilotAccountPool();
         let maxSize = +(process.env.COPILOT_POOL_SIZE || 0);
-        this.pagePool = new BrowserPool<Account>(maxSize, this, true, 3 * 1000);
+        this.pagePool = new BrowserPool<Account>(maxSize, this, true, 30 * 1000);
         this.client = CreateAxiosProxy({
             baseURL: 'https://api.pipe3.xyz/api',
             headers:{
