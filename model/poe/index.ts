@@ -7,7 +7,7 @@ import {
     Event,
     EventStream,
     extractStrNumber,
-    isSimilarity,
+    isSimilarity, maskLinks,
     MessageData,
     parseJSON,
     shuffleArray,
@@ -345,6 +345,7 @@ export class Poe extends Chat implements BrowserUser<Account> {
 
     public async askStream(req: PoeChatRequest, stream: EventStream) {
         req.prompt = req.prompt.replace(/assistant/g, 'result');
+        req.prompt = maskLinks(req.prompt);
         if (req.model === ModelType.Claude2_100k || req.model === ModelType.Claude100k || req.model === ModelType.Claude || req.model === ModelType.ClaudeInstance) {
             req.prompt = req.messages?.[req.messages.length - 1]?.content || '';
         }

@@ -225,3 +225,15 @@ export function extractStrNumber(input: string): number {
     // 如果输入的字符串中没有数字，返回0
     return 0;
 }
+
+export function maskLinks(input: string): string {
+    // 定义一个正则表达式，用于匹配http或https的链接
+    const linkRegex = /(http|https):\/\/[\w\-_]+(\.[\w\-_]+)+([\w\-\.,@?^=%&:/~\+#]*[\w\-\@?^=%&/~\+#])?/g;
+
+    // 使用replace方法将所有的链接的http或https部分替换为"htxxp://"或"htxxps://"的字样
+    const output = input.replace(linkRegex, function(match: string) {
+        return match.replace(/http/g, "htxxp");
+    });
+
+    return output;
+}
