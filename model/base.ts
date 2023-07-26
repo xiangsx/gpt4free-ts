@@ -26,6 +26,9 @@ export enum ModelType {
     Claude2_100k = 'claude-2-100k',
     Gpt4free = 'gpt4free',
     GooglePalm = 'google-palm',
+    Llama_2_70b = 'llama-2-70b',
+    Llama_2_13b = 'llama-2-13b',
+    Llama_2_7b = 'llama-2-7b',
 }
 
 export interface ChatRequest {

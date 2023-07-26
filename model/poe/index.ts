@@ -28,6 +28,9 @@ const ModelMap: Partial<Record<ModelType, any>> = {
     [ModelType.GooglePalm]: 'Google-PaLM',
     [ModelType.Claude2_100k]: 'Claude-2-100k',
     [ModelType.GPT4_32k]: 'GPT-4-32K',
+    [ModelType.Llama_2_70b]: 'Llama-2-70b',
+    [ModelType.Llama_2_13b]: 'Llama-2-13b',
+    [ModelType.Llama_2_7b]: 'Llama-2-7b',
 }
 
 
@@ -192,6 +195,12 @@ export class Poe extends Chat implements BrowserUser<Account> {
             case ModelType.GPT4:
                 return 5000;
             case ModelType.GPT3p5Turbo:
+                return 3000;
+            case ModelType.Llama_2_7b:
+                return 3000;
+            case ModelType.Llama_2_13b:
+                return 3000;
+            case ModelType.Llama_2_70b:
                 return 3000;
             case ModelType.GPT3p5_16k:
                 return 15000;
