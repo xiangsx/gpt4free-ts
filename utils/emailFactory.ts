@@ -1,5 +1,5 @@
 import {AxiosInstance, AxiosRequestConfig, CreateAxiosDefaults} from 'axios';
-import {md5, randomStr, sleep} from "./index";
+import {Lock, md5, randomStr, sleep} from "./index";
 import {CreateAxiosProxy, CreateNewPage} from "./proxyAgent";
 import {Page} from "puppeteer";
 
@@ -16,6 +16,8 @@ export enum TempEmailType {
     Gmail = 'gmail',
 }
 
+const gmailLock = new Lock();
+
 export function CreateEmail(tempMailType: TempEmailType, options?: BaseOptions): BaseEmail {
     switch (tempMailType) {
         case TempEmailType.TempEmail44:
@@ -31,7 +33,7 @@ export function CreateEmail(tempMailType: TempEmailType, options?: BaseOptions):
         case TempEmailType.SmailPro:
             return new SmailPro(options);
         case TempEmailType.Gmail:
-            return new Gmail(options);
+            return new Gmail({...options, lock: gmailLock});
         default:
             throw new Error('not support TempEmailType')
     }
@@ -212,7 +214,7 @@ class TempMail44 extends BaseEmail {
                 'X-RapidAPI-Key': apikey,
                 'X-RapidAPI-Host': 'temp-mail44.p.rapidapi.com'
             }
-        } as CreateAxiosDefaults,false);
+        } as CreateAxiosDefaults, false);
     }
 
     public async getMailAddress(): Promise<string> {
@@ -417,33 +419,39 @@ export class SmailPro extends BaseEmail {
     }
 }
 
+export interface GmailOptions extends BaseOptions {
+    lock: Lock;
+}
+
 class Gmail extends BaseEmail {
     private readonly client: AxiosInstance;
     private address: string = '';
     private timestamp?: number = 0;
+    private lock: Lock;
 
-    constructor(options?: TempMailOptions) {
+    constructor(options: GmailOptions) {
         super(options)
-        const apikey = options?.apikey || process.env.rapid_api_key;
+        const apikey = process.env.rapid_api_key || '';
+        this.lock = options.lock;
         if (!apikey) {
             throw new Error('Need apikey for TempMail')
         }
         this.client = CreateAxiosProxy({
-            baseURL: 'https://temp-gmail.p.rapidapi.com/',
+            baseURL: 'https://temp-gmail.p.rapidapi.com',
             headers: {
                 'X-RapidAPI-Key': apikey,
                 'X-RapidAPI-Host': 'temp-gmail.p.rapidapi.com',
-                'content-type': 'application/json',
             }
-        } as CreateAxiosDefaults,false);
+        } as CreateAxiosDefaults, false);
     }
 
     public async getMailAddress(): Promise<string> {
-        const response:any = await this.client.get('/get', {
+        await this.lock.WailLock(60 * 1000);
+        const response: any = await this.client.get('/get', {
             params: {
-                domain: 'gmail.com',
+                domain: 'googlemail.com',
                 username: 'random',
-                server: 'server-2',
+                server: 'server-3',
                 type: 'real'
             },
         } as AxiosRequestConfig);
@@ -452,34 +460,51 @@ class Gmail extends BaseEmail {
         return this.address;
     }
 
+    public async check(): Promise<[boolean, string]> {
+        try {
+            const checkres = await this.client.get(`/check`, {
+                params: {
+                    email: this.address,
+                    timestamp: `${this.timestamp}`
+                }
+            });
+            const mid = checkres.data.items[0]?.mid;
+            return [checkres.data.msg === 'ok', mid || ''];
+        } catch (e: any) {
+            console.log('check email failed, err = ', e.message);
+            return [false, ''];
+        }
+    }
+
     public async waitMails(): Promise<TempMailMessage[]> {
         return new Promise(resolve => {
             let time = 0;
             const itl = setInterval(async () => {
                 try {
-                    const checkres = await this.client.get(`/check`,{params:{email:this.address, timestamp: this.timestamp}});
-                    const mid = checkres.data.items[0]?.mid;
+                    const [ok, mid] = await this.check();
                     if (!mid) {
                         return;
                     }
-                    const response = await this.client.get(`/read`,{params:{email:this.address, message_id: mid}});
+                    const response = await this.client.get(`/read`, {params: {email: this.address, message_id: mid}});
                     if (response.data && response.data.items) {
                         const item = response.data.items;
                         resolve([{...item, content: item.body}]);
+                        this.lock.Unlock();
                         clearInterval(itl);
                         return;
                     }
                     if (time > 5) {
                         resolve([]);
+                        this.lock.Unlock();
                         clearInterval(itl);
                         return;
                     }
-                }catch (e:any){
+                } catch (e: any) {
                     console.error(e.message);
                 }
 
                 time++;
-            }, 30*1000);
+            }, 20 * 1000);
         });
     }
 }

@@ -231,9 +231,44 @@ export function maskLinks(input: string): string {
     const linkRegex = /(http|https):\/\/[\w\-_]+(\.[\w\-_]+)+([\w\-\.,@?^=%&:/~\+#]*[\w\-\@?^=%&/~\+#])?/g;
 
     // 使用replace方法将所有的链接的http或https部分替换为"htxxp://"或"htxxps://"的字样
-    const output = input.replace(linkRegex, function(match: string) {
+    const output = input.replace(linkRegex, function (match: string) {
         return match.replace(/http/g, "htxxp");
     });
 
     return output;
+}
+
+export class Lock {
+    private lock = false;
+    private tid?: NodeJS.Timeout;
+
+    Lock(ms: number) {
+        if (this.lock) {
+            return false;
+        }
+
+        this.lock = true;
+        this.tid = setTimeout(() => this.lock = false, ms);
+        return true;
+    }
+
+    async WailLock(ms: number): Promise<void> {
+        if (this.lock) {
+            await sleep(1000);
+            return this.WailLock(ms);
+        }
+        this.lock = true;
+        this.tid = setTimeout(() => this.lock = false, ms);
+    }
+
+    Unlock() {
+        if (this.tid) {
+            clearTimeout(this.tid);
+        }
+        if (this.lock) {
+            this.lock = false;
+            return true;
+        }
+        return false;
+    }
 }
