@@ -31,7 +31,7 @@ docker login
 version: "3.9"
 services:
   gpt4free:
-    image: gpt4freets/gpt4free-ts:0.0.46-private
+    image: gpt4freets/gpt4free-ts:v0.0.46-private
     ports:
       - "3000:3000"
     restart: always
