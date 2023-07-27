@@ -7,7 +7,8 @@ import {
     Event,
     EventStream,
     extractStrNumber,
-    isSimilarity, maskLinks,
+    isSimilarity,
+    maskLinks,
     MessageData,
     parseJSON,
     shuffleArray,
@@ -448,7 +449,9 @@ export class Poe extends Chat implements BrowserUser<Account> {
                     case 'complete':
                         clearTimeout(tt);
                         client.removeAllListeners('Network.webSocketFrameReceived');
-                        stream.write(Event.message, {content: text.substring(old.length)});
+                        if (text.length > old.length) {
+                            stream.write(Event.message, {content: text.substring(old.length)});
+                        }
                         stream.write(Event.done, {content: ''});
                         stream.end();
                         await Poe.clearContext(page);
@@ -459,8 +462,10 @@ export class Poe extends Chat implements BrowserUser<Account> {
                         console.log('poe recv msg complete');
                         return;
                     case 'incomplete':
-                        stream.write(Event.message, {content: text.substring(old.length)});
-                        old = text;
+                        if (text.length > old.length) {
+                            stream.write(Event.message, {content: text.substring(old.length)});
+                            old = text;
+                        }
                         return;
                 }
             })
