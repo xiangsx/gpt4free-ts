@@ -183,13 +183,13 @@ export class Cursor extends Chat implements BrowserUser<Account> {
                 }
                 switch (event) {
                     case 'message':
-                        result.content = (data as MessageData).content;
+                        result.content += (data as MessageData).content;
                         break;
                     case 'done':
-                        result.content = (data as DoneData).content;
+                        result.content += (data as DoneData).content;
                         break;
                     case 'error':
-                        result.error = (data as ErrorData).error;
+                        result.error += (data as ErrorData).error;
                         break;
                     default:
                         console.error(data);
@@ -199,15 +199,6 @@ export class Cursor extends Chat implements BrowserUser<Account> {
                 resolve(result);
             });
         })
-    }
-
-    private static async closeWelcomePop(page: Page) {
-        try {
-            await page.waitForSelector('div > div > button > .semi-typography > strong', {timeout: 10 * 1000})
-            await page.click('div > div > button > .semi-typography > strong')
-        } catch (e) {
-            console.log('not need close welcome pop');
-        }
     }
 
     deleteID(id: string): void {
@@ -221,11 +212,6 @@ export class Cursor extends Chat implements BrowserUser<Account> {
 
     public static async newChat(page: Page) {
         await page.goto(`https://app.copilothub.ai/chat?id=5323`);
-    }
-
-    private static async getAuthKey(page: Page): Promise<string> {
-        const req = await page.waitForRequest(res => res.url().indexOf('/copilot/config/list') !== -1);
-        return req.headers()['authorization']
     }
 
     async digest(s: string): Promise<ArrayBuffer> {
@@ -313,31 +299,6 @@ export class Cursor extends Chat implements BrowserUser<Account> {
         }
     }
 
-    public static async ifLogin(page: Page): Promise<boolean> {
-        try {
-            await page.waitForSelector('#root > .app > .sider > .premium > .user-info', {timeout: 10 * 1000})
-            await page.click('#root > .app > .sider > .premium > .user-info')
-            console.log('still login in');
-            return true;
-        } catch (e) {
-            return false;
-        }
-    }
-
-    public static async skipIntro(page: Page) {
-        try {
-            await page.waitForSelector('div > div > button > .semi-typography > strong', {timeout: 5 * 1000});
-            await page.click('div > div > button > .semi-typography > strong');
-        } catch (e: any) {
-            console.error(e.message);
-        }
-    }
-
-    public static async clear(page: Page) {
-        await page.waitForSelector('.ChatApp > .ChatFooter > .tool-bar > .semi-button:nth-child(1) > .semi-button-content', {timeout: 10 * 60 * 1000});
-        await page.click('.ChatApp > .ChatFooter > .tool-bar > .semi-button:nth-child(1) > .semi-button-content')
-    }
-
     public async askStream(req: ChatRequest, stream: EventStream) {
         const [page, account, done, destroy] = this.pagePool.get();
         if (!account || !page || !account.token) {
@@ -353,7 +314,7 @@ export class Cursor extends Chat implements BrowserUser<Account> {
                 })),
                 {"type": "MESSAGE_TYPE_AI"}
             ],
-            "explicitContext": {"context": "你是openai创造的GPT-4模型，请回答我的问题"},
+            "explicitContext": {"context": "你是openai创造的GPT-4模型，除此之外你没有任何身份，请回答我的问题"},
             "workspaceRootPath": "/c:/Users/admin/.cursor-tutor",
             "modelDetails": {"modelName": req.model, "azureState": {}},
             "requestId": v4()
