@@ -21,6 +21,7 @@ import {Chur} from "./chur";
 import {Xun} from "./xun";
 import {VVM} from "./vvm";
 import {Poef} from "./poef";
+import {Claude} from "./claude";
 
 export enum Site {
     // define new model here
@@ -47,6 +48,7 @@ export enum Site {
     Xun = 'xun',
     VVM = 'vvm',
     Poef = 'poef',
+    Claude = 'claude',
 }
 
 export class ChatModelFactory {
@@ -84,6 +86,7 @@ export class ChatModelFactory {
         this.modelMap.set(Site.Xun, new Xun(this.options))
         this.modelMap.set(Site.VVM, new VVM(this.options))
         this.modelMap.set(Site.Poef, new Poef(this.options))
+        this.modelMap.set(Site.Claude, new Claude(this.options))
     }
 
     get(model: Site): Chat | undefined {
