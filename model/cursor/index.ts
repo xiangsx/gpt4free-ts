@@ -74,7 +74,7 @@ type AuthRes = {
 
 class CursorAccountPool {
     private pool: Account[] = [];
-    private readonly account_file_path = './run/account_copilot.json';
+    private readonly account_file_path = './run/account_cursor.json';
     private using = new Set<string>();
 
     constructor() {
