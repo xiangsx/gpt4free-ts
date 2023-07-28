@@ -364,15 +364,13 @@ export class Cursor extends Chat implements BrowserUser<Account> {
             res.data.on('close', () => {
                 stream.write(Event.done, {content: ''})
                 stream.end();
-                if (req.model === ModelType.GPT4 || req.model === ModelType.Claude100k) {
+                if (req.model === ModelType.GPT4) {
                     account.gpt4times += 1;
                     this.accountPool.syncfile();
                 }
                 if (account.gpt4times >= MaxGptTimes) {
-                    account.gpt4times = 0;
-                    account.last_use_time = moment().format(TimeFormat);
                     this.accountPool.syncfile();
-                    destroy();
+                    destroy(true);
                 } else {
                     done(account);
                 }
