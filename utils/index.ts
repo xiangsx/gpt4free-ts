@@ -272,3 +272,17 @@ export class Lock {
         return false;
     }
 }
+
+export function encodeBase64(buffer: Buffer, padded = false, urlSafe = true): string {
+    let base64 = buffer.toString('base64');
+
+    if (!padded) {
+        base64 = base64.replace(/=+$/, '');
+    }
+
+    if (urlSafe) {
+        base64 = base64.replace(/\+/g, '-').replace(/\//g, '_');
+    }
+
+    return base64;
+}

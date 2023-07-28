@@ -3,7 +3,7 @@ import {Browser, Page, Protocol} from "puppeteer";
 import {BrowserPool, BrowserUser} from "../../pool/puppeteer";
 import {CreateEmail, TempEmailType, TempMailMessage} from "../../utils/emailFactory";
 import * as fs from "fs";
-import {DoneData, ErrorData, Event, EventStream, MessageData, parseJSON, randomStr, randomUserAgent} from "../../utils";
+import {DoneData, ErrorData, Event, EventStream, MessageData, parseJSON, randomStr} from "../../utils";
 import {v4} from "uuid";
 import moment from 'moment';
 import {AxiosInstance, AxiosRequestConfig} from "axios";
@@ -128,12 +128,10 @@ export class Claude extends Chat implements BrowserUser<Account> {
         this.client = CreateAxiosProxy({
             baseURL: 'https://claude.ai/api',
             headers: {
-                "Content-Type": 'application/json',
-                Accept: '*/*',
-                Connection: 'keep-alive',
-                "User-Agent": "PostmanRuntime/7.32.3",
-            }
-        }, false)
+                'Content-Type': 'application/json',
+                'Accept': 'text/event-stream',
+            },
+        }, false);
     }
 
     support(model: ModelType): number {
@@ -213,7 +211,7 @@ export class Claude extends Chat implements BrowserUser<Account> {
                     this.accountPool.syncfile();
                 })
                 await page.goto('https://claude.ai');
-                account.cookie = (await page.cookies("https://claude.ai")).filter(v => v.name === 'sessionKey');
+                account.cookie = (await page.cookies("https://claude.ai"));
                 if (await this.isLogin(page)) {
                     return [page, account];
                 }
@@ -291,7 +289,7 @@ export class Claude extends Chat implements BrowserUser<Account> {
             await page.click('main > .flex > .max-w-sm > .mt-4 > button:nth-child(2)')
             // end
 
-            account.cookie = (await page.cookies("https://claude.ai")).filter(v => v.name === 'sessionKey');
+            account.cookie = (await page.cookies("https://claude.ai"));
             this.accountPool.syncfile();
             console.log('register claude successfully');
             return [page, account];
