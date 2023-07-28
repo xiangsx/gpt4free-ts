@@ -306,6 +306,7 @@ export class Cursor extends Chat implements BrowserUser<Account> {
             stream.end();
             return;
         }
+        console.log(`cursor account ${account.id} start`);
         const data: RealReq = {
             "conversation": [
                 ...req.messages.map(v => ({
@@ -350,15 +351,18 @@ export class Cursor extends Chat implements BrowserUser<Account> {
                 if (cache.length < 5) {
                     return;
                 }
-                const buf = Buffer.from(cache)
-                const len = buf.slice(1, 5).readInt32BE(0);
-                if (cache.length >= 5 + len) {
+                let len = cache.slice(1, 5).readInt32BE(0);
+                while (cache.length >= 5 + len) {
                     const buf = cache.slice(5, 5 + len);
                     const content = parseJSON(buf.toString(), {text: ''});
                     if (content.text) {
                         stream.write(Event.message, {content: content.text});
                     }
                     cache = cache.slice(5+len);
+                    if (cache.length < 5) {
+                        break;
+                    }
+                    len = cache.slice(1, 5).readInt32BE(0);
                 }
             }))
             res.data.on('close', () => {
