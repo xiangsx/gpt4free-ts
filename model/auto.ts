@@ -20,16 +20,16 @@ const siteMap: ModelSiteMap = new Map([
     ]
     ],
     [ModelType.GPT3p5Turbo, [
-        {site: Site.Chur, priority: 50},
+        {site: Site.Bai, priority: 50},
+        {site: Site.Chur, priority: 20},
         {site: Site.Copilot, priority: 10},
         {site: Site.PWeb, priority: 10},
-        {site: Site.Bai, priority: 50},
         {site: Site.Poe, priority: 10},
     ],
     ],
     [ModelType.GPT3p5_16k, [
-        {site: Site.Chur, priority: 70},
-        {site: Site.Poe, priority: 30},
+        {site: Site.Chur, priority: 50},
+        {site: Site.Poe, priority: 50},
     ]],
 ])
 
