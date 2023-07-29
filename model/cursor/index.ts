@@ -318,10 +318,10 @@ export class Cursor extends Chat implements BrowserUser<Account> {
         };
         const content = JSON.stringify(data);
         const contentBuf = Buffer.from(content);
-        const length = contentBuf.length;
+        const length = contentBuf.byteLength;
         const dataView = new DataView(new ArrayBuffer(4));
         dataView.setInt32(0, length, false)
-        const body = Buffer.concat([Buffer.from([0]), Buffer.from(dataView.buffer), contentBuf, Buffer.from('\u0002\u0000\u0000\u0000\u0000')]).toString();
+        const body = Buffer.concat([Buffer.from([0]), Buffer.from(dataView.buffer), contentBuf, Buffer.from('\u0002\u0000\u0000\u0000\u0000')]);
         try {
             const res = await this.client.post('/aiserver.v1.AiService/StreamChat', body, {
                 responseType: 'stream',
@@ -332,6 +332,7 @@ export class Cursor extends Chat implements BrowserUser<Account> {
                     "connect-protocol-version": "1",
                     "content-type": "application/connect+json",
                     "x-ghost-mode": "true",
+                    'x-request-id': data.requestId,
                 }
             } as AxiosRequestConfig);
 
