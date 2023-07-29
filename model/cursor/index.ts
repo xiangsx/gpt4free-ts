@@ -268,7 +268,7 @@ export class Cursor extends Chat implements BrowserUser<Account> {
             account.password = password;
             await (await browser.newPage()).goto(loginUrl);
             const tokenPath = `/auth/poll?uuid=${uuid}&verifier=${encodeBase64(Buffer.from(u))}`;
-            const token = await this.getToken(tokenPath,20);
+            const token = await this.getToken(tokenPath, 20);
             if (!token) {
                 throw new Error('get access token failed');
             }
@@ -336,7 +336,6 @@ export class Cursor extends Chat implements BrowserUser<Account> {
             } as AxiosRequestConfig);
 
             let cache = Buffer.alloc(0);
-            let ok = false;
             res.data.pipe(es.map(async (chunk: any, cb: any) => {
                 cache = Buffer.concat([cache, Buffer.from(chunk)]);
                 if (cache.length < 5) {
@@ -347,10 +346,9 @@ export class Cursor extends Chat implements BrowserUser<Account> {
                     const buf = cache.slice(5, 5 + len);
                     const content = parseJSON(buf.toString(), {text: ''});
                     if (content.text) {
-                        ok = true;
                         stream.write(Event.message, {content: content.text});
                     }
-                    cache = cache.slice(5+len);
+                    cache = cache.slice(5 + len);
                     if (cache.length < 5) {
                         break;
                     }
@@ -358,20 +356,12 @@ export class Cursor extends Chat implements BrowserUser<Account> {
                 }
             }))
             res.data.on('close', () => {
-                if (!ok) {
-                    console.error(`cursor fuck failed, id:${account.email}`);
-                    this.askStream(req, stream);
-                    account.gpt4times += 1;
-                    this.accountPool.syncfile();
-                    done(account);
-                    return;
-                }
                 stream.write(Event.done, {content: ''});
                 stream.end();
                 if (req.model === ModelType.GPT4) {
                     account.gpt4times += 1;
                     this.accountPool.syncfile();
-                }else {
+                } else {
                     account.gpt4times += 0.25;
                 }
                 if (account.gpt4times >= MaxGptTimes) {

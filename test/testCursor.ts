@@ -32,13 +32,14 @@ const dataView = new DataView(new ArrayBuffer(4));
 dataView.setInt32(0, length, false)
 const body = Buffer.concat([Buffer.from([0]), Buffer.from(dataView.buffer), content, Buffer.from('\u0002\u0000\u0000\u0000\u0000')]).toString();
 console.log(body);
-axios.post('https://api2.cursor.sh/aiserver.v1.AiService/StreamChat', body, {
-    headers,
-    responseType: "stream"
-} as AxiosRequestConfig)
-    .then((res) => {
-        res.data.on('data', (buf: any) => console.log(buf.toString()))
-    })
-    .catch((error: any) => {
-        console.error('Error:', error);
-    });
+console.log(Buffer.from(`Í`))
+// axios.post('https://api2.cursor.sh/aiserver.v1.AiService/StreamChat', body, {
+//     headers,
+//     responseType: "stream"
+// } as AxiosRequestConfig)
+//     .then((res) => {
+//         res.data.on('data', (buf: any) => console.log(buf.toString()))
+//     })
+//     .catch((error: any) => {
+//         console.error('Error:', error);
+//     });

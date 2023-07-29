@@ -44,7 +44,7 @@ export class ChatModelFactory {
         this.modelMap.set(Site.Mcbbs, new Mcbbs(this.options))
         this.modelMap.set(Site.ChatDemo, new ChatDemo(this.options))
         this.modelMap.set(Site.Vita, new Vita(this.options))
-        this.modelMap.set(Site.Copilot, new Copilot({...this.options, model: ModelType.GPT4}))
+        this.modelMap.set(Site.Copilot, new Copilot(this.options))
         this.modelMap.set(Site.Skailar, new Skailar(this.options))
         this.modelMap.set(Site.FakeOpen, new FakeOpen(this.options))
         this.modelMap.set(Site.EasyChat, new EasyChat({...this.options, model: ModelType.GPT4}))

@@ -10,6 +10,7 @@ import TurndownService from 'turndown';
 import {AxiosInstance, AxiosRequestConfig} from "axios";
 import es from "event-stream";
 import {CreateAxiosProxy} from "../../utils/proxyAgent";
+import {BaseOptions} from "vm";
 
 const turndownService = new TurndownService({codeBlockStyle: 'fenced'});
 
@@ -99,20 +100,13 @@ class CopilotAccountPool {
     }
 }
 
-interface CopilotOptions extends ChatOptions {
-    model: ModelType;
-}
-
-
 export class Copilot extends Chat implements BrowserUser<Account> {
     private pagePool: BrowserPool<Account>;
     private accountPool: CopilotAccountPool;
-    private readonly model: ModelType;
     private client: AxiosInstance;
 
-    constructor(options?: CopilotOptions) {
+    constructor(options?: BaseOptions) {
         super(options);
-        this.model = options?.model || ModelType.GPT4;
         this.accountPool = new CopilotAccountPool();
         let maxSize = +(process.env.COPILOT_POOL_SIZE || 0);
         this.pagePool = new BrowserPool<Account>(maxSize, this, false);
@@ -126,8 +120,8 @@ export class Copilot extends Chat implements BrowserUser<Account> {
 
     support(model: ModelType): number {
         switch (model) {
-            case this.model:
-                return 4000;
+            case ModelType.GPT3p5Turbo:
+                return 3000;
             default:
                 return 0;
         }
@@ -200,12 +194,7 @@ export class Copilot extends Chat implements BrowserUser<Account> {
             const [page] = await browser.pages();
             await page.setViewport({width: 1920, height: 1080});
             await Copilot.newChat(page);
-            if (await Copilot.ifLogin(page)) {
-                Copilot.getAuthKey(page).then(auth => {
-                    account.auth_key = auth
-                    this.accountPool.syncfile();
-                })
-                await Copilot.newChat(page);
+            if (account.auth_key) {
                 setTimeout(() => browser.close().catch(), 1000);
                 return [page, account];
             }
