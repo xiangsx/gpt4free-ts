@@ -16,7 +16,7 @@ type ModelSiteMap = Map<ModelType, SiteCfg[]>;
 const siteMap: ModelSiteMap = new Map([
     [ModelType.GPT4, [
         {site: Site.Poe, priority: 50},
-        {site: Site.Cursor, priority: 10}
+        {site: Site.Cursor, priority: 20}
     ]
     ],
     [ModelType.GPT3p5Turbo, [
@@ -25,10 +25,11 @@ const siteMap: ModelSiteMap = new Map([
         {site: Site.Copilot, priority: 50},
         {site: Site.PWeb, priority: 10},
         {site: Site.Poe, priority: 10},
+        {site: Site.Cursor, priority: 10},
     ],
     ],
     [ModelType.GPT3p5_16k, [
-        {site: Site.Chur, priority: 50},
+        {site: Site.Chur, priority: 40},
         {site: Site.Poe, priority: 50},
     ]],
 ])
