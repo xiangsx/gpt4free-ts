@@ -348,7 +348,13 @@ export class Poe extends Chat implements BrowserUser<Account> {
         req.prompt = req.prompt.replace(/assistant/g, 'result');
         req.prompt = maskLinks(req.prompt);
         if (req.model === ModelType.Claude2_100k || req.model === ModelType.Claude100k || req.model === ModelType.Claude || req.model === ModelType.ClaudeInstance) {
-            req.prompt = req.messages?.[req.messages.length - 1]?.content || '';
+            const question = req.messages?.[req.messages.length - 1]?.content || '';
+
+            req.prompt = `我会把我们的历史对话放在<history>标签内部，请你回答我的问题
+<history>
+${req.messages.slice(0, req.messages.length - 1).map(v => `${v.role === 'user' ? 'user: ' : 'result: '}${v.content}`).join('\n')}
+</history>
+${question}`;
         }
         const [page, account, done,
             destroy] = this.pagePool.get();
