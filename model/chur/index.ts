@@ -26,7 +26,7 @@ export class Chur extends Chat {
                 "Cache-Control": "no-cache",
                 "Proxy-Connection": "keep-alive"
             }
-        } as CreateAxiosDefaults,false);
+        } as CreateAxiosDefaults, false);
     }
 
     support(model: ModelType): number {
@@ -34,7 +34,7 @@ export class Chur extends Chat {
             case ModelType.GPT3p5Turbo:
                 return 3000;
             case ModelType.GPT3p5_16k:
-                return 15000;
+                return 12000;
             default:
                 return 0;
         }

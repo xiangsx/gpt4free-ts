@@ -31,6 +31,36 @@ export enum ModelType {
     Llama_2_7b = 'llama-2-7b',
 }
 
+export enum Site {
+    // define new model here
+    You = 'you',
+    Phind = 'phind',
+    Forefront = 'forefront',
+    ForefrontNet = 'forefront_net',
+    Mcbbs = 'mcbbs',
+    ChatDemo = 'chatdemo',
+    Vita = 'vita',
+    Copilot = 'copilot',
+    Skailar = 'skailar',
+    FakeOpen = 'fakeopen',
+    EasyChat = 'easychat',
+    Better = 'better',
+    PWeb = 'pweb',
+    Bai = 'bai',
+    Gra = 'gra',
+    Magic = 'magic',
+    Chim = 'chim',
+    Poe = 'poe',
+    Ram = 'ram',
+    Chur = 'chur',
+    Xun = 'xun',
+    VVM = 'vvm',
+    Poef = 'poef',
+    Claude = 'claude',
+    Cursor = 'cursor',
+    Auto = 'auto',
+}
+
 export interface ChatRequest {
     prompt: string;
     model: ModelType;

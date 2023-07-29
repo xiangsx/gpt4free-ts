@@ -2,7 +2,7 @@ import {Chat, ChatOptions, ChatRequest, ChatResponse, ModelType} from "../base";
 import {AxiosInstance, AxiosRequestConfig, CreateAxiosDefaults} from "axios";
 import {CreateAxiosProxy} from "../../utils/proxyAgent";
 import es from "event-stream";
-import {ErrorData, Event, EventStream, MessageData, parseJSON} from "../../utils";
+import {ErrorData, Event, EventStream, MessageData, parseJSON, randomUserAgent} from "../../utils";
 
 interface Message {
     role: string;
@@ -28,21 +28,22 @@ export class Chim extends Chat {
     constructor(options?: ChatOptions) {
         super(options);
         this.client = CreateAxiosProxy({
-            baseURL: 'https://chimeragpt.adventblocks.cc/v1',
+            baseURL: 'https://chimeragpt.adventblocks.cc',
             headers: {
+                "User-Agent": randomUserAgent(),
                 Authorization: `Bearer ${process.env.CHIM_KEY}`
             }
-        } as CreateAxiosDefaults);
+        } as CreateAxiosDefaults, false);
     }
 
     support(model: ModelType): number {
         switch (model) {
             case ModelType.GPT3p5_16k:
-                return 15000;
+                return 12000;
             case ModelType.GPT4:
-                return 5000;
+                return 6000;
             case ModelType.GPT3p5Turbo:
-                return 4000;
+                return 3000;
             default:
                 return 0;
         }
@@ -77,11 +78,11 @@ export class Chim extends Chat {
         const data: RealReq = {
             messages: req.messages,
             temperature: 1.0,
-            model: modelMap[req.model],
+            model: req.model,
             stream: true
         };
         try {
-            const res = await this.client.post('/chat/completions', data, {
+            const res = await this.client.post('/v1/chat/completions', data, {
                 responseType: 'stream',
             } as AxiosRequestConfig);
             res.data.pipe(es.split(/\r?\n\r?\n/)).pipe(es.map(async (chunk: any, cb: any) => {

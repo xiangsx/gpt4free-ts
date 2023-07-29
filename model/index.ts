@@ -1,4 +1,4 @@
-import {Chat, ChatOptions, ModelType} from "./base";
+import {Chat, ChatOptions, ModelType, Site} from "./base";
 import {You} from "./you";
 import {Mcbbs} from "./mcbbs";
 import {ChatDemo} from "./chatdemo";
@@ -23,35 +23,7 @@ import {VVM} from "./vvm";
 import {Poef} from "./poef";
 import {Claude} from "./claude";
 import {Cursor} from "./cursor";
-
-export enum Site {
-    // define new model here
-    You = 'you',
-    Phind = 'phind',
-    Forefront = 'forefront',
-    ForefrontNet = 'forefront_net',
-    Mcbbs = 'mcbbs',
-    ChatDemo = 'chatdemo',
-    Vita = 'vita',
-    Copilot = 'copilot',
-    Skailar = 'skailar',
-    FakeOpen = 'fakeopen',
-    EasyChat = 'easychat',
-    Better = 'better',
-    PWeb = 'pweb',
-    Bai = 'bai',
-    Gra = 'gra',
-    Magic = 'magic',
-    Chim = 'chim',
-    Poe = 'poe',
-    Ram = 'ram',
-    Chur = 'chur',
-    Xun = 'xun',
-    VVM = 'vvm',
-    Poef = 'poef',
-    Claude = 'claude',
-    Cursor = 'cursor',
-}
+import {Auto} from "./auto";
 
 export class ChatModelFactory {
     private modelMap: Map<Site, Chat>;
@@ -90,6 +62,7 @@ export class ChatModelFactory {
         this.modelMap.set(Site.Poef, new Poef(this.options))
         this.modelMap.set(Site.Claude, new Claude(this.options))
         this.modelMap.set(Site.Cursor, new Cursor(this.options))
+        this.modelMap.set(Site.Auto, new Auto({...this.options, ModelMap: this.modelMap}))
     }
 
     get(model: Site): Chat | undefined {

@@ -2,9 +2,9 @@ import Koa, {Context, Middleware, Next} from 'koa';
 import Router from 'koa-router'
 import bodyParser from 'koa-bodyparser';
 import cors from '@koa/cors'
-import {ChatModelFactory, Site} from "./model";
+import {ChatModelFactory} from "./model";
 import dotenv from 'dotenv';
-import {ChatRequest, ChatResponse, Message, ModelType, PromptToString} from "./model/base";
+import {ChatRequest, ChatResponse, Message, ModelType, PromptToString, Site} from "./model/base";
 import {Event, EventStream, getTokenSize, OpenaiEventStream, randomStr} from "./utils";
 import moment from "moment";
 

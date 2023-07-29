@@ -210,10 +210,6 @@ export class Cursor extends Chat implements BrowserUser<Account> {
         return account.id;
     }
 
-    public static async newChat(page: Page) {
-        await page.goto(`https://app.copilothub.ai/chat?id=5323`);
-    }
-
     async digest(s: string): Promise<ArrayBuffer> {
         if (!crypto.subtle) {
             throw new Error("'crypto.subtle' is not available so webviews will not work. This is likely because the editor is not running in a secure context (https://developer.mozilla.org/en-US/docs/Web/Security/Secure_Contexts).");
@@ -335,17 +331,12 @@ export class Cursor extends Chat implements BrowserUser<Account> {
                     "authorization": `Bearer ${account.token}`,
                     "connect-protocol-version": "1",
                     "content-type": "application/connect+json",
-                    "sec-ch-ua": "\"Not?A_Brand\";v=\"8\", \"Chromium\";v=\"108\"",
-                    "sec-ch-ua-mobile": "?0",
-                    "sec-ch-ua-platform": "\"Windows\"",
-                    "sec-fetch-dest": "empty",
-                    "sec-fetch-mode": "cors",
-                    "sec-fetch-site": "cross-site",
                     "x-ghost-mode": "true",
                 }
             } as AxiosRequestConfig);
-            let old = '';
+
             let cache = Buffer.alloc(0);
+            let ok = false;
             res.data.pipe(es.map(async (chunk: any, cb: any) => {
                 cache = Buffer.concat([cache, Buffer.from(chunk)]);
                 if (cache.length < 5) {
@@ -356,6 +347,7 @@ export class Cursor extends Chat implements BrowserUser<Account> {
                     const buf = cache.slice(5, 5 + len);
                     const content = parseJSON(buf.toString(), {text: ''});
                     if (content.text) {
+                        ok = true;
                         stream.write(Event.message, {content: content.text});
                     }
                     cache = cache.slice(5+len);
@@ -366,11 +358,21 @@ export class Cursor extends Chat implements BrowserUser<Account> {
                 }
             }))
             res.data.on('close', () => {
-                stream.write(Event.done, {content: ''})
+                if (!ok) {
+                    console.error(`cursor fuck failed, id:${account.email}`);
+                    this.askStream(req, stream);
+                    account.gpt4times += 1;
+                    this.accountPool.syncfile();
+                    done(account);
+                    return;
+                }
+                stream.write(Event.done, {content: ''});
                 stream.end();
                 if (req.model === ModelType.GPT4) {
                     account.gpt4times += 1;
                     this.accountPool.syncfile();
+                }else {
+                    account.gpt4times += 0.25;
                 }
                 if (account.gpt4times >= MaxGptTimes) {
                     this.accountPool.syncfile();

@@ -216,7 +216,7 @@ export class Copilot extends Chat implements BrowserUser<Account> {
 
             await page.waitForSelector('.semi-modal-body-wrapper > .semi-modal-body > .login-form-container > .semi-input-wrapper > .semi-input');
             await page.click('.semi-modal-body-wrapper > .semi-modal-body > .login-form-container > .semi-input-wrapper > .semi-input');
-            const emailBox = CreateEmail(process.env.EMAIL_TYPE as TempEmailType || TempEmailType.TempEmail44)
+            const emailBox = CreateEmail(TempEmailType.Gmail)
             const emailAddress = await emailBox.getMailAddress();
             account.email = emailAddress;
             account.gpt4times = 0;
@@ -276,15 +276,6 @@ export class Copilot extends Chat implements BrowserUser<Account> {
             return true;
         } catch (e) {
             return false;
-        }
-    }
-
-    public static async skipIntro(page: Page) {
-        try {
-            await page.waitForSelector('div > div > button > .semi-typography > strong', {timeout: 5 * 1000});
-            await page.click('div > div > button > .semi-typography > strong');
-        } catch (e: any) {
-            console.error(e.message);
         }
     }
 
