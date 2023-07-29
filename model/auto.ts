@@ -27,7 +27,8 @@ const siteMap: ModelSiteMap = new Map([
     ],
     ],
     [ModelType.GPT3p5_16k, [
-        {site: Site.Chur, priority: 50},
+        {site: Site.Chur, priority: 70},
+        {site: Site.Poe, priority: 30},
     ]],
 ])
 
