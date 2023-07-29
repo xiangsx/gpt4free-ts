@@ -115,7 +115,7 @@ export class Copilot extends Chat implements BrowserUser<Account> {
         this.model = options?.model || ModelType.GPT4;
         this.accountPool = new CopilotAccountPool();
         let maxSize = +(process.env.COPILOT_POOL_SIZE || 0);
-        this.pagePool = new BrowserPool<Account>(maxSize, this, true);
+        this.pagePool = new BrowserPool<Account>(maxSize, this, false);
         this.client = CreateAxiosProxy({
             baseURL: 'https://api.pipe3.xyz/api',
             headers:{
@@ -206,6 +206,7 @@ export class Copilot extends Chat implements BrowserUser<Account> {
                     this.accountPool.syncfile();
                 })
                 await Copilot.newChat(page);
+                setTimeout(() => browser.close().catch(), 1000);
                 return [page, account];
             }
 
@@ -260,6 +261,7 @@ export class Copilot extends Chat implements BrowserUser<Account> {
                 this.accountPool.syncfile();
             })
             await Copilot.newChat(page);
+            setTimeout(() => browser.close().catch(), 1000);
             console.log('register copilot successfully');
             return [page, account];
         } catch (e) {
