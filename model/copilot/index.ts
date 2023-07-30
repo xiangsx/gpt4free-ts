@@ -321,7 +321,7 @@ export class Copilot extends Chat implements BrowserUser<Account> {
             console.error("copilot ask stream failed, err", e);
             stream.write(Event.error, {error: e.message})
             stream.end();
-            destroy();
+            destroy(true);
         }
     }
 
