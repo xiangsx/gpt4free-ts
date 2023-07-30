@@ -194,7 +194,7 @@ export class Poe extends Chat implements BrowserUser<Account> {
             case ModelType.Claude:
                 return 4000;
             case ModelType.GPT4:
-                return 5000;
+                return 4500;
             case ModelType.GPT3p5Turbo:
                 return 3000;
             case ModelType.Llama_2_7b:
