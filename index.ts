@@ -8,7 +8,7 @@ import {ChatRequest, ChatResponse, Message, ModelType, PromptToString, Site} fro
 import {Event, EventStream, getTokenSize, OpenaiEventStream, randomStr} from "./utils";
 import moment from "moment";
 
-process.setMaxListeners(30);  // 将限制提高到20个
+process.setMaxListeners(100);  // 将限制提高到20个
 
 dotenv.config();
 
