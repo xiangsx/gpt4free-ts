@@ -32,9 +32,9 @@ export class Chur extends Chat {
     support(model: ModelType): number {
         switch (model) {
             case ModelType.GPT3p5Turbo:
-                return 3000;
+                return 2500;
             case ModelType.GPT3p5_16k:
-                return 12000;
+                return 10000;
             default:
                 return 0;
         }
