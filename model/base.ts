@@ -60,6 +60,7 @@ export enum Site {
     Cursor = 'cursor',
     Auto = 'auto',
     ChatBase = 'chatbase',
+    OpenPrompt = 'openprompt',
 }
 
 export interface ChatRequest {
