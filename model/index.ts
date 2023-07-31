@@ -24,6 +24,7 @@ import {Poef} from "./poef";
 import {Claude} from "./claude";
 import {Cursor} from "./cursor";
 import {Auto} from "./auto";
+import {ChatBase} from "./chatbase";
 
 export class ChatModelFactory {
     private modelMap: Map<Site, Chat>;
@@ -63,6 +64,7 @@ export class ChatModelFactory {
         this.modelMap.set(Site.Claude, new Claude(this.options))
         this.modelMap.set(Site.Cursor, new Cursor(this.options))
         this.modelMap.set(Site.Auto, new Auto({...this.options, ModelMap: this.modelMap}))
+        this.modelMap.set(Site.ChatBase, new ChatBase(this.options))
     }
 
     get(model: Site): Chat | undefined {

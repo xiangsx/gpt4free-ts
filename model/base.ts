@@ -59,6 +59,7 @@ export enum Site {
     Claude = 'claude',
     Cursor = 'cursor',
     Auto = 'auto',
+    ChatBase = 'chatbase',
 }
 
 export interface ChatRequest {
