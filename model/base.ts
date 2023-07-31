@@ -61,6 +61,7 @@ export enum Site {
     Auto = 'auto',
     ChatBase = 'chatbase',
     OpenPrompt = 'openprompt',
+    AiLs = 'ails',
 }
 
 export interface ChatRequest {
