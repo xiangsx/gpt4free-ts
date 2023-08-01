@@ -266,7 +266,10 @@ export class Cursor extends Chat implements BrowserUser<Account> {
 
             account.email = emailAddress;
             account.password = password;
-            await (await browser.newPage()).goto(loginUrl);
+            const newPage = await browser.newPage();
+            await newPage.goto(loginUrl);
+            await newPage.waitForSelector('.c01e01e17 > .cc04c7973 > .cd9f16636 > .cfcfa14e9 > .cd6a2dc65');
+            await newPage.click('.c01e01e17 > .cc04c7973 > .cd9f16636 > .cfcfa14e9 > .cd6a2dc65');
             const tokenPath = `/auth/poll?uuid=${uuid}&verifier=${encodeBase64(Buffer.from(u))}`;
             const token = await this.getToken(tokenPath, 20);
             if (!token) {
@@ -289,7 +292,7 @@ export class Cursor extends Chat implements BrowserUser<Account> {
                 const auth: { data: AuthRes; } = await this.client.get(url);
                 return auth.data.accessToken;
             } catch (e: any) {
-                console.error(e.message);
+                console.error("get token failed: ", e.message);
                 await sleep(1000);
             }
         }
