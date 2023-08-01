@@ -148,7 +148,7 @@ export class Cursor extends Chat implements BrowserUser<Account> {
     constructor(options?: BaseOptions) {
         super(options);
         this.accountPool = new CursorAccountPool();
-        let maxSize = +(process.env.CURSOR_POOL_SIZE || 0);
+        let maxSize = +(process.env.CCURSOR_POOL_SIZE || 0);
         this.pagePool = new BrowserPool<Account>(maxSize, this, false);
         this.client = CreateAxiosProxy({
             baseURL: 'https://api2.cursor.sh',

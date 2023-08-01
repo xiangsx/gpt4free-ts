@@ -1,42 +1,16 @@
 import {Chat, ChatRequest, ChatResponse, ModelType, Site} from "./base";
 import {DoneData, ErrorData, Event, EventStream, MessageData, ThroughEventStream} from "../utils";
 import {BaseOptions} from "vm";
+import {Config} from "../utils/config";
 
 interface AutoOptions extends BaseOptions {
     ModelMap: Map<Site, Chat>;
 }
 
-type SiteCfg = {
+function randomPick(list: {
     site: Site;
     priority: number;
-}
-
-type ModelSiteMap = Map<ModelType, SiteCfg[]>;
-
-const siteMap: ModelSiteMap = new Map([
-    [ModelType.GPT4, [
-        {site: Site.Poe, priority: 50},
-        {site: Site.Cursor, priority: 20}
-    ]
-    ],
-    [ModelType.GPT3p5Turbo, [
-        {site: Site.Bai, priority: 50},
-        {site: Site.Copilot, priority: 10},
-        {site: Site.PWeb, priority: 0},
-        {site: Site.Chur, priority: 0},
-        {site: Site.Poe, priority: 30},
-        {site: Site.Cursor, priority: 10},
-        {site: Site.ChatBase, priority: 10},
-    ],
-    ],
-    [ModelType.GPT3p5_16k, [
-        {site: Site.Chur, priority: 30},
-        {site: Site.OpenPrompt, priority: 0},
-        {site: Site.Poe, priority: 40},
-    ]],
-])
-
-function randomPick(list: SiteCfg[]): Site {
+}[]): Site {
     let sum = 0;
     for (const item of list) {
         sum += item.priority;
@@ -64,7 +38,7 @@ export class Auto extends Chat {
     }
 
     getRandomModel(model: ModelType): Chat {
-        const site = randomPick(siteMap.get(model) || []);
+        const site = randomPick(Config.config.site_map[model] || []);
         console.log(`auto site choose site ${site}`);
         return this.modelMap.get(site) as Chat;
     }

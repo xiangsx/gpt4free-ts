@@ -7,10 +7,13 @@ import dotenv from 'dotenv';
 import {ChatRequest, ChatResponse, Message, ModelType, PromptToString, Site} from "./model/base";
 import {Event, EventStream, getTokenSize, OpenaiEventStream, randomStr} from "./utils";
 import moment from "moment";
+import {Config} from "./utils/config";
 
 process.setMaxListeners(100);  // 将限制提高到20个
 
 dotenv.config();
+Config.load();
+Config.watchFile();
 
 const app = new Koa();
 app.use(cors())
