@@ -147,7 +147,7 @@ export class Ram extends Chat implements BrowserUser<Account> {
     constructor(options?: BaseOptions) {
         super(options);
         this.accountPool = new RamAccountPool();
-        let maxSize = +(process.env.OEPNPROMPT_POOL_SIZE || 0);
+        let maxSize = +(process.env.RAM_POOL_SIZE || 0);
         this.pagePool = new BrowserPool<Account>(maxSize, this, false);
         this.client = CreateAxiosProxy({
             baseURL: 'https://chat.ramxn.dev/backend-api',
