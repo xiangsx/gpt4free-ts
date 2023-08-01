@@ -138,6 +138,30 @@ export class EventStream {
     }
 }
 
+export class ThroughEventStream extends EventStream {
+    private onData?: <T extends Event>(event: T, data: Data<T>) => void
+    private onEnd?: () => void;
+
+    constructor(onData: <T extends Event>(event: T, data: Data<T>) => void, onEnd: () => void) {
+        super();
+        this.onData = onData
+        this.onEnd = onEnd
+    }
+
+    destroy() {
+        this.onData = undefined;
+        this.onEnd = undefined;
+    }
+
+    public write<T extends Event>(event: T, data: Data<T>) {
+        this.onData?.(event, data);
+    }
+
+    public end() {
+        this.onEnd?.();
+    }
+}
+
 export class OpenaiEventStream extends EventStream {
     private id: string = "chatcmpl-" + randomStr() + randomStr();
     private start: boolean = false;
