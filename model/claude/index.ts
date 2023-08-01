@@ -82,7 +82,7 @@ class ClaudeAccountPool {
         const now = moment();
         for (const item of this.pool) {
             if (item.cookie.length > 0 && !this.using.has(item.id)) {
-                console.log(`find old login account:`, item);
+                console.log(`find old login account:`, JSON.stringify(item));
                 item.last_use_time = now.format(TimeFormat);
                 this.syncfile();
                 this.using.add(item.id);

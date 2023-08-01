@@ -108,7 +108,7 @@ class CursorAccountPool {
         const now = moment();
         for (const item of this.pool) {
             if (item.gpt4times + 1 <= MaxGptTimes && !this.using.has(item.id)) {
-                console.log(`find old login account:`, item);
+                console.log(`find old login account:`, JSON.stringify(item));
                 item.last_use_time = now.format(TimeFormat);
                 this.syncfile();
                 this.using.add(item.id);
