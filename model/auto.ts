@@ -51,10 +51,10 @@ export class Auto extends Chat {
             const et = new ThroughEventStream((event, data) => {
                 switch (event) {
                     case 'message':
-                        result.content = (data as MessageData).content;
+                        result.content += (data as MessageData).content;
                         break;
                     case 'done':
-                        result.content = (data as DoneData).content;
+                        result.content += (data as DoneData).content;
                         break;
                     case 'error':
                         result.error = (data as ErrorData).error;
