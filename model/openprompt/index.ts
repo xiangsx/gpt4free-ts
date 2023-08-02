@@ -296,7 +296,7 @@ export class OpenPrompt extends Chat implements BrowserUser<Account> {
             console.error("openprompt ask stream failed, err", e);
             stream.write(Event.error, {error: e.message})
             stream.end();
-            destroy(true);
+            done(account);
         }
     }
 
