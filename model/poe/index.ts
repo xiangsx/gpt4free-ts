@@ -150,8 +150,7 @@ class PoeAccountPool {
     }
 
     public get(): Account {
-        for (const v of shuffleArray(Object.keys(this.pool))) {
-            const vv = this.pool[v];
+        for (const vv of Object.values(this.pool).sort((a, b) => (b.use_left?.[ModelType.GPT4] || 0) - (a.use_left?.[ModelType.GPT4]|| 0) )) {
             if (!vv.invalid && !this.using.has(vv.id)) {
                 if (vv.use_left && vv.use_left[ModelType.GPT4] === 0 && vv.use_left[ModelType.GPT4_32k] === 0) {
                     vv.invalid = true;
