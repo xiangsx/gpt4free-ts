@@ -17,6 +17,7 @@ export enum TempEmailType {
 }
 
 const gmailLock = new Lock();
+const smailProLock = new Lock();
 
 export function CreateEmail(tempMailType: TempEmailType, options?: BaseOptions): BaseEmail {
     switch (tempMailType) {
@@ -31,7 +32,7 @@ export function CreateEmail(tempMailType: TempEmailType, options?: BaseOptions):
         case TempEmailType.Internal:
             return new Internal(options);
         case TempEmailType.SmailPro:
-            return new SmailPro(options);
+            return new SmailPro({...options, lock: gmailLock});
         case TempEmailType.Gmail:
             return new Gmail({...options, lock: gmailLock});
         default:
@@ -351,8 +352,13 @@ class Internal extends BaseEmail {
 
 export class SmailPro extends BaseEmail {
     private page?: Page;
-
+    private lock: Lock;
+    constructor(options: GmailOptions) {
+        super(options)
+        this.lock = options.lock;
+    }
     async getMailAddress() {
+        await this.lock.WailLock(120 * 1000);
         if (!this.page) {
             this.page = await CreateNewPage('http://smailpro.com/advanced');
         }
@@ -401,6 +407,7 @@ export class SmailPro extends BaseEmail {
                 const content = await page.evaluate(() => {return document.querySelector(".flex > div > div > .mt-2 > .w-full")?.contentDocument.documentElement.outerHTML || '';});
                 if (content) {
                     await this.page?.browser().close();
+                    this.lock.Unlock();
                     return [{content}];
                 }
                 await sleep(5 * 1000);

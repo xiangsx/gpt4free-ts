@@ -206,7 +206,7 @@ export class Copilot extends Chat implements BrowserUser<Account> {
 
             await page.waitForSelector('.semi-modal-body-wrapper > .semi-modal-body > .login-form-container > .semi-input-wrapper > .semi-input');
             await page.click('.semi-modal-body-wrapper > .semi-modal-body > .login-form-container > .semi-input-wrapper > .semi-input');
-            const emailBox = CreateEmail(TempEmailType.Gmail)
+            const emailBox = CreateEmail(TempEmailType.SmailPro)
             const emailAddress = await emailBox.getMailAddress();
             account.email = emailAddress;
             account.gpt4times = 0;
