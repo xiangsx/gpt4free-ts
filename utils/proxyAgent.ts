@@ -6,6 +6,7 @@ import tlsClient from "tls-client";
 import puppeteer from "puppeteer-extra";
 import {PuppeteerLaunchOptions} from "puppeteer";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
+import {spawn} from "child_process";
 
 puppeteer.use(StealthPlugin());
 
@@ -92,4 +93,48 @@ export async function CreateNewPage(url: string, options?: { allowExtensions?: b
     await page.goto(url);
     await page.setViewport({width: 1920, height: 1080})
     return page;
+}
+
+let pptPort = 9224;
+export function launchChromeAndFetchWsUrl(): Promise<string | null> {
+    pptPort += 1;
+    return new Promise((resolve, reject) => {
+        const command = `${process.env.CHROME_PATH}`;
+        if (!command) {
+            reject(new Error('not config CHROME_PATH in env'));
+        }
+        const args = [
+            '--no-sandbox',
+            `--remote-debugging-port=${pptPort}`,
+            '--remote-debugging-address=0.0.0.0',
+            '--ignore-certificate-errors',
+            `--proxy-server=${process.env.http_proxy}`
+        ];
+        if (process.env.DEBUG !== '1') {
+            args.push('--headless');
+        }
+
+        const chromeProcess = spawn(command, args);
+
+        chromeProcess.stderr.on('data', (data: Buffer) => {
+            const output = data.toString();
+
+            // Search for websocket URL
+            const match = /ws:\/\/([a-zA-Z0-9\-\.]+):(\d+)\/([a-zA-Z0-9\-\/]+)/.exec(output);
+            if (match) {
+                console.log('found ws link');
+                resolve(match[0]);  // Return the full WebSocket URL
+            }
+        });
+
+        chromeProcess.on('error', (error) => {
+            reject(error);
+        });
+
+        chromeProcess.on('exit', (code) => {
+            if (code !== 0) {
+                reject(new Error(`chrome exited with code ${code}`));
+            }
+        });
+    });
 }

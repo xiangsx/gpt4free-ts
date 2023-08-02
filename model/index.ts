@@ -27,6 +27,7 @@ import {Auto} from "./auto";
 import {ChatBase} from "./chatbase";
 import {OpenPrompt} from "./openprompt";
 import {AILS} from "./ails";
+import {Perplexity} from "./perplexity";
 
 export class ChatModelFactory {
     private modelMap: Map<Site, Chat>;
@@ -69,6 +70,7 @@ export class ChatModelFactory {
         this.modelMap.set(Site.ChatBase, new ChatBase(this.options))
         this.modelMap.set(Site.OpenPrompt, new OpenPrompt(this.options))
         this.modelMap.set(Site.AiLs, new AILS(this.options))
+        this.modelMap.set(Site.Perplexity, new Perplexity(this.options))
     }
 
     get(model: Site): Chat | undefined {

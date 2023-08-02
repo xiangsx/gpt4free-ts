@@ -62,6 +62,7 @@ export enum Site {
     ChatBase = 'chatbase',
     OpenPrompt = 'openprompt',
     AiLs = 'ails',
+    Perplexity = 'perplexity',
 }
 
 export interface ChatRequest {
@@ -79,7 +80,7 @@ export function PromptToString(prompt: string, limit: number): [string, Message[
             return PromptToString(JSON.stringify(messages.slice(1, messages.length)), limit);
         }
         return [res, messages];
-    } catch (e) {
+    } catch (e:any) {
         return [prompt, [{role: 'user', content: prompt}]];
     }
 }
