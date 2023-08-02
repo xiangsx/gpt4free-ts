@@ -101,7 +101,7 @@ export class Mcbbs extends Chat {
                 stream.end();
             })
         } catch (e: any) {
-            console.error(e);
+            console.error(e.message);
             stream.write(Event.error, {error: e.message})
         }
     }

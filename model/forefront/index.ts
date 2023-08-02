@@ -182,7 +182,7 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
         triedTimes += 1;
         try {
             const tsl = await CreateTlsProxy({clientIdentifier: "chrome_108"}).get(validateURL)
-        } catch (e) {
+        } catch (e:any) {
             console.log(e)
             await this.tryValidate(validateURL, triedTimes);
         }
@@ -194,7 +194,7 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
             await page.waitForSelector('.grid > .grid > .w-full > .border-t > .text-th-primary-medium', {timeout: 10 * 1000})
             await page.click('.grid > .grid > .w-full > .border-t > .text-th-primary-medium')
             console.log('try close vip ok');
-        } catch (e) {
+        } catch (e:any) {
             console.log('not need close vip');
         }
     }
@@ -205,7 +205,7 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
             await page.waitForSelector('.flex > .modal > .modal-box > .flex > .px-3:nth-child(1)', {timeout: 30 * 1000})
             await page.click('.flex > .modal > .modal-box > .flex > .px-3:nth-child(1)')
             console.log('close welcome pop ok');
-        } catch (e) {
+        } catch (e:any) {
             console.log('not need close welcome pop');
         }
     }
@@ -283,7 +283,7 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
             await page.waitForSelector('.relative > .flex > .w-full > .text-th-primary-dark > div', {timeout: 120000})
             account.headers = await this.getAuth(page);
             return [page, account];
-        } catch (e) {
+        } catch (e:any) {
             console.warn('something error happened,err:', e);
             return [] as any;
         }
@@ -294,7 +294,7 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
             await page.waitForSelector('.flex:nth-child(2) > .relative > .sticky > .flex > .px-3:nth-child(1)', {timeout: 5000});
             await page.waitForSelector('.flex:nth-child(2) > .relative > .sticky > .flex > .border', {timeout: 5000});
             return false;
-        } catch (e) {
+        } catch (e:any) {
             console.log('still login in');
             return true;
         }

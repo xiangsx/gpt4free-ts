@@ -187,7 +187,7 @@ export class EasyChat extends Chat implements BrowserUser<Account> {
         try {
             await page.waitForSelector('.fixed > #radix-\\:r0\\: > .flex > .button_icon-button__BC_Ca > .button_icon-button-text__k3vob')
             await page.click('.fixed > #radix-\\:r0\\: > .flex > .button_icon-button__BC_Ca > .button_icon-button-text__k3vob')
-        } catch (e) {
+        } catch (e:any) {
             console.log('not need close welcome pop');
         }
     }
@@ -265,7 +265,7 @@ export class EasyChat extends Chat implements BrowserUser<Account> {
             this.accountPool.syncfile();
             console.log('register EasyChat successfully');
             return [page, account];
-        } catch (e) {
+        } catch (e:any) {
             console.warn('something error happened,err:', e);
             return [] as any;
         }
@@ -324,8 +324,8 @@ export class EasyChat extends Chat implements BrowserUser<Account> {
                     }
                     old = content;
                     stream.write(Event.message, {content});
-                } catch (e) {
-                    console.error(e);
+                } catch (e:any) {
+                    console.error(e.message);
                 }
             }))
             res.data.on('close', () => {
@@ -342,7 +342,7 @@ export class EasyChat extends Chat implements BrowserUser<Account> {
                 }
             })
         } catch (e: any) {
-            console.error(e);
+            console.error(e.message);
             stream.write(Event.error, {error: e.message})
             stream.end();
             destroy();

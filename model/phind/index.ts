@@ -137,8 +137,8 @@ export class Phind extends Chat implements BrowserUser<Account> {
                         stream.write(Event.message, {content: turndownService.turndown(content).replace(preText,'')});
                         old = content;
                     }
-                } catch (e) {
-                    console.error(e);
+                } catch (e:any) {
+                    console.error(e.message);
                 }
             }, 1000)
             const wait = async () => {
@@ -161,13 +161,13 @@ export class Phind extends Chat implements BrowserUser<Account> {
                 await page.goto(url);
             }
             wait().then().catch(async (e) => {
-                console.error(e);
+                console.error(e.message);
                 stream.write(Event.error, {error: e.message})
                 stream.end();
                 await page.goto(url);
             });
         } catch (e: any) {
-            console.error(e);
+            console.error(e.message);
             stream.write(Event.error, {error: e.message})
             stream.end();
             await page.goto(url);

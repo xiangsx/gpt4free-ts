@@ -107,7 +107,7 @@ export class Better extends Chat {
                 stream.write(Event.message, {content});
             }))
         } catch (e: any) {
-            console.error(e);
+            console.error(e.message);
             stream.write(Event.error, {error: e.message})
             stream.end();
         }

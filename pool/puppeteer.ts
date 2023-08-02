@@ -1,8 +1,9 @@
-import {Browser, Page, PuppeteerLaunchOptions} from "puppeteer";
+import normalPPT, {Browser, Page, PuppeteerLaunchOptions} from "puppeteer";
 import path from "path";
 import run from "node:test";
 import * as fs from "fs";
 import {shuffleArray, sleep} from "../utils";
+import {launchChromeAndFetchWsUrl} from "../utils/proxyAgent";
 
 const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
@@ -26,18 +27,22 @@ export interface BrowserUser<T> {
     deleteID: (id: string) => void
 }
 
+let pptPort = 9225;
+
 export class BrowserPool<T> {
     private readonly pool: PageInfo<T>[] = [];
     private readonly size: number;
     private readonly user: BrowserUser<T>
     private savefile: boolean;
     private poolDelay: number;
+    private useConnect: boolean;
 
-    constructor(size: number, user: BrowserUser<T>, saveFile: boolean = true, poolDelay: number = 5 * 1000) {
+    constructor(size: number, user: BrowserUser<T>, saveFile: boolean = true, poolDelay: number = 5 * 1000, useConnect: boolean = false) {
         this.size = size
         this.user = user;
         this.savefile = saveFile;
         this.poolDelay = poolDelay;
+        this.useConnect = useConnect;
         this.init();
     }
 
@@ -76,7 +81,23 @@ export class BrowserPool<T> {
         };
         let browser;
         try {
-            browser = await puppeteer.launch(options);
+            if (this.useConnect) {
+                if (!process.env.CHROME_PATH) {
+                    throw new Error('not config CHROME_PATH');
+                }
+                pptPort += 1;
+                const res = await launchChromeAndFetchWsUrl();
+                if (!res) {
+                    throw new Error('launch chrome failed');
+                }
+                const wsLink = res.match(/(ws:\/\/[^ ]*)/)?.[0] || '';
+                if (!wsLink) {
+                    throw new Error('launch chrome failed');
+                }
+                browser = await normalPPT.connect({browserWSEndpoint: wsLink});
+            } else {
+                browser = await puppeteer.launch(options);
+            }
             const [page, data] = await this.user.init(info.id, browser);
             if (!page) {
                 this.user.deleteID(info.id);
@@ -95,7 +116,7 @@ export class BrowserPool<T> {
             info.page = page;
             info.data = data
             info.ready = true;
-        } catch (e) {
+        } catch (e:any) {
             if (browser) {
                 await browser.close();
             }

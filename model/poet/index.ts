@@ -241,7 +241,7 @@ export class Poe extends Chat implements BrowserUser<Account> {
             await page.waitForSelector('body > #__next > .LoggedOutSection_main__QtksL > .LoggedOutSection_appSpecificSection__C5YEM > .Button_primary__pIDjn')
             await page.click('body > #__next > .LoggedOutSection_main__QtksL > .LoggedOutSection_appSpecificSection__C5YEM > .Button_primary__pIDjn')
             return [page, account];
-        } catch (e) {
+        } catch (e:any) {
             console.warn('something error happened,err:', e);
             return [] as any;
         }
@@ -323,7 +323,7 @@ export class Poe extends Chat implements BrowserUser<Account> {
             await input?.evaluate((el, content) => el.value = content, req.prompt);
             await page.keyboard.press('Enter');
             console.log('send msg ok!');
-        } catch (e) {
+        } catch (e:any) {
             console.error("poe ask stream failed:", e);
             console.error(`failed account: pb=${account.pb}`);
             done(account);

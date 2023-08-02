@@ -187,7 +187,7 @@ export class Claude extends Chat implements BrowserUser<Account> {
         try {
             await page.waitForSelector('.flex > .flex > .overflow-y-auto > .ProseMirror > .is-empty', {timeout: 10 * 1000})
             return true;
-        } catch (e) {
+        } catch (e:any) {
             return false;
         }
     }
@@ -293,7 +293,7 @@ export class Claude extends Chat implements BrowserUser<Account> {
             this.accountPool.syncfile();
             console.log('register claude successfully');
             return [page, account];
-        } catch (e) {
+        } catch (e:any) {
             console.warn('something error happened,err:', e);
             return [] as any;
         }
@@ -305,7 +305,7 @@ export class Claude extends Chat implements BrowserUser<Account> {
             await page.click('#root > .app > .sider > .premium > .user-info')
             console.log('still login in');
             return true;
-        } catch (e) {
+        } catch (e:any) {
             return false;
         }
     }

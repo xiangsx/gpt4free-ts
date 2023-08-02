@@ -109,7 +109,7 @@ export class VVM extends Chat {
                 stream.write(Event.message, {content: chunk.toString()});
             }))
         } catch (e: any) {
-            console.error(e);
+            console.error(e.message);
             stream.write(Event.error, {error: e.message})
             stream.end();
         }

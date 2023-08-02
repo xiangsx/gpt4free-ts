@@ -240,7 +240,7 @@ export class OpenPrompt extends Chat implements BrowserUser<Account> {
             setTimeout(() => browser.close().catch(), 1000);
             console.log('register openprompt successfully');
             return [page, account];
-        } catch (e) {
+        } catch (e:any) {
             console.warn('something error happened,err:', e);
             return [] as any;
         }
@@ -251,7 +251,7 @@ export class OpenPrompt extends Chat implements BrowserUser<Account> {
             await page.waitForSelector('.relative > div > * > .inline-flex > .w-6', {timeout: 10 * 1000})
             console.log('still login in');
             return true;
-        } catch (e) {
+        } catch (e:any) {
             return false;
         }
     }

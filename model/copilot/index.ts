@@ -162,7 +162,7 @@ export class Copilot extends Chat implements BrowserUser<Account> {
         try {
             await page.waitForSelector('div > div > button > .semi-typography > strong', {timeout: 10 * 1000})
             await page.click('div > div > button > .semi-typography > strong')
-        } catch (e) {
+        } catch (e:any) {
             console.log('not need close welcome pop');
         }
     }
@@ -253,7 +253,7 @@ export class Copilot extends Chat implements BrowserUser<Account> {
             setTimeout(() => browser.close().catch(), 1000);
             console.log('register copilot successfully');
             return [page, account];
-        } catch (e) {
+        } catch (e:any) {
             console.warn('something error happened,err:', e);
             return [] as any;
         }
@@ -265,7 +265,7 @@ export class Copilot extends Chat implements BrowserUser<Account> {
             await page.click('#root > .app > .sider > .premium > .user-info')
             console.log('still login in');
             return true;
-        } catch (e) {
+        } catch (e:any) {
             return false;
         }
     }

@@ -411,7 +411,7 @@ export class SmailPro extends BaseEmail {
                     return [{content}];
                 }
                 await sleep(5 * 1000);
-            } catch (e) {
+            } catch (e:any) {
                 if (times >= 6) {
                     await this.page?.browser().close();
                     throw new Error('got mails failed');

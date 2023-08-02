@@ -230,7 +230,7 @@ export class Ram extends Chat implements BrowserUser<Account> {
             setTimeout(() => browser.close().catch(), 1000);
             console.log('register ram successfully');
             return [page, account];
-        } catch (e) {
+        } catch (e:any) {
             console.warn('something error happened,err:', e);
             return [] as any;
         }

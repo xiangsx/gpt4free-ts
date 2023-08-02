@@ -48,7 +48,7 @@ export function randomStr(length: number = 6): string {
 export function parseJSON<T>(str: string, defaultObj: T): T {
     try {
         return JSON.parse(str)
-    } catch (e) {
+    } catch (e:any) {
         console.error(str, e);
         return defaultObj;
     }

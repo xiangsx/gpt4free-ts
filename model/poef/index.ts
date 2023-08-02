@@ -262,7 +262,7 @@ export class Poef extends Chat implements BrowserUser<Account> {
             }
             console.log(`poe init ok! ${account.pb}`);
             return [page, account];
-        } catch (e) {
+        } catch (e:any) {
             account.failedCnt += 1;
             this.accountPool.syncfile();
             console.warn(`account:${account?.pb}, something error happened.`);
@@ -274,7 +274,7 @@ export class Poef extends Chat implements BrowserUser<Account> {
         try {
             await page.waitForSelector(Poef.FreeModal, {timeout: 5 * 1000});
             return false;
-        } catch (e) {
+        } catch (e:any) {
             return true;
         }
     }
@@ -283,7 +283,7 @@ export class Poef extends Chat implements BrowserUser<Account> {
         try {
             await page.waitForSelector(Poef.TalkToGpt, {timeout: 10 * 1000});
             return false;
-        } catch (e) {
+        } catch (e:any) {
             return true;
         }
     }
@@ -392,7 +392,7 @@ export class Poef extends Chat implements BrowserUser<Account> {
             await input?.evaluate((el, content) => el.value = content, req.prompt);
             await page.keyboard.press('Enter');
             console.log('send msg ok!');
-        } catch (e) {
+        } catch (e:any) {
             client.removeAllListeners('Network.webSocketFrameReceived');
             console.error(`account: pb=${account.pb}, poe ask stream failed:`, e);
             account.failedCnt += 1;

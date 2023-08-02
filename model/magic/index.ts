@@ -238,7 +238,7 @@ export class Magic extends Chat implements BrowserUser<Account> {
             this.accountPool.syncfile();
             console.log('register Magic successfully');
             return [page, account];
-        } catch (e) {
+        } catch (e:any) {
             console.warn('something error happened,err:', e);
             return [] as any;
         }
@@ -286,7 +286,7 @@ export class Magic extends Chat implements BrowserUser<Account> {
                 }
             })
         } catch (e: any) {
-            console.error(e);
+            console.error(e.message);
             stream.write(Event.error, {error: e.message})
             stream.end();
             destroy();

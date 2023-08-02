@@ -80,8 +80,8 @@ export class Bai extends Chat {
                         return;
                     }
                     stream.write(Event.message, {content: delta});
-                } catch (e) {
-                    console.error(e);
+                } catch (e:any) {
+                    console.error(e.message);
                 }
             }))
             res.data.on('close', () => {
@@ -89,7 +89,7 @@ export class Bai extends Chat {
                 stream.end();
             })
         } catch (e: any) {
-            console.error(e);
+            console.error(e.message);
             stream.write(Event.error, {error: e.message})
             stream.end();
         }

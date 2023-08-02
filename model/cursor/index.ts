@@ -280,7 +280,7 @@ export class Cursor extends Chat implements BrowserUser<Account> {
             this.accountPool.syncfile();
             console.log('register cursor successfully');
             return [page, account];
-        } catch (e) {
+        } catch (e:any) {
             console.warn('something error happened,err:', e);
             return [] as any;
         }
