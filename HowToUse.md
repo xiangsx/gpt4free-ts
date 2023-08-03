@@ -57,3 +57,87 @@ docker-compose up -d
 
 ### 5.1 接入one api平台
 ### 5.2 接入沉浸式翻译
+
+## 6. 环境变量以及配置文件详细解释
+
+### 6.1 环境变量
+`.env`，运行之前需要删掉所有注释，不然会有问题，这里为了方便直接写在字段后面了
+```
+http_proxy=http://127.0.0.1:7890 #这里改为你的代理地址
+RETRY=1 # 请求失败自动重试1次
+rapid_api_key=${rapid_api_key} # 临时邮箱需要的key
+EMAIL_TYPE=tempmail-lol # 使用的临时邮箱类型
+
+COPILOT_POOL_SIZE=0 # copilot 账号数目
+POE_POOL_SIZE=0 # 同上
+POE_PB=xxxxx|xxxxxx # poe的登录pb
+
+OEPNPROMPT_POOL_SIZE=0
+
+#perplexity 需要的配置是下面3个
+CHROME_PATH=google-chrome # 如果在容器中运行固定配置这个，不用修改
+PERPLEXITY_POOL_SIZE=0
+PERPLEXITY_TOKEN=xxxxxx|xxxxxxx
+```
+
+### 6.2 配置文件解释
+run/config.json 负载均衡配置文件，需要把docker文件映射出来, 映射示例 `./run:/usr/src/app/run`，**此文件可以在运行时修改，修改会实时生效**
+配置文件示例：
+```
+{
+  "site_map": {
+    "gpt-4": [
+      {
+        "site": "poe",
+        "priority": 20
+      },
+      {
+        "site": "perplexity",
+        "priority": 20
+      }
+    ],
+    "gpt-3.5-turbo": [
+      {
+        "site": "bai",
+        "priority": 50
+      },
+      {
+        "site": "copilot",
+        "priority": 0
+      },
+      {
+        "site": "pweb",
+        "priority": 0
+      },
+      {
+        "site": "chur",
+        "priority": 10
+      },
+      {
+        "site": "poe",
+        "priority": 20
+      },
+      {
+        "site": "chatbase",
+        "priority": 30
+      }
+    ],
+    "gpt-3.5-turbo-16k": [
+      {
+        "site": "chur",
+        "priority": 20
+      },
+      {
+        "site": "openprompt",
+        "priority": 30
+      },
+      {
+        "site": "poe",
+        "priority": 30
+      }
+    ]
+  }
+}\
+```
+
+
