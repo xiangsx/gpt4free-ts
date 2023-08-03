@@ -71,9 +71,12 @@ export class BrowserPool<T> {
         }
         const options: PuppeteerLaunchOptions = {
             headless: process.env.DEBUG === "1" ? false : 'new',
-            args: ['--no-sandbox', '--disable-setuid-sandbox',`--proxy-server=${process.env.http_proxy}`],
+            args: ['--no-sandbox', '--disable-setuid-sandbox'],
             userDataDir: this.savefile ? `run/${info.id}` : undefined,
         };
+        if (process.env.http_proxy) {
+            options.args?.push(`--proxy-server=${process.env.http_proxy}`);
+        }
         let browser;
         try {
             if (this.useConnect) {
