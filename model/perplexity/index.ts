@@ -106,9 +106,7 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
     support(model: ModelType): number {
         switch (model) {
             case ModelType.GPT4:
-                return 4500;
-            case ModelType.GPT3p5Turbo:
-                return 3000;
+                return 5500;
             default:
                 return 0;
         }
