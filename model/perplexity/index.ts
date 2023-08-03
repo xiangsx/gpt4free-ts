@@ -170,7 +170,7 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
             await page.goto(`https://www.perplexity.ai`)
             await page.screenshot({path:`run/${account.id}.png`})
             if (!(await Perplexity.isLogin(page))) {
-                account.invalid = false;
+                account.invalid = true;
                 this.accountPool.syncfile();
                 throw new Error(`account:${account?.token}, no login status`);
             }
