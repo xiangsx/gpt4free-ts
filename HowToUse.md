@@ -82,6 +82,7 @@ PERPLEXITY_TOKEN=xxxxxx|xxxxxxx
 
 ### 6.2 配置文件解释
 run/config.json 负载均衡配置文件，需要把docker文件映射出来, 映射示例 `./run:/usr/src/app/run`，**此文件可以在运行时修改，修改会实时生效**
+配置好之后，接口site的值传auto
 配置文件示例：
 ```
 {
