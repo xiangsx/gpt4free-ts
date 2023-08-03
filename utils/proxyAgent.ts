@@ -105,6 +105,7 @@ export function launchChromeAndFetchWsUrl(): Promise<string | null> {
         }
         const args = [
             '--no-sandbox',
+            '--disable-setuid-sandbox',
             `--remote-debugging-port=${pptPort}`,
             '--remote-debugging-address=0.0.0.0',
             '--ignore-certificate-errors',
@@ -118,7 +119,6 @@ export function launchChromeAndFetchWsUrl(): Promise<string | null> {
 
         chromeProcess.stderr.on('data', (data: Buffer) => {
             const output = data.toString();
-
             // Search for websocket URL
             const match = /ws:\/\/([a-zA-Z0-9\-\.]+):(\d+)\/([a-zA-Z0-9\-\/]+)/.exec(output);
             if (match) {

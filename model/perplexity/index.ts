@@ -1,15 +1,9 @@
 import {Chat, ChatOptions, ChatRequest, ChatResponse, ModelType} from "../base";
 import {Browser, EventEmitter, Page} from "puppeteer";
 import {BrowserPool, BrowserUser} from "../../pool/puppeteer";
-import {DoneData, ErrorData, Event, EventStream, extractStrNumber, MessageData, parseJSON, sleep} from "../../utils";
+import {DoneData, ErrorData, Event, EventStream, MessageData, parseJSON, shuffleArray, sleep} from "../../utils";
 import {v4} from "uuid";
 import fs from "fs";
-
-const ModelMap: Partial<Record<ModelType, any>> = {
-    [ModelType.GPT4]: 'GPT-4',
-    [ModelType.GPT3p5Turbo]: 'ChatGPT',
-}
-
 
 const MaxFailedTimes = 10;
 
@@ -20,58 +14,19 @@ type Account = {
     email?: string;
     login_time?: string;
     last_use_time?: string;
-    cookie: string;
+    token: string;
     failedCnt: number;
     invalid?: boolean;
     use_left?: UseLeft;
 }
 
-interface Messages {
-    id: string;
-    messageId: number;
-    creationTime: number;
-    clientNonce: null;
-    state: string;
-    text: string;
-    author: string;
-    linkifiedText: string;
-    contentType: string;
-    attachments: any[];
-    vote: null;
-    suggestedReplies: string[];
-    linkifiedTextLengthOnCancellation: null;
-    textLengthOnCancellation: null;
-    voteReason: null;
-    __isNode: string;
-}
-
-interface Data {
-    messageAdded: Messages;
-}
-
-interface Payload {
-    unique_id: string;
-    subscription_name: string;
-    data: Data;
-}
-
-interface RootObject {
-    message_type: string;
-    payload: Payload;
-}
-
-interface RealAck {
-    messages: string[];
-    min_seq: number;
-}
-
 class AccountPool {
-    private pool: Record<string, Account> = {};
+    private readonly pool: Record<string, Account> = {};
     private using = new Set<string>();
-    private readonly account_file_path = './run/account_poe.json';
+    private readonly account_file_path = './run/account_perplexity.json';
 
     constructor() {
-        const pbList = (process.env.POE_PB || '').split('|');
+        const pbList = (process.env.PERPLEXITY_TOKEN || '').split('|');
         if (fs.existsSync(this.account_file_path)) {
             const accountStr = fs.readFileSync(this.account_file_path, 'utf-8');
             this.pool = parseJSON(accountStr, {} as Record<string, Account>);
@@ -88,7 +43,7 @@ class AccountPool {
             }
             this.pool[pb] = {
                 id: v4(),
-                cookie: pb,
+                token: pb,
                 failedCnt: 0,
                 invalid: false,
             };
@@ -118,12 +73,8 @@ class AccountPool {
     }
 
     public get(): Account {
-        for (const vv of Object.values(this.pool).sort((a, b) => (b.use_left?.[ModelType.GPT4] || 0) - (a.use_left?.[ModelType.GPT4] || 0))) {
+        for (const vv of shuffleArray(Object.values(this.pool))) {
             if (!vv.invalid && !this.using.has(vv.id)) {
-                if (vv.use_left && vv.use_left[ModelType.GPT4] === 0 && vv.use_left[ModelType.GPT4_32k] === 0) {
-                    vv.invalid = true;
-                    continue;
-                }
                 this.using.add(vv.id);
                 vv.failedCnt = 0;
                 return vv;
@@ -132,7 +83,7 @@ class AccountPool {
         console.log('poe pb run out!!!!!!');
         return {
             id: v4(),
-            cookie: '',
+            token: '',
             failedCnt: 0,
         } as Account
     }
@@ -149,7 +100,7 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
     constructor(options?: ChatOptions) {
         super(options);
         this.accountPool = new AccountPool();
-        this.pagePool = new BrowserPool<Account>(+(process.env.PERPLEXITY_POOL_SIZE || 0), this, false, undefined, true);
+        this.pagePool = new BrowserPool<Account>(+(process.env.PERPLEXITY_POOL_SIZE || 0), this, false, 20 * 1000, true);
     }
 
     support(model: ModelType): number {
@@ -204,26 +155,6 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
     }
 
 
-    public static SelectorGpt4Left = '.SettingsSubscriptionSection_sectionBubble__nlU_b:nth-child(3) > .SettingsSubscriptionSection_countsSection__48sVJ > .SettingsSubscriptionSection_countRowContainer__ZJ419:nth-child(2) > .SettingsSubscriptionSection_countRow__GMItW > .SettingsSubscriptionSection_subtitle__Z7mcW:nth-child(2)';
-    public static SelectorGpt4_32kLeft = '.SettingsSubscriptionSection_sectionBubble__nlU_b:nth-child(4) > .SettingsSubscriptionSection_countsSection__48sVJ > .SettingsSubscriptionSection_countRowContainer__ZJ419 > .SettingsSubscriptionSection_countRow__GMItW > .SettingsSubscriptionSection_subtitle__Z7mcW:nth-child(2)';
-    public static SelectorGpt3_16kLeft = '.SettingsSubscriptionSection_sectionBubble__nlU_b:nth-child(5) > .SettingsSubscriptionSection_countsSection__48sVJ > .SettingsSubscriptionSection_countRowContainer__ZJ419 > .SettingsSubscriptionSection_countRow__GMItW > .SettingsSubscriptionSection_subtitle__Z7mcW:nth-child(2)';
-    public static SelectorClaude2_100k = '.SettingsSubscriptionSection_sectionBubble__nlU_b:nth-child(1) > .SettingsSubscriptionSection_countsSection__48sVJ > .SettingsSubscriptionSection_countRowContainer__ZJ419:nth-child(2) > .SettingsSubscriptionSection_countRow__GMItW > .SettingsSubscriptionSection_subtitle__Z7mcW:nth-child(2)';
-
-    public static async getUseLeft(page: Page): Promise<UseLeft> {
-        await page.goto("https://poe.com/settings");
-        return {
-            [ModelType.GPT4]: await Perplexity.getSelectorCnt(page, Perplexity.SelectorGpt4Left),
-            [ModelType.GPT4_32k]: await Perplexity.getSelectorCnt(page, Perplexity.SelectorGpt4_32kLeft),
-            [ModelType.GPT3p5_16k]: await Perplexity.getSelectorCnt(page, Perplexity.SelectorGpt3_16kLeft),
-            [ModelType.Claude2_100k]: await Perplexity.getSelectorCnt(page, Perplexity.SelectorClaude2_100k),
-        };
-    }
-
-    public static async getSelectorCnt(page: Page, selector: string): Promise<number> {
-        const v: string = await page.evaluate((arg1) => document.querySelector(arg1)?.textContent || '', selector);
-        return extractStrNumber(v);
-    }
-
     async init(id: string, browser: Browser): Promise<[Page | undefined, Account]> {
         const account = this.accountPool.getByID(id);
         if (!account) {
@@ -235,13 +166,14 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
             await page.setCookie({
                 url: 'https://www.perplexity.ai',
                 name: '__Secure-next-auth.session-token',
-                value: 'eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..2Jh-oW3mm8SJjhuN.HpihIhmTs76MBRSQMJMVJ5W5HS9NWI2niEfhUxdqAbLetNUxsmsNG94fd_mBwXP2EqIHDI6pGpAr9mEjcIa0fgI5_8Iy89QIJHV_Mqq9azfahJWZxo84YlO7M5o3VnlNTMoauOOClslqitObZ-I_8kfM3eg_GwEESLQlgT5Cl2eq-f26bj4O9CAATBk-15N18-i7RTBpvdPwcv856hKs.M3Ny8CUWXOQjwK0W4_wlig'
+                value: account.token
             });
             await page.goto(`https://perplexity.ai`)
+            await page.screenshot({path:`run/${account.id}.png`})
             if (!(await Perplexity.isLogin(page))) {
                 account.invalid = true;
                 this.accountPool.syncfile();
-                throw new Error(`account:${account?.cookie}, no login status`);
+                throw new Error(`account:${account?.token}, no login status`);
             }
             await page.waitForSelector(Perplexity.InputSelector, {timeout: 30 * 1000, visible: true});
             await page.waitForSelector('.absolute > div > div > .md\\:hover\\:bg-offsetPlus > .flex > .flex')
@@ -250,25 +182,15 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
             await page.waitForSelector('.animate-in > .md\\:h-full:nth-child(3) > .md\\:h-full > .relative > .mt-one')
             await page.click('.animate-in > .md\\:h-full:nth-child(3) > .md\\:h-full > .relative > .mt-one')
             this.accountPool.syncfile();
-            console.log(`perp init ok! ${account.cookie}`);
+            console.log(`perplexity init ok! ${account.token}`);
             return [page, account];
         } catch (e:any) {
             account.failedCnt += 1;
             this.accountPool.syncfile();
-            console.warn(`account:${account?.cookie}, something error happened.`, e);
+            console.warn(`account:${account?.token}, something error happened.`, e);
             return [] as any;
         }
     }
-
-    public static async isVIP(page: Page) {
-        try {
-            await page.waitForSelector(Perplexity.FreeModal, {timeout: 5 * 1000});
-            return false;
-        } catch (e:any) {
-            return true;
-        }
-    }
-
     public static async isLogin(page: Page) {
         try {
             await page.waitForSelector(Perplexity.UserName, {timeout: 5 * 1000});
@@ -280,7 +202,6 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
 
     public static InputSelector = '.grow > div > .rounded-full > .relative > .outline-none';
     public static NewThread = '.grow > .my-md > div > .border > .text-clip';
-    public static FreeModal = ".ReactModal__Body--open > .ReactModalPortal > .ReactModal__Overlay > .ReactModal__Content";
     public static UserName = ".px-sm > .flex > div > .flex > .line-clamp-1";
 
     public static async newThread(page: Page) {
@@ -324,7 +245,7 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
                         stream.end();
                         return;
                     }
-                    console.error(`pb ${account.cookie} wait ack ws timeout, retry! failedCnt:${account.failedCnt}`);
+                    console.error(`pb ${account.token} wait ack ws timeout, retry! failedCnt:${account.failedCnt}`);
                     req.retry = req.retry ? req.retry + 1 : 1;
                     await this.askStream(req, stream);
                 }
@@ -380,7 +301,7 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
             console.log('send msg ok!');
         } catch (e:any) {
             client.removeAllListeners('Network.webSocketFrameReceived');
-            console.error(`account: pb=${account.cookie}, poe ask stream failed:`, e);
+            console.error(`account: pb=${account.token}, poe ask stream failed:`, e);
             account.failedCnt += 1;
             if (account.failedCnt >= MaxFailedTimes) {
                 destroy(true);

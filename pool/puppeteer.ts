@@ -27,7 +27,7 @@ export interface BrowserUser<T> {
     deleteID: (id: string) => void
 }
 
-let pptPort = 9225;
+let pptPort = 9230;
 
 export class BrowserPool<T> {
     private readonly pool: PageInfo<T>[] = [];
@@ -91,6 +91,7 @@ export class BrowserPool<T> {
                     throw new Error('launch chrome failed');
                 }
                 const wsLink = res.match(/(ws:\/\/[^ ]*)/)?.[0] || '';
+                console.log(wsLink);
                 if (!wsLink) {
                     throw new Error('launch chrome failed');
                 }
