@@ -1,6 +1,4 @@
 import normalPPT, {Browser, Page, PuppeteerLaunchOptions} from "puppeteer";
-import path from "path";
-import run from "node:test";
 import * as fs from "fs";
 import {shuffleArray, sleep} from "../utils";
 import {launchChromeAndFetchWsUrl} from "../utils/proxyAgent";
@@ -9,8 +7,6 @@ const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 
 puppeteer.use(StealthPlugin());
-
-const runPath = path.join(__dirname, 'run');
 
 export interface PageInfo<T> {
     id: string;
@@ -27,7 +23,6 @@ export interface BrowserUser<T> {
     deleteID: (id: string) => void
 }
 
-let pptPort = 9230;
 
 export class BrowserPool<T> {
     private readonly pool: PageInfo<T>[] = [];
@@ -85,16 +80,11 @@ export class BrowserPool<T> {
                 if (!process.env.CHROME_PATH) {
                     throw new Error('not config CHROME_PATH');
                 }
-                pptPort += 1;
-                const res = await launchChromeAndFetchWsUrl();
-                if (!res) {
-                    throw new Error('launch chrome failed');
-                }
-                const wsLink = res.match(/(ws:\/\/[^ ]*)/)?.[0] || '';
-                console.log(wsLink);
+                const wsLink = await launchChromeAndFetchWsUrl();
                 if (!wsLink) {
                     throw new Error('launch chrome failed');
                 }
+                console.log(wsLink);
                 browser = await normalPPT.connect({browserWSEndpoint: wsLink});
             } else {
                 browser = await puppeteer.launch(options);

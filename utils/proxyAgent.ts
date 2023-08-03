@@ -95,7 +95,7 @@ export async function CreateNewPage(url: string, options?: { allowExtensions?: b
     return page;
 }
 
-let pptPort = 9224;
+let pptPort = 19222;
 export function launchChromeAndFetchWsUrl(): Promise<string | null> {
     pptPort += 1;
     return new Promise((resolve, reject) => {
