@@ -182,6 +182,7 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
             return [page, account];
         } catch (e:any) {
             account.failedCnt += 1;
+            account.invalid = true;
             this.accountPool.syncfile();
             console.warn(`account:${account?.token}, something error happened.`, e);
             return [] as any;
