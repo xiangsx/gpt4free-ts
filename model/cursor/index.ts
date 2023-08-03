@@ -254,8 +254,7 @@ export class Cursor extends Chat implements BrowserUser<Account> {
             await page.click('.c01e01e17 > .cc04c7973 > .c078920ea > .c22fea258 > .cf1ef5a0b')
 
             // accept
-            await page.waitForSelector('.c01e01e17 > .cc04c7973 > .cd9f16636 > .cfcfa14e9 > .cd6a2dc65')
-            await page.click('.c01e01e17 > .cc04c7973 > .cd9f16636 > .cfcfa14e9 > .cd6a2dc65')
+            await this.accept(page);
             await sleep(5 * 1000);
             const uuid = v4();
             const u = new Uint8Array(32);
@@ -268,8 +267,7 @@ export class Cursor extends Chat implements BrowserUser<Account> {
             account.password = password;
             const newPage = await browser.newPage();
             await newPage.goto(loginUrl);
-            await newPage.waitForSelector('.c01e01e17 > .cc04c7973 > .cd9f16636 > .cfcfa14e9 > .cd6a2dc65');
-            await newPage.click('.c01e01e17 > .cc04c7973 > .cd9f16636 > .cfcfa14e9 > .cd6a2dc65');
+            await this.accept(page);
             const tokenPath = `/auth/poll?uuid=${uuid}&verifier=${encodeBase64(Buffer.from(u))}`;
             const token = await this.getToken(tokenPath, 20);
             if (!token) {
@@ -283,6 +281,15 @@ export class Cursor extends Chat implements BrowserUser<Account> {
         } catch (e:any) {
             console.warn('something error happened,err:', e);
             return [] as any;
+        }
+    }
+
+    private async accept(page: Page) {
+        try {
+            await page.waitForSelector('.c01e01e17 > .cc04c7973 > .cd9f16636 > .cfcfa14e9 > .cd6a2dc65',{timeout: 8 * 1000});
+            await page.click('.c01e01e17 > .cc04c7973 > .cd9f16636 > .cfcfa14e9 > .cd6a2dc65');
+        }catch (e) {
+            console.log('not need accept');
         }
     }
 
