@@ -48,7 +48,7 @@ class AccountPool {
                 invalid: false,
             };
         }
-        console.log(`read poe account total:${Object.keys(this.pool).length}`)
+        console.log(`read perplexity account total:${Object.keys(this.pool).length}`)
         this.syncfile();
     }
 
@@ -80,7 +80,7 @@ class AccountPool {
                 return vv;
             }
         }
-        console.log('poe pb run out!!!!!!');
+        console.log('perplexity pb run out!!!!!!');
         return {
             id: v4(),
             token: '',
@@ -250,30 +250,20 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
             const tt = setTimeout(async () => {
                 client.removeAllListeners('Network.webSocketFrameReceived');
                 await page.screenshot({path: `run/${account.id}.png`})
-                await sleep(2000);
+                await page.reload();
+                stream.write(Event.error, {error: 'please retry later!'});
+                stream.write(Event.done, {content: ''});
                 account.failedCnt += 1;
                 this.accountPool.syncfile();
                 if (account.failedCnt >= MaxFailedTimes) {
-                    destroy(true);
+                    destroy(false);
                     this.accountPool.syncfile();
-                    console.log(`poe account failed cnt > 10, destroy ok`);
+                    console.log(`perplexity account failed cnt > 10, destroy ok`);
                 } else {
                     await page.reload();
                     done(account);
                 }
-                if (!stream.stream().writableEnded && !stream.stream().closed) {
-                    if ((req?.retry || 0) > 3) {
-                        console.log('poe try times > 3, return error');
-                        stream.write(Event.error, {error: 'please retry later!'});
-                        stream.write(Event.done, {content: ''})
-                        stream.end();
-                        return;
-                    }
-                    console.error(`pb ${account.token} wait ack ws timeout, retry! failedCnt:${account.failedCnt}`);
-                    req.retry = req.retry ? req.retry + 1 : 1;
-                    await this.askStream(req, stream);
-                }
-            }, 20 * 1000);
+            }, 10 * 1000);
             let currMsgID = '';
             et = client.on('Network.webSocketFrameReceived', async ({response}) => {
                 tt.refresh();
@@ -310,7 +300,7 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
 
                 }
             })
-            console.log('poe start send msg');
+            console.log('perplexity start send msg');
             await Perplexity.newThread(page);
 
             await page.waitForSelector('.relative > .grow > div > .rounded-full > .relative > .outline-none')
@@ -326,12 +316,12 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
         } catch (e:any) {
             client.removeAllListeners('Network.webSocketFrameReceived');
             await page.screenshot({path: `run/${account.id}.png`})
-            console.error(`account: pb=${account.token}, poe ask stream failed:`, e);
+            console.error(`account: pb=${account.token}, perplexity ask stream failed:`, e);
             account.failedCnt += 1;
             if (account.failedCnt >= MaxFailedTimes) {
-                destroy(true);
+                destroy(false);
                 this.accountPool.syncfile();
-                console.log(`poe account failed cnt > 10, destroy ok`);
+                console.log(`perplexity account failed cnt > 10, destroy ok`);
             } else {
                 this.accountPool.syncfile();
                 await page.reload();
