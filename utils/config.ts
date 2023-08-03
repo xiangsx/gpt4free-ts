@@ -1,4 +1,4 @@
-import {readFileSync, watch} from 'fs';
+import {existsSync, readFileSync, watch} from 'fs';
 import {ModelType, Site} from "../model/base";
 
 // 首先定义配置的数据类型
@@ -21,6 +21,11 @@ class BaseConfig {
     }
 
     load() {
+        if (!existsSync(this.filePath)) {
+            console.log(`Configuration file ${this.filePath} not found. Retrying in 5 seconds...`);
+            setTimeout(() => this.load(), 5000);
+            return;
+        }
         try {
             const rawData = readFileSync(this.filePath, 'utf8');
             const fileConfig: Partial<ConfigData> = JSON.parse(rawData);
@@ -34,6 +39,11 @@ class BaseConfig {
     }
 
     watchFile() {
+        if (!existsSync(this.filePath)) {
+            console.log(`Configuration file ${this.filePath} not found. Retrying in 5 seconds...`);
+            setTimeout(() => this.watchFile(), 5000);
+            return;
+        }
         let timeoutId: NodeJS.Timeout | null = null;
         const debounceDelay = 300;
 
