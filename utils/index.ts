@@ -82,18 +82,21 @@ export function shuffleArray<T>(array: T[]): T[] {
 
 export type ErrorData = { error: string; };
 export type MessageData = { content: string };
+export type SearchData = { search: any };
 export type DoneData = MessageData;
 
 export enum Event {
     error = 'error',
     message = 'message',
+    search = 'search',
     done = 'done',
 }
 
 export type Data<T extends Event> =
     T extends Event.error ? ErrorData :
         T extends Event.message ? MessageData :
-            T extends Event.done ? DoneData : any;
+            T extends Event.done ? DoneData :
+                T extends Event.search ? SearchData : any;
 
 
 export type DataCB<T extends Event> = (event: T, data: Data<T>) => void
@@ -185,6 +188,14 @@ export class OpenaiEventStream extends EventStream {
                     finish_reason: 'stop'
                 })}\n\n`, 'utf-8');
                 this.pt.write(`data: [DONE]\n\n`, 'utf-8');
+                break;
+            case Event.search:
+                this.pt.write(`data: ${JSON.stringify({
+                    id: this.id,
+                    object: "chat.completion.chunk",
+                    choices: [{index: 0, delta: {content: '', ...data}}],
+                    finish_reason: null
+                })}\n\n`, 'utf-8');
                 break;
             default:
                 this.pt.write(`data: ${JSON.stringify({
