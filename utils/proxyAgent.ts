@@ -107,7 +107,7 @@ export function launchChromeAndFetchWsUrl(): Promise<string | null> {
         }
         const args = [
             '--no-sandbox',
-            // '--disable-setuid-sandbox',
+            '--disable-setuid-sandbox',
             `--remote-debugging-port=${pptPort}`,
             '--remote-debugging-address=0.0.0.0',
             '--ignore-certificate-errors',
