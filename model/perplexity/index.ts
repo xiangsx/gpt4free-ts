@@ -178,6 +178,7 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
         }
         let page = await browser.newPage();
         try {
+            await page.setViewport({width:1920, height: 1080});
             await page.setCookie({
                 url: 'https://www.perplexity.ai',
                 name: '__Secure-next-auth.session-token',
