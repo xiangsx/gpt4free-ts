@@ -114,7 +114,7 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
     constructor(options?: ChatOptions) {
         super(options);
         this.accountPool = new AccountPool();
-        this.pagePool = new BrowserPool<Account>(+(process.env.PERPLEXITY_POOL_SIZE || 0), this, false, 15 * 1000, true);
+        this.pagePool = new BrowserPool<Account>(+(process.env.PERPLEXITY_POOL_SIZE || 0), this, false, 30 * 1000, true);
     }
 
     support(model: ModelType): number {
@@ -184,12 +184,12 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
                 value: account.token
             });
             await page.goto(`https://www.perplexity.ai`)
-            if (!options) {
-                throw new Error('perplexity found no options');
-            }
-            let newB = await options.waitDisconnect(8 * 1000);
-            [page] = await newB.pages();
-            await closeOtherPages(newB, page);
+            // if (!options) {
+            //     throw new Error('perplexity found no options');
+            // }
+            // let newB = await options.waitDisconnect(8 * 1000);
+            // [page] = await newB.pages();
+            // await closeOtherPages(newB, page);
 
             if (!(await Perplexity.isLogin(page))) {
                 account.invalid = true;
