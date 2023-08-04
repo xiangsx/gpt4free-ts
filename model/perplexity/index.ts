@@ -347,16 +347,14 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
             console.error(`account: pb=${account.token}, perplexity ask stream failed:`, e);
             await Perplexity.goHome(page);
             account.failedCnt += 1;
+            this.accountPool.syncfile();
             if (account.failedCnt >= MaxFailedTimes) {
                 destroy(false);
-                this.accountPool.syncfile();
                 console.log(`perplexity account failed cnt > 10, destroy ok`);
             } else {
-                this.accountPool.syncfile();
                 await page.reload();
                 done(account);
             }
-            done(account);
             stream.write(Event.error, {error: 'some thing error, try again later'});
             stream.write(Event.done, {content: ''})
             stream.end();
