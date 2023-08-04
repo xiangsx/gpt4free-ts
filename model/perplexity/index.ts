@@ -229,13 +229,17 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
     }
 
     public static async changeMode(page: Page, model: ModelType = ModelType.GPT4) {
-        await page.waitForSelector('.absolute > .absolute > div > div > .md\\:hover\\:bg-offsetPlus')
-        await page.click('.absolute > .absolute > div > div > .md\\:hover\\:bg-offsetPlus')
+        try {
+            await page.waitForSelector('.absolute > .absolute > div > div > .md\\:hover\\:bg-offsetPlus', {timeout: 3 * 1000});
+            await page.click('.absolute > .absolute > div > div > .md\\:hover\\:bg-offsetPlus');
 
-        const selector = ModelMap[model];
-        if (selector) {
-            await page.waitForSelector(selector);
-            await page.click(selector)
+            const selector = ModelMap[model];
+            if (selector) {
+                await page.waitForSelector(selector, {timeout: 3 * 1000});
+                await page.click(selector)
+            }
+        } catch (e: any) {
+            console.error(e.message);
         }
     }
 
