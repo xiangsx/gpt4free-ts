@@ -114,7 +114,7 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
     constructor(options?: ChatOptions) {
         super(options);
         this.accountPool = new AccountPool();
-        this.pagePool = new BrowserPool<Account>(+(process.env.PERPLEXITY_POOL_SIZE || 0), this, false, 30 * 1000, true);
+        this.pagePool = new BrowserPool<Account>(+(process.env.PERPLEXITY_POOL_SIZE || 0), this, false, 20 * 1000, false);
     }
 
     support(model: ModelType): number {
