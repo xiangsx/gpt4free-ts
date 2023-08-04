@@ -44,7 +44,7 @@ interface RealReq {
 
 class AccountPool {
     private pool: Account[] = [];
-    private readonly account_file_path = './run/account.json';
+    private readonly account_file_path = './run/account_forefront.json';
 
     constructor() {
         if (fs.existsSync(this.account_file_path)) {
