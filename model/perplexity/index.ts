@@ -100,7 +100,7 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
     constructor(options?: ChatOptions) {
         super(options);
         this.accountPool = new AccountPool();
-        this.pagePool = new BrowserPool<Account>(+(process.env.PERPLEXITY_POOL_SIZE || 0), this, false, 5 * 1000, true);
+        this.pagePool = new BrowserPool<Account>(+(process.env.PERPLEXITY_POOL_SIZE || 0), this, false, 10 * 1000, true);
     }
 
     support(model: ModelType): number {
@@ -155,11 +155,12 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
 
     async init(id: string, browser: Browser, options?: PrepareOptions): Promise<[Page | undefined, Account]> {
         const account = this.accountPool.getByID(id);
-        if (!account) {
+        if (!account || !account.token) {
+            await browser.close();
             await sleep(10 * 24 * 60 * 60 * 1000);
             return [] as any;
         }
-        let [page] = await browser.pages();
+        let page = await browser.newPage();
         try {
             await page.setCookie({
                 url: 'https://www.perplexity.ai',
