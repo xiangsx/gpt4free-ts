@@ -1,6 +1,6 @@
 import {Chat, ChatOptions, ChatRequest, ChatResponse, ModelType} from "../base";
 import {Browser, EventEmitter, Page} from "puppeteer";
-import {BrowserPool, BrowserUser, PrepareOptions} from "../../pool/puppeteer";
+import {BrowserPool, BrowserUser, closeOtherPages, PrepareOptions} from "../../pool/puppeteer";
 import {DoneData, ErrorData, Event, EventStream, MessageData, parseJSON, shuffleArray, sleep} from "../../utils";
 import {v4} from "uuid";
 import fs from "fs";
@@ -174,6 +174,7 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
             page = await newB.newPage();
             await page.setViewport({width: 1500, height: 1080});
             await page.goto(`https://www.perplexity.ai`)
+            await closeOtherPages(newB, page);
 
             if (!(await Perplexity.isLogin(page))) {
                 account.invalid = true;
