@@ -197,7 +197,6 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
                 throw new Error(`account:${account?.token}, no login status`);
             }
             await page.waitForSelector(Perplexity.InputSelector, {timeout: 30 * 1000, visible: true});
-            await Perplexity.changeMode(page);
             await Perplexity.closeCopilot(page);
             this.accountPool.syncfile();
             console.log(`perplexity init ok! ${account.token}`);
