@@ -196,6 +196,7 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
                 this.accountPool.syncfile();
                 throw new Error(`account:${account?.token}, no login status`);
             }
+            console.log('perplexity still login!');
             await page.waitForSelector(Perplexity.InputSelector, {timeout: 30 * 1000, visible: true});
             await Perplexity.closeCopilot(page);
             this.accountPool.syncfile();
