@@ -338,6 +338,7 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
                 }
             })
             console.log('perplexity start send msg');
+            await Perplexity.goHome(page);
             await Perplexity.changeMode(page, req.model);
 
             await page.waitForSelector('.relative > .grow > div > .rounded-full > .relative > .outline-none')
