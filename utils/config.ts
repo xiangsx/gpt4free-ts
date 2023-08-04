@@ -40,7 +40,7 @@ class BaseConfig {
 
     watchFile() {
         if (!existsSync(this.filePath)) {
-            console.log(`Configuration file ${this.filePath} not found. Retrying in 5 seconds...`);
+            // console.log(`Configuration file ${this.filePath} not found. Retrying in 5 seconds...`);
             setTimeout(() => this.watchFile(), 5000);
             return;
         }
@@ -54,7 +54,7 @@ class BaseConfig {
                 }
 
                 timeoutId = setTimeout(() => {
-                    console.log(`Configuration file ${this.filePath} has been changed! Reloading...`);
+                    // console.log(`Configuration file ${this.filePath} has been changed! Reloading...`);
                     this.load();
                 }, debounceDelay);
             }
