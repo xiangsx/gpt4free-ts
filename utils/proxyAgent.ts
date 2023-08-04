@@ -7,6 +7,8 @@ import puppeteer from "puppeteer-extra";
 import {PuppeteerLaunchOptions} from "puppeteer";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
 import {spawn} from "child_process";
+import path from "path";
+import {randomStr} from "./index";
 
 puppeteer.use(StealthPlugin());
 
@@ -109,6 +111,7 @@ export function launchChromeAndFetchWsUrl(): Promise<string | null> {
             `--remote-debugging-port=${pptPort}`,
             '--remote-debugging-address=0.0.0.0',
             '--ignore-certificate-errors',
+            `--user-data-dir=${path.join(__dirname,`${randomStr(10)}`)}`
         ];
         if (process.env.http_proxy) {
             args.push(`--proxy-server=${process.env.http_proxy}`);
