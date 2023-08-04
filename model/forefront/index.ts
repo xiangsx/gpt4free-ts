@@ -237,7 +237,7 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
                 throw new Error('forefront failed get options');
             }
 
-            let [page] = await browser.pages();
+            let page = await browser.newPage();
             if (account.cookies.length > 0) {
                 await page.setCookie(...account.cookies);
                 await page.setViewport({width: 1920, height: 1080});
