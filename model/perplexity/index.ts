@@ -114,7 +114,7 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
     constructor(options?: ChatOptions) {
         super(options);
         this.accountPool = new AccountPool();
-        this.pagePool = new BrowserPool<Account>(+(process.env.PERPLEXITY_POOL_SIZE || 0), this, false, 20 * 1000, true);
+        this.pagePool = new BrowserPool<Account>(+(process.env.PERPLEXITY_POOL_SIZE || 0), this, false, 30 * 1000, true);
     }
 
     support(model: ModelType): number {
@@ -206,7 +206,7 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
             console.warn(`account:${account?.token}, something error happened.`, e);
             account.failedCnt += 1;
             this.accountPool.syncfile();
-            await page.screenshot({path: `../../run/${randomStr(10)}.png`})
+            await page.screenshot({path: `./run/${randomStr(10)}.png`})
             return [] as any;
         }
     }
