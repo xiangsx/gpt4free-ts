@@ -264,7 +264,7 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
         if (req.model !== ModelType.NetGPT4) {
             req.prompt = "user: 你是谁 assistant: 我是openai开发的GPT4模型" + req.prompt;
         }
-        req.prompt = req.prompt.replace(/\n/g, '');
+        req.prompt = req.prompt.replace(/\n/g, ' ');
         const [page, account, done,
             destroy] = this.pagePool.get();
         if (!account || !page) {
@@ -298,7 +298,10 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
             let currMsgID = '';
             et = client.on('Network.webSocketFrameReceived', async ({response}) => {
                 tt.refresh();
-                const dataStr = response.payloadData.replace(/^(\d+(\.\d+)?)/, '');
+                const dataStr = response.payloadData.replace(/^(\d+(\.\d+)?)/, '').trim();
+                if (!dataStr) {
+                    return;
+                }
                 const data = parseJSON(dataStr, []);
                 if (data.length !== 2) {
                     return;
