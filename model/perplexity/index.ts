@@ -1,6 +1,6 @@
 import {Chat, ChatOptions, ChatRequest, ChatResponse, ModelType} from "../base";
 import {Browser, EventEmitter, Page} from "puppeteer";
-import {BrowserPool, BrowserUser} from "../../pool/puppeteer";
+import {BrowserPool, BrowserUser, PrepareOptions} from "../../pool/puppeteer";
 import {DoneData, ErrorData, Event, EventStream, MessageData, parseJSON, shuffleArray, sleep} from "../../utils";
 import {v4} from "uuid";
 import fs from "fs";
@@ -153,14 +153,13 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
     }
 
 
-    async init(id: string, browser: Browser): Promise<[Page | undefined, Account]> {
+    async init(id: string, browser: Browser, options?: PrepareOptions): Promise<[Page | undefined, Account]> {
         const account = this.accountPool.getByID(id);
         if (!account) {
             await sleep(10 * 24 * 60 * 60 * 1000);
             return [] as any;
         }
-        const page = await browser.newPage();
-        await page.screenshot({path: `run/${account.id}.png`})
+        let [page] = await browser.pages();
         try {
             await page.setCookie({
                 url: 'https://www.perplexity.ai',
@@ -168,7 +167,14 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
                 value: account.token
             });
             await page.goto(`https://www.perplexity.ai`)
-            await page.screenshot({path:`run/${account.id}.png`})
+            if (!options) {
+                throw new Error('perplexity found no options');
+            }
+            let newB = await options.waitDisconnect(10 * 1000);
+            page = await newB.newPage();
+            await page.setViewport({width: 1500, height: 1080});
+            await page.goto(`https://www.perplexity.ai`)
+
             if (!(await Perplexity.isLogin(page))) {
                 account.invalid = true;
                 this.accountPool.syncfile();
@@ -190,16 +196,16 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
     }
     public static async isLogin(page: Page) {
         try {
-            await page.waitForSelector(Perplexity.UserName, {timeout: 5 * 1000});
+            await page.waitForSelector(Perplexity.ProTag, {timeout: 5 * 1000});
             return true;
         } catch (e:any) {
             return false;
         }
     }
-
     public static InputSelector = '.grow > div > .rounded-full > .relative > .outline-none';
     public static NewThread = '.grow > .my-md > div > .border > .text-clip';
     public static UserName = ".px-sm > .flex > div > .flex > .line-clamp-1";
+    public static ProTag = ".px-sm > .flex > div > .super > span";
 
     public static async newThread(page: Page) {
         await page.waitForSelector(Perplexity.NewThread, {timeout: 10 * 60 * 1000});
@@ -248,7 +254,6 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
             let et: EventEmitter;
             const tt = setTimeout(async () => {
                 client.removeAllListeners('Network.webSocketFrameReceived');
-                await page.screenshot({path: `run/${account.id}.png`})
                 await page.reload();
                 stream.write(Event.error, {error: 'please retry later!'});
                 stream.write(Event.done, {content: ''});
@@ -314,7 +319,6 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
             console.log('send msg ok!');
         } catch (e:any) {
             client.removeAllListeners('Network.webSocketFrameReceived');
-            await page.screenshot({path: `run/${account.id}.png`})
             console.error(`account: pb=${account.token}, perplexity ask stream failed:`, e);
             account.failedCnt += 1;
             if (account.failedCnt >= MaxFailedTimes) {

@@ -13,9 +13,14 @@ export interface PageInfo<T> {
     ready: boolean;
     page?: Page;
     data?: T;
+    ws?: string;
 }
 
-type PrepareFunc<T> = (id: string, browser: Browser) => Promise<[Page | undefined, T]>
+export type PrepareOptions = {
+    waitDisconnect: (delay: number) => Promise<Browser>
+}
+
+type PrepareFunc<T> = (id: string, browser: Browser, options?: PrepareOptions) => Promise<[Page | undefined, T]>
 
 export interface BrowserUser<T> {
     init: PrepareFunc<T>;
@@ -77,8 +82,9 @@ export class BrowserPool<T> {
         if (process.env.http_proxy) {
             options.args?.push(`--proxy-server=${process.env.http_proxy}`);
         }
-        let browser;
+        let browser: Browser;
         try {
+            let page: Page | undefined, data: T;
             if (this.useConnect) {
                 if (!process.env.CHROME_PATH) {
                     throw new Error('not config CHROME_PATH');
@@ -89,10 +95,20 @@ export class BrowserPool<T> {
                 }
                 console.log(wsLink);
                 browser = await normalPPT.connect({browserWSEndpoint: wsLink});
+                info.ws = wsLink;
+                [page, data] = await this.user.init(info.id, browser, {
+                    waitDisconnect: async (delay) => {
+                        browser.disconnect();
+                        await sleep(delay);
+                        browser = await normalPPT.connect({browserWSEndpoint: wsLink});
+                        await sleep(1000);
+                        return browser;
+                    }
+                });
             } else {
                 browser = await puppeteer.launch(options);
+                [page, data] = await this.user.init(info.id, browser);
             }
-            const [page, data] = await this.user.init(info.id, browser);
             if (!page) {
                 this.user.deleteID(info.id);
                 const newID = this.user.newID();
@@ -111,6 +127,7 @@ export class BrowserPool<T> {
             info.data = data
             info.ready = true;
         } catch (e:any) {
+            // @ts-ignore
             if (browser) {
                 await browser.close();
             }
