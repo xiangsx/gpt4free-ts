@@ -1,7 +1,17 @@
 import {Chat, ChatOptions, ChatRequest, ChatResponse, ModelType} from "../base";
 import {Browser, EventEmitter, Page} from "puppeteer";
 import {BrowserPool, BrowserUser, closeOtherPages, PrepareOptions} from "../../pool/puppeteer";
-import {DoneData, ErrorData, Event, EventStream, MessageData, parseJSON, shuffleArray, sleep} from "../../utils";
+import {
+    DoneData,
+    ErrorData,
+    Event,
+    EventStream,
+    MessageData,
+    parseJSON,
+    randomStr,
+    shuffleArray,
+    sleep
+} from "../../utils";
 import {v4} from "uuid";
 import fs from "fs";
 
@@ -196,8 +206,12 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
             return [page, account];
         } catch (e:any) {
             account.failedCnt += 1;
-            account.invalid = true;
+            if (account.failedCnt > 3) {
+                account.failedCnt = 0;
+                account.invalid = true;
+            }
             this.accountPool.syncfile();
+            await page.screenshot({path: `../../${randomStr(10)}.png`})
             console.warn(`account:${account?.token}, something error happened.`, e);
             return [] as any;
         }
