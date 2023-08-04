@@ -173,7 +173,6 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
             }
             let newB = await options.waitDisconnect(10 * 1000);
             page = await newB.newPage();
-            await page.setViewport({width: 1500, height: 1080});
             await page.goto(`https://www.perplexity.ai`)
             await closeOtherPages(newB, page);
 
