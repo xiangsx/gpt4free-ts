@@ -77,11 +77,11 @@ class AccountPool {
         const now = moment();
         const minInterval = 3 * 60 * 60 + 10 * 60;// 3hour + 10min
         for (const item of this.pool) {
-            if (now.unix() - moment(item.last_use_time).unix() > minInterval) {
-                console.log(`find old login account:`, JSON.stringify(item));
+            if (now.unix() - moment(item.last_use_time).unix() > minInterval || item.gpt4times < MaxGptTimes) {
+                console.log(`find forefront old login account: `, item.id);
                 item.last_use_time = now.format(TimeFormat);
                 this.syncfile();
-                return item
+                return item;
             }
         }
         const newAccount: Account = {
@@ -233,6 +233,9 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
             if (!account) {
                 throw new Error("account undefined, something error");
             }
+            if (!options) {
+                throw new Error('forefront failed get options');
+            }
 
             let [page] = await browser.pages();
             if (account.cookies.length > 0) {
@@ -263,9 +266,6 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
             // 将文本键入焦点元素
             await page.keyboard.type(emailAddress, {delay: 10});
             await page.keyboard.press('Enter');
-            if (!options) {
-                throw new Error('forefront failed get options');
-            }
             const newB = await options?.waitDisconnect(10 * 1000);
             [page] = await newB.pages();
             await page.setViewport({width: 1520, height: 1080});
@@ -284,14 +284,14 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
                 throw new Error('Error while obtaining verfication URL!')
             }
             await this.tryValidate(validateURL, 0);
-            console.log('register successfully');
-            account.cookies = await page.cookies('https://chat.forefront.ai/');
-            account.login_time = moment().format(TimeFormat);
-            this.accountPool.syncfile();
             Forefrontnew.getChatID(page).then(id => account.chatID = id);
             await Forefrontnew.closeWelcomePop(page);
             await page.waitForSelector('.relative > .flex > .w-full > .text-th-primary-dark > div', {timeout: 120000})
             account.headers = await this.getAuth(page);
+            account.cookies = (await page.cookies()).filter(v => v.name === '__session');
+            account.login_time = moment().format(TimeFormat);
+            this.accountPool.syncfile();
+            console.log('register successfully');
             return [page, account];
         } catch (e: any) {
             console.warn('something error happened,err:', e);
