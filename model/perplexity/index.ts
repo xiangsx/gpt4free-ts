@@ -89,9 +89,8 @@ class AccountPool {
 
     public get(): Account {
         for (const vv of shuffleArray(Object.values(this.pool))) {
-            if (!vv.invalid && !this.using.has(vv.id)) {
+            if (!vv.invalid && !this.using.has(vv.id) && vv.failedCnt <= 3) {
                 this.using.add(vv.id);
-                vv.failedCnt = 0;
                 return vv;
             }
         }
@@ -206,10 +205,6 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
         } catch (e:any) {
             console.warn(`account:${account?.token}, something error happened.`, e);
             account.failedCnt += 1;
-            if (account.failedCnt > 3) {
-                account.failedCnt = 0;
-                account.invalid = true;
-            }
             this.accountPool.syncfile();
             await page.screenshot({path: `../../${randomStr(10)}.png`})
             return [] as any;
