@@ -1,6 +1,6 @@
 import {Chat, ChatOptions, ChatRequest, ChatResponse, ModelType} from "../base";
-import {Browser, Page} from "puppeteer";
-import {BrowserPool, BrowserUser} from "../../pool/puppeteer";
+import {Browser, Page, Protocol} from "puppeteer";
+import {BrowserPool, BrowserUser, PrepareOptions} from "../../pool/puppeteer";
 import {CreateEmail, TempEmailType, TempMailMessage} from "../../utils/emailFactory";
 import {CreateAxiosProxy, CreateTlsProxy} from "../../utils/proxyAgent";
 import * as fs from "fs";
@@ -14,7 +14,7 @@ type PageData = {
     gpt4times: number;
 }
 
-const MaxGptTimes = 1;
+const MaxGptTimes = 95;
 
 const TimeFormat = "YYYY-MM-DD HH:mm:ss";
 
@@ -26,6 +26,7 @@ type Account = {
     gpt4times: number;
     headers?: Record<string, string>;
     chatID?: string;
+    cookies: Protocol.Network.Cookie[];
 }
 
 interface RealReq {
@@ -87,6 +88,7 @@ class AccountPool {
             id: v4(),
             last_use_time: now.format(TimeFormat),
             gpt4times: 0,
+            cookies: [],
         }
         this.pool.push(newAccount);
         this.syncfile();
@@ -117,7 +119,7 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
         this.accountPool = new AccountPool();
         this.net = options?.net;
         let maxSize = +(process.env.POOL_SIZE || 0);
-        this.pagePool = new BrowserPool<Account>(maxSize, this);
+        this.pagePool = new BrowserPool<Account>(maxSize, this, false, 10 * 1000, true);
         this.client = CreateAxiosProxy({
             baseURL: 'https://streaming-worker.forefront.workers.dev',
             headers: {
@@ -131,13 +133,9 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
 
     support(model: ModelType): number {
         switch (model) {
-            case ModelType.GPT4:
-                return 2500;
             case ModelType.GPT3p5Turbo:
                 return 2500;
             case ModelType.Claude:
-                return 2500;
-            case ModelType.ClaudeInstance:
                 return 2500;
             default:
                 return 0;
@@ -188,22 +186,26 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
         }
     }
 
-    private static async closeVIPPop(page: Page) {
-        try {
-            console.log('try close vip');
-            await page.waitForSelector('.grid > .grid > .w-full > .border-t > .text-th-primary-medium', {timeout: 10 * 1000})
-            await page.click('.grid > .grid > .w-full > .border-t > .text-th-primary-medium')
-            console.log('try close vip ok');
-        } catch (e:any) {
-            console.log('not need close vip');
-        }
-    }
-
     private static async closeWelcomePop(page: Page) {
         try {
             console.log('try close welcome pop');
-            await page.waitForSelector('.flex > .modal > .modal-box > .flex > .px-3:nth-child(1)', {timeout: 30 * 1000})
-            await page.click('.flex > .modal > .modal-box > .flex > .px-3:nth-child(1)')
+            await page.waitForSelector('.relative > .flex > .w-full > .flex > .onboarding-button')
+            await page.click('.relative > .flex > .w-full > .flex > .onboarding-button')
+
+            await page.waitForSelector('.relative > .flex > .w-full > .flex > .onboarding-button')
+            await page.click('.relative > .flex > .w-full > .flex > .onboarding-button')
+
+            await page.waitForSelector('.relative > .flex > .w-full > .flex > .onboarding-button')
+            await page.click('.relative > .flex > .w-full > .flex > .onboarding-button')
+
+            await page.waitForSelector('.flex > .grid > .w-full > .cursor-pointer > .w-full')
+            await page.click('.flex > .grid > .w-full > .cursor-pointer > .w-full')
+
+            await page.waitForSelector('.relative > .flex > .w-full > .flex > .onboarding-button')
+            await page.click('.relative > .flex > .w-full > .flex > .onboarding-button')
+
+            await page.waitForSelector('.relative > .flex > .w-full > .flex > .onboarding-button')
+            await page.click('.relative > .flex > .w-full > .flex > .onboarding-button')
             console.log('close welcome pop ok');
         } catch (e:any) {
             console.log('not need close welcome pop');
@@ -225,15 +227,16 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
         return data[0].result.data.json[0].id
     }
 
-    async init(id: string, browser: Browser): Promise<[Page | undefined, Account]> {
+    async init(id: string, browser: Browser, options?: PrepareOptions): Promise<[Page | undefined, Account]> {
         const account = this.accountPool.getByID(id);
         try {
             if (!account) {
                 throw new Error("account undefined, something error");
             }
 
-            const [page] = await browser.pages();
-            if (account.login_time) {
+            let [page] = await browser.pages();
+            if (account.cookies.length > 0) {
+                await page.setCookie(...account.cookies);
                 await page.setViewport({width: 1920, height: 1080});
                 await page.goto("https://chat.forefront.ai/");
                 Forefrontnew.getChatID(page).then(id => account.chatID = id);
@@ -260,8 +263,15 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
             // 将文本键入焦点元素
             await page.keyboard.type(emailAddress, {delay: 10});
             await page.keyboard.press('Enter');
+            if (!options) {
+                throw new Error('forefront failed get options');
+            }
+            const newB = await options?.waitDisconnect(10 * 1000);
+            [page] = await newB.pages();
+            await page.setViewport({width: 1520, height: 1080});
+            await page.reload();
 
-            const msgs = (await emailBox.waitMails()) as TempMailMessage[]
+            const msgs = (await emailBox.waitMails()) as TempMailMessage[];
             let validateURL: string | undefined;
             for (const msg of msgs) {
                 validateURL = msg.content.match(/https:\/\/clerk\.forefront\.ai\/v1\/verify\?_clerk_js_version=(\d+\.\d+\.\d+)&amp;token=[^\s"]+/i)?.[0];
@@ -275,15 +285,15 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
             }
             await this.tryValidate(validateURL, 0);
             console.log('register successfully');
+            account.cookies = await page.cookies('https://chat.forefront.ai/');
             account.login_time = moment().format(TimeFormat);
             this.accountPool.syncfile();
             Forefrontnew.getChatID(page).then(id => account.chatID = id);
             await Forefrontnew.closeWelcomePop(page);
-            await Forefrontnew.closeVIPPop(page);
             await page.waitForSelector('.relative > .flex > .w-full > .text-th-primary-dark > div', {timeout: 120000})
             account.headers = await this.getAuth(page);
             return [page, account];
-        } catch (e:any) {
+        } catch (e: any) {
             console.warn('something error happened,err:', e);
             return [] as any;
         }
@@ -291,12 +301,11 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
 
     public static async ifLogin(page: Page): Promise<boolean> {
         try {
-            await page.waitForSelector('.flex:nth-child(2) > .relative > .sticky > .flex > .px-3:nth-child(1)', {timeout: 5000});
-            await page.waitForSelector('.flex:nth-child(2) > .relative > .sticky > .flex > .border', {timeout: 5000});
-            return false;
-        } catch (e:any) {
-            console.log('still login in');
+            await page.waitForSelector('.flex:nth-child(1) > .flex > .relative:nth-child(1) > .flex > .text-sm',{timeout: 5000})
+            console.log('forefront still login in');
             return true;
+        } catch (e:any) {
+            return false;
         }
     }
 
@@ -372,13 +381,11 @@ export class Forefrontnew extends Chat implements BrowserUser<Account> {
             }))
             res.data.on('close', () => {
                 stream.end();
-                if (req.model === ModelType.GPT4 || req.model === ModelType.Claude100k) {
-                    account.gpt4times += 1;
-                    this.accountPool.syncfile();
-                }
+                account.gpt4times += 1;
+                this.accountPool.syncfile();
+                account.last_use_time = moment().format(TimeFormat);
                 if (account.gpt4times >= MaxGptTimes) {
                     account.gpt4times = 0;
-                    account.last_use_time = moment().format(TimeFormat);
                     this.accountPool.syncfile();
                     destroy();
                 } else {
