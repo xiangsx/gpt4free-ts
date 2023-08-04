@@ -115,7 +115,7 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
     constructor(options?: ChatOptions) {
         super(options);
         this.accountPool = new AccountPool();
-        this.pagePool = new BrowserPool<Account>(+(process.env.PERPLEXITY_POOL_SIZE || 0), this, false, 20 * 1000, true);
+        this.pagePool = new BrowserPool<Account>(+(process.env.PERPLEXITY_POOL_SIZE || 0), this, false, 15 * 1000, true);
     }
 
     support(model: ModelType): number {
@@ -188,9 +188,8 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
             if (!options) {
                 throw new Error('perplexity found no options');
             }
-            let newB = await options.waitDisconnect(10 * 1000);
-            page = await newB.newPage();
-            await page.goto(`https://www.perplexity.ai`)
+            let newB = await options.waitDisconnect(8 * 1000);
+            [page] = await newB.pages();
             await closeOtherPages(newB, page);
 
             if (!(await Perplexity.isLogin(page))) {
@@ -205,6 +204,7 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
             console.log(`perplexity init ok! ${account.token}`);
             return [page, account];
         } catch (e:any) {
+            console.warn(`account:${account?.token}, something error happened.`, e);
             account.failedCnt += 1;
             if (account.failedCnt > 3) {
                 account.failedCnt = 0;
@@ -212,7 +212,6 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
             }
             this.accountPool.syncfile();
             await page.screenshot({path: `../../${randomStr(10)}.png`})
-            console.warn(`account:${account?.token}, something error happened.`, e);
             return [] as any;
         }
     }
@@ -301,7 +300,6 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
                 tt.refresh();
                 const dataStr = response.payloadData.replace(/^(\d+(\.\d+)?)/, '');
                 const data = parseJSON(dataStr, []);
-                console.log(data);
                 if (data.length !== 2) {
                     return;
                 }
@@ -348,7 +346,7 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
             //@ts-ignore
             // await input?.evaluate((el, content) => el.value = content, req.prompt);
             await page.keyboard.press('Enter');
-            console.log('send msg ok!');
+            console.log('perplexity send msg ok!');
         } catch (e:any) {
             client.removeAllListeners('Network.webSocketFrameReceived');
             console.error(`account: pb=${account.token}, perplexity ask stream failed:`, e);
