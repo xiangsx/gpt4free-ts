@@ -28,6 +28,7 @@ import {ChatBase} from "./chatbase";
 import {OpenPrompt} from "./openprompt";
 import {AILS} from "./ails";
 import {Perplexity} from "./perplexity";
+import {DemoChat} from "./demochat";
 
 export class ChatModelFactory {
     private modelMap: Map<Site, Chat>;
@@ -46,7 +47,7 @@ export class ChatModelFactory {
         // this.modelMap.set(Site.ForefrontNet, new Forefrontnew({...this.options, net: true}))
         this.modelMap.set(Site.Forefront, new Forefrontnew({...this.options, net: false}))
         this.modelMap.set(Site.Mcbbs, new Mcbbs(this.options))
-        this.modelMap.set(Site.ChatDemo, new ChatDemo(this.options))
+        this.modelMap.set(Site.ChatDemo, new DemoChat(this.options))
         this.modelMap.set(Site.Vita, new Vita(this.options))
         this.modelMap.set(Site.Copilot, new Copilot(this.options))
         this.modelMap.set(Site.Skailar, new Skailar(this.options))
