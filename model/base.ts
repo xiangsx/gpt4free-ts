@@ -77,8 +77,12 @@ export function PromptToString(prompt: string, limit: number): [string, Message[
         const messages: Message[] = JSON.parse(prompt);
         const res = `${messages.map(item => `${item.role}: ${item.content}`).join('\n')}\nassistant: `;
         console.log(prompt.length, limit, getTokenSize(res));
-        if (getTokenSize(res) >= limit && messages.length > 1) {
-            return PromptToString(JSON.stringify(messages.slice(1, messages.length)), limit);
+        if (getTokenSize(res) >= limit) {
+            if (messages.length > 1) {
+                return PromptToString(JSON.stringify(messages.slice(1, messages.length)), limit);
+            }
+            messages[0].content = messages[0].content.slice(0, limit - 50)
+            return PromptToString(JSON.stringify(messages), limit);
         }
         return [res, messages];
     } catch (e:any) {
