@@ -318,8 +318,11 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
                         client.removeAllListeners('Network.webSocketFrameReceived');
                         await Perplexity.deleteThread(page);
                         await Perplexity.goHome(page);
-                        if (text.length > old.length) {
-                            stream.write(Event.message, {content: textObj.answer.substring(old.length)});
+                        if (textObj.answer.length > old.length) {
+                            const newContent =textObj.answer.substring(old.length)
+                            for (let i = 0; i < newContent.length; i += 2) {
+                                stream.write(Event.message, {content:newContent.slice(i, i + 2)});
+                            }
                         }
                         stream.write(Event.done, {content: ''});
                         stream.end();
@@ -331,7 +334,10 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
                             stream.write(Event.search, {search: textObj.web_results});
                         }
                         if (textObj.answer.length > old.length) {
-                            stream.write(Event.message, {content: textObj.answer.substring(old.length)});
+                            const newContent =textObj.answer.substring(old.length)
+                            for (let i = 0; i < newContent.length; i += 2) {
+                                stream.write(Event.message, {content:newContent.slice(i, i + 2)});
+                            }
                             old = textObj.answer;
                         }
 
