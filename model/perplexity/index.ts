@@ -348,6 +348,8 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
                     case 'query_answered':
                         clearTimeout(tt);
                         client.removeAllListeners('Network.webSocketFrameReceived');
+                        account.failedCnt = 0;
+                        this.accountPool.syncfile();
                         if (textObj.answer.length > old.length) {
                             const newContent =textObj.answer.substring(old.length)
                             for (let i = 0; i < newContent.length; i += 2) {
