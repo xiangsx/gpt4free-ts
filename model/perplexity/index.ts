@@ -14,14 +14,15 @@ import {
 } from "../../utils";
 import {v4} from "uuid";
 import fs from "fs";
+import path from "path";
 
 const MaxFailedTimes = 10;
 
 type UseLeft = Partial<Record<ModelType, number>>;
 
 const ModelMap: Partial<Record<ModelType, string>> = {
-    [ModelType.NetGPT4]: '.md\\:h-full:nth-child(1) > .md\\:h-full > .relative > .flex > .flex > span',
-    [ModelType.GPT4]: '.md\\:h-full:nth-child(3) > .md\\:h-full > .relative > .flex > .flex > span',
+    [ModelType.NetGPT4]: '.animate-in > .md\\:h-full:nth-child(1) > .md\\:h-full > .relative > .mt-one',
+    [ModelType.GPT4]: '.animate-in > .md\\:h-full:nth-child(3) > .md\\:h-full > .relative > .mt-one',
 }
 
 type Account = {
@@ -33,6 +34,7 @@ type Account = {
     failedCnt: number;
     invalid?: boolean;
     use_left?: UseLeft;
+    model?: string;
 }
 
 class AccountPool {
@@ -220,6 +222,7 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
         }
     }
     public static InputSelector = '.grow > div > .rounded-full > .relative > .outline-none';
+    public static NewThreadInputSelector = '.relative:nth-child(1) > .grow > div > .rounded-full > .relative > .outline-none';
     public static NewThread = '.grow > .my-md > div > .border > .text-clip';
     public static UserName = ".px-sm > .flex > div > .flex > .line-clamp-1";
     public static ProTag = ".px-sm > .flex > div > .super > span";
@@ -229,18 +232,55 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
         await page.click('.grow > .items-center > .relative:nth-child(1) > .px-sm > .md\\:hover\\:bg-offsetPlus')
     }
 
+    public static async newThread(page: Page): Promise<void> {
+        try {
+            await page.waitForSelector(Perplexity.NewThread, {timeout: 2000})
+            await page.click(Perplexity.NewThread)
+        } catch (e) {
+            await page.reload();
+            return Perplexity.newThread(page);
+        }
+    }
+
     public static async changeMode(page: Page, model: ModelType = ModelType.GPT4) {
         try {
-            await page.waitForSelector('.absolute > .absolute > div > div > .md\\:hover\\:bg-offsetPlus', {timeout: 3 * 1000});
-            await page.click('.absolute > .absolute > div > div > .md\\:hover\\:bg-offsetPlus');
+            await page.waitForSelector('.relative:nth-child(1) > .grow:nth-child(1) > div:nth-child(1) > .rounded-full:nth-child(1) > .relative:nth-child(1) > .absolute:nth-child(2) > .absolute:nth-child(1) > div:nth-child(1) > div:nth-child(1) > .md\\:hover\\:bg-offsetPlus:nth-child(1)', {
+                timeout: 3 * 1000,
+                visible: true
+            });
+            await page.click('.relative:nth-child(1) > .grow:nth-child(1) > div:nth-child(1) > .rounded-full:nth-child(1) > .relative:nth-child(1) > .absolute:nth-child(2) > .absolute:nth-child(1) > div:nth-child(1) > div:nth-child(1) > .md\\:hover\\:bg-offsetPlus:nth-child(1)');
 
             const selector = ModelMap[model];
             if (selector) {
-                await page.waitForSelector(selector, {timeout: 3 * 1000});
+                await page.waitForSelector(selector, {timeout: 3 * 1000, visible: true});
                 await page.click(selector)
             }
+            return true;
         } catch (e: any) {
             console.error(e.message);
+            return false;
+        }
+    }
+
+    public async uploadInput(page: Page, input: string) {
+        try {
+            const filename = `${randomStr(20)}.txt`;
+            // 将字符串写入文件
+            const filePath = path.resolve(__dirname, filename);
+            fs.writeFileSync(filePath, input);
+
+            const [fileChooser] = await Promise.all([
+                page.waitForFileChooser(),
+                page.click('.relative:nth-child(1) > .grow:nth-child(1) > div:nth-child(1) > .rounded-full:nth-child(1) > .relative:nth-child(1) > .absolute:nth-child(2) > .absolute:nth-child(1) .md\\:hover\\:bg-offsetPlus:nth-child(1) > .flex:nth-child(2) > .flex:nth-child(2)'), // 假设#upload是触发文件上传框的元素
+            ]);
+
+            // 上传文件
+            await fileChooser.accept([filePath]);
+
+            // 删除临时文件
+            fs.unlinkSync(filePath);
+        } catch (e) {
+            console.error(e);
         }
     }
 
@@ -250,14 +290,6 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
             await page.click('.text-super > .flex > div > .rounded-full > .relative');
         } catch (e) {
         }
-    }
-
-    public static async deleteThread(page: Page) {
-        await page.waitForSelector('.-mr-xs > div > .md\\:hover\\:bg-offsetPlus > .flex > .svg-inline--fa')
-        await page.click('.-mr-xs > div > .md\\:hover\\:bg-offsetPlus > .flex > .svg-inline--fa')
-
-        await page.waitForSelector('.animate-in > .md\\:h-full > .md\\:h-full > .relative > .flex')
-        await page.click('.animate-in > .md\\:h-full > .md\\:h-full > .relative > .flex')
     }
 
     public async askStream(req: PerplexityChatRequest, stream: EventStream) {
@@ -316,8 +348,6 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
                     case 'query_answered':
                         clearTimeout(tt);
                         client.removeAllListeners('Network.webSocketFrameReceived');
-                        await Perplexity.deleteThread(page);
-                        await Perplexity.goHome(page);
                         if (textObj.answer.length > old.length) {
                             const newContent =textObj.answer.substring(old.length)
                             for (let i = 0; i < newContent.length; i += 2) {
@@ -344,12 +374,17 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
                 }
             })
             console.log('perplexity start send msg');
-            await Perplexity.goHome(page);
-            await Perplexity.changeMode(page, req.model);
+            await Perplexity.newThread(page);
+            if (req.model !== account.model) {
+                const ok = await Perplexity.changeMode(page, req.model);
+                if (ok) {
+                    account.model = req.model;
+                }
+            }
 
             await page.waitForSelector('.relative > .grow > div > .rounded-full > .relative > .outline-none')
             await page.click('.relative > .grow > div > .rounded-full > .relative > .outline-none')
-            await page.keyboard.type(req.prompt, {delay: 0});
+            await client.send('Input.insertText', {text: req.prompt });
 
             console.log('perplexity find input ok');
             // const input = await page.$(Perplexity.InputSelector);
