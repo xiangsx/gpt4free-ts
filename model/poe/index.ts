@@ -192,7 +192,7 @@ export class Poe extends Chat implements BrowserUser<Account> {
     constructor(options?: ChatOptions) {
         super(options);
         this.accountPool = new PoeAccountPool();
-        this.pagePool = new BrowserPool<Account>(+(process.env.POE_POOL_SIZE || 0), this, false, 1000, true);
+        this.pagePool = new BrowserPool<Account>(+(process.env.POE_POOL_SIZE || 0), this, false);
     }
 
     support(model: ModelType): number {
