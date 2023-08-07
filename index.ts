@@ -5,9 +5,10 @@ import cors from '@koa/cors'
 import {ChatModelFactory} from "./model";
 import dotenv from 'dotenv';
 import {ChatRequest, ChatResponse, Message, ModelType, PromptToString, Site} from "./model/base";
-import {Event, EventStream, getTokenSize, OpenaiEventStream, randomStr} from "./utils";
+import {Event, EventStream, getTokenSize, OpenaiEventStream, randomStr, ThroughEventStream} from "./utils";
 import moment from "moment";
 import {Config} from "./utils/config";
+import {resolve} from "dns";
 
 process.setMaxListeners(100);  // 将限制提高到20个
 
@@ -46,19 +47,26 @@ const AskHandle: Middleware = async (ctx) => {
     } = {...ctx.query as any, ...ctx.request.body as any, ...ctx.params as any} as AskReq;
     if (!prompt) {
         ctx.body = {error: `need prompt in query`} as AskRes;
+        ctx.status = 500;
         return;
     }
     const chat = chatModel.get(site);
     if (!chat) {
         ctx.body = {error: `not support site: ${site} `} as AskRes;
+        ctx.status = 500;
         return;
     }
     const tokenLimit = chat.support(model);
     if (!tokenLimit) {
         ctx.body = {error: `${site} not support model ${model}`} as AskRes;
+        ctx.status = 500;
         return;
     }
     const [content, messages] = PromptToString(prompt, tokenLimit);
+    const data = await chat.ask({prompt: content, messages, model});
+    if (data && data.error) {
+        ctx.status = 500;
+    }
     ctx.body = await chat.ask({prompt: content, messages, model});
 }
 
@@ -68,34 +76,66 @@ const AskStreamHandle: (ESType: new () => EventStream) => Middleware = (ESType) 
         model = ModelType.GPT3p5Turbo,
         site = Site.You
     } = {...ctx.query as any, ...ctx.request.body as any, ...ctx.params as any} as AskReq;
-    ctx.set({
-        "Content-Type": "text/event-stream;charset=utf-8",
-        "Cache-Control": "no-cache",
-        "Connection": "keep-alive",
-    });
-    let es = new ESType();
-    ctx.body = es.stream();
     if (!prompt) {
-        es.write(Event.error, {error: 'need prompt in query'})
-        es.end();
+        ctx.body = {error: 'need prompt in query'}
+        ctx.status = 500;
         return;
     }
     const chat = chatModel.get(site);
     if (!chat) {
-        es.write(Event.error, {error: `not support site: ${site} `})
-        es.end();
+        ctx.body = {error: `not support site: ${site} `}
+        ctx.status = 500;
         return;
     }
     const tokenLimit = chat.support(model);
     if (!tokenLimit) {
-        es.write(Event.error, {error: `${site} not support model ${model}`})
-        es.end();
+        ctx.body = {error: `${site} not support model ${model}`}
+        ctx.status = 500;
         return;
     }
-    const [content, messages] = PromptToString(prompt, tokenLimit);
-    await chat.askStream({prompt: content, messages, model}, es);
-    ctx.body = es.stream();
-}
+    let stream = new ESType();
+    let ok = true;
+    const timeout = setTimeout(() => {
+        ctx.body = {error: 'timeout'}
+        ctx.status = 500;
+    }, 120 * 1000);
+    return (() => new Promise<void>(async (resolve) => {
+            const es = new ThroughEventStream((event, data) => {
+                switch (event) {
+                    case Event.error:
+                        ok = false;
+                        ctx.body = data;
+                        ctx.status = 500;
+                        resolve();
+                        break;
+                    default:
+                        clearTimeout(timeout);
+                        if (!ok) {
+                            break;
+                        }
+                        if (!ctx.body) {
+                            ctx.set({
+                                "Content-Type": "text/event-stream;charset=utf-8",
+                                "Cache-Control": "no-cache",
+                                "Connection": "keep-alive",
+                            });
+                            ctx.body = stream.stream();
+                        }
+                        resolve();
+                        stream.write(event, data);
+                        break;
+                }
+            }, () => {
+                if (!ok) {
+                    return;
+                }
+                stream.end();
+            });
+            const [content, messages] = PromptToString(prompt, tokenLimit);
+            await chat.askStream({prompt: content, messages, model}, es);
+        })
+    )()
+};
 
 interface OpenAIReq {
     site: Site;
@@ -137,7 +177,7 @@ const openAIHandle: Middleware = async (ctx, next) => {
     const {stream, messages} = {...ctx.query as any, ...ctx.request.body as any, ...ctx.params as any} as OpenAIReq;
     (ctx.request.body as any).prompt = JSON.stringify((ctx.request.body as any).messages);
     if (stream) {
-        AskStreamHandle(OpenaiEventStream)(ctx, next);
+        await AskStreamHandle(OpenaiEventStream)(ctx, next);
         return;
     }
     await AskHandle(ctx, next);
