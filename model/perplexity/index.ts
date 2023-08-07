@@ -228,8 +228,7 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
     public static ProTag = ".px-sm > .flex > div > .super > span";
 
     public static async goHome(page: Page) {
-        await page.waitForSelector('.grow > .items-center > .relative:nth-child(1) > .px-sm > .md\\:hover\\:bg-offsetPlus')
-        await page.click('.grow > .items-center > .relative:nth-child(1) > .px-sm > .md\\:hover\\:bg-offsetPlus')
+        await page.goto(`https://www.perplexity.ai`);
     }
 
     public static async newThread(page: Page): Promise<void> {
@@ -322,10 +321,12 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
                     console.log(`perplexity account failed cnt > 10, destroy ok`);
                 } else {
                     await Perplexity.goHome(page);
+                    account.model = undefined;
+                    this.accountPool.syncfile();
                     await page.reload();
                     done(account);
                 }
-            }, 20 * 1000);
+            }, 15 * 1000);
             let currMsgID = '';
             et = client.on('Network.webSocketFrameReceived', async ({response}) => {
                 tt.refresh();
@@ -388,9 +389,6 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
             await client.send('Input.insertText', {text: req.prompt });
 
             console.log('perplexity find input ok');
-            // const input = await page.$(Perplexity.InputSelector);
-            //@ts-ignore
-            // await input?.evaluate((el, content) => el.value = content, req.prompt);
             await page.keyboard.press('Enter');
             console.log('perplexity send msg ok!');
         } catch (e:any) {
@@ -398,6 +396,7 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
             console.error(`account: pb=${account.token}, perplexity ask stream failed:`, e);
             await Perplexity.goHome(page);
             account.failedCnt += 1;
+            account.model = undefined;
             this.accountPool.syncfile();
             if (account.failedCnt >= MaxFailedTimes) {
                 destroy(false);
