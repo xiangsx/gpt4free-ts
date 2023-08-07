@@ -15,18 +15,10 @@ import {
 } from "../../utils";
 import {v4} from "uuid";
 import moment from 'moment';
-import TurndownService from 'turndown';
 import {AxiosInstance, AxiosRequestConfig} from "axios";
 import es from "event-stream";
 import {CreateAxiosProxy} from "../../utils/proxyAgent";
 import crypto from "crypto";
-import {BaseOptions} from "vm";
-
-const turndownService = new TurndownService({codeBlockStyle: 'fenced'});
-
-type PageData = {
-    gpt4times: number;
-}
 
 const MaxGptTimes = 50;
 
@@ -135,17 +127,12 @@ class CursorAccountPool {
     }
 }
 
-interface CursorOptions extends ChatOptions {
-    model: ModelType;
-}
-
-
 export class Cursor extends Chat implements BrowserUser<Account> {
     private pagePool: BrowserPool<Account>;
     private accountPool: CursorAccountPool;
     private client: AxiosInstance;
 
-    constructor(options?: BaseOptions) {
+    constructor(options?: ChatOptions) {
         super(options);
         this.accountPool = new CursorAccountPool();
         let maxSize = +(process.env.CCURSOR_POOL_SIZE || 0);

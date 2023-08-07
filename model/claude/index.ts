@@ -9,9 +9,6 @@ import moment from 'moment';
 import {AxiosInstance, AxiosRequestConfig} from "axios";
 import es from "event-stream";
 import {CreateAxiosProxy} from "../../utils/proxyAgent";
-import {BaseOptions} from "vm";
-
-const MaxGptTimes = 500;
 
 const TimeFormat = "YYYY-MM-DD HH:mm:ss";
 
@@ -120,7 +117,7 @@ export class Claude extends Chat implements BrowserUser<Account> {
     private accountPool: ClaudeAccountPool;
     private client: AxiosInstance;
 
-    constructor(options?: BaseOptions) {
+    constructor(options?: ChatOptions) {
         super(options);
         this.accountPool = new ClaudeAccountPool();
         let maxSize = +(process.env.CLAUDE_POOL_SIZE || 0);

@@ -152,7 +152,7 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
                         result.error += (data as ErrorData).error;
                         break;
                     default:
-                        console.error(data);
+                        this.logger.error(data);
                         break;
                 }
             }, () => {
@@ -199,14 +199,14 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
                 this.accountPool.syncfile();
                 throw new Error(`account:${account?.token}, no login status`);
             }
-            console.log('perplexity still login!');
+            this.logger.info('perplexity still login!');
             await page.waitForSelector(Perplexity.InputSelector, {timeout: 30 * 1000, visible: true});
             await Perplexity.closeCopilot(page);
             this.accountPool.syncfile();
-            console.log(`perplexity init ok! ${account.token}`);
+            this.logger.info(`perplexity init ok! ${account.id}`);
             return [page, account];
         } catch (e:any) {
-            console.warn(`account:${account?.token}, something error happened.`, e);
+            this.logger.warn(`account:${account?.id}, something error happened.`, e);
             account.failedCnt += 1;
             this.accountPool.syncfile();
             await page.screenshot({path: `./run/${randomStr(10)}.png`})
@@ -241,7 +241,7 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
         }
     }
 
-    public static async changeMode(page: Page, model: ModelType = ModelType.GPT4) {
+    private async changeMode(page: Page, model: ModelType = ModelType.GPT4) {
         try {
             await page.waitForSelector('.relative:nth-child(1) > .grow:nth-child(1) > div:nth-child(1) > .rounded-full:nth-child(1) > .relative:nth-child(1) > .absolute:nth-child(2) > .absolute:nth-child(1) > div:nth-child(1) > div:nth-child(1) > .md\\:hover\\:bg-offsetPlus:nth-child(1)', {
                 timeout: 3 * 1000,
@@ -256,7 +256,7 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
             }
             return true;
         } catch (e: any) {
-            console.error(e.message);
+            this.logger.error(e.message);
             return false;
         }
     }
@@ -279,7 +279,7 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
             // 删除临时文件
             fs.unlinkSync(filePath);
         } catch (e) {
-            console.error(e);
+            this.logger.error(e);
         }
     }
 
@@ -318,7 +318,7 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
                 if (account.failedCnt >= MaxFailedTimes) {
                     destroy(false);
                     this.accountPool.syncfile();
-                    console.log(`perplexity account failed cnt > 10, destroy ok`);
+                    this.logger.info(`perplexity account failed cnt > 10, destroy ok`);
                 } else {
                     await Perplexity.goHome(page);
                     account.model = undefined;
@@ -359,7 +359,7 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
                         stream.write(Event.done, {content: ''});
                         stream.end();
                         done(account);
-                        console.log('perplexity recv msg complete');
+                        this.logger.info('perplexity recv msg complete');
                         break;
                     case 'query_progress':
                         if (textObj.answer.length === 0 && req.model === ModelType.NetGPT4) {
@@ -375,10 +375,10 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
 
                 }
             })
-            console.log('perplexity start send msg');
+            this.logger.info('perplexity start send msg');
             await Perplexity.newThread(page);
             if (req.model !== account.model) {
-                const ok = await Perplexity.changeMode(page, req.model);
+                const ok = await this.changeMode(page, req.model);
                 if (ok) {
                     account.model = req.model;
                 }
@@ -388,19 +388,19 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
             await page.click('.relative > .grow > div > .rounded-full > .relative > .outline-none')
             await client.send('Input.insertText', {text: req.prompt });
 
-            console.log('perplexity find input ok');
+            this.logger.info('perplexity find input ok');
             await page.keyboard.press('Enter');
-            console.log('perplexity send msg ok!');
+            this.logger.info('perplexity send msg ok!');
         } catch (e:any) {
             client.removeAllListeners('Network.webSocketFrameReceived');
-            console.error(`account: pb=${account.token}, perplexity ask stream failed:`, e);
+            this.logger.error(`account: id=${account.id}, perplexity ask stream failed:`, e);
             await Perplexity.goHome(page);
             account.failedCnt += 1;
             account.model = undefined;
             this.accountPool.syncfile();
             if (account.failedCnt >= MaxFailedTimes) {
                 destroy(false);
-                console.log(`perplexity account failed cnt > 10, destroy ok`);
+                this.logger.info(`perplexity account failed cnt > 10, destroy ok`);
             } else {
                 await page.reload();
                 done(account);

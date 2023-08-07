@@ -6,17 +6,9 @@ import * as fs from "fs";
 import {DoneData, ErrorData, Event, EventStream, MessageData, parseJSON, randomStr, sleep} from "../../utils";
 import {v4} from "uuid";
 import moment from 'moment';
-import TurndownService from 'turndown';
 import {AxiosInstance, AxiosRequestConfig} from "axios";
 import es from "event-stream";
 import {CreateAxiosProxy} from "../../utils/proxyAgent";
-import {BaseOptions} from "vm";
-
-const turndownService = new TurndownService({codeBlockStyle: 'fenced'});
-
-type PageData = {
-    gpt4times: number;
-}
 
 const MaxGptTimes = 500;
 
@@ -105,7 +97,7 @@ export class Copilot extends Chat implements BrowserUser<Account> {
     private accountPool: CopilotAccountPool;
     private client: AxiosInstance;
 
-    constructor(options?: BaseOptions) {
+    constructor(options?: ChatOptions) {
         super(options);
         this.accountPool = new CopilotAccountPool();
         let maxSize = +(process.env.COPILOT_POOL_SIZE || 0);

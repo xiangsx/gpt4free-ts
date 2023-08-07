@@ -1,7 +1,6 @@
-import {Chat, ChatRequest, ChatResponse, ModelType} from "../base";
+import {Chat, ChatOptions, ChatRequest, ChatResponse, ModelType} from "../base";
 import {Browser, Page, Protocol} from "puppeteer";
 import {BrowserPool, BrowserUser} from "../../pool/puppeteer";
-import {CreateEmail, TempEmailType, TempMailMessage} from "../../utils/emailFactory";
 import * as fs from "fs";
 import {
     DoneData,
@@ -16,20 +15,11 @@ import {
 } from "../../utils";
 import {v4} from "uuid";
 import moment from 'moment';
-import TurndownService from 'turndown';
 import {AxiosInstance, AxiosRequestConfig} from "axios";
 import es from "event-stream";
 import {CreateAxiosProxy} from "../../utils/proxyAgent";
-import {BaseOptions} from "vm";
 import {CreateAxiosDefaults} from "axios/index";
 
-const turndownService = new TurndownService({codeBlockStyle: 'fenced'});
-
-type PageData = {
-    gpt4times: number;
-}
-
-const MaxGptTimes = 500;
 
 const TimeFormat = "YYYY-MM-DD HH:mm:ss";
 
@@ -144,7 +134,7 @@ export class Ram extends Chat implements BrowserUser<Account> {
     private client: AxiosInstance;
     private useragent: string = randomUserAgent();
 
-    constructor(options?: BaseOptions) {
+    constructor(options?: ChatOptions) {
         super(options);
         this.accountPool = new RamAccountPool();
         let maxSize = +(process.env.RAM_POOL_SIZE || 0);
