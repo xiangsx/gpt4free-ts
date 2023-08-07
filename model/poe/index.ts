@@ -16,12 +16,13 @@ import {
 } from "../../utils";
 import {v4} from "uuid";
 import fs from "fs";
+import moment from "moment";
 
 const ModelMap: Partial<Record<ModelType, any>> = {
     [ModelType.GPT4]: 'GPT-4',
     [ModelType.Sage]: 'Sage',
     [ModelType.Claude]: 'Claude+',
-    [ModelType.Claude100k]: 'Claude-instant-100k+',
+    [ModelType.Claude100k]: 'Claude-instant-100k',
     [ModelType.ClaudeInstance]: 'Claude-instant',
     [ModelType.GPT3p5Turbo]: 'ChatGPT',
     [ModelType.GPT3p5_16k]: 'ChatGPT-16k',
@@ -35,9 +36,14 @@ const ModelMap: Partial<Record<ModelType, any>> = {
 }
 
 
+type UseLeftInfo = {
+    daily: number;
+    monthly: number;
+}
+
 const MaxFailedTimes = 10;
 
-type UseLeft = Partial<Record<ModelType, number>>;
+type UseLeft = Partial<Record<ModelType, UseLeftInfo>>;
 
 type Account = {
     id: string;
@@ -150,16 +156,21 @@ class PoeAccountPool {
     }
 
     public get(): Account {
-        for (const vv of Object.values(this.pool).sort((a, b) => (b.use_left?.[ModelType.GPT4] || 0) - (a.use_left?.[ModelType.GPT4]|| 0) )) {
-            if (!vv.invalid && !this.using.has(vv.id)) {
-                if (vv.use_left && vv.use_left[ModelType.GPT4] === 0 && vv.use_left[ModelType.GPT4_32k] === 0) {
-                    vv.invalid = true;
-                    continue;
-                }
-                this.using.add(vv.id);
-                vv.failedCnt = 0;
-                return vv;
+        for (const vv of shuffleArray(Object.values(this.pool))) {
+            if (vv.invalid) {
+                continue;
             }
+            if (this.using.has(vv.id)) {
+                continue;
+            }
+            if (moment().subtract(1, 'day').subtract(1, 'hours') > moment(vv.last_use_time)
+                && vv.use_left && vv.use_left[ModelType.GPT4]?.daily === 0
+                && vv.use_left[ModelType.GPT4]?.monthly === 0) {
+                continue;
+            }
+            this.using.add(vv.id);
+            vv.failedCnt = 0;
+            return vv;
         }
         console.log('poe pb run out!!!!!!');
         return {
@@ -181,7 +192,7 @@ export class Poe extends Chat implements BrowserUser<Account> {
     constructor(options?: ChatOptions) {
         super(options);
         this.accountPool = new PoeAccountPool();
-        this.pagePool = new BrowserPool<Account>(+(process.env.POE_POOL_SIZE || 0), this, false);
+        this.pagePool = new BrowserPool<Account>(+(process.env.POE_POOL_SIZE || 0), this, false, 1000, true);
     }
 
     support(model: ModelType): number {
@@ -260,24 +271,43 @@ export class Poe extends Chat implements BrowserUser<Account> {
     }
 
 
-    public static SelectorGpt4Left = '.SettingsSubscriptionSection_sectionBubble__nlU_b:nth-child(3) > .SettingsSubscriptionSection_countsSection__48sVJ > .SettingsSubscriptionSection_countRowContainer__ZJ419:nth-child(2) > .SettingsSubscriptionSection_countRow__GMItW > .SettingsSubscriptionSection_subtitle__Z7mcW:nth-child(2)';
-    public static SelectorGpt4_32kLeft = '.SettingsSubscriptionSection_sectionBubble__nlU_b:nth-child(4) > .SettingsSubscriptionSection_countsSection__48sVJ > .SettingsSubscriptionSection_countRowContainer__ZJ419 > .SettingsSubscriptionSection_countRow__GMItW > .SettingsSubscriptionSection_subtitle__Z7mcW:nth-child(2)';
-    public static SelectorGpt3_16kLeft = '.SettingsSubscriptionSection_sectionBubble__nlU_b:nth-child(5) > .SettingsSubscriptionSection_countsSection__48sVJ > .SettingsSubscriptionSection_countRowContainer__ZJ419 > .SettingsSubscriptionSection_countRow__GMItW > .SettingsSubscriptionSection_subtitle__Z7mcW:nth-child(2)';
-    public static SelectorClaude2_100k = '.SettingsSubscriptionSection_sectionBubble__nlU_b:nth-child(1) > .SettingsSubscriptionSection_countsSection__48sVJ > .SettingsSubscriptionSection_countRowContainer__ZJ419:nth-child(2) > .SettingsSubscriptionSection_countRow__GMItW > .SettingsSubscriptionSection_subtitle__Z7mcW:nth-child(2)';
-
-    public static async getUseLeft(page: Page): Promise<UseLeft> {
-        await page.goto("https://poe.com/settings");
-        return {
-            [ModelType.GPT4]: await Poe.getSelectorCnt(page, Poe.SelectorGpt4Left),
-            [ModelType.GPT4_32k]: await Poe.getSelectorCnt(page, Poe.SelectorGpt4_32kLeft),
-            [ModelType.GPT3p5_16k]: await Poe.getSelectorCnt(page, Poe.SelectorGpt3_16kLeft),
-            [ModelType.Claude2_100k]: await Poe.getSelectorCnt(page, Poe.SelectorClaude2_100k),
-        };
+    public async getUseLeft(page: Page): Promise<UseLeft> {
+        await page.goto('https://poe.com/settings');
+        await page.waitForSelector('.SettingsPageMain_container__3Se4O > .SettingsSubscriptionSection_subscriptionSettingsContainer__DfZCW > .SettingsSubscriptionSection_botLimitSection__j4mSO > .SettingsSubscriptionSection_sectionBubble__nlU_b:nth-child(1) > .SettingsSubscriptionSection_title__aFmeI')
+        // @ts-ignore
+        const length: number = await page.evaluate(() => document.querySelector('.PageWithSidebarLayout_mainSectionWrapper__S1TJJ > .PageWithSidebarLayout_scrollSection__IRP9Y > .PageWithSidebarLayout_mainSection__i1yOg > .SettingsPageMain_container__3Se4O > .SettingsSubscriptionSection_subscriptionSettingsContainer__DfZCW').children[2].children.length)
+        const useLeft: UseLeft = {};
+        for (let i = 0; i < length; i++) {
+            // @ts-ignore
+            const title: string = await page.evaluate((idx) => document.querySelector('.PageWithSidebarLayout_mainSectionWrapper__S1TJJ > .PageWithSidebarLayout_scrollSection__IRP9Y > .PageWithSidebarLayout_mainSection__i1yOg > .SettingsPageMain_container__3Se4O > .SettingsSubscriptionSection_subscriptionSettingsContainer__DfZCW').children[2].children[idx].children[0].textContent, i)
+            // @ts-ignore
+            const left: string = await page.evaluate((idx) => document.querySelector('.PageWithSidebarLayout_mainSectionWrapper__S1TJJ > .PageWithSidebarLayout_scrollSection__IRP9Y > .PageWithSidebarLayout_mainSection__i1yOg > .SettingsPageMain_container__3Se4O > .SettingsSubscriptionSection_subscriptionSettingsContainer__DfZCW').children[2].children[idx].children[1].textContent, i)
+            const {daily, monthly} = this.extractRemaining(left);
+            for (const model in ModelMap) {
+                // @ts-ignore
+                const v = ModelMap[model];
+                if (this.extractModelName(title).toUpperCase() === v.toUpperCase()) {
+                    // @ts-ignore
+                    useLeft[model] = {daily, monthly} as UseLeftInfo;
+                }
+            }
+        }
+        return useLeft;
     }
 
-    public static async getSelectorCnt(page: Page, selector: string): Promise<number> {
-        const v: string = await page.evaluate((arg1) => document.querySelector(arg1)?.textContent || '', selector);
-        return extractStrNumber(v);
+    extractModelName(input: string): string {
+        const match = input.match(/([A-Za-z0-9\-]+)/);
+        return match ? match[0] : '';
+    }
+
+    extractRemaining(text: string): { daily: number; monthly: number } {
+        const dailyMatch = text.match(/Daily \(free\)(\d*|Not currently available) left/);
+        const monthlyMatch = text.match(/Monthly \(subscription\)(\d+) left/);
+
+        const dailyRemaining = dailyMatch && dailyMatch[1] !== 'Not currently available' ? parseInt(dailyMatch[1], 10) : 0;
+        const monthlyRemaining = monthlyMatch ? parseInt(monthlyMatch[1], 10) : 0;
+
+        return {daily: dailyRemaining, monthly: monthlyRemaining};
     }
 
     async init(id: string, browser: Browser): Promise<[Page | undefined, Account]> {
@@ -298,12 +328,12 @@ export class Poe extends Chat implements BrowserUser<Account> {
             await page.waitForSelector(Poe.InputSelector, {timeout: 30 * 1000, visible: true});
             await page.click(Poe.InputSelector);
             await page.type(Poe.InputSelector, `1`);
-            if (!(await Poe.isVIP(page))) {
+            if (process.env.POE_ALLOW_FREE !== '1' && !(await Poe.isVIP(page))) {
                 account.invalid = true;
                 this.accountPool.syncfile();
                 throw new Error(`account:${account?.pb}, not vip`);
             }
-            account.use_left = await Poe.getUseLeft(page);
+            account.use_left = await this.getUseLeft(page);
             this.accountPool.syncfile();
             console.log(`poe init ok! ${account.pb}`);
             return [page, account];
@@ -363,17 +393,20 @@ ${question}`;
             stream.end();
             return;
         }
-        if (!((account.use_left?.[req.model] || 1) > 0)) {
-            done(account);
-            this.askStream(req, stream).then();
-            console.log(`pb ${account.pb} ${req.model} left = 0, change pb ok!`);
-            return;
-        }
-        if (account.use_left && account.use_left[req.model]) {
-            console.log(`pb ${account.pb} ${req.model} left ${account.use_left[req.model]}`)
-            //@ts-ignore
-            account.use_left[req.model] -= 1;
-            this.accountPool.syncfile();
+        const useleft = account.use_left?.[req.model];
+        if (useleft) {
+            if (useleft.daily + useleft.monthly === 0) {
+                done(account);
+                this.askStream(req, stream).then();
+                console.log(`pb ${account.pb} ${req.model} left = 0, change pb ok!`);
+                return;
+            }
+            if (useleft.daily) {
+                useleft.daily -= 1;
+            } else {
+                useleft.monthly -= 1;
+            }
+            console.log(`pb ${account.pb} ${req.model} left -> daily:[${useleft.daily}] monthly:[${useleft.monthly}]`)
         }
         let url = page?.url();
         if (!url) {

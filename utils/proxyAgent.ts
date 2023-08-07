@@ -111,7 +111,7 @@ export function launchChromeAndFetchWsUrl(): Promise<string | null> {
             `--remote-debugging-port=${pptPort}`,
             '--remote-debugging-address=0.0.0.0',
             '--ignore-certificate-errors',
-            `--user-data-dir=${path.join(__dirname,`${randomStr(10)}`)}`
+            // `--user-data-dir=${path.join(__dirname,`${randomStr(10)}`)}`
         ];
         if (process.env.http_proxy) {
             args.push(`--proxy-server=${process.env.http_proxy}`);
