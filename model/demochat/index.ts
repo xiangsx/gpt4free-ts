@@ -129,7 +129,7 @@ export class DemoChat extends Chat implements BrowserUser<Account> {
                 "Referer": "https://chat.chatgptdemo.net/",
                 "Origin": "https://chat.chatgptdemo.net"
             }
-        } as CreateAxiosDefaults, false);
+        } as CreateAxiosDefaults, true);
     }
 
     support(model: ModelType): number {
