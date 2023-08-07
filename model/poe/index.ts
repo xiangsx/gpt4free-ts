@@ -393,12 +393,15 @@ ${question}`;
             stream.end();
             return;
         }
+        account.last_use_time = moment().format('YYYY-MM-DD HH:mm:ss');
         const useleft = account.use_left?.[req.model];
         if (useleft) {
-            if (useleft.daily + useleft.monthly === 0) {
+            if (process.env.POE_USE_IGNORE_LEFT !== "1" && useleft.daily + useleft.monthly === 0) {
+                console.error(`pb ${account.pb} left 0`);
+                stream.write(Event.error, {error: 'please retry later!'});
+                stream.write(Event.done, {content: ''})
+                stream.end();
                 done(account);
-                this.askStream(req, stream).then();
-                console.log(`pb ${account.pb} ${req.model} left = 0, change pb ok!`);
                 return;
             }
             if (useleft.daily) {
