@@ -1,4 +1,4 @@
-<div align="center">
+![微信图片_20230808094602](https://github.com/xiangsx/gpt4free-ts/assets/29322721/50db780f-dcbb-4c28-b2c8-5eed9bad38f4)<div align="center">
 
 # GPT4Free TypeScript Version 🆓
 ###### Providing a free OpenAI GPT-4 API!
@@ -231,8 +231,8 @@ data: {"content":"done"}
 
 ## 👥 Wechat Group
 
-<image src="https://github.com/xiangsx/gpt4free-ts/assets/29322721/abc3b15d-8a45-4d79-a00d-9977ac2e8443" width=240 />
-<image src="https://github.com/xiangsx/gpt4free-ts/assets/29322721/16d4ff54-7e2e-4d22-b037-ee6c4fb92e5b" width=240 />
+<image src="https://github.com/xiangsx/gpt4free-ts/assets/29322721/43fb9e04-bf79-406f-88f8-5f4441eeb2d4" width=240 />
+<image src="https://github.com/xiangsx/gpt4free-ts/assets/29322721/2d770066-9106-4fe9-8b87-ed58df885e72" width=240 />
 
 ## 🌟 Star History
 
