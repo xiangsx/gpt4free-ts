@@ -329,7 +329,7 @@ export class ChatDemo extends Chat implements BrowserUser<Account> {
         done(account);
       });
     } catch (e: any) {
-      this.logger.error('demochat ask stream failed, err', e);
+      this.logger.error('demochat ask stream failed, err', e.message);
       stream.write(Event.error, { error: e.message });
       stream.end();
       await this.newChat(page);
