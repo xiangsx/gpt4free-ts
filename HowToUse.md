@@ -17,6 +17,7 @@ EMAIL_TYPE=tempmail-lol # 使用的临时邮箱类型
 
 COPILOT_POOL_SIZE=0 # copilot 账号数目
 POE_POOL_SIZE=0 # 同上
+# 多个用|分割
 POE_PB=xxxxx|xxxxxx # poe的登录pb
 #是否使用免费账号 1：不会校验账号是否是会员直接使用
 POE_ALLOW_FREE=1
@@ -28,7 +29,13 @@ OEPNPROMPT_POOL_SIZE=0
 #perplexity 需要的配置是下面3个
 CHROME_PATH=google-chrome # 如果在容器中运行固定配置这个，不用修改
 PERPLEXITY_POOL_SIZE=0
-PERPLEXITY_TOKEN=xxxxxx|xxxxxxx
+# 多个用|分割
+PERPLEXITY_TOKEN=xxxxxx|xxxxxxx  
+
+# sincode站点相关变量，注意email和password要一一对应，多个用|分割
+SINCODE_EMAIL=xxx|xxx|xxx
+SINCODE_PASSWORD=xxx|xxx|xxx
+SINCODE_POOL_SIZE=4
 ```
 
 ### 2.2 配置文件解释
