@@ -66,6 +66,7 @@ export enum Site {
   OpenPrompt = 'openprompt',
   AiLs = 'ails',
   Perplexity = 'perplexity',
+  SinCode = 'sincode',
 }
 
 export interface ChatRequest {
