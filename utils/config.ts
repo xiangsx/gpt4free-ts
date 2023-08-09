@@ -22,9 +22,9 @@ class BaseConfig {
 
   load() {
     if (!existsSync(this.filePath)) {
-      console.log(
-        `Configuration file ${this.filePath} not found. Retrying in 5 seconds...`,
-      );
+      // console.log(
+      //   `Configuration file ${this.filePath} not found. Retrying in 5 seconds...`,
+      // );
       setTimeout(() => this.load(), 5000);
       return;
     }
