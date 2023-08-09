@@ -74,9 +74,7 @@ class AccountPool {
         invalid: false,
       };
     }
-    console.log(
-      `read perplexity account total:${Object.keys(this.pool).length}`,
-    );
+    console.log(`read sincode account total:${Object.keys(this.pool).length}`);
     this.syncfile();
   }
 
@@ -107,7 +105,7 @@ class AccountPool {
         return vv;
       }
     }
-    console.log('perplexity pb run out!!!!!!');
+    console.log('sincode pb run out!!!!!!');
     return {
       id: v4(),
       email: '',
@@ -243,7 +241,10 @@ export class SinCode extends Chat implements BrowserUser<Account> {
       await sleep(1000);
       await page.goto(`https://www.sincode.ai/app/marve`);
       if (!(await this.isLogin(page))) {
-        account.invalid = true;
+        account.failedCnt += 1;
+        if (account.failedCnt > 3) {
+          account.invalid = true;
+        }
         this.accountPool.syncfile();
         throw new Error(`account:${account?.email}, no login status`);
       }
@@ -284,7 +285,7 @@ export class SinCode extends Chat implements BrowserUser<Account> {
   public static UserName = '.px-sm > .flex > div > .flex > .line-clamp-1';
   public static ProTag = '.px-sm > .flex > div > .super > span';
   public static async goHome(page: Page) {
-    await page.goto(`https://www.perplexity.ai`);
+    await page.goto(`https://www.sincode.ai`);
   }
 
   public static async newThread(page: Page): Promise<void> {
@@ -350,7 +351,7 @@ export class SinCode extends Chat implements BrowserUser<Account> {
         if (account.failedCnt >= MaxFailedTimes) {
           destroy(false);
           this.accountPool.syncfile();
-          this.logger.info(`perplexity account failed cnt > 10, destroy ok`);
+          this.logger.info(`sincode account failed cnt > 10, destroy ok`);
         } else {
           await SinCode.goHome(page);
           account.model = undefined;
@@ -408,7 +409,7 @@ export class SinCode extends Chat implements BrowserUser<Account> {
     } catch (e: any) {
       client.removeAllListeners('Network.webSocketFrameReceived');
       this.logger.error(
-        `account: id=${account.id}, perplexity ask stream failed:`,
+        `account: id=${account.id}, sincode ask stream failed:`,
         e,
       );
       await SinCode.goHome(page);
@@ -417,7 +418,7 @@ export class SinCode extends Chat implements BrowserUser<Account> {
       this.accountPool.syncfile();
       if (account.failedCnt >= MaxFailedTimes) {
         destroy(false);
-        this.logger.info(`perplexity account failed cnt > 10, destroy ok`);
+        this.logger.info(`sincode account failed cnt > 10, destroy ok`);
       } else {
         await page.reload();
         done(account);
