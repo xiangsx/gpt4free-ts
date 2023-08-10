@@ -79,7 +79,7 @@ export class ChatModelFactory {
     this.modelMap.set(Site.ChatBase, new ChatBase(this.options));
     this.modelMap.set(Site.OpenPrompt, new OpenPrompt(this.options));
     this.modelMap.set(Site.AiLs, new AILS(this.options));
-    this.modelMap.set(Site.SinCode, new SinCode(this.options));
+    this.modelMap.set(Site.SinCode, new SinCode({ name: Site.SinCode }));
     this.modelMap.set(
       Site.Perplexity,
       new Perplexity({ name: Site.Perplexity }),

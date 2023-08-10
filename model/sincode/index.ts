@@ -372,6 +372,13 @@ export class SinCode extends Chat implements BrowserUser<Account> {
           if (dataStr === 'pong') {
             return;
           }
+          if (dataStr.indexOf('xxUNKNOWNERRORxx') !== -1) {
+            client.removeAllListeners('Network.webSocketFrameReceived');
+            clearTimeout(tt);
+            this.logger.error(`sincode return error, ${dataStr}`);
+            stream.write(Event.error, { error: 'please retry later!' });
+            stream.end();
+          }
           if (dataStr.indexOf('RESPONSE_START') !== -1) {
             currMsgID = requestId;
             return;
