@@ -378,6 +378,7 @@ export class SinCode extends Chat implements BrowserUser<Account> {
             this.logger.error(`sincode return error, ${dataStr}`);
             stream.write(Event.error, { error: 'please retry later!' });
             stream.end();
+            return;
           }
           if (dataStr.indexOf('RESPONSE_START') !== -1) {
             currMsgID = requestId;
