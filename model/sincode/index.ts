@@ -59,6 +59,7 @@ class AccountPool {
     }
     for (const key in this.pool) {
       this.pool[key].failedCnt = 0;
+      this.pool[key].model = undefined;
     }
     for (const idx in sigList) {
       const sig = sigList[idx];
@@ -137,9 +138,9 @@ export class SinCode extends Chat implements BrowserUser<Account> {
   support(model: ModelType): number {
     switch (model) {
       case ModelType.GPT4:
-        return 4000;
+        return 6000;
       case ModelType.GPT3p5Turbo:
-        return 2000;
+        return 6000;
       default:
         return 0;
     }
