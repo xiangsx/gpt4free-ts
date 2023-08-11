@@ -318,16 +318,6 @@ export class SinCode extends Chat implements BrowserUser<Account> {
     }
   }
 
-  public static async closeCopilot(page: Page) {
-    try {
-      await page.waitForSelector(
-        '.text-super > .flex > div > .rounded-full > .relative',
-        { timeout: 5 * 1000 },
-      );
-      await page.click('.text-super > .flex > div > .rounded-full > .relative');
-    } catch (e) {}
-  }
-
   public async askStream(req: PerplexityChatRequest, stream: EventStream) {
     const [page, account, done, destroy] = this.pagePool.get();
     if (!account || !page) {
@@ -353,7 +343,7 @@ export class SinCode extends Chat implements BrowserUser<Account> {
           this.accountPool.syncfile();
           this.logger.info(`sincode account failed cnt > 10, destroy ok`);
         } else {
-          await SinCode.goHome(page);
+          await this.newChat(page);
           account.model = undefined;
           this.accountPool.syncfile();
           await page.reload();
@@ -376,6 +366,7 @@ export class SinCode extends Chat implements BrowserUser<Account> {
             client.removeAllListeners('Network.webSocketFrameReceived');
             clearTimeout(tt);
             this.logger.error(`sincode return error, ${dataStr}`);
+            await this.newChat(page);
             stream.write(Event.error, { error: 'please retry later!' });
             stream.end();
             account.failedCnt += 1;
@@ -396,6 +387,7 @@ export class SinCode extends Chat implements BrowserUser<Account> {
             await this.newChat(page);
             this.accountPool.syncfile();
             done(account);
+            this.logger.info(`recv msg ok`);
           }
           if (requestId !== currMsgID) {
             return;
