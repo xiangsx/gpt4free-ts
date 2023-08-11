@@ -162,7 +162,6 @@ export class SinCode extends Chat implements BrowserUser<Account> {
           if (!data) {
             return;
           }
-          this.logger.info(event, data);
           switch (event) {
             case 'message':
               result.content += (data as MessageData).content;
