@@ -48,8 +48,12 @@ class AccountPool {
   private readonly account_file_path = './run/account_sincode.json';
 
   constructor() {
-    const sigList = (process.env.SINCODE_EMAIL || '').split('|');
-    const mainList = (process.env.SINCODE_PASSWORD || '').split('|');
+    if (!process.env.SINCODE_EMAIL || !process.env.SINCODE_PASSWORD) {
+      console.log('sincode found 0 account');
+      return;
+    }
+    const sigList = process.env.SINCODE_EMAIL.split('|');
+    const mainList = process.env.SINCODE_PASSWORD.split('|');
     if (fs.existsSync(this.account_file_path)) {
       const accountStr = fs.readFileSync(this.account_file_path, 'utf-8');
       this.pool = parseJSON(accountStr, {} as Record<string, Account>);
@@ -158,6 +162,7 @@ export class SinCode extends Chat implements BrowserUser<Account> {
           if (!data) {
             return;
           }
+          this.logger.info(event, data);
           switch (event) {
             case 'message':
               result.content += (data as MessageData).content;
@@ -280,23 +285,8 @@ export class SinCode extends Chat implements BrowserUser<Account> {
   SLNewChat =
     '#scrollbar > #scrollbar1 > .bubble-element > .clickable-element > .bubble-element:nth-child(2)';
   SLInput = 'textarea';
-  public static NewThreadInputSelector =
-    '.relative:nth-child(1) > .grow > div > .rounded-full > .relative > .outline-none';
-  public static NewThread = '.grow > .my-md > div > .border > .text-clip';
-  public static UserName = '.px-sm > .flex > div > .flex > .line-clamp-1';
-  public static ProTag = '.px-sm > .flex > div > .super > span';
   public static async goHome(page: Page) {
     await page.goto(`https://www.sincode.ai`);
-  }
-
-  public static async newThread(page: Page): Promise<void> {
-    try {
-      await page.waitForSelector(SinCode.NewThread, { timeout: 2000 });
-      await page.click(SinCode.NewThread);
-    } catch (e) {
-      await page.reload();
-      return SinCode.newThread(page);
-    }
   }
 
   private async changeMode(page: Page, model: ModelType = ModelType.GPT4) {
@@ -385,15 +375,16 @@ export class SinCode extends Chat implements BrowserUser<Account> {
             stream.write(Event.done, { content: '' });
             stream.end();
             account.failedCnt = 0;
-            await this.newChat(page);
             this.accountPool.syncfile();
-            done(account);
+            await this.newChat(page);
             this.logger.info(`recv msg ok`);
+            done(account);
           }
           if (requestId !== currMsgID) {
             return;
           }
           stream.write(Event.message, { content: dataStr });
+          tt.refresh();
         },
       );
       this.logger.info('sincode start send msg');

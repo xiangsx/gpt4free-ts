@@ -86,7 +86,7 @@ const AskHandle: Middleware = async (ctx) => {
   if (data && data.error) {
     ctx.status = 500;
   }
-  ctx.body = await chat.ask({ prompt: content, messages, model });
+  ctx.body = data;
 };
 
 const AskStreamHandle: (ESType: new () => EventStream) => Middleware =
