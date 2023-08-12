@@ -17,9 +17,11 @@ import {
   randomStr,
   shuffleArray,
   sleep,
+  TimeFormat,
 } from '../../utils';
 import { v4 } from 'uuid';
 import fs from 'fs';
+import moment from 'moment';
 
 const MaxFailedTimes = 10;
 
@@ -105,7 +107,14 @@ class AccountPool {
 
   public get(): Account {
     for (const vv of shuffleArray(Object.values(this.pool))) {
-      if (!vv.invalid && !this.using.has(vv.id) && vv.failedCnt <= 3) {
+      if (
+        (!vv.invalid ||
+          moment().subtract(10, 'm').isAfter(moment(vv.last_use_time))) &&
+        !this.using.has(vv.id) &&
+        vv.failedCnt <= 3
+      ) {
+        vv.invalid = false;
+        this.syncfile();
         this.using.add(vv.id);
         return vv;
       }
@@ -134,7 +143,7 @@ export class SinCode extends Chat implements BrowserUser<Account> {
       +(process.env.SINCODE_POOL_SIZE || 0),
       this,
       false,
-      20 * 1000,
+      3 * 1000,
       false,
     );
   }
@@ -236,12 +245,12 @@ export class SinCode extends Chat implements BrowserUser<Account> {
       await page.type(
         '.bubble-element:nth-child(1) > .bubble-r-container:nth-child(1) > .bubble-element:nth-child(1) > .bubble-element:nth-child(2) > .bubble-element:nth-child(1) > .bubble-element:nth-child(2)',
         account.email,
-        { delay: 100 },
+        { delay: 20 },
       );
 
       await page.waitForSelector('#pw_login');
       await page.click('#pw_login');
-      await page.type('#pw_login', account.password);
+      await page.type('#pw_login', account.password, { delay: 10 });
       await page.keyboard.press('Enter');
       await sleep(1000);
       await page.goto(`https://www.sincode.ai/app/marve`);
@@ -261,7 +270,7 @@ export class SinCode extends Chat implements BrowserUser<Account> {
       this.logger.warn(`account:${account?.id}, something error happened.`, e);
       account.failedCnt += 1;
       this.accountPool.syncfile();
-      await page.screenshot({ path: `./run/${randomStr(10)}.png` });
+      await page.screenshot({ path: `./run/sin_fail_${randomStr(10)}.png` });
       return [] as any;
     }
   }
@@ -327,10 +336,11 @@ export class SinCode extends Chat implements BrowserUser<Account> {
         stream.write(Event.done, { content: '' });
         stream.end();
         account.failedCnt += 1;
-        this.accountPool.syncfile();
         if (account.failedCnt >= MaxFailedTimes) {
-          destroy(false);
+          account.last_use_time = moment().format(TimeFormat);
+          account.invalid = true;
           this.accountPool.syncfile();
+          destroy();
           this.logger.info(`sincode account failed cnt > 10, destroy ok`);
         } else {
           await this.newChat(page);
@@ -339,7 +349,7 @@ export class SinCode extends Chat implements BrowserUser<Account> {
           await page.reload();
           done(account);
         }
-      }, 15 * 1000);
+      }, 8 * 1000);
       let currMsgID = '';
       et = client.on(
         'Network.webSocketFrameReceived',
@@ -360,8 +370,10 @@ export class SinCode extends Chat implements BrowserUser<Account> {
             stream.write(Event.error, { error: 'please retry later!' });
             stream.end();
             account.failedCnt += 1;
+            account.last_use_time = moment().format(TimeFormat);
+            account.invalid = true;
             this.accountPool.syncfile();
-            done(account);
+            destroy();
             return;
           }
           if (dataStr.indexOf('RESPONSE_START') !== -1) {
@@ -412,7 +424,9 @@ export class SinCode extends Chat implements BrowserUser<Account> {
       account.model = undefined;
       this.accountPool.syncfile();
       if (account.failedCnt >= MaxFailedTimes) {
-        destroy(false);
+        account.last_use_time = moment().format(TimeFormat);
+        account.invalid = true;
+        destroy();
         this.logger.info(`sincode account failed cnt > 10, destroy ok`);
       } else {
         await page.reload();

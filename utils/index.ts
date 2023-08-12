@@ -12,6 +12,7 @@ const turndownService = new TurndownService({ codeBlockStyle: 'fenced' });
 
 type eventFunc = (eventName: string, data: string) => void;
 
+export const TimeFormat = 'YYYY-MM-DD HH:mm:ss';
 export function toEventCB(arr: Uint8Array, emit: eventFunc) {
   const pt = new PassThrough();
   pt.write(arr);

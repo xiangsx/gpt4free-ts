@@ -2,7 +2,7 @@ import { colorLabel, EventStream, getTokenSize } from '../utils';
 import winston from 'winston';
 
 export interface ChatOptions {
-  name?: string;
+  name: Site;
 }
 
 export interface ChatResponse {
