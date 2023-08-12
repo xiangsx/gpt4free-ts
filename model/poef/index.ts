@@ -6,7 +6,7 @@ import {
   ModelType,
 } from '../base';
 import { Browser, EventEmitter, Page } from 'puppeteer';
-import { BrowserPool, BrowserUser } from '../../pool/puppeteer';
+import { BrowserPool, BrowserUser, simplifyPage } from '../../pool/puppeteer';
 import {
   DoneData,
   ErrorData,
@@ -369,6 +369,7 @@ export class Poef extends Chat implements BrowserUser<Account> {
       throw new Error('get account failed');
     }
     const page = await browser.newPage();
+    await simplifyPage(page);
     try {
       if (account.pb) {
         await page.setCookie({

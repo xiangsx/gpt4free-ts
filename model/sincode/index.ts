@@ -6,7 +6,12 @@ import {
   ModelType,
 } from '../base';
 import { Browser, EventEmitter, Page } from 'puppeteer';
-import { BrowserPool, BrowserUser, PrepareOptions } from '../../pool/puppeteer';
+import {
+  BrowserPool,
+  BrowserUser,
+  PrepareOptions,
+  simplifyPage,
+} from '../../pool/puppeteer';
 import {
   DoneData,
   ErrorData,
@@ -214,6 +219,7 @@ export class SinCode extends Chat implements BrowserUser<Account> {
       return [] as any;
     }
     let page = await browser.newPage();
+    await simplifyPage(page);
     page.setDefaultNavigationTimeout(60 * 1000);
     try {
       await page.setViewport({ width: 1920, height: 1080 });

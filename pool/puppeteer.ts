@@ -218,3 +218,21 @@ export async function closeOtherPages(browser: Browser, page: Page) {
     }
   }
 }
+
+export async function simplifyPage(page: Page) {
+  await page.setRequestInterception(true);
+  page.on('request', (req) => {
+    if (
+      req.resourceType() === 'image' ||
+      req.resourceType() === 'media' ||
+      req.resourceType() === 'font' ||
+      req.resourceType() === 'prefetch' ||
+      req.resourceType() === 'ping' ||
+      req.resourceType() === 'cspviolationreport'
+    ) {
+      req.abort();
+    } else {
+      req.continue();
+    }
+  });
+}
