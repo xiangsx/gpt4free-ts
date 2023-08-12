@@ -1,4 +1,4 @@
-import { colorLabel, EventStream, getTokenSize } from '../utils';
+import { colorLabel, EventStream, getTokenSize, newLogger } from '../utils';
 import winston from 'winston';
 
 export interface ChatOptions {
@@ -107,22 +107,7 @@ export abstract class Chat {
 
   protected constructor(options?: ChatOptions) {
     this.options = options;
-    this.logger = winston.createLogger({
-      level: process.env.LOG_LEVEL || 'info', // 从环境变量中读取日志等级，如果没有设置，则默认为 'info'
-      format: winston.format.combine(
-        winston.format.colorize(), // 开启色彩日志
-        winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }), // 添加时间戳
-        winston.format.prettyPrint(), // 打印整个日志对象
-        winston.format.splat(), // 支持格式化的字符串
-        winston.format.printf(({ level, message, timestamp }) => {
-          const label = this.options?.name
-            ? ` [${colorLabel(this.options?.name)}]`
-            : '';
-          return `${timestamp} ${level}:${label} ${message}`; // 自定义输出格式
-        }),
-      ),
-      transports: [new winston.transports.Console()],
-    });
+    this.logger = newLogger(options?.name);
   }
 
   public abstract support(model: ModelType): number;
