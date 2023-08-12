@@ -6,7 +6,7 @@ import {
   ModelType,
 } from '../base';
 import { Browser, EventEmitter, Page } from 'puppeteer';
-import { BrowserPool, BrowserUser } from '../../pool/puppeteer';
+import { BrowserPool, BrowserUser, simplifyPage } from '../../pool/puppeteer';
 import {
   DoneData,
   ErrorData,
@@ -361,6 +361,7 @@ export class Poe extends Chat implements BrowserUser<Account> {
       return [] as any;
     }
     const page = await browser.newPage();
+    await simplifyPage(page);
     try {
       await page.setCookie({
         name: 'p-b',
