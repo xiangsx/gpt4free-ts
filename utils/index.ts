@@ -387,7 +387,6 @@ export function newLogger(label?: string) {
   return winston.createLogger({
     level: process.env.LOG_LEVEL || 'info', // 从环境变量中读取日志等级，如果没有设置，则默认为 'info'
     format: winston.format.combine(
-      winston.format.colorize(), // 开启色彩日志
       winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }), // 添加时间戳
       winston.format.prettyPrint(), // 打印整个日志对象
       winston.format.splat(), // 支持格式化的字符串
@@ -398,7 +397,11 @@ export function newLogger(label?: string) {
     ),
     transports: [
       ...(process.env.LOG_CONSOLE !== '0'
-        ? [new winston.transports.Console()]
+        ? [
+            new winston.transports.Console({
+              format: winston.format.colorize(),
+            }),
+          ]
         : []),
       // 写入所有日志记录到 `combined.log`
       new winston.transports.File({
@@ -407,7 +410,7 @@ export function newLogger(label?: string) {
       // 写入所有级别为 error 的日志记录和以下到 `error.log`
       new winston.transports.File({
         filename: path.join(logDir, 'error.log'),
-        level: 'error',
+        level: 'warn',
       }),
     ],
   });
