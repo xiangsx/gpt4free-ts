@@ -11,6 +11,7 @@ import {
   BrowserUser,
   closeOtherPages,
   PrepareOptions,
+  simplifyPage,
 } from '../../pool/puppeteer';
 import {
   DoneData,
@@ -206,6 +207,7 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
       return [] as any;
     }
     let page = await browser.newPage();
+    await simplifyPage(page);
     try {
       await page.setViewport({ width: 1920, height: 1080 });
       await page.setCookie({
