@@ -34,7 +34,10 @@ class BaseConfig {
 
       // Merge defaultConfig and fileConfig
       this.config = Object.assign(this.config, this.defaultConfig, fileConfig);
-      // console.log('Loaded config from run/config.json successfully!', JSON.stringify(this.config));
+      console.log(
+        'Loaded config from run/config.json successfully!',
+        JSON.stringify(this.config),
+      );
     } catch (error) {
       // console.error(`Error reading or parsing the configuration file ${this.filePath}.`, error);
     }
@@ -56,7 +59,9 @@ class BaseConfig {
         }
 
         timeoutId = setTimeout(() => {
-          // console.log(`Configuration file ${this.filePath} has been changed! Reloading...`);
+          console.log(
+            `Configuration file ${this.filePath} has been changed! Reloading...`,
+          );
           this.load();
         }, debounceDelay);
       }
