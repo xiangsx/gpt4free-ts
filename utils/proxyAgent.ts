@@ -98,8 +98,8 @@ export async function CreateNewPage(
       '--no-sandbox',
       '--disable-setuid-sandbox',
       `--proxy-server=${proxy}`,
-      `--disable-extensions-except=${process.env.EXTENSIONS_PATH}`,
-      `--load-extension=${process.env.EXTENSIONS_PATH}`,
+      '--disable-background-timer-throttling',
+      '--disable-backgrounding-occluded-windows',
       ...args,
     ],
   } as PuppeteerLaunchOptions);

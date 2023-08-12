@@ -63,8 +63,14 @@ export class BrowserPool<T> {
         ready: false,
       };
       this.pool.push(info);
-      this.initOne(id).then();
-      await sleep(this.poolDelay);
+      if (this.poolDelay === -1) {
+        await this.initOne(id);
+      } else {
+        this.initOne(id).then();
+      }
+      if (this.poolDelay > 0) {
+        await sleep(this.poolDelay);
+      }
     }
   }
 
