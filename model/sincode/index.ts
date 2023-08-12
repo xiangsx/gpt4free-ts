@@ -143,7 +143,7 @@ export class SinCode extends Chat implements BrowserUser<Account> {
       +(process.env.SINCODE_POOL_SIZE || 0),
       this,
       false,
-      3 * 1000,
+      5 * 1000,
       false,
     );
   }
@@ -214,6 +214,7 @@ export class SinCode extends Chat implements BrowserUser<Account> {
       return [] as any;
     }
     let page = await browser.newPage();
+    page.setDefaultNavigationTimeout(60 * 1000);
     try {
       await page.setViewport({ width: 1920, height: 1080 });
       await page.deleteCookie(
