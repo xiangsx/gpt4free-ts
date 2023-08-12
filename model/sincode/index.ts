@@ -143,7 +143,7 @@ export class SinCode extends Chat implements BrowserUser<Account> {
       +(process.env.SINCODE_POOL_SIZE || 0),
       this,
       false,
-      5 * 1000,
+      10 * 1000,
       false,
     );
   }
@@ -217,11 +217,6 @@ export class SinCode extends Chat implements BrowserUser<Account> {
     page.setDefaultNavigationTimeout(60 * 1000);
     try {
       await page.setViewport({ width: 1920, height: 1080 });
-      await page.deleteCookie(
-        { name: 'sincode_live_u2main.sig', domain: '.www.sincode.ai' },
-        { name: 'sincode_live_u2main', domain: '.www.sincode.ai' },
-        { name: 'cc_cookie', domain: '.www.sincode.ai' },
-      );
       await sleep(1000);
       await page.goto(`https://www.sincode.ai/app`);
       await page.waitForSelector(
