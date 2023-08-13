@@ -79,6 +79,10 @@ deploy
 docker-compose up --build -d
 ```
 
+### clash+one-api+gpt4free-ts Start with one command
+
+[gpt4free-ts-deploy](https://github.com/xiangsx/gpt4free-ts-deploy)
+
 ## 🚀 Let's Use GPT4
 
 > Find supports model and site http://127.0.0.1:3000/supports [GET] 
