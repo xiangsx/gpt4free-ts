@@ -120,7 +120,7 @@ class PoeAccountPool {
     if (fs.existsSync(this.account_file_path)) {
       const accountStr = fs.readFileSync(this.account_file_path, 'utf-8');
       this.pool = parseJSON(accountStr, [] as Account[]);
-      if (Array.isArray(this.pool)) {
+      if (!Array.isArray(this.pool)) {
         this.pool = [];
         this.syncfile();
       }
