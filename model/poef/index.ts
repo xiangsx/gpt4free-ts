@@ -395,7 +395,7 @@ export class Poef extends Chat implements BrowserUser<Account> {
         '.LoggedOutSection_main__QtksL > .LoggedOutSection_appSpecificSection__C5YEM > .MainSignupLoginSection_inputAndMetaTextGroup__5ITsJ > .EmailInput_wrapper__D9Dss > .EmailInput_emailInput__4v_bn',
         { timeout: 600000 },
       );
-      const emailBox = CreateEmail(TempEmailType.Gmail);
+      const emailBox = CreateEmail(TempEmailType.SmailPro);
       const emailAddress = await emailBox.getMailAddress();
       // const emailAddress = 'backs-walkout-0o@icloud.com';
       // 输入邮箱

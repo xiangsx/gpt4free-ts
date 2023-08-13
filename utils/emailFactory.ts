@@ -389,7 +389,7 @@ export class SmailPro extends BaseEmail {
     this.lock = options.lock;
   }
   async getMailAddress() {
-    await this.lock.WailLock(120 * 1000);
+    await this.lock.lock(120 * 1000);
     if (!this.page) {
       this.page = await CreateNewPage('http://smailpro.com/advanced');
     }
@@ -472,13 +472,13 @@ export class SmailPro extends BaseEmail {
         });
         if (content) {
           await this.page?.browser().close();
-          this.lock.Unlock();
+          this.lock.unlock();
           return [{ content }];
         }
         await sleep(5 * 1000);
       } catch (e: any) {
         if (times >= 6) {
-          this.lock.Unlock();
+          this.lock.unlock();
           await this.page?.browser().close();
           throw new Error('got mails failed');
         }
@@ -521,7 +521,7 @@ class Gmail extends BaseEmail {
   }
 
   public async getMailAddress(): Promise<string> {
-    await this.lock.WailLock(60 * 1000);
+    await this.lock.lock(60 * 1000);
     const response: any = await this.client.get('/get', {
       params: {
         domain: 'googlemail.com',
@@ -566,13 +566,13 @@ class Gmail extends BaseEmail {
           if (response.data && response.data.items) {
             const item = response.data.items;
             resolve([{ ...item, content: item.body }]);
-            this.lock.Unlock();
+            this.lock.unlock();
             clearInterval(itl);
             return;
           }
           if (time > 5) {
             resolve([]);
-            this.lock.Unlock();
+            this.lock.unlock();
             clearInterval(itl);
             return;
           }

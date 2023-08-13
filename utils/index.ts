@@ -316,37 +316,45 @@ export function maskLinks(input: string): string {
 }
 
 export class Lock {
-  private lock = false;
-  private tid?: NodeJS.Timeout;
+  private locked = false;
+  private resolver?: Function;
+  private timeoutId?: NodeJS.Timeout;
 
-  Lock(ms: number) {
-    if (this.lock) {
-      return false;
+  async lock(timeout = 5 * 60 * 1000) {
+    const timeoutPromise = new Promise((resolve, reject) => {
+      this.timeoutId = setTimeout(() => {
+        this.locked = false;
+        reject(new Error('Lock timeout'));
+      }, timeout);
+    });
+
+    while (this.locked) {
+      try {
+        await Promise.race([
+          new Promise((resolve) => (this.resolver = resolve)),
+          timeoutPromise,
+        ]);
+      } catch (error) {
+        throw error;
+      }
     }
-
-    this.lock = true;
-    this.tid = setTimeout(() => (this.lock = false), ms);
-    return true;
+    this.locked = true;
   }
 
-  async WailLock(ms: number): Promise<void> {
-    if (this.lock) {
-      await sleep(1000);
-      return this.WailLock(ms);
+  unlock() {
+    if (!this.locked) {
+      throw new Error('Cannot unlock a lock that is not locked');
     }
-    this.lock = true;
-    this.tid = setTimeout(() => (this.lock = false), ms);
-  }
-
-  Unlock() {
-    if (this.tid) {
-      clearTimeout(this.tid);
+    this.locked = false;
+    if (this.timeoutId) {
+      clearTimeout(this.timeoutId);
+      this.timeoutId = undefined;
     }
-    if (this.lock) {
-      this.lock = false;
-      return true;
+    if (this.resolver) {
+      const resolve = this.resolver;
+      this.resolver = undefined;
+      resolve();
     }
-    return false;
   }
 }
 
