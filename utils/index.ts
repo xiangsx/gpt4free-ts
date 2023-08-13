@@ -403,15 +403,19 @@ export function newLogger(label?: string) {
             }),
           ]
         : []),
-      // 写入所有日志记录到 `combined.log`
-      new winston.transports.File({
-        filename: path.join(logDir, 'combined.log'),
-      }),
-      // 写入所有级别为 error 的日志记录和以下到 `error.log`
-      new winston.transports.File({
-        filename: path.join(logDir, 'error.log'),
-        level: 'warn',
-      }),
+      ...(process.env.LOG_FILE !== '0'
+        ? [
+            // 写入所有日志记录到 `combined.log`
+            new winston.transports.File({
+              filename: path.join(logDir, 'combined.log'),
+            }),
+            // 写入所有级别为 error 的日志记录和以下到 `error.log`
+            new winston.transports.File({
+              filename: path.join(logDir, 'error.log'),
+              level: 'warn',
+            }),
+          ]
+        : []),
     ],
   });
 }
