@@ -67,6 +67,7 @@ export enum Site {
   AiLs = 'ails',
   Perplexity = 'perplexity',
   SinCode = 'sincode',
+  OpenAI = 'openai',
 }
 
 export interface ChatRequest {

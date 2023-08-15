@@ -461,3 +461,7 @@ export function colorLabel(label: string) {
   }
   return color(label);
 }
+
+export function getRandomOne<T>(arr: T[]) {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
