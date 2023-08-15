@@ -79,7 +79,7 @@ deploy
 docker-compose up --build -d
 ```
 
-### clash+one-api+gpt4free-ts Start with one command
+### Clash+one-api+gpt4free-ts Start with one command 😮
 
 [gpt4free-ts-deploy](https://github.com/xiangsx/gpt4free-ts-deploy)
 
