@@ -35,15 +35,18 @@ export class OpenAI extends Chat {
 
   constructor(options?: ChatOptions) {
     super(options);
-    this.client = CreateAxiosProxy({
-      baseURL: ' https://api.openai.com/v1/',
-      headers: {
-        'Content-Type': 'application/json',
-        accept: 'text/event-stream',
-        'Cache-Control': 'no-cache',
-        'Proxy-Connection': 'keep-alive',
-      },
-    } as CreateAxiosDefaults);
+    this.client = CreateAxiosProxy(
+      {
+        baseURL: ' https://api.openai.com/v1/',
+        headers: {
+          'Content-Type': 'application/json',
+          accept: 'text/event-stream',
+          'Cache-Control': 'no-cache',
+          'Proxy-Connection': 'keep-alive',
+        },
+      } as CreateAxiosDefaults,
+      false,
+    );
   }
 
   support(model: ModelType): number {
