@@ -327,31 +327,31 @@ export class SinCode extends Chat implements BrowserUser<Account> {
       return;
     }
     const client = await page.target().createCDPSession();
-    await client.send('Network.enable');
+    const tt = setTimeout(async () => {
+      client.removeAllListeners('Network.webSocketFrameReceived');
+      stream.write(Event.error, { error: 'please retry later!' });
+      stream.write(Event.done, { content: '' });
+      stream.end();
+      account.failedCnt += 1;
+      if (account.failedCnt >= MaxFailedTimes) {
+        account.last_use_time = moment().format(TimeFormat);
+        account.invalid = true;
+        this.accountPool.syncfile();
+        destroy();
+        this.logger.info(`sincode account failed cnt > 10, destroy ok`);
+      } else {
+        await this.newChat(page);
+        account.model = undefined;
+        this.accountPool.syncfile();
+        await page.reload();
+        done(account);
+      }
+    }, 8 * 1000);
     try {
       let old = '';
       let et: EventEmitter;
-      const tt = setTimeout(async () => {
-        client.removeAllListeners('Network.webSocketFrameReceived');
-        stream.write(Event.error, { error: 'please retry later!' });
-        stream.write(Event.done, { content: '' });
-        stream.end();
-        account.failedCnt += 1;
-        if (account.failedCnt >= MaxFailedTimes) {
-          account.last_use_time = moment().format(TimeFormat);
-          account.invalid = true;
-          this.accountPool.syncfile();
-          destroy();
-          this.logger.info(`sincode account failed cnt > 10, destroy ok`);
-        } else {
-          await this.newChat(page);
-          account.model = undefined;
-          this.accountPool.syncfile();
-          await page.reload();
-          done(account);
-        }
-      }, 8 * 1000);
       let currMsgID = '';
+      await client.send('Network.enable');
       et = client.on(
         'Network.webSocketFrameReceived',
         async ({ response, requestId }, ...rest2) => {
@@ -416,6 +416,7 @@ export class SinCode extends Chat implements BrowserUser<Account> {
       this.logger.info('sincode send msg ok!');
     } catch (e: any) {
       client.removeAllListeners('Network.webSocketFrameReceived');
+      clearTimeout(tt);
       this.logger.error(
         `account: id=${account.id}, sincode ask stream failed:`,
         e,
