@@ -42,7 +42,7 @@ function randomPick(
   return Site.Claude; // 如果没有元素，返回null
 }
 
-const MaxRetryTimes = 10;
+const MaxRetryTimes = 5;
 
 export class Auto extends Chat {
   private modelMap: Map<Site, Chat>;

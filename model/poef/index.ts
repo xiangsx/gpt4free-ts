@@ -36,6 +36,7 @@ const ModelMap: Partial<Record<ModelType, any>> = {
   [ModelType.Claude100k]: 'Claude-instant-100k',
   [ModelType.ClaudeInstance]: 'Claude-instant',
   [ModelType.GPT3p5Turbo]: 'ChatGPT',
+  [ModelType.GPT3p5_16k]: 'ChatGPT',
   [ModelType.GooglePalm]: 'Google-PaLM',
   [ModelType.Claude2_100k]: 'Claude-2-100k',
   [ModelType.Llama_2_70b]: 'Llama-2-70b',
@@ -226,6 +227,8 @@ export class Poef extends Chat implements BrowserUser<Account> {
         return 4000;
       case ModelType.GPT4:
         return 4500;
+      case ModelType.GPT3p5_16k:
+        return 3000;
       case ModelType.GPT3p5Turbo:
         return 3000;
       case ModelType.Llama_2_7b:

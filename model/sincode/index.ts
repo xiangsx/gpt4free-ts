@@ -116,7 +116,7 @@ class AccountPool {
         (!vv.invalid ||
           moment().subtract(10, 'm').isAfter(moment(vv.last_use_time))) &&
         !this.using.has(vv.id) &&
-        vv.failedCnt <= 3
+        vv.failedCnt <= MaxFailedTimes
       ) {
         vv.invalid = false;
         this.syncfile();
@@ -346,7 +346,7 @@ export class SinCode extends Chat implements BrowserUser<Account> {
         await page.reload();
         done(account);
       }
-    }, 8 * 1000);
+    }, 10 * 1000);
     try {
       let old = '';
       let et: EventEmitter;
