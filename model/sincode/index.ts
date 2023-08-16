@@ -366,12 +366,12 @@ export class SinCode extends Chat implements BrowserUser<Account> {
       et = client.on(
         'Network.webSocketFrameReceived',
         async ({ response, requestId }, ...rest2) => {
-          const dataStr = response.payloadData;
+          const dataStr = response?.payloadData || '';
+          if (!dataStr) {
+            return;
+          }
           try {
             tt.refresh();
-            if (!dataStr) {
-              return;
-            }
             if (dataStr === 'pong') {
               return;
             }
