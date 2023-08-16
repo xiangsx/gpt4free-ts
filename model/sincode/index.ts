@@ -297,7 +297,7 @@ export class SinCode extends Chat implements BrowserUser<Account> {
   public async isLogin(page: Page) {
     try {
       // new chat
-      await page.waitForSelector(this.SLNewChat, { timeout: 10 * 1000 });
+      await page.waitForSelector(this.SLNewChat, { timeout: 15 * 1000 });
       return true;
     } catch (e: any) {
       return false;
