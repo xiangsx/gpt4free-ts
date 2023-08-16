@@ -117,13 +117,7 @@ class AccountPool {
 
   public get(): Account {
     for (const vv of shuffleArray(Object.values(this.pool))) {
-      if (
-        (!vv.invalid ||
-          moment().subtract(10, 'm').isAfter(moment(vv.last_use_time))) &&
-        !this.using.has(vv.id) &&
-        vv.failedCnt <= MaxFailedTimes &&
-        vv.vip
-      ) {
+      if (!this.using.has(vv.id) && vv.vip) {
         vv.invalid = false;
         this.syncfile();
         this.using.add(vv.id);
@@ -264,7 +258,7 @@ export class SinCode extends Chat implements BrowserUser<Account> {
       await page.goto(`https://www.sincode.ai/app/marve`);
       if (!(await this.isLogin(page))) {
         account.failedCnt += 1;
-        if (account.failedCnt > 3) {
+        if (account.failedCnt > MaxFailedTimes) {
           account.invalid = true;
         }
         this.accountPool.syncfile();
