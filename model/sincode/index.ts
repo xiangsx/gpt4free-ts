@@ -292,6 +292,7 @@ export class SinCode extends Chat implements BrowserUser<Account> {
       this.logger.warn(`account:${account?.id}, something error happened.`, e);
       account.failedCnt += 1;
       this.accountPool.syncfile();
+      await sleep(Math.floor(Math.random() * 10 * 60 * 1000));
       return [] as any;
     }
   }
