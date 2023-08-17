@@ -139,7 +139,7 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
       this,
       false,
       5 * 1000,
-      true,
+      false,
     );
   }
 
