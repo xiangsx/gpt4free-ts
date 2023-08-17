@@ -300,7 +300,7 @@ export class Poef extends Chat implements BrowserUser<Account> {
       () =>
         // @ts-ignore
         document.querySelector(
-          '.PageWithSidebarLayout_mainSectionWrapper__S1TJJ > .PageWithSidebarLayout_scrollSection__IRP9Y > .PageWithSidebarLayout_mainSection__i1yOg > .SettingsPageMain_container__3Se4O > .SettingsSubscriptionSection_subscriptionSettingsContainer__DfZCW',
+          '.SidebarLayout_main__x1QPg > .MainColumn_scrollSection__TuAiS > .MainColumn_column__z1_q8 > .SettingsPageMain_container__3Se4O > .SettingsSubscriptionSection_subscriptionSettingsContainer__DfZCW',
         ).children[2].children.length,
     );
     const useLeft: UseLeft = {};
@@ -310,7 +310,7 @@ export class Poef extends Chat implements BrowserUser<Account> {
         (idx) =>
           // @ts-ignore
           document.querySelector(
-            '.PageWithSidebarLayout_mainSectionWrapper__S1TJJ > .PageWithSidebarLayout_scrollSection__IRP9Y > .PageWithSidebarLayout_mainSection__i1yOg > .SettingsPageMain_container__3Se4O > .SettingsSubscriptionSection_subscriptionSettingsContainer__DfZCW',
+            '.SidebarLayout_main__x1QPg > .MainColumn_scrollSection__TuAiS > .MainColumn_column__z1_q8 > .SettingsPageMain_container__3Se4O > .SettingsSubscriptionSection_subscriptionSettingsContainer__DfZCW',
           ).children[2].children[idx].children[0].textContent,
         i,
       );
@@ -319,7 +319,7 @@ export class Poef extends Chat implements BrowserUser<Account> {
         (idx) =>
           // @ts-ignore
           document.querySelector(
-            '.PageWithSidebarLayout_mainSectionWrapper__S1TJJ > .PageWithSidebarLayout_scrollSection__IRP9Y > .PageWithSidebarLayout_mainSection__i1yOg > .SettingsPageMain_container__3Se4O > .SettingsSubscriptionSection_subscriptionSettingsContainer__DfZCW',
+            '.SidebarLayout_main__x1QPg > .MainColumn_scrollSection__TuAiS > .MainColumn_column__z1_q8 > .SettingsPageMain_container__3Se4O > .SettingsSubscriptionSection_subscriptionSettingsContainer__DfZCW',
           ).children[2].children[idx].children[1].textContent,
         i,
       );
@@ -482,13 +482,19 @@ export class Poef extends Chat implements BrowserUser<Account> {
   public static InputSelector =
     '.ChatPageMainFooter_footer__Hm4Rt > .ChatMessageInputFooter_footer__1cb8J > .ChatMessageInputContainer_inputContainer__SQvPA > .GrowingTextArea_growWrap___1PZM > .GrowingTextArea_textArea__eadlu';
   public static ClearSelector =
-    '.ChatPageMainFooter_footer__Hm4Rt > .ChatMessageInputFooter_footer__1cb8J > .Button_buttonBase__0QP_m > svg > path';
+    '.ChatPageMain_container__1aaCT > .ChatPageMainFooter_footer__Hm4Rt > .ChatMessageInputFooter_footer__1cb8J > .Button_buttonBase__0QP_m > svg';
 
   public static async clearContext(page: Page) {
     await page.waitForSelector(Poef.ClearSelector, { timeout: 10 * 60 * 1000 });
     await page.click(Poef.ClearSelector);
+    // new chat
+    await page.waitForSelector(
+      '.SidebarLayout_sidebar__X_iwf > .ChatBotDetailsSidebar_contents__ScQ1s > .RightColumnBotInfoCard_sectionContainer___aFTN > .BotInfoCardActionBar_actionBar__WdCr7 > .Button_primary__pIDjn',
+    );
+    await page.click(
+      '.SidebarLayout_sidebar__X_iwf > .ChatBotDetailsSidebar_contents__ScQ1s > .RightColumnBotInfoCard_sectionContainer___aFTN > .BotInfoCardActionBar_actionBar__WdCr7 > .Button_primary__pIDjn',
+    );
   }
-
   public async askStream(req: PoeChatRequest, stream: EventStream) {
     req.prompt = req.prompt.replace(/assistant/g, 'result');
     req.prompt = maskLinks(req.prompt);
@@ -594,9 +600,8 @@ ${question}`;
         if (author === 'chat_break') {
           return;
         }
-        if (author === 'human' && isSimilarity(text, req.prompt)) {
+        if (!currMsgID && unique_id) {
           currMsgID = unique_id;
-          return;
         }
         if (unique_id !== currMsgID) {
           // this.logger.info(`message id different`, {unique_id, currMsgID});
@@ -640,7 +645,7 @@ ${question}`;
       await page.waitForSelector(Poef.InputSelector);
       await page.click(Poef.InputSelector);
       await page.type(Poef.InputSelector, `1`);
-      this.logger.info('poe find input ok');
+      this.logger.info('find input ok');
       const input = await page.$(Poef.InputSelector);
       //@ts-ignore
       await input?.evaluate((el, content) => (el.value = content), req.prompt);
@@ -653,7 +658,7 @@ ${question}`;
       if (account.failedCnt >= MaxFailedTimes) {
         destroy();
         this.accountPool.syncfile();
-        this.logger.info(`poe account failed cnt > 10, destroy ok`);
+        this.logger.info(`account failed cnt > 10, destroy ok`);
       } else {
         this.accountPool.syncfile();
         await page.reload();

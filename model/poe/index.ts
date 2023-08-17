@@ -295,7 +295,7 @@ export class Poe extends Chat implements BrowserUser<Account> {
       () =>
         // @ts-ignore
         document.querySelector(
-          '.PageWithSidebarLayout_mainSectionWrapper__S1TJJ > .PageWithSidebarLayout_scrollSection__IRP9Y > .PageWithSidebarLayout_mainSection__i1yOg > .SettingsPageMain_container__3Se4O > .SettingsSubscriptionSection_subscriptionSettingsContainer__DfZCW',
+          '.SidebarLayout_main__x1QPg > .MainColumn_scrollSection__TuAiS > .MainColumn_column__z1_q8 > .SettingsPageMain_container__3Se4O > .SettingsSubscriptionSection_subscriptionSettingsContainer__DfZCW',
         ).children[2].children.length,
     );
     const useLeft: UseLeft = {};
@@ -305,7 +305,7 @@ export class Poe extends Chat implements BrowserUser<Account> {
         (idx) =>
           // @ts-ignore
           document.querySelector(
-            '.PageWithSidebarLayout_mainSectionWrapper__S1TJJ > .PageWithSidebarLayout_scrollSection__IRP9Y > .PageWithSidebarLayout_mainSection__i1yOg > .SettingsPageMain_container__3Se4O > .SettingsSubscriptionSection_subscriptionSettingsContainer__DfZCW',
+            '.SidebarLayout_main__x1QPg > .MainColumn_scrollSection__TuAiS > .MainColumn_column__z1_q8 > .SettingsPageMain_container__3Se4O > .SettingsSubscriptionSection_subscriptionSettingsContainer__DfZCW',
           ).children[2].children[idx].children[0].textContent,
         i,
       );
@@ -314,7 +314,7 @@ export class Poe extends Chat implements BrowserUser<Account> {
         (idx) =>
           // @ts-ignore
           document.querySelector(
-            '.PageWithSidebarLayout_mainSectionWrapper__S1TJJ > .PageWithSidebarLayout_scrollSection__IRP9Y > .PageWithSidebarLayout_mainSection__i1yOg > .SettingsPageMain_container__3Se4O > .SettingsSubscriptionSection_subscriptionSettingsContainer__DfZCW',
+            '.SidebarLayout_main__x1QPg > .MainColumn_scrollSection__TuAiS > .MainColumn_column__z1_q8 > .SettingsPageMain_container__3Se4O > .SettingsSubscriptionSection_subscriptionSettingsContainer__DfZCW',
           ).children[2].children[idx].children[1].textContent,
         i,
       );
@@ -418,7 +418,7 @@ export class Poe extends Chat implements BrowserUser<Account> {
   public static InputSelector =
     '.ChatPageMainFooter_footer__Hm4Rt > .ChatMessageInputFooter_footer__1cb8J > .ChatMessageInputContainer_inputContainer__SQvPA > .GrowingTextArea_growWrap___1PZM > .GrowingTextArea_textArea__eadlu';
   public static ClearSelector =
-    '.ChatPageMainFooter_footer__Hm4Rt > .ChatMessageInputFooter_footer__1cb8J > .Button_buttonBase__0QP_m > svg > path';
+    '.ChatPageMain_container__1aaCT > .ChatPageMainFooter_footer__Hm4Rt > .ChatMessageInputFooter_footer__1cb8J > .Button_buttonBase__0QP_m > svg';
   public static FreeModal =
     '.ReactModal__Body--open > .ReactModalPortal > .ReactModal__Overlay > .ReactModal__Content';
   public static TalkToGpt =
@@ -427,6 +427,13 @@ export class Poe extends Chat implements BrowserUser<Account> {
   public static async clearContext(page: Page) {
     await page.waitForSelector(Poe.ClearSelector, { timeout: 10 * 60 * 1000 });
     await page.click(Poe.ClearSelector);
+    // new chat
+    await page.waitForSelector(
+      '.SidebarLayout_sidebar__X_iwf > .ChatBotDetailsSidebar_contents__ScQ1s > .RightColumnBotInfoCard_sectionContainer___aFTN > .BotInfoCardActionBar_actionBar__WdCr7 > .Button_primary__pIDjn',
+    );
+    await page.click(
+      '.SidebarLayout_sidebar__X_iwf > .ChatBotDetailsSidebar_contents__ScQ1s > .RightColumnBotInfoCard_sectionContainer___aFTN > .BotInfoCardActionBar_actionBar__WdCr7 > .Button_primary__pIDjn',
+    );
   }
 
   public async askStream(req: PoeChatRequest, stream: EventStream) {
@@ -540,9 +547,8 @@ ${question}`;
         if (author === 'chat_break') {
           return;
         }
-        if (author === 'human' && isSimilarity(text, req.prompt)) {
+        if (!currMsgID && unique_id) {
           currMsgID = unique_id;
-          return;
         }
         if (unique_id !== currMsgID) {
           // this.logger.info(`message id different`, {unique_id, currMsgID});
