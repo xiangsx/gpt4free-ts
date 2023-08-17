@@ -115,9 +115,18 @@ class AccountPool {
     this.syncfile();
   }
 
+  public release(id: string) {
+    this.using.delete(id);
+  }
+
   public get(): Account {
     for (const vv of shuffleArray(Object.values(this.pool))) {
-      if (!this.using.has(vv.id) && vv.vip) {
+      if (
+        (!vv.invalid ||
+          moment().subtract(10, 'm').isAfter(moment(vv.last_use_time))) &&
+        !this.using.has(vv.id) &&
+        vv.vip
+      ) {
         vv.invalid = false;
         this.syncfile();
         this.using.add(vv.id);
@@ -202,6 +211,10 @@ export class SinCode extends Chat implements BrowserUser<Account> {
     this.accountPool.delete(id);
   }
 
+  release(id: string): void {
+    this.accountPool.release(id);
+  }
+
   newID(): string {
     const account = this.accountPool.get();
     return account.id;
@@ -215,7 +228,7 @@ export class SinCode extends Chat implements BrowserUser<Account> {
     const account = this.accountPool.getByID(id);
     if (!account || !account.email || !account.password) {
       await browser.close();
-      await sleep(5 * 60 * 1000);
+      await sleep(3 * 60 * 1000);
       return [] as any;
     }
     let page = await browser.newPage();

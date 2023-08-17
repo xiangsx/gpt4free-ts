@@ -30,6 +30,7 @@ export interface BrowserUser<T> {
   init: PrepareFunc<T>;
   newID: () => string;
   deleteID: (id: string) => void;
+  release?: (id: string) => void;
 }
 
 export class BrowserPool<T> {
@@ -84,7 +85,6 @@ export class BrowserPool<T> {
 
   async initOne(id: string): Promise<void> {
     const info = this.find(id);
-    console.log(id);
     if (!info) {
       console.error('init one failed, not found info');
       return;
@@ -113,7 +113,7 @@ export class BrowserPool<T> {
         if (!wsLink) {
           throw new Error('launch chrome failed');
         }
-        console.log(wsLink);
+        console.log('got: ', wsLink);
         browser = await normalPPT.connect({ browserWSEndpoint: wsLink });
         info.ws = wsLink;
         [page, data] = await this.user.init(info.id, browser, {
@@ -193,6 +193,7 @@ export class BrowserPool<T> {
             if (!item.page?.isClosed()) {
               item.page?.close();
             }
+            this.user.release?.(item.id);
             if (force) {
               this.user.deleteID(item.id);
               this.deleteIDFile(item.id);
