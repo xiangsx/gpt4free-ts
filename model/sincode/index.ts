@@ -369,7 +369,7 @@ export class SinCode extends Chat implements BrowserUser<Account> {
       stream.write(Event.error, { error: 'please retry later!' });
       stream.write(Event.done, { content: '' });
       stream.end();
-      destroy();
+      destroy(undefined, undefined, 10 * 60 * 1000);
     }, 10 * 1000);
     try {
       let old = '';
@@ -399,7 +399,7 @@ export class SinCode extends Chat implements BrowserUser<Account> {
               account.last_use_time = moment().format(TimeFormat);
               account.invalid = true;
               this.accountPool.syncfile();
-              destroy();
+              destroy(undefined, undefined, 10 * 60 * 1000);
               return;
             }
             if (dataStr.indexOf('RESPONSE_START') !== -1) {
@@ -451,7 +451,7 @@ export class SinCode extends Chat implements BrowserUser<Account> {
       account.failedCnt += 1;
       account.model = undefined;
       this.accountPool.syncfile();
-      destroy();
+      destroy(undefined, undefined, 10 * 60 * 1000);
       stream.write(Event.error, { error: 'some thing error, try again later' });
       stream.write(Event.done, { content: '' });
       stream.end();

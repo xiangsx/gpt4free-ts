@@ -177,7 +177,11 @@ export class BrowserPool<T> {
     page: Page | undefined,
     data: T | undefined,
     done: (data: T) => void,
-    destroy: (force?: boolean, notCreate?: boolean) => void,
+    destroy: (
+      force?: boolean,
+      notCreate?: boolean,
+      randomSleep?: number,
+    ) => void,
   ] {
     for (const item of shuffleArray(this.pool)) {
       if (item.ready) {
@@ -189,9 +193,18 @@ export class BrowserPool<T> {
             item.ready = true;
             item.data = data;
           },
-          (force?: boolean, notCreate?: boolean) => {
+          async (
+            force: boolean = false,
+            notCreate: boolean = false,
+            randomSleep: number = 0,
+          ) => {
             if (!item.page?.isClosed()) {
               item.page?.close();
+            }
+            if (randomSleep) {
+              const misec = Math.floor(Math.random() * randomSleep);
+              console.log(`random wait ${misec}`);
+              await sleep(misec);
             }
             this.user.release?.(item.id);
             if (force) {
