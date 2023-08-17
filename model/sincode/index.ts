@@ -123,7 +123,7 @@ class AccountPool {
     for (const vv of shuffleArray(Object.values(this.pool))) {
       if (
         (!vv.invalid ||
-          moment().subtract(10, 'm').isAfter(moment(vv.last_use_time))) &&
+          moment().subtract(5, 'm').isAfter(moment(vv.last_use_time))) &&
         !this.using.has(vv.id) &&
         vv.vip
       ) {
@@ -228,7 +228,7 @@ export class SinCode extends Chat implements BrowserUser<Account> {
     const account = this.accountPool.getByID(id);
     if (!account || !account.email || !account.password) {
       await browser.close();
-      await sleep(3 * 60 * 1000);
+      await sleep(24 * 60 * 60 * 1000);
       return [] as any;
     }
     let page = await browser.newPage();
