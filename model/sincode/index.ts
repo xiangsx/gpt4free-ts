@@ -215,7 +215,7 @@ export class SinCode extends Chat implements BrowserUser<Account> {
     const account = this.accountPool.getByID(id);
     if (!account || !account.email || !account.password) {
       await browser.close();
-      await sleep(10 * 24 * 60 * 60 * 1000);
+      await sleep(5 * 60 * 1000);
       return [] as any;
     }
     let page = await browser.newPage();
