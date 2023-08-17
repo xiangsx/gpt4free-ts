@@ -129,6 +129,10 @@ export class Auto extends Chat {
         return 3000;
       case ModelType.GPT3p5_16k:
         return 12000;
+      case ModelType.GPT4_32k:
+        return 24000;
+      case ModelType.Claude2_100k:
+        return 80000;
       default:
         return 0;
     }
