@@ -364,11 +364,11 @@ export class SinCode extends Chat implements BrowserUser<Account> {
     }
     const client = await page.target().createCDPSession();
     const tt = setTimeout(async () => {
+      this.logger.error('wait msg timeout, destroyed!');
       client.removeAllListeners('Network.webSocketFrameReceived');
       stream.write(Event.error, { error: 'please retry later!' });
       stream.write(Event.done, { content: '' });
       stream.end();
-      this.logger.error('wait msg timeout, destroyed!');
       destroy();
     }, 10 * 1000);
     try {
@@ -384,10 +384,10 @@ export class SinCode extends Chat implements BrowserUser<Account> {
             return;
           }
           try {
-            tt.refresh();
             if (dataStr === 'pong') {
               return;
             }
+            tt.refresh();
             if (dataStr.indexOf('xxUNKNOWNERRORxx') !== -1) {
               client.removeAllListeners('Network.webSocketFrameReceived');
               clearTimeout(tt);
