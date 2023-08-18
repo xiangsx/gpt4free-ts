@@ -392,48 +392,53 @@ export class SmailPro extends BaseEmail {
     await this.lock.lock(120 * 1000);
     if (!this.page) {
       this.page = await CreateNewPage('http://smailpro.com/advanced');
+      setTimeout(() => {
+        this.page?.browser().close();
+      }, 360 * 1000);
     }
-    const page = this.page;
-    await page.waitForSelector(
-      '.grid > .md\\:rounded-md > .absolute:nth-child(2) > .w-6 > path',
-    );
-    await page.click(
-      '.grid > .md\\:rounded-md > .absolute:nth-child(2) > .w-6 > path',
-    );
-
-    await page.waitForSelector(
-      '.relative > .absolute > .text-gray-500 > .h-6 > path',
-    );
-    await page.click('.relative > .absolute > .text-gray-500 > .h-6 > path');
-    await page.waitForSelector('#autosuggest__input');
-    await page.click('#autosuggest__input');
-    await page.type('#autosuggest__input', 'random@googlemail.com', {
-      delay: 100,
-    });
-    await page.waitForSelector(
-      '.w-full > .relative > .absolute > .px-2 > span',
-    );
-    await page.click('.w-full > .relative > .absolute > .px-2 > span');
-
-    await page.waitForSelector(
-      '.w-full > .relative > .absolute > .px-2 > span',
-    );
-    await page.click('.w-full > .relative > .absolute > .px-2 > span');
-    while (true) {
+    try {
+      const page = this.page;
       await page.waitForSelector(
-        '#app > .mb-auto > .grid > .md\\:rounded-md > .w-full',
+        '.grid > .md\\:rounded-md > .absolute:nth-child(2) > .w-6 > path',
       );
-      // await page.click('#app > .mb-auto > .grid > .md\\:rounded-md > .w-full');
-      const email = await page.evaluate(
-        () =>
-          document.querySelector(
-            '#app > .mb-auto > .grid > .md\\:rounded-md > .w-full',
-          )?.textContent || '',
+      await page.click(
+        '.grid > .md\\:rounded-md > .absolute:nth-child(2) > .w-6 > path',
       );
-      await sleep(5 * 1000);
-      if (email.indexOf('googlemail') !== -1) {
-        return email.replace(/ /g, '');
+
+      await page.waitForSelector(
+        '.relative > .absolute > .text-gray-500 > .h-6 > path',
+      );
+      await page.click('.relative > .absolute > .text-gray-500 > .h-6 > path');
+      await sleep(1000);
+      await page.waitForSelector('#autosuggest__input', { visible: true });
+      await page.click('#autosuggest__input');
+      await page.keyboard.type('random@gmail.com', {
+        delay: 40,
+      });
+      await sleep(1000);
+      await page.keyboard.press('Enter');
+      console.log('generating email');
+      let times = 0;
+      while (true) {
+        times += 1;
+        await page.waitForSelector('#my-email');
+        const email = await page.evaluate(
+          () => document.querySelector('#my-email')?.textContent || '',
+        );
+        if (email === '...') {
+          if (times > 5) {
+            throw new Error('get mail failed, max retry times!');
+          }
+          await sleep(5 * 1000);
+          continue;
+        }
+        return email + '@gmail.com';
       }
+    } catch (e) {
+      console.log('get mail failed, err:', e);
+      this.page.browser?.().close();
+      this.lock.unlock();
+      throw e;
     }
   }
 

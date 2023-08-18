@@ -396,7 +396,7 @@ export class Poef extends Chat implements BrowserUser<Account> {
       // await page.setUserAgent('Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101 Firefox/102.0');
       await page.waitForSelector(
         '.LoggedOutSection_main__QtksL > .LoggedOutSection_appSpecificSection__C5YEM > .MainSignupLoginSection_inputAndMetaTextGroup__5ITsJ > .EmailInput_wrapper__D9Dss > .EmailInput_emailInput__4v_bn',
-        { timeout: 600000 },
+        { timeout: 60 * 1000 },
       );
       const emailBox = CreateEmail(TempEmailType.SmailPro);
       const emailAddress = await emailBox.getMailAddress();
@@ -405,7 +405,7 @@ export class Poef extends Chat implements BrowserUser<Account> {
       await page.waitForSelector(
         '.LoggedOutSection_main__QtksL > .LoggedOutSection_appSpecificSection__C5YEM > .MainSignupLoginSection_inputAndMetaTextGroup__5ITsJ > .EmailInput_wrapper__D9Dss > .EmailInput_emailInput__4v_bn',
       );
-      await page.click(
+      await page.focus(
         '.LoggedOutSection_main__QtksL > .LoggedOutSection_appSpecificSection__C5YEM > .MainSignupLoginSection_inputAndMetaTextGroup__5ITsJ > .EmailInput_wrapper__D9Dss > .EmailInput_emailInput__4v_bn',
       );
       // 将文本键入焦点元素
@@ -450,8 +450,8 @@ export class Poef extends Chat implements BrowserUser<Account> {
         'body > #__next > .LoggedOutSection_main__QtksL > .LoggedOutSection_appSpecificSection__C5YEM > .Button_primary__pIDjn',
       );
       await page.waitForSelector(
-        `.ChatPageMainFooter_footer__Hm4Rt > .ChatMessageInputFooter_footer__1cb8J > .ChatMessageInputContainer_inputContainer__SQvPA > .GrowingTextArea_growWrap___1PZM > .GrowingTextArea_textArea__eadlu`,
-        { timeout: 30 * 60 * 1000 },
+        '.ChatHomeMain_container__z8q7_ > .ChatHomeMain_inputContainer__0_S1K > .ChatMessageInputContainer_inputContainer__SQvPA > .GrowingTextArea_growWrap___1PZM > .GrowingTextArea_textArea__eadlu',
+        { timeout: 30 * 1000 },
       );
 
       account.use_left = await this.getUseLeft(page);
@@ -465,6 +465,7 @@ export class Poef extends Chat implements BrowserUser<Account> {
       this.logger.info(`init ok! ${account.id}`);
       return [page, account];
     } catch (e: any) {
+      await browser.close();
       this.logger.warn(`account:${account?.id}, something error happened.`, e);
       return [] as any;
     }
