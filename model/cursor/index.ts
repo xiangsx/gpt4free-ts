@@ -393,28 +393,43 @@ export class Cursor extends Chat implements BrowserUser<Account> {
       );
 
       let cache = Buffer.alloc(0);
+      let ok = false;
       res.data.pipe(
         es.map(async (chunk: any, cb: any) => {
-          cache = Buffer.concat([cache, Buffer.from(chunk)]);
-          if (cache.length < 5) {
+          if (!chunk) {
             return;
           }
-          let len = cache.slice(1, 5).readInt32BE(0);
-          while (cache.length >= 5 + len) {
-            const buf = cache.slice(5, 5 + len);
-            const content = parseJSON(buf.toString(), { text: '' });
-            if (content.text) {
-              stream.write(Event.message, { content: content.text });
-            }
-            cache = cache.slice(5 + len);
+          try {
+            cache = Buffer.concat([cache, Buffer.from(chunk)]);
             if (cache.length < 5) {
-              break;
+              return;
             }
-            len = cache.slice(1, 5).readInt32BE(0);
+            let len = cache.slice(1, 5).readInt32BE(0);
+            while (cache.length >= 5 + len) {
+              const buf = cache.slice(5, 5 + len);
+              const content = parseJSON(buf.toString(), { text: '' });
+              if (content.text) {
+                ok = true;
+                stream.write(Event.message, { content: content.text });
+              }
+              cache = cache.slice(5 + len);
+              if (cache.length < 5) {
+                break;
+              }
+              len = cache.slice(1, 5).readInt32BE(0);
+            }
+          } catch (e) {
+            this.logger.error(
+              `data parse failed data:${cache.toString()}, err:`,
+              e,
+            );
           }
         }),
       );
       res.data.on('close', () => {
+        if (!ok) {
+          stream.write(Event.error, { error: 'please try later!' });
+        }
         stream.write(Event.done, { content: '' });
         stream.end();
         if (req.model === ModelType.GPT4) {
