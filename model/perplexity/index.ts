@@ -262,7 +262,7 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
     '.grow > div > .rounded-full > .relative > .outline-none';
   public static NewThreadInputSelector =
     '.relative:nth-child(1) > .grow > div > .rounded-full > .relative > .outline-none';
-  public static NewThread = '.grow > .my-md > div > .border > .text-clip';
+  public static NewThread = '.grow > .my-md > div > .ml-sm > .border';
   public static UserName = '.pt-\\[12px\\] > .flex > a > .px-sm > .flex';
   public static ProTag = '.px-sm > .flex > div > .super > span';
 
