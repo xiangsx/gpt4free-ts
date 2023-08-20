@@ -263,6 +263,13 @@ export class Cursor extends Chat implements BrowserUser<Account> {
       await page.click('#email');
       await page.keyboard.type(emailAddress, { delay: 10 });
 
+      await page.waitForSelector(
+        '.caa93cde1 > .cc617ed97 > .c078920ea > .c22fea258 > .cf1ef5a0b',
+      );
+      await page.click(
+        '.caa93cde1 > .cc617ed97 > .c078920ea > .c22fea258 > .cf1ef5a0b',
+      );
+
       await page.waitForSelector('#password');
       await page.click('#password');
       await page.keyboard.type(password, { delay: 10 });
