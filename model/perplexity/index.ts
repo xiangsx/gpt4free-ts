@@ -264,7 +264,12 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
   public static ProTag = '.px-sm > .flex > div > .super > span';
 
   public static async goHome(page: Page) {
-    await page.goto(`https://www.perplexity.ai`);
+    await page.waitForSelector(
+      '.grow > .items-center > .relative:nth-child(1) > .px-sm > .md\\:hover\\:bg-offsetPlus',
+    );
+    await page.click(
+      '.grow > .items-center > .relative:nth-child(1) > .px-sm > .md\\:hover\\:bg-offsetPlus',
+    );
   }
 
   public static async newThread(page: Page): Promise<void> {
