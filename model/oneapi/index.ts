@@ -114,7 +114,6 @@ export class OneAPI extends Chat {
           },
         } as CreateAxiosDefaults,
         false,
-        false,
       );
       const res = await client.post('/v1/chat/completions', data, {
         headers: {
