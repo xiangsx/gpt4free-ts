@@ -260,8 +260,6 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
   }
   public static InputSelector =
     '.grow > div > .rounded-full > .relative > .outline-none';
-  public static NewThreadInputSelector =
-    '.relative:nth-child(1) > .grow > div > .rounded-full > .relative > .outline-none';
   public static NewThread = '.grow > .my-md > div > .ml-sm > .border';
   public static UserName = '.pt-\\[12px\\] > .flex > a > .px-sm > .flex';
   public static ProTag = '.px-sm > .flex > div > .super > span';
@@ -283,14 +281,14 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
   private async changeMode(page: Page, model: ModelType = ModelType.GPT4) {
     try {
       await page.waitForSelector(
-        '.relative:nth-child(1) > .grow:nth-child(1) > div:nth-child(1) > .rounded-full:nth-child(1) > .relative:nth-child(1) > .absolute:nth-child(2) > .absolute:nth-child(1) > div:nth-child(1) > div:nth-child(1) > .md\\:hover\\:bg-offsetPlus:nth-child(1)',
+        '.grow:nth-child(1) > div > .rounded-md > .relative > .absolute > .absolute > div > div > .md\\:hover\\:bg-offsetPlus',
         {
           timeout: 3 * 1000,
           visible: true,
         },
       );
       await page.click(
-        '.relative:nth-child(1) > .grow:nth-child(1) > div:nth-child(1) > .rounded-full:nth-child(1) > .relative:nth-child(1) > .absolute:nth-child(2) > .absolute:nth-child(1) > div:nth-child(1) > div:nth-child(1) > .md\\:hover\\:bg-offsetPlus:nth-child(1)',
+        '.grow:nth-child(1) > div > .rounded-md > .relative > .absolute > .absolute > div > div > .md\\:hover\\:bg-offsetPlus',
       );
 
       const selector = ModelMap[model];
@@ -358,7 +356,7 @@ assistant: 我是openai开发的${
           await page.reload();
           done(account);
         }
-      }, 15 * 1000);
+      }, 5 * 1000);
       et = client.on('Network.webSocketFrameReceived', async ({ response }) => {
         tt.refresh();
         const dataStr = response.payloadData
@@ -426,15 +424,6 @@ assistant: 我是openai开发的${
         }
       }
 
-      await page.waitForSelector(
-        '.relative:nth-child(1) > .grow > div > .rounded-full > .relative > .outline-none',
-      );
-      await page.click(
-        '.relative:nth-child(1) > .grow > div > .rounded-full > .relative > .outline-none',
-      );
-      await page.focus(
-        '.relative:nth-child(1) > .grow > div > .rounded-full > .relative > .outline-none',
-      );
       await client.send('Input.insertText', { text: req.prompt });
 
       this.logger.info('perplexity find input ok');
