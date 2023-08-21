@@ -57,7 +57,7 @@ export class OneAPI extends Chat {
       case ModelType.GPT3p5_16k:
         return 10000;
       case ModelType.GPT4:
-        return 6000;
+        return 2000;
       default:
         return 0;
     }
