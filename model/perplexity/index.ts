@@ -150,9 +150,9 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
       case ModelType.NetGPT4:
         return 2000;
       case ModelType.GPT3p5Turbo:
-        return 2000;
+        return 4000;
       case ModelType.NetGpt3p5:
-        return 2000;
+        return 4000;
       default:
         return 0;
     }
