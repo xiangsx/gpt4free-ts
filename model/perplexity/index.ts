@@ -32,13 +32,13 @@ type UseLeft = Partial<Record<ModelType, number>>;
 
 const ModelMap: Partial<Record<ModelType, string>> = {
   [ModelType.NetGPT4]:
-    '.animate-in > .md\\:h-full:nth-child(1) > .md\\:h-full > .relative > .flex',
+    'div > .animate-in > .md\\:h-full:nth-child(1) > .md\\:h-full > .relative',
   [ModelType.NetGpt3p5]:
-    '.animate-in > .md\\:h-full:nth-child(1) > .md\\:h-full > .relative > .flex',
+    'div > .animate-in > .md\\:h-full:nth-child(1) > .md\\:h-full > .relative',
   [ModelType.GPT4]:
-    '.animate-in > .md\\:h-full:nth-child(3) > .md\\:h-full > .relative > .flex',
+    'div > .animate-in > .md\\:h-full:nth-child(3) > .md\\:h-full > .relative',
   [ModelType.GPT3p5Turbo]:
-    '.animate-in > .md\\:h-full:nth-child(3) > .md\\:h-full > .relative > .flex',
+    'div > .animate-in > .md\\:h-full:nth-child(3) > .md\\:h-full > .relative',
 };
 
 type Account = {
@@ -272,22 +272,21 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
       await page.waitForSelector(Perplexity.NewThread, { timeout: 2000 });
       await page.click(Perplexity.NewThread);
     } catch (e) {
-      await page.reload();
-      return Perplexity.newThread(page);
+      throw e;
     }
   }
 
   private async changeMode(page: Page, model: ModelType = ModelType.GPT4) {
     try {
       await page.waitForSelector(
-        '.grow:nth-child(1) > div > .rounded-md > .relative > .absolute > .absolute > div > div > .md\\:hover\\:bg-offsetPlus',
+        '.grow:nth-child(1) > div > .rounded-md > .relative > .absolute > .absolute > div > div > *',
         {
           timeout: 3 * 1000,
           visible: true,
         },
       );
       await page.click(
-        '.grow:nth-child(1) > div > .rounded-md > .relative > .absolute > .absolute > div > div > .md\\:hover\\:bg-offsetPlus',
+        '.grow:nth-child(1) > div > .rounded-md > .relative > .absolute > .absolute > div > div > *',
       );
 
       const selector = ModelMap[model];
@@ -393,6 +392,7 @@ assistant: 我是openai开发的${
             }
             stream.write(Event.done, { content: '' });
             stream.end();
+            await Perplexity.goHome(page);
             done(account);
             this.logger.info('perplexity recv msg complete');
             break;
@@ -415,7 +415,7 @@ assistant: 我是openai开发的${
         }
       });
       this.logger.info('perplexity start send msg');
-      await Perplexity.newThread(page);
+      // await Perplexity.newThread(page);
       if (req.model !== account.model) {
         const ok = await this.changeMode(page, req.model);
         if (ok) {
