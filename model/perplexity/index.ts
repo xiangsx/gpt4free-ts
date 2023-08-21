@@ -246,7 +246,6 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
       this.logger.warn(`account:${account?.id}, something error happened.`, e);
       account.failedCnt += 1;
       this.accountPool.syncfile();
-      await page.screenshot({ path: `./run/${randomStr(10)}.png` });
       return [] as any;
     }
   }
