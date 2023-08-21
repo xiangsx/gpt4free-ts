@@ -4,6 +4,10 @@ import { ModelType, Site } from '../model/base';
 // 首先定义配置的数据类型
 interface ConfigData {
   site_map: Partial<Record<ModelType, { site: Site; priority: number }[]>>;
+  one_api: {
+    base_url: string;
+    api_key: string;
+  };
   // 当添加新字段时，需要在此处更新类型定义
 }
 
@@ -11,7 +15,10 @@ class BaseConfig {
   private filePath: string = './run/config.json';
   private defaultConfig: ConfigData = {
     site_map: {},
-    // Add new fields here, with their default values
+    one_api: {
+      base_url: '',
+      api_key: '',
+    }, // Add new fields here, with their default values
   };
   public config: ConfigData;
 

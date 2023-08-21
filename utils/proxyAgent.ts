@@ -25,9 +25,10 @@ const reqProxy = (config: any) => {
 export function CreateAxiosProxy(
   config: CreateAxiosDefaults,
   useReqProxy = true,
+  proxy = true,
 ): AxiosInstance {
   const createConfig = { ...config };
-  const useProxy = process.env.http_proxy;
+  const useProxy = proxy ? process.env.http_proxy : '';
   if (useProxy) {
     createConfig.proxy = false;
     createConfig.httpAgent = HttpsProxyAgent(useProxy);

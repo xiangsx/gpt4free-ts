@@ -30,6 +30,7 @@ import { Perplexity } from './perplexity';
 import { ChatDemo } from './chatdemo';
 import { SinCode } from './sincode';
 import { OpenAI } from './openai';
+import { OneAPI } from './oneapi';
 
 export class ChatModelFactory {
   private readonly modelMap: Map<Site, Chat>;
@@ -73,6 +74,7 @@ export class ChatModelFactory {
     this.modelMap.set(Site.Poef, new Poef({ name: Site.Poef }));
     this.modelMap.set(Site.Claude, new Claude({ name: Site.Claude }));
     this.modelMap.set(Site.Cursor, new Cursor({ name: Site.Cursor }));
+    this.modelMap.set(Site.OneAPI, new OneAPI({ name: Site.OneAPI }));
     this.modelMap.set(
       Site.Auto,
       new Auto({ name: Site.Auto, ModelMap: this.modelMap }),
