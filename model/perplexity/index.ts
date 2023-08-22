@@ -25,6 +25,7 @@ import {
 } from '../../utils';
 import { v4 } from 'uuid';
 import fs from 'fs';
+import { fileDebouncer } from '../../utils/file';
 
 const MaxFailedTimes = 10;
 
@@ -69,6 +70,7 @@ class AccountPool {
     }
     for (const key in this.pool) {
       this.pool[key].failedCnt = 0;
+      this.pool[key].model = undefined;
     }
     for (const pb of pbList) {
       if (this.pool[pb]) {
@@ -88,7 +90,10 @@ class AccountPool {
   }
 
   public syncfile() {
-    fs.writeFileSync(this.account_file_path, JSON.stringify(this.pool));
+    fileDebouncer.writeFileSync(
+      this.account_file_path,
+      JSON.stringify(this.pool),
+    );
   }
 
   public getByID(id: string) {
@@ -354,7 +359,7 @@ assistant: 我是openai开发的${
           this.logger.info(`perplexity account failed cnt > 10, destroy ok`);
         } else {
           await Perplexity.goHome(page);
-          account.model = undefined;
+          await this.changeMode(page, req.model);
           this.accountPool.syncfile();
           await page.reload();
           done(account);
@@ -398,6 +403,7 @@ assistant: 我是openai开发的${
             stream.write(Event.done, { content: '' });
             stream.end();
             await Perplexity.goHome(page);
+            await this.changeMode(page, req.model);
             done(account);
             this.logger.info('perplexity recv msg complete');
             break;
@@ -440,6 +446,7 @@ assistant: 我是openai开发的${
         e,
       );
       await Perplexity.goHome(page);
+      await this.changeMode(page, req.model);
       account.failedCnt += 1;
       account.model = undefined;
       this.accountPool.syncfile();

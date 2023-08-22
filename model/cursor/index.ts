@@ -26,6 +26,7 @@ import { AxiosInstance, AxiosRequestConfig } from 'axios';
 import es from 'event-stream';
 import { CreateAxiosProxy } from '../../utils/proxyAgent';
 import crypto from 'crypto';
+import { fileDebouncer } from '../../utils/file';
 
 const MaxGptTimes = 50;
 
@@ -87,7 +88,10 @@ class CursorAccountPool {
   }
 
   public syncfile() {
-    fs.writeFileSync(this.account_file_path, JSON.stringify(this.pool));
+    fileDebouncer.writeFileSync(
+      this.account_file_path,
+      JSON.stringify(this.pool),
+    );
   }
 
   public getByID(id: string) {
