@@ -19,7 +19,6 @@ import {
   EventStream,
   MessageData,
   parseJSON,
-  randomStr,
   shuffleArray,
   sleep,
 } from '../../utils';
@@ -394,9 +393,9 @@ assistant: 我是openai开发的${
             this.accountPool.syncfile();
             if (textObj.answer.length > old.length) {
               const newContent = textObj.answer.substring(old.length);
-              for (let i = 0; i < newContent.length; i += 2) {
+              for (let i = 0; i < newContent.length; i += 3) {
                 stream.write(Event.message, {
-                  content: newContent.slice(i, i + 2),
+                  content: newContent.slice(i, i + 3),
                 });
               }
             }
@@ -410,15 +409,22 @@ assistant: 我是openai开发的${
           case 'query_progress':
             if (
               textObj.answer.length === 0 &&
-              req.model === ModelType.NetGPT4
+              (req.model === ModelType.NetGPT4 ||
+                req.model === ModelType.NetGpt3p5)
             ) {
-              stream.write(Event.search, { search: textObj.web_results });
+              stream.write(Event.message, {
+                content:
+                  textObj.web_results
+                    .map((v) => `- [${v.name}](${v.url})`)
+                    .join('\n') + '\n\n',
+              });
+              // stream.write(Event.search, { search: textObj.web_results });
             }
             if (textObj.answer.length > old.length) {
               const newContent = textObj.answer.substring(old.length);
-              for (let i = 0; i < newContent.length; i += 2) {
+              for (let i = 0; i < newContent.length; i += 3) {
                 stream.write(Event.message, {
-                  content: newContent.slice(i, i + 2),
+                  content: newContent.slice(i, i + 3),
                 });
               }
               old = textObj.answer;
