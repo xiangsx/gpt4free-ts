@@ -363,8 +363,9 @@ export class Cursor extends Chat implements BrowserUser<Account> {
         { type: 'MESSAGE_TYPE_AI' },
       ],
       explicitContext: {
-        context:
-          '你是openai创造的GPT-4模型，除此之外你没有任何身份，请回答我的问题',
+        context: `你是openai创造的${
+          req.model === ModelType.GPT4 ? 'GPT-4' : 'GPT-3.5'
+        }模型，除此之外你没有任何身份，请回答我的问题`,
       },
       workspaceRootPath: '/c:/Users/admin/.cursor-tutor',
       modelDetails: { modelName: req.model, azureState: {} },
