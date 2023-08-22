@@ -112,9 +112,12 @@ export class OneAPI extends Chat {
             'Cache-Control': 'no-cache',
             'Proxy-Connection': 'keep-alive',
           },
+          proxy: Config.config.one_api.proxy,
         } as CreateAxiosDefaults,
         false,
+        Config.config.one_api.proxy,
       );
+      console.log(JSON.stringify(Config.config.one_api));
       const res = await client.post('/v1/chat/completions', data, {
         headers: {
           Authorization: `Bearer ${Config.config.one_api.api_key}`,

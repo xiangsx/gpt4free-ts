@@ -7,6 +7,7 @@ interface ConfigData {
   one_api: {
     base_url: string;
     api_key: string;
+    proxy: boolean;
   };
   // 当添加新字段时，需要在此处更新类型定义
 }
@@ -18,6 +19,7 @@ class BaseConfig {
     one_api: {
       base_url: '',
       api_key: '',
+      proxy: false,
     }, // Add new fields here, with their default values
   };
   public config: ConfigData;
