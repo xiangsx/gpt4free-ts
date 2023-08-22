@@ -290,7 +290,7 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
       await page.waitForSelector(
         '.grow:nth-child(1) > div > .rounded-md > .relative > .absolute > .absolute > div > div > *',
         {
-          timeout: 3 * 1000,
+          timeout: 2 * 1000,
           visible: true,
         },
       );
@@ -301,7 +301,7 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
       const selector = ModelMap[model];
       if (selector) {
         await page.waitForSelector(selector, {
-          timeout: 3 * 1000,
+          timeout: 2 * 1000,
           visible: true,
         });
         await page.click(selector);
