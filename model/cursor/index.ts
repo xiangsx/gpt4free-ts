@@ -201,6 +201,7 @@ export class Cursor extends Chat implements BrowserUser<Account> {
       allowCursor() ? maxSize : 0,
       this,
       false,
+      10 * 1000,
     );
     this.client = CreateAxiosProxy(
       {
@@ -320,19 +321,19 @@ export class Cursor extends Chat implements BrowserUser<Account> {
       let handleOK = false;
       for (let i = 0; i < 3; i++) {
         try {
-          const base64 = await page.evaluate(
-            () =>
-              // @ts-ignore
-              document.querySelector(
-                '.caa93cde1 > .cc617ed97 > .c65748c25 > .cb519483d > img',
-                // @ts-ignore
-              ).src || '',
+          // 选择你想要截图的元素
+          const element = await page.$(
+            '.caa93cde1 > .cc617ed97 > .c65748c25 > .cb519483d > img',
           );
-          if (!base64) {
-            this.logger.error('got base64 failed');
+          if (!element) {
+            this.logger.error('got captcha img failed');
             continue;
           }
-          const captcha = await getCaptchaCode(base64);
+          // 对该元素进行截图并获得一个 Buffer
+          const imageBuffer = await element.screenshot();
+          // 将 Buffer 转换为 Base64 格式的字符串
+          const base64String = imageBuffer.toString('base64');
+          const captcha = await getCaptchaCode(base64String);
           if (!captcha) {
             this.logger.error('got captcha failed');
             continue;

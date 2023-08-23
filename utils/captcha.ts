@@ -1,7 +1,5 @@
-import axios, { AxiosInstance } from 'axios';
+import { AxiosInstance } from 'axios';
 import { sleep } from './index';
-import sharp from 'sharp';
-import svg2png from 'svg2png';
 import { CreateAxiosProxy } from './proxyAgent';
 
 class CaptchaSolver {
@@ -60,7 +58,7 @@ class CaptchaSolver {
         throw new Error(`Failed to retrieve captcha result: ${data.request}`);
       }
 
-      await sleep(5000);
+      await sleep(10000);
       attempts++;
     }
 
@@ -74,32 +72,11 @@ export async function getCaptchaCode(base64: string) {
   }
   const solver = new CaptchaSolver(process.env.CAPTCHA2_APIKEY);
   try {
-    const captchaId = await solver.sendCaptcha(
-      await svgBase64ToPngBase64(base64),
-    );
+    const captchaId = await solver.sendCaptcha(base64);
     const captchaResult = await solver.getCaptchaResult(captchaId);
-    console.log('Captcha result:', captchaResult);
-    return captchaResult;
+    return captchaResult.replace(/[^a-zA-Z0-9]/g, '');
   } catch (error: any) {
     console.error('Error:', error.message);
     return '';
   }
-}
-
-async function svgBase64ToPngBase64(svgBase64: string): Promise<string> {
-  // Decode the SVG Base64 to a buffer
-  const svgBuffer: Buffer = Buffer.from(svgBase64.split(',')[1], 'base64');
-
-  // Convert SVG buffer to PNG buffer
-  const pngBuffer: Buffer = await svg2png(svgBuffer);
-
-  // Optionally, use sharp for any additional processing or resizing
-  const processedPngBuffer: Buffer = await sharp(pngBuffer)
-    //.resize(256, 256)  // for example, resize to 256x256 pixels
-    .toBuffer();
-
-  // Convert the PNG buffer back to Base64
-  const pngBase64: string = processedPngBuffer.toString('base64');
-
-  return pngBase64;
 }
