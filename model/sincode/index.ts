@@ -284,6 +284,7 @@ export class SinCode extends Chat implements BrowserUser<Account> {
         this.accountPool.syncfile();
         return [] as any;
       }
+      await this.closeOldChat(page);
       await this.newChat(page);
       this.accountPool.syncfile();
       this.logger.info('sincode login ok!');
@@ -315,10 +316,72 @@ export class SinCode extends Chat implements BrowserUser<Account> {
   SLNewChat =
     '#scrollbar > #scrollbar1 > .bubble-element > .clickable-element > .bubble-element:nth-child(2)';
   SLInput = 'textarea';
-  public static async goHome(page: Page) {
-    await page.goto(`https://www.sincode.ai`);
+
+  public async closeFirstChat(page: Page) {
+    try {
+      await page.waitForSelector(
+        '.clickable-element > .bubble-element > .clickable-element:nth-child(2) > #unselectable > img',
+        { timeout: 5 * 1000 },
+      );
+      await page.click(
+        '.clickable-element > .bubble-element > .clickable-element:nth-child(2) > #unselectable > img',
+      );
+
+      await page.waitForSelector(
+        '.clickable-element > .bubble-element > .clickable-element:nth-child(2) > #unselectable > img',
+        { timeout: 5 * 1000 },
+      );
+      await page.click(
+        '.clickable-element > .bubble-element > .clickable-element:nth-child(2) > #unselectable > img',
+      );
+    } catch (e) {}
   }
 
+  public async closeOldChat(page: Page) {
+    while (true) {
+      try {
+        if (
+          await page.$(
+            '#scrollbar > * > div > div.bubble-element.Text.cnaQai0.clickable-element',
+          )
+        ) {
+          await page.waitForSelector(
+            '#scrollbar > * > div > div.bubble-element.Text.cnaQai0.clickable-element',
+            { timeout: 5000 },
+          );
+          await page.click(
+            '#scrollbar > * > div > div.bubble-element.Text.cnaQai0.clickable-element',
+          );
+          await page.waitForSelector(
+            '#scrollbar > * > div > div.bubble-element.Text.cnaQai0.clickable-element',
+            { timeout: 5000 },
+          );
+          await page.click(
+            '#scrollbar > * > div > div.bubble-element.Text.cnaQai0.clickable-element',
+          );
+        } else {
+          await page.waitForSelector(
+            '.clickable-element > .bubble-element > .clickable-element:nth-child(2) > #unselectable > img',
+            { timeout: 5 * 1000 },
+          );
+          await page.click(
+            '.clickable-element > .bubble-element > .clickable-element:nth-child(2) > #unselectable > img',
+          );
+
+          await page.waitForSelector(
+            '.clickable-element > .bubble-element > .clickable-element:nth-child(2) > #unselectable > img',
+            { timeout: 5 * 1000 },
+          );
+          await page.click(
+            '.clickable-element > .bubble-element > .clickable-element:nth-child(2) > #unselectable > img',
+          );
+        }
+        await sleep(50);
+      } catch (e) {
+        return;
+      }
+    }
+  }
   public async isVIP(page: Page) {
     await page.waitForSelector(this.SLInput);
     await page.click(this.SLInput);
@@ -394,6 +457,7 @@ export class SinCode extends Chat implements BrowserUser<Account> {
               clearTimeout(tt);
               this.logger.error(`sincode return error, ${dataStr}`);
               await this.newChat(page);
+              await this.closeFirstChat(page);
               stream.write(Event.error, { error: 'please retry later!' });
               stream.end();
               account.failedCnt += 1;
@@ -415,6 +479,7 @@ export class SinCode extends Chat implements BrowserUser<Account> {
               account.failedCnt = 0;
               this.accountPool.syncfile();
               await this.newChat(page);
+              await this.closeFirstChat(page);
               this.logger.info(`recv msg ok`);
               done(account);
             }
