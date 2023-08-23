@@ -533,7 +533,7 @@ export class Cursor extends Chat implements BrowserUser<Account> {
           usage.numRequests += 1;
           this.accountPool.syncfile();
           if (usage.numRequests >= usage.maxRequestUsage) {
-            destroy(true);
+            destroy();
             return;
           }
         }
