@@ -140,7 +140,7 @@ class CursorAccountPool {
         item.usages?.[Config.config.cursor.primary_model] || {};
       if (
         !this.using.has(item.id) &&
-        (numRequests <= maxRequestUsage ||
+        (numRequests < maxRequestUsage ||
           now.subtract(1, 'm').isAfter(moment(item.last_use_time)))
       ) {
         console.log(
