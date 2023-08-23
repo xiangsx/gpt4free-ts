@@ -141,7 +141,7 @@ class CursorAccountPool {
       if (
         !this.using.has(item.id) &&
         (numRequests < maxRequestUsage ||
-          now.subtract(1, 'm').isAfter(moment(item.last_use_time)))
+          now.subtract(1, 'month').isAfter(moment(item.last_use_time)))
       ) {
         console.log(
           `find old login email: ${item.email} password:${item.password}, use: ${numRequests} of ${maxRequestUsage}`,
