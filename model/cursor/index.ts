@@ -441,7 +441,6 @@ export class Cursor extends Chat implements BrowserUser<Account> {
       stream.end();
       return;
     }
-    account.last_use_time = moment().format(TimeFormat);
     this.logger.info(`cursor account ${account.id} start`);
     const data: RealReq = {
       conversation: [
@@ -530,6 +529,7 @@ export class Cursor extends Chat implements BrowserUser<Account> {
         stream.write(Event.done, { content: '' });
         stream.end();
         const usage = account.usages[req.model];
+        account.last_use_time = moment().format(TimeFormat);
         if (usage) {
           usage.numRequests += 1;
           this.accountPool.syncfile();
@@ -538,6 +538,7 @@ export class Cursor extends Chat implements BrowserUser<Account> {
             return;
           }
         }
+        this.accountPool.syncfile();
         done(account);
       });
     } catch (e: any) {
