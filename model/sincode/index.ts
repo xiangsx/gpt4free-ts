@@ -434,7 +434,7 @@ export class SinCode extends Chat implements BrowserUser<Account> {
       stream.write(Event.done, { content: '' });
       stream.end();
       destroy(undefined, undefined, 10 * 60 * 1000);
-    }, 10 * 1000);
+    }, 20 * 1000);
     try {
       let old = '';
       let et: EventEmitter;
@@ -456,8 +456,8 @@ export class SinCode extends Chat implements BrowserUser<Account> {
               client.removeAllListeners('Network.webSocketFrameReceived');
               clearTimeout(tt);
               this.logger.error(`sincode return error, ${dataStr}`);
-              await this.newChat(page);
               await this.closeFirstChat(page);
+              await this.newChat(page);
               stream.write(Event.error, { error: 'please retry later!' });
               stream.end();
               account.failedCnt += 1;
@@ -478,8 +478,8 @@ export class SinCode extends Chat implements BrowserUser<Account> {
               stream.end();
               account.failedCnt = 0;
               this.accountPool.syncfile();
-              await this.newChat(page);
               await this.closeFirstChat(page);
+              await this.newChat(page);
               this.logger.info(`recv msg ok`);
               done(account);
             }
