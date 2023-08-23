@@ -27,6 +27,8 @@ import es from 'event-stream';
 import { CreateAxiosProxy } from '../../utils/proxyAgent';
 import crypto from 'crypto';
 import { fileDebouncer } from '../../utils/file';
+import { getCaptchaCode } from '../../utils/captcha';
+import { Config } from '../../utils/config';
 
 const MaxGptTimes = 50;
 
@@ -38,7 +40,7 @@ type Account = {
   login_time?: string;
   last_use_time?: string;
   password?: string;
-  gpt4times: number;
+  usages: UsageDetails;
   token?: string;
 };
 
@@ -72,6 +74,14 @@ type AuthRes = {
   uuid: string;
 };
 
+interface UsageInfo {
+  numRequests: number;
+  numTokens: number;
+  maxRequestUsage: number;
+  maxTokenUsage: number | null;
+}
+
+type UsageDetails = Partial<Record<ModelType, UsageInfo>>;
 class CursorAccountPool {
   private pool: Account[] = [];
   private readonly account_file_path = './run/account_cursor.json';
@@ -110,9 +120,32 @@ class CursorAccountPool {
   public get(): Account {
     const now = moment();
     for (const item of this.pool) {
-      if (item.gpt4times + 1 <= MaxGptTimes && !this.using.has(item.id)) {
-        console.log(`find old login account:`, JSON.stringify(item));
-        item.last_use_time = now.format(TimeFormat);
+      if (!item.usages) {
+        item.usages = {
+          [ModelType.GPT4]: {
+            maxRequestUsage: 50,
+            numRequests: 0,
+            numTokens: 0,
+            maxTokenUsage: null,
+          },
+          [ModelType.GPT3p5Turbo]: {
+            maxRequestUsage: 200,
+            numRequests: 0,
+            numTokens: 0,
+            maxTokenUsage: null,
+          },
+        };
+      }
+      const { maxRequestUsage = 50, numRequests = 0 } =
+        item.usages?.[Config.config.cursor.primary_model] || {};
+      if (
+        !this.using.has(item.id) &&
+        (numRequests <= maxRequestUsage ||
+          now.subtract(1, 'm').isAfter(moment(item.last_use_time)))
+      ) {
+        console.log(
+          `find old login email: ${item.email} password:${item.password}, use: ${numRequests} of ${maxRequestUsage}`,
+        );
         this.syncfile();
         this.using.add(item.id);
         return item;
@@ -121,7 +154,20 @@ class CursorAccountPool {
     const newAccount: Account = {
       id: v4(),
       last_use_time: now.format(TimeFormat),
-      gpt4times: 0,
+      usages: {
+        [ModelType.GPT4]: {
+          maxRequestUsage: 50,
+          numRequests: 0,
+          numTokens: 0,
+          maxTokenUsage: null,
+        },
+        [ModelType.GPT3p5Turbo]: {
+          maxRequestUsage: 200,
+          numRequests: 0,
+          numTokens: 0,
+          maxTokenUsage: null,
+        },
+      },
     };
     this.pool.push(newAccount);
     this.syncfile();
@@ -223,14 +269,19 @@ export class Cursor extends Chat implements BrowserUser<Account> {
     return account.id;
   }
 
-  async digest(s: string): Promise<ArrayBuffer> {
-    if (!crypto.subtle) {
-      throw new Error(
-        "'crypto.subtle' is not available so webviews will not work. This is likely because the editor is not running in a secure context (https://developer.mozilla.org/en-US/docs/Web/Security/Secure_Contexts).",
-      );
-    }
-    const l = new TextEncoder().encode(s);
-    return await crypto.subtle.digest('sha-256', l);
+  async digest(s: string) {
+    const hash = crypto.createHash('sha256');
+    const result = hash.update(s, 'utf8').digest();
+    return result.buffer;
+  }
+
+  async getUsage(page: Page) {
+    const res = await page.waitForResponse(
+      (res) => res.url().indexOf('https://www.cursor.so/api/usage') !== -1,
+    );
+    const usage = (await res.json()) as any as UsageDetails;
+    this.logger.info(JSON.stringify(usage));
+    return usage;
   }
 
   async init(
@@ -266,13 +317,44 @@ export class Cursor extends Chat implements BrowserUser<Account> {
       await page.waitForSelector('#email');
       await page.click('#email');
       await page.keyboard.type(emailAddress, { delay: 10 });
+      let handleOK = false;
+      for (let i = 0; i < 3; i++) {
+        try {
+          const base64 = await page.evaluate(
+            () =>
+              // @ts-ignore
+              document.querySelector(
+                '.caa93cde1 > .cc617ed97 > .c65748c25 > .cb519483d > img',
+                // @ts-ignore
+              ).src || '',
+          );
+          if (!base64) {
+            this.logger.error('got base64 failed');
+            continue;
+          }
+          const captcha = await getCaptchaCode(base64);
+          if (!captcha) {
+            this.logger.error('got captcha failed');
+            continue;
+          }
+          this.logger.info(`got capture ${captcha}`);
+          await page.waitForSelector('#captcha');
+          await page.click('#captcha');
+          await page.keyboard.type(captcha);
+          await page.keyboard.press('Enter');
+          await page.waitForSelector('#error-element-captcha', {
+            timeout: 5 * 1000,
+          });
+        } catch (e) {
+          this.logger.info('handle capture ok!');
+          handleOK = true;
+          break;
+        }
+      }
 
-      await page.waitForSelector(
-        '.caa93cde1 > .cc617ed97 > .c078920ea > .c22fea258 > .cf1ef5a0b',
-      );
-      await page.click(
-        '.caa93cde1 > .cc617ed97 > .c078920ea > .c22fea258 > .cf1ef5a0b',
-      );
+      if (!handleOK) {
+        throw new Error('handle captcha failed');
+      }
 
       await page.waitForSelector('#password');
       await page.click('#password');
@@ -288,11 +370,14 @@ export class Cursor extends Chat implements BrowserUser<Account> {
 
       // accept
       await this.accept(page);
+      this.getUsage(page).then((usage) => {
+        account.usages = usage;
+        this.accountPool.syncfile();
+      });
       await sleep(5 * 1000);
       const uuid = v4();
-      const u = new Uint8Array(32);
-      crypto.getRandomValues(u);
-      const l = encodeBase64(Buffer.from(u));
+      const u = crypto.randomBytes(32);
+      const l = encodeBase64(u);
       const challenge = encodeBase64(
         Buffer.from(new Uint8Array(await this.digest(l))),
       );
@@ -303,9 +388,7 @@ export class Cursor extends Chat implements BrowserUser<Account> {
       const newPage = await browser.newPage();
       await newPage.goto(loginUrl);
       await this.accept(page);
-      const tokenPath = `/auth/poll?uuid=${uuid}&verifier=${encodeBase64(
-        Buffer.from(u),
-      )}`;
+      const tokenPath = `/auth/poll?uuid=${uuid}&verifier=${encodeBase64(u)}`;
       const token = await this.getToken(tokenPath, 20);
       if (!token) {
         throw new Error('get access token failed');
@@ -313,7 +396,7 @@ export class Cursor extends Chat implements BrowserUser<Account> {
       browser.close().catch();
       account.token = token;
       this.accountPool.syncfile();
-      console.log('register cursor successfully');
+      this.logger.info('register cursor successfully');
       return [page, account];
     } catch (e: any) {
       console.warn('something error happened,err:', e);
@@ -331,7 +414,7 @@ export class Cursor extends Chat implements BrowserUser<Account> {
         '.c01e01e17 > .cc04c7973 > .cd9f16636 > .cfcfa14e9 > .cd6a2dc65',
       );
     } catch (e) {
-      console.log('not need accept');
+      this.logger.info('not need accept');
     }
   }
 
@@ -344,7 +427,7 @@ export class Cursor extends Chat implements BrowserUser<Account> {
         const auth: { data: AuthRes } = await this.client.get(url);
         return auth.data.accessToken;
       } catch (e: any) {
-        console.error('get token failed: ', e.message);
+        this.logger.error('get token failed: ', e.message);
         await sleep(1000);
       }
     }
@@ -357,7 +440,8 @@ export class Cursor extends Chat implements BrowserUser<Account> {
       stream.end();
       return;
     }
-    console.log(`cursor account ${account.id} start`);
+    account.last_use_time = moment().format(TimeFormat);
+    this.logger.info(`cursor account ${account.id} start`);
     const data: RealReq = {
       conversation: [
         ...req.messages.map((v) => ({
@@ -444,21 +528,19 @@ export class Cursor extends Chat implements BrowserUser<Account> {
         }
         stream.write(Event.done, { content: '' });
         stream.end();
-        if (req.model === ModelType.GPT4) {
-          account.gpt4times += 1;
+        const usage = account.usages[req.model];
+        if (usage) {
+          usage.numRequests += 1;
           this.accountPool.syncfile();
-        } else {
-          account.gpt4times += 0.25;
+          if (usage.numRequests >= usage.maxRequestUsage) {
+            destroy(true);
+            return;
+          }
         }
-        if (account.gpt4times >= MaxGptTimes) {
-          this.accountPool.syncfile();
-          destroy(true);
-        } else {
-          done(account);
-        }
+        done(account);
       });
     } catch (e: any) {
-      console.error('copilot ask stream failed, err', e);
+      this.logger.error('copilot ask stream failed, err', e);
       stream.write(Event.error, { error: e.message });
       stream.end();
       destroy();

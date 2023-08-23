@@ -380,14 +380,14 @@ export function replaceConsoleWithWinston(): void {
   const logger: Logger = newLogger();
 
   // 替换所有 console 方法
-  console.log = (msg: any, ...optionalParams: any[]) =>
-    logger.info(msg, optionalParams);
-  console.error = (msg: any, ...optionalParams: any[]) =>
-    logger.error(msg, optionalParams);
-  console.warn = (msg: any, ...optionalParams: any[]) =>
-    logger.warn(msg, optionalParams);
-  console.debug = (msg: any, ...optionalParams: any[]) =>
-    logger.debug(msg, optionalParams);
+  console.log = (...msg) =>
+    logger.info(`${msg.map((v) => v.toString()).join(' ')}`);
+  console.error = (...msg) =>
+    logger.error(`${msg.map((v) => v.toString()).join(' ')}`);
+  console.warn = (...msg) =>
+    logger.warn(`${msg.map((v) => v.toString()).join(' ')}`);
+  console.debug = (...msg) =>
+    logger.debug(`${msg.map((v) => v.toString()).join(' ')}`);
 }
 
 export function newLogger(label?: string) {

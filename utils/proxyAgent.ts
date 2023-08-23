@@ -26,7 +26,9 @@ export function CreateAxiosProxy(
   config: CreateAxiosDefaults,
   useReqProxy = true,
   proxy = true,
+  options?: { retry: boolean },
 ): AxiosInstance {
+  const { retry = true } = options || {};
   const createConfig = { ...config };
   const useProxy = proxy ? process.env.http_proxy : '';
   if (useProxy) {
@@ -53,7 +55,7 @@ export function CreateAxiosProxy(
       },
     );
   }
-  if (process.env.RETRY === '1') {
+  if (retry && process.env.RETRY === '1') {
     client.interceptors.response.use(
       undefined,
       function axiosRetryInterceptor(err) {
