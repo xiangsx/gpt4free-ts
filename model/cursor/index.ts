@@ -205,7 +205,7 @@ export class Cursor extends Chat implements BrowserUser<Account> {
       allowCursor() ? maxSize : 0,
       this,
       false,
-      -1,
+      30 * 1000,
     );
     this.client = CreateAxiosProxy(
       {
