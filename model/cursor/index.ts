@@ -307,8 +307,8 @@ export class Cursor extends Chat implements BrowserUser<Account> {
       await page.goto(`https://www.cursor.so`);
       await page.waitForSelector('body > .hidden > .flex > .flex > .text-sm');
       await page.click('body > .hidden > .flex > .flex > .text-sm');
-      const emailAddress = `${randomStr(10)}@gmail.com`;
-      const password = randomStr(12);
+      const emailAddress = `${randomStr(12)}@outlook.com`;
+      const password = randomStr(16);
       await page.waitForSelector(
         '.c01e01e17 > .cc04c7973 > .ulp-alternate-action > .c74028152 > .cccd81a90',
       );
