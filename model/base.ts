@@ -83,9 +83,9 @@ export function PromptToString(
 ): [string, Message[]] {
   try {
     const messages: Message[] = JSON.parse(prompt);
-    for (let i = messages.length - 1; i >= 0; i--) {
-      if (messages[i].role === 'system') {
-        messages[i].role = 'user';
+    for (const v of messages) {
+      if (v.role === 'system') {
+        v.role = 'user';
       }
     }
     const res = `${messages
