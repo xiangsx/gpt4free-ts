@@ -6,6 +6,7 @@
   "scripts": {
     "test": "ts-node test.ts",
     "start": "ts-node index.ts",
+    "start2": "ts-node index.ts",
     "build": "tsc"
   },
   "keywords": [

@@ -69,6 +69,7 @@ export enum Site {
   SinCode = 'sincode',
   OpenAI = 'openai',
   OneAPI = 'oneapi',
+  Jasper = 'jasper',
 }
 
 export interface ChatRequest {

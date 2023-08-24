@@ -31,6 +31,7 @@ import { ChatDemo } from './chatdemo';
 import { SinCode } from './sincode';
 import { OpenAI } from './openai';
 import { OneAPI } from './oneapi';
+import { Jasper } from './jasper';
 
 export class ChatModelFactory {
   private readonly modelMap: Map<Site, Chat>;
@@ -87,6 +88,7 @@ export class ChatModelFactory {
     this.modelMap.set(Site.AiLs, new AILS({ name: Site.AiLs }));
     this.modelMap.set(Site.SinCode, new SinCode({ name: Site.SinCode }));
     this.modelMap.set(Site.OpenAI, new OpenAI({ name: Site.OpenAI }));
+    this.modelMap.set(Site.Jasper, new Jasper({ name: Site.Jasper }));
     this.modelMap.set(
       Site.Perplexity,
       new Perplexity({ name: Site.Perplexity }),
