@@ -112,6 +112,10 @@ class CursorAccountPool {
     }
   }
 
+  public release(id: string) {
+    this.using.delete(id);
+  }
+
   public delete(id: string) {
     this.pool = this.pool.filter((item) => item.id !== id);
     this.syncfile();
@@ -263,6 +267,10 @@ export class Cursor extends Chat implements BrowserUser<Account> {
 
   deleteID(id: string): void {
     this.accountPool.delete(id);
+  }
+
+  release(id: string): void {
+    this.accountPool.release(id);
   }
 
   newID(): string {
