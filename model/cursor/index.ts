@@ -386,6 +386,7 @@ export class Cursor extends Chat implements BrowserUser<Account> {
 
       account.email = emailAddress;
       account.password = password;
+      await sleep(3 * 1000);
       const newPage = await browser.newPage();
       await newPage.goto(loginUrl);
       await this.accept(page);
