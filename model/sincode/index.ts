@@ -293,7 +293,7 @@ export class SinCode extends Chat implements BrowserUser<Account> {
       this.logger.warn(`account:${account?.id}, something error happened.`, e);
       account.failedCnt += 1;
       this.accountPool.syncfile();
-      await sleep(Math.floor(Math.random() * 10 * 60 * 1000));
+      await sleep(Math.floor(Math.random() * 5 * 60 * 1000));
       return [] as any;
     }
   }
@@ -433,7 +433,7 @@ export class SinCode extends Chat implements BrowserUser<Account> {
       stream.write(Event.error, { error: 'please retry later!' });
       stream.write(Event.done, { content: '' });
       stream.end();
-      destroy(undefined, undefined, 10 * 60 * 1000);
+      destroy(undefined, undefined, 5 * 60 * 1000);
     }, 20 * 1000);
     try {
       let old = '';
@@ -464,7 +464,7 @@ export class SinCode extends Chat implements BrowserUser<Account> {
               account.last_use_time = moment().format(TimeFormat);
               account.invalid = true;
               this.accountPool.syncfile();
-              destroy(undefined, undefined, 10 * 60 * 1000);
+              destroy(undefined, undefined, 5 * 60 * 1000);
               return;
             }
             if (dataStr.indexOf('RESPONSE_START') !== -1) {
