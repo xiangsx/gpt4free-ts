@@ -462,7 +462,6 @@ export class SinCode extends Chat implements BrowserUser<Account> {
               stream.end();
               account.failedCnt += 1;
               account.last_use_time = moment().format(TimeFormat);
-              account.invalid = true;
               this.accountPool.syncfile();
               destroy(undefined, undefined, 5 * 60 * 1000);
               return;
