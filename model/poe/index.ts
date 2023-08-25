@@ -144,6 +144,10 @@ class PoeAccountPool {
     fs.writeFileSync(this.account_file_path, JSON.stringify(this.pool));
   }
 
+  public release(id: string) {
+    this.using.delete(id);
+  }
+
   public getByID(id: string) {
     for (const item in this.pool) {
       if (this.pool[item].id === id) {
@@ -279,6 +283,10 @@ export class Poe extends Chat implements BrowserUser<Account> {
 
   deleteID(id: string): void {
     this.accountPool.delete(id);
+  }
+
+  release(id: string): void {
+    this.accountPool.release(id);
   }
 
   newID(): string {
@@ -505,32 +513,21 @@ ${question}`;
       const tt = setTimeout(async () => {
         client.removeAllListeners('Network.webSocketFrameReceived');
         await Poe.clearContext(page);
-        await sleep(2000);
+        this.logger.info('poe try times > 3, return error');
+        stream.write(Event.error, { error: 'please retry later!' });
+        stream.write(Event.done, { content: '' });
+        stream.end();
         account.failedCnt += 1;
         this.accountPool.syncfile();
         if (account.failedCnt >= MaxFailedTimes) {
-          destroy(true);
+          destroy();
           this.accountPool.syncfile();
           this.logger.info(`poe account failed cnt > 10, destroy ok`);
         } else {
           await page.reload();
           done(account);
         }
-        if (!stream.stream().writableEnded && !stream.stream().closed) {
-          if ((req?.retry || 0) > 3) {
-            this.logger.info('poe try times > 3, return error');
-            stream.write(Event.error, { error: 'please retry later!' });
-            stream.write(Event.done, { content: '' });
-            stream.end();
-            return;
-          }
-          this.logger.error(
-            `pb ${account.pb} wait ack ws timeout, retry! failedCnt:${account.failedCnt}`,
-          );
-          req.retry = req.retry ? req.retry + 1 : 1;
-          await this.askStream(req, stream);
-        }
-      }, 20 * 1000);
+      }, 10 * 1000);
       let currMsgID = '';
       et = client.on('Network.webSocketFrameReceived', async ({ response }) => {
         tt.refresh();
@@ -562,8 +559,7 @@ ${question}`;
           clearTimeout(tt);
           client.removeAllListeners('Network.webSocketFrameReceived');
           account.invalid = true;
-          destroy(true);
-          await this.askStream(req, stream);
+          destroy(false);
           return;
         }
         switch (state) {
