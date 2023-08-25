@@ -124,7 +124,7 @@ export class Auto extends Chat {
   support(model: ModelType): number {
     switch (model) {
       case ModelType.GPT4:
-        return 6000;
+        return 3000;
       case ModelType.GPT3p5Turbo:
         return 3000;
       case ModelType.GPT3p5_16k:
