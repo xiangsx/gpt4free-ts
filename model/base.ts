@@ -70,6 +70,7 @@ export enum Site {
   OpenAI = 'openai',
   OneAPI = 'oneapi',
   Jasper = 'jasper',
+  OpenChat = 'openchat',
 }
 
 export interface ChatRequest {
