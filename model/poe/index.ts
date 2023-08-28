@@ -512,11 +512,12 @@ ${question}`;
       let et: EventEmitter;
       const tt = setTimeout(async () => {
         client.removeAllListeners('Network.webSocketFrameReceived');
-        await Poe.clearContext(page);
-        this.logger.info('poe try times > 3, return error');
         stream.write(Event.error, { error: 'please retry later!' });
         stream.write(Event.done, { content: '' });
         stream.end();
+        await Poe.clearContext(page);
+        await page.reload();
+        this.logger.info('poe try times > 3, return error');
         account.failedCnt += 1;
         this.accountPool.syncfile();
         if (account.failedCnt >= MaxFailedTimes) {
