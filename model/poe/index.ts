@@ -527,7 +527,7 @@ ${question}`;
           await page.reload();
           done(account);
         }
-      }, 10 * 1000);
+      }, 20 * 1000);
       let currMsgID = '';
       et = client.on('Network.webSocketFrameReceived', async ({ response }) => {
         tt.refresh();
