@@ -1,4 +1,4 @@
-![微信图片_20230828154803](https://github.com/xiangsx/gpt4free-ts/assets/29322721/4b2cf92a-faa0-44fb-8db2-b6fc6937cb50)<div align="center">
+<div align="center">
   
 # GPT4Free TypeScript Version 🆓
 ###### Providing a free OpenAI GPT-4 API!
