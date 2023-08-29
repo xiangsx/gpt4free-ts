@@ -517,7 +517,9 @@ ${question}`;
         stream.end();
         await Poe.clearContext(page);
         await page.reload();
-        this.logger.info('poe try times > 3, return error');
+        this.logger.info(
+          `poe time out, return error! failed prompt: [\n${req.prompt}\n]`,
+        );
         account.failedCnt += 1;
         this.accountPool.syncfile();
         if (account.failedCnt >= MaxFailedTimes) {
