@@ -541,8 +541,12 @@ ${question}`;
         if (!message) {
           return;
         }
-        const { author, state, text } = message;
+        const { author, state, text, suggestedReplies } = message;
         // this.logger.info(author, state, text, unique_id);
+
+        if (suggestedReplies.length > 0) {
+          return;
+        }
 
         if (author === 'chat_break') {
           return;
