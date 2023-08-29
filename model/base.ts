@@ -72,6 +72,7 @@ export enum Site {
   OneAPI = 'oneapi',
   Jasper = 'jasper',
   OpenChat = 'openchat',
+  Pap = 'pap',
 }
 
 export interface ChatRequest {
