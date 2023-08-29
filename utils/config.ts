@@ -67,20 +67,24 @@ class BaseConfig {
     let timeoutId: NodeJS.Timeout | null = null;
     const debounceDelay = 300;
 
-    watch(this.filePath, (event) => {
-      if (event === 'change') {
-        if (timeoutId) {
-          clearTimeout(timeoutId);
-        }
+    try {
+      watch(this.filePath, (event) => {
+        if (event === 'change') {
+          if (timeoutId) {
+            clearTimeout(timeoutId);
+          }
 
-        timeoutId = setTimeout(() => {
-          console.log(
-            `Configuration file ${this.filePath} has been changed! Reloading...`,
-          );
-          this.load();
-        }, debounceDelay);
-      }
-    });
+          timeoutId = setTimeout(() => {
+            console.log(
+              `Configuration file ${this.filePath} has been changed! Reloading...`,
+            );
+            this.load();
+          }, debounceDelay);
+        }
+      });
+    } catch (e) {
+      console.error(e);
+    }
   }
 }
 
