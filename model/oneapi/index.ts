@@ -53,7 +53,7 @@ export class OneAPI extends Chat {
   support(model: ModelType): number {
     switch (model) {
       case ModelType.GPT3p5Turbo:
-        return 2000;
+        return 1500;
       case ModelType.GPT3p5TurboHaining:
         return 3000;
       case ModelType.GPT3p5_16k:
