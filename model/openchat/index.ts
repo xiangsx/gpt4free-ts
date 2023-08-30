@@ -21,6 +21,7 @@ import {
   parseJSON,
   shuffleArray,
   sleep,
+  TimeFormat,
 } from '../../utils';
 import { v4 } from 'uuid';
 import fs from 'fs';
@@ -294,20 +295,13 @@ export class OpenChat extends Chat implements BrowserUser<Account> {
 
       await page.keyboard.press('Enter');
 
+      await sleep(3000);
+      await this.newChat(page);
       this.getAuth(page).then((tk) => {
         account.accessToken = tk;
+        account.last_use_time = moment().format(TimeFormat);
         this.accountPool.syncfile();
       });
-      await this.newChat(page);
-      const res = await (
-        await browser.newPage()
-      ).goto('https://chat.openai.com/api/auth/session');
-      const data = await res?.json();
-      if (!data) {
-        throw new Error('get tk failed');
-      }
-      account.accessToken = data.accessToken;
-      console.log(account.accessToken);
       account.cookie = await this.getCookie(page);
       await page.exposeFunction('onChunk', (text: string) => {
         const stream = this.streamMap[account.id];
@@ -336,10 +330,11 @@ export class OpenChat extends Chat implements BrowserUser<Account> {
   }
 
   async getAuth(page: Page): Promise<string> {
-    const res = await page.waitForResponse(
-      (req) => req.url() === 'https://chat.openai.com/api/auth/session',
-    );
-    return (await res.json()).accessToken;
+    const newPage = await page.browser().newPage();
+    const res = await newPage.goto('https://chat.openai.com/api/auth/session');
+    const tk = (await res?.json())?.accessToken;
+    newPage.close();
+    return tk;
   }
 
   async newChat(page: Page) {
@@ -360,6 +355,13 @@ export class OpenChat extends Chat implements BrowserUser<Account> {
       return;
     }
     try {
+      if (moment().unix() - moment(account.last_use_time).unix() > 5 * 60) {
+        this.getAuth(page).then((tk) => {
+          account.accessToken = tk;
+          account.last_use_time = moment().format(TimeFormat);
+          this.accountPool.syncfile();
+        });
+      }
       const pt = new PassThrough();
       let old = '';
       pt.pipe(es.split(/\r?\n\r?\n/)).pipe(
