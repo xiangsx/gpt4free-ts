@@ -5,7 +5,7 @@ import {
   ChatResponse,
   ModelType,
 } from '../base';
-import { Browser, EventEmitter, Page, Protocol } from 'puppeteer';
+import { Browser, Page, Protocol } from 'puppeteer';
 import {
   BrowserPool,
   BrowserUser,
@@ -21,41 +21,18 @@ import {
   parseJSON,
   shuffleArray,
   sleep,
-  TimeFormat,
 } from '../../utils';
 import { v4 } from 'uuid';
 import fs from 'fs';
 import moment from 'moment';
 import { CreateAxiosProxy } from '../../utils/proxyAgent';
-import { AxiosInstance, AxiosRequestConfig } from 'axios';
+import { AxiosInstance } from 'axios';
+import { PassThrough } from 'stream';
 import es from 'event-stream';
 
 const MaxFailedTimes = 10;
 
 type UseLeft = Partial<Record<ModelType, number>>;
-
-interface Message {
-  id: string;
-  author: {
-    role: string;
-  };
-  content: {
-    content_type: string;
-    parts: string[];
-  };
-  metadata: Record<string, any>;
-}
-
-interface RealReq {
-  action: string;
-  messages: Message[];
-  parent_message_id: string;
-  model: string;
-  timezone_offset_min: number;
-  suggestions: string[];
-  history_and_training_disabled: boolean;
-  arkose_token: string | null;
-}
 
 type Account = {
   id: string;
@@ -71,6 +48,42 @@ type Account = {
   accessToken?: string;
   cookie: Protocol.Network.Cookie[];
 };
+
+interface MessageContent {
+  content_type: string;
+  parts: string[];
+}
+
+interface Author {
+  role: string;
+  name: null | string;
+  metadata: Record<string, any>;
+}
+
+interface Metadata {
+  message_type: string;
+  model_slug: string;
+  parent_id: string;
+}
+
+interface Message {
+  id: string;
+  author: Author;
+  create_time: number;
+  update_time: null | number;
+  content: MessageContent;
+  status: string;
+  end_turn: null | any;
+  weight: number;
+  metadata: Metadata;
+  recipient: string;
+}
+
+interface Conversation {
+  message: Message;
+  conversation_id: string;
+  error: null | any;
+}
 
 class AccountPool {
   private readonly pool: Record<string, Account> = {};
@@ -170,6 +183,7 @@ export class OpenChat extends Chat implements BrowserUser<Account> {
   private pagePool: BrowserPool<Account>;
   private accountPool: AccountPool;
   private client: AxiosInstance;
+  private readonly streamMap: Record<string, PassThrough>;
 
   constructor(options?: ChatOptions) {
     super(options);
@@ -184,6 +198,7 @@ export class OpenChat extends Chat implements BrowserUser<Account> {
     this.client = CreateAxiosProxy({
       baseURL: 'https://chat.openai.com/backend-api/conversation',
     });
+    this.streamMap = {};
   }
 
   support(model: ModelType): number {
@@ -271,31 +286,41 @@ export class OpenChat extends Chat implements BrowserUser<Account> {
       await page.click('#username', { count: 3 });
       await page.keyboard.type(account.email);
 
-      await page.waitForSelector(
-        '.caa93cde1 > .cc617ed97 > .c078920ea > .c22fea258 > .cf1ef5a0b',
-      );
-      await page.click(
-        '.caa93cde1 > .cc617ed97 > .c078920ea > .c22fea258 > .cf1ef5a0b',
-      );
+      await page.keyboard.press('Enter');
 
       await page.waitForSelector('#password');
       await page.click('#password');
       await page.keyboard.type(account.password);
 
-      await page.waitForSelector(
-        '.c01e01e17 > .cc04c7973 > .c078920ea > .c22fea258 > .cf1ef5a0b',
-      );
-      await page.click(
-        '.c01e01e17 > .cc04c7973 > .c078920ea > .c22fea258 > .cf1ef5a0b',
-      );
+      await page.keyboard.press('Enter');
 
-      await this.closeWelcome(page);
       this.getAuth(page).then((tk) => {
         account.accessToken = tk;
         this.accountPool.syncfile();
       });
       await this.newChat(page);
+      const res = await (
+        await browser.newPage()
+      ).goto('https://chat.openai.com/api/auth/session');
+      const data = await res?.json();
+      if (!data) {
+        throw new Error('get tk failed');
+      }
+      account.accessToken = data.accessToken;
+      console.log(account.accessToken);
       account.cookie = await this.getCookie(page);
+      await page.exposeFunction('onChunk', (text: string) => {
+        const stream = this.streamMap[account.id];
+        if (stream) {
+          stream.write(text);
+        }
+      });
+      await page.exposeFunction('onChunkEnd', () => {
+        const stream = this.streamMap[account.id];
+        if (stream) {
+          stream.end();
+        }
+      });
       this.logger.info('register ok');
       return [page, account];
     } catch (e: any) {
@@ -317,30 +342,6 @@ export class OpenChat extends Chat implements BrowserUser<Account> {
     return (await res.json()).accessToken;
   }
 
-  async closeWelcome(page: Page) {
-    try {
-      await page.waitForSelector('.p-4 > .prose > .flex > .btn > .flex', {
-        timeout: 10000,
-      });
-      await page.click('.p-4 > .prose > .flex > .btn > .flex');
-
-      await page.waitForSelector(
-        '.p-4 > .prose > .flex > .btn:nth-child(2) > .flex',
-      );
-      await page.click('.p-4 > .prose > .flex > .btn:nth-child(2) > .flex');
-
-      await page.waitForSelector(
-        '#radix-\\:ri\\: > .p-4 > .prose > .flex > .btn:nth-child(2)',
-      );
-      await page.click(
-        '#radix-\\:ri\\: > .p-4 > .prose > .flex > .btn:nth-child(2)',
-      );
-      this.logger.info('close welcome ok!');
-    } catch (e) {
-      this.logger.info('not need close welcome');
-    }
-  }
-
   async newChat(page: Page) {
     await page.waitForSelector(
       '.flex > .scrollbar-trigger > .flex > .mb-1 > .flex',
@@ -358,63 +359,134 @@ export class OpenChat extends Chat implements BrowserUser<Account> {
       stream.end();
       return;
     }
-    const client = await page.target().createCDPSession();
-    const tt = setTimeout(async () => {
-      client.removeAllListeners('Network.eventSourceMessageReceived');
-      stream.write(Event.error, { error: 'please retry later!' });
-      stream.write(Event.done, { content: '' });
-      stream.end();
-      this.logger.error('wait msg timeout, destroyed!');
-      done(account);
-    }, 10 * 1000);
     try {
-      await client.send('Network.enable');
-      await client.send('Network.enable');
-      await client.send('Network.setRequestInterception', {
-        patterns: [{ urlPattern: '*' }],
-      });
-
-      client.on('Network.requestIntercepted', async ({ interceptionId }) => {
-        await client.send('Network.continueInterceptedRequest', {
-          interceptionId,
-        });
-      });
-
-      client.on('Network.responseReceived', async (event) => {
-        if (
-          event.response.url ===
-          'https://chat.openai.com/backend-api/conversation'
-        ) {
-          const { stream } = await client.send(
-            'Network.takeResponseBodyForInterceptionAsStream',
-            { interceptionId: event.requestId },
-          );
-
-          client.on('IO.read', ({ data }) => {
-            console.log(data);
+      const pt = new PassThrough();
+      let old = '';
+      pt.pipe(es.split(/\r?\n\r?\n/)).pipe(
+        es.map(async (chunk: any, cb: any) => {
+          const dataStr = chunk.replace('data: ', '');
+          if (!dataStr) {
+            return;
+          }
+          if (dataStr === '[DONE]') {
+            return;
+          }
+          const data = parseJSON<Conversation>(dataStr, {} as Conversation);
+          if (
+            !data?.message?.author?.role ||
+            data.message.author.role !== 'assistant'
+          ) {
+            return;
+          }
+          const parts = data?.message?.content?.parts;
+          if (!parts || !parts.length) {
+            return;
+          }
+          const content = parts?.join('');
+          stream.write(Event.message, {
+            content: content?.substring(old.length),
           });
-
-          await client.send('IO.read', { handle: stream });
-        }
+          old = content;
+        }),
+      );
+      pt.on('close', () => {
+        stream.write(Event.done, { content: '' });
+        stream.end();
+        delete this.streamMap[account.id];
       });
-
-      this.logger.info('sincode start send msg');
-
-      await page.waitForSelector(this.SLInput);
-      await page.click(this.SLInput);
-      await client.send('Input.insertText', { text: req.prompt });
-
-      this.logger.info('find input ok');
-      await page.keyboard.press('Enter');
-      this.logger.info('send msg ok!');
-    } catch (e: any) {
-      client.removeAllListeners('Network.eventSourceMessageReceived');
-      clearTimeout(tt);
-      this.logger.error(`account: id=${account.id}, ask stream failed:`, e);
-      account.failedCnt += 1;
-      account.model = undefined;
-      this.accountPool.syncfile();
+      this.streamMap[account.id] = pt;
+      await page.evaluate(
+        (tk, prompt, arg1, arg2) => {
+          const body = {
+            action: 'next',
+            messages: [
+              {
+                id: arg1,
+                author: { role: 'user' },
+                content: { content_type: 'text', parts: [prompt] },
+                metadata: {},
+              },
+            ],
+            parent_message_id: arg2,
+            model: 'text-davinci-002-render-sha',
+            timezone_offset_min: -480,
+            suggestions: [
+              'Compare design principles for mobile apps and desktop software in a concise table',
+              'Come up with 5 concepts for a retro-style arcade game.',
+              'Design a database schema for an online merch store.',
+              "What can I do in Paris for 5 days, if I'm especially interested in fashion?",
+            ],
+            history_and_training_disabled: false,
+            arkose_token: null,
+          };
+          return new Promise((resolve, reject) => {
+            fetch('https://chat.openai.com/backend-api/conversation', {
+              headers: {
+                accept: 'text/event-stream',
+                'accept-language': 'en-US',
+                authorization: `Bearer ${tk}`,
+                'cache-control': 'no-cache',
+                'content-type': 'application/json',
+                pragma: 'no-cache',
+                'sec-ch-ua':
+                  '"Chromium";v="116", "Not)A;Brand";v="24", "Google Chrome";v="116"',
+                'sec-ch-ua-mobile': '?0',
+                'sec-ch-ua-platform': '"Windows"',
+                'sec-fetch-dest': 'empty',
+                'sec-fetch-mode': 'cors',
+                'sec-fetch-site': 'same-origin',
+              },
+              referrer:
+                'https://chat.openai.com/?model=text-davinci-002-render-sha',
+              referrerPolicy: 'same-origin',
+              body: JSON.stringify(body),
+              method: 'POST',
+              mode: 'cors',
+              credentials: 'include',
+            })
+              .then((response) => {
+                if (!response.body) {
+                  resolve(null);
+                  return null;
+                }
+                const reader = response.body.getReader();
+                function readNextChunk() {
+                  reader
+                    .read()
+                    .then(({ done, value }) => {
+                      const textChunk = new TextDecoder('utf-8').decode(value);
+                      if (done) {
+                        // @ts-ignore
+                        window.onChunkEnd();
+                        // @ts-ignore
+                        resolve(textChunk);
+                        return;
+                      }
+                      // @ts-ignore
+                      window.onChunk(textChunk);
+                      readNextChunk();
+                    })
+                    .catch((err) => {
+                      reject(err);
+                    });
+                }
+                readNextChunk();
+              })
+              .catch((err) => {
+                reject(err);
+              });
+          });
+        },
+        account.accessToken,
+        req.prompt,
+        v4(),
+        v4(),
+      );
       done(account);
+    } catch (e: any) {
+      this.logger.error(e);
+      done(account);
+      delete this.streamMap[account.id];
       stream.write(Event.error, { error: 'some thing error, try again later' });
       stream.write(Event.done, { content: '' });
       stream.end();
