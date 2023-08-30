@@ -193,7 +193,7 @@ export class OpenChat extends Chat implements BrowserUser<Account> {
       this,
       false,
       10 * 1000,
-      true,
+      false,
     );
     this.client = CreateAxiosProxy({
       baseURL: 'https://chat.openai.com/backend-api/conversation',
