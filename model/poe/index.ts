@@ -532,6 +532,7 @@ ${question}`;
             done(account);
           }
         } catch (e) {
+          destroy();
           this.logger.error(`err in timeout: `, e);
         }
       }, 20 * 1000);
@@ -602,6 +603,7 @@ ${question}`;
               return;
           }
         } catch (e) {
+          destroy();
           this.logger.error('err in event cb, err: ', e);
         }
       });
