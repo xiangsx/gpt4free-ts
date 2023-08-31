@@ -620,21 +620,21 @@ ${question}`;
       this.logger.info('send msg ok!');
     } catch (e: any) {
       client.removeAllListeners('Network.webSocketFrameReceived');
+      stream.write(Event.error, { error: 'some thing error, try again later' });
+      stream.write(Event.done, { content: '' });
+      stream.end();
       this.logger.error(`account: pb=${account.pb}, poe ask stream failed:`, e);
       account.failedCnt += 1;
       if (account.failedCnt >= MaxFailedTimes) {
-        destroy(true);
+        destroy();
         this.accountPool.syncfile();
         this.logger.info(`poe account failed cnt > 10, destroy ok`);
       } else {
         this.accountPool.syncfile();
+        await Poe.clearContext(page);
         await page.reload();
         done(account);
       }
-      done(account);
-      stream.write(Event.error, { error: 'some thing error, try again later' });
-      stream.write(Event.done, { content: '' });
-      stream.end();
       return;
     }
   }
