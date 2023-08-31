@@ -511,90 +511,98 @@ ${question}`;
       let old = '';
       let et: EventEmitter;
       const tt = setTimeout(async () => {
-        client.removeAllListeners('Network.webSocketFrameReceived');
-        stream.write(Event.error, { error: 'please retry later!' });
-        stream.write(Event.done, { content: '' });
-        stream.end();
-        await Poe.clearContext(page);
-        await page.reload();
-        this.logger.info(
-          `poe time out, return error! failed prompt: [\n${req.prompt}\n]`,
-        );
-        account.failedCnt += 1;
-        this.accountPool.syncfile();
-        if (account.failedCnt >= MaxFailedTimes) {
-          destroy();
-          this.accountPool.syncfile();
-          this.logger.info(`poe account failed cnt > 10, destroy ok`);
-        } else {
+        try {
+          client.removeAllListeners('Network.webSocketFrameReceived');
+          stream.write(Event.error, { error: 'please retry later!' });
+          stream.write(Event.done, { content: '' });
+          stream.end();
+          await Poe.clearContext(page);
           await page.reload();
-          done(account);
+          this.logger.info(
+            `poe time out, return error! failed prompt: [\n${req.prompt}\n]`,
+          );
+          account.failedCnt += 1;
+          this.accountPool.syncfile();
+          if (account.failedCnt >= MaxFailedTimes) {
+            destroy();
+            this.accountPool.syncfile();
+            this.logger.info(`poe account failed cnt > 10, destroy ok`);
+          } else {
+            await page.reload();
+            done(account);
+          }
+        } catch (e) {
+          this.logger.error(`err in timeout: `, e);
         }
       }, 20 * 1000);
       let currMsgID = '';
       et = client.on('Network.webSocketFrameReceived', async ({ response }) => {
-        tt.refresh();
-        const data = parseJSON(response.payloadData, {} as RealAck);
-        const obj = parseJSON(data.messages[0], {} as RootObject);
-        const { unique_id } = obj.payload || {};
-        const message = obj?.payload?.data?.messageAdded;
-        if (!message) {
-          return;
-        }
-        const { author, state, text, suggestedReplies } = message;
-        // this.logger.info(author, state, text, unique_id);
+        try {
+          tt.refresh();
+          const data = parseJSON(response.payloadData, {} as RealAck);
+          const obj = parseJSON(data.messages[0], {} as RootObject);
+          const { unique_id } = obj.payload || {};
+          const message = obj?.payload?.data?.messageAdded;
+          if (!message) {
+            return;
+          }
+          const { author, state, text, suggestedReplies } = message;
+          // this.logger.info(author, state, text, unique_id);
 
-        if (suggestedReplies.length > 0) {
-          return;
-        }
+          if (suggestedReplies.length > 0) {
+            return;
+          }
 
-        if (author === 'chat_break') {
-          return;
-        }
-        if (!currMsgID && unique_id) {
-          currMsgID = unique_id;
-        }
-        if (unique_id !== currMsgID) {
-          // this.logger.info(`message id different`, {unique_id, currMsgID});
-          return;
-        }
-        if (
-          text.indexOf(
-            `Sorry, you've exceeded your monthly usage limit for this bot`,
-          ) !== -1
-        ) {
-          clearTimeout(tt);
-          client.removeAllListeners('Network.webSocketFrameReceived');
-          account.invalid = true;
-          destroy(false);
-          return;
-        }
-        switch (state) {
-          case 'complete':
+          if (author === 'chat_break') {
+            return;
+          }
+          if (!currMsgID && unique_id) {
+            currMsgID = unique_id;
+          }
+          if (unique_id !== currMsgID) {
+            // this.logger.info(`message id different`, {unique_id, currMsgID});
+            return;
+          }
+          if (
+            text.indexOf(
+              `Sorry, you've exceeded your monthly usage limit for this bot`,
+            ) !== -1
+          ) {
             clearTimeout(tt);
             client.removeAllListeners('Network.webSocketFrameReceived');
-            if (text.length > old.length) {
-              stream.write(Event.message, {
-                content: text.substring(old.length),
-              });
-            }
-            stream.write(Event.done, { content: '' });
-            stream.end();
-            await Poe.clearContext(page);
-            await sleep(2000);
-            account.failedCnt = 0;
-            this.accountPool.syncfile();
-            done(account);
-            this.logger.info('poe recv msg complete');
+            account.invalid = true;
+            destroy(false);
             return;
-          case 'incomplete':
-            if (text.length > old.length) {
-              stream.write(Event.message, {
-                content: text.substring(old.length),
-              });
-              old = text;
-            }
-            return;
+          }
+          switch (state) {
+            case 'complete':
+              clearTimeout(tt);
+              client.removeAllListeners('Network.webSocketFrameReceived');
+              if (text.length > old.length) {
+                stream.write(Event.message, {
+                  content: text.substring(old.length),
+                });
+              }
+              stream.write(Event.done, { content: '' });
+              stream.end();
+              await Poe.clearContext(page);
+              await sleep(2000);
+              account.failedCnt = 0;
+              this.accountPool.syncfile();
+              done(account);
+              this.logger.info('poe recv msg complete');
+              return;
+            case 'incomplete':
+              if (text.length > old.length) {
+                stream.write(Event.message, {
+                  content: text.substring(old.length),
+                });
+                old = text;
+              }
+              return;
+          }
+        } catch (e) {
+          this.logger.error('err in event cb, err: ', e);
         }
       });
       this.logger.info('poe start send msg');
