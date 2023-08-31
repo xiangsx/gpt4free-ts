@@ -256,6 +256,7 @@ app.use(router.routes());
     });
   });
   process.on('uncaughtException', (e) => {
-    console.error(e);
+    console.error('uncaughtException', e);
+    process.exit(1);
   });
 })();
