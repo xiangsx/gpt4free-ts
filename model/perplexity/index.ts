@@ -19,6 +19,7 @@ import {
   EventStream,
   MessageData,
   parseJSON,
+  randomStr,
   shuffleArray,
   sleep,
 } from '../../utils';
@@ -239,7 +240,9 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
       }
       [page] = await (await newB).pages();
       if (!(await Perplexity.isLogin(page))) {
-        await page.screenshot({ path: `./${account.id}.png` });
+        await page.screenshot({
+          path: `./run/${account.id}_${randomStr(6)}.png`,
+        });
         account.invalid = true;
         this.accountPool.syncfile();
         throw new Error(`account:${account?.token}, no login status`);
