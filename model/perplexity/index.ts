@@ -143,7 +143,7 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
       +(process.env.PERPLEXITY_POOL_SIZE || 0),
       this,
       false,
-      5 * 1000,
+      -1,
       true,
     );
   }
