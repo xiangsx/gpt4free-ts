@@ -121,7 +121,7 @@ class AccountPool {
         return vv;
       }
     }
-    console.log('perplexity pb run out!!!!!!');
+    console.log('pb run out!!!!!!');
     return {
       id: v4(),
       token: '',
@@ -245,9 +245,9 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
       const newB = await puppeteer.connect({ browserWSEndpoint });
       [page] = await newB.pages();
       if (!(await Perplexity.isLogin(page))) {
-        await page.screenshot({
-          path: `./run/${account.id}_${randomStr(6)}.png`,
-        });
+        // await page.screenshot({
+        //   path: `./run/${account.id}_${randomStr(6)}.png`,
+        // });
         account.invalid = true;
         this.accountPool.syncfile();
         throw new Error(`account:${account?.token}, no login status`);
@@ -279,7 +279,7 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
   }
 
   async handleCF(browserWSEndpoint: string) {
-    this.logger.info('perplexity handle cf start');
+    this.logger.info('handle cf start');
     const buttonBox = { x: 190.5, y: 279, width: 24, height: 24 };
 
     const client: CDP.Client = await CDP({
@@ -321,7 +321,7 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
       },
       sessionId,
     );
-    this.logger.info('perplexity handle cf end');
+    this.logger.info('handle cf end');
   }
 
   public static async isLogin(page: Page) {
@@ -479,7 +479,7 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
             await sleep(1000);
             await this.changeMode(page, req.model);
             done(account);
-            this.logger.info('perplexity recv msg complete');
+            this.logger.info('recv msg complete');
             break;
           case 'query_progress':
             if (
@@ -506,7 +506,7 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
             }
         }
       });
-      this.logger.info('perplexity start send msg');
+      this.logger.info('start send msg');
       // await Perplexity.newThread(page);
       if (req.model !== account.model) {
         const ok = await this.changeMode(page, req.model);
@@ -517,9 +517,9 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
 
       await client.send('Input.insertText', { text: req.prompt });
 
-      this.logger.info('perplexity find input ok');
+      this.logger.info('find input ok');
       await page.keyboard.press('Enter');
-      this.logger.info('perplexity send msg ok!');
+      this.logger.info('send msg ok!');
     } catch (e: any) {
       client.removeAllListeners('Network.webSocketFrameReceived');
       this.logger.error(
