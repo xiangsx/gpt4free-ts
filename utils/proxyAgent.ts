@@ -128,7 +128,7 @@ export function launchChromeAndFetchWsUrl(): Promise<string | null> {
       '--ignore-certificate-errors',
       '--disable-background-timer-throttling',
       '--disable-backgrounding-occluded-windows',
-      // `--user-data-dir=${path.join(__dirname, `${randomStr(10)}`)}`,
+      `--user-data-dir=${path.join(__dirname, `${randomStr(10)}`)}`,
     ];
     if (process.env.http_proxy) {
       args.push(`--proxy-server=${process.env.http_proxy}`);
