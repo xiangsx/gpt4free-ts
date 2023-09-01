@@ -240,7 +240,6 @@ export async function simplifyPage(page: Page) {
       req.resourceType() === 'image' ||
       req.resourceType() === 'media' ||
       req.resourceType() === 'font' ||
-      req.resourceType() === 'prefetch' ||
       req.resourceType() === 'ping' ||
       req.resourceType() === 'cspviolationreport'
     ) {
