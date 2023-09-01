@@ -475,8 +475,8 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
             }
             stream.write(Event.done, { content: '' });
             stream.end();
-            await sleep(1000);
             await this.goHome(page);
+            await sleep(1000);
             await this.changeMode(page, req.model);
             done(account);
             this.logger.info('perplexity recv msg complete');
