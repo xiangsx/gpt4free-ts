@@ -145,7 +145,7 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
       +(process.env.PERPLEXITY_POOL_SIZE || 0),
       this,
       false,
-      -1,
+      5 * 1000,
       false,
     );
   }
@@ -223,7 +223,7 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
     const browserWSEndpoint = browser.wsEndpoint();
     await simplifyPage(page);
     try {
-      await page.setViewport({ width: 1920, height: 1080 });
+      // await page.setViewport({ width: 1920, height: 1080 });
       await page.setCookie({
         url: 'https://www.perplexity.ai',
         name: '__Secure-next-auth.session-token',
@@ -231,6 +231,13 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
       });
       await page.goto(`https://www.perplexity.ai`);
       if (await this.ifCF(page)) {
+        // const frame = await page.waitForFrame(
+        //   (req) => req.url().indexOf('cloudflare') > -1,
+        // );
+        // await sleep(5000);
+        // const input = await frame.$('input[type=checkbox]');
+        // const bound = await input?.boundingBox();
+        // console.log(JSON.stringify(bound));
         browser.disconnect();
         await sleep(5 * 1000);
         await this.handleCF(browserWSEndpoint);
@@ -273,7 +280,7 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
 
   async handleCF(browserWSEndpoint: string) {
     this.logger.info('perplexity handle cf start');
-    const buttonBox = { x: 526, y: 279, width: 24, height: 24 };
+    const buttonBox = { x: 190.5, y: 279, width: 24, height: 24 };
 
     const client: CDP.Client = await CDP({
       target: browserWSEndpoint,
