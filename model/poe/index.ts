@@ -547,7 +547,8 @@ ${question}`;
           if (!message) {
             return;
           }
-          const { author, state, text, suggestedReplies } = message;
+          const { author, state, text, suggestedReplies, clientNonce } =
+            message;
           // this.logger.info(author, state, text, unique_id);
 
           if (suggestedReplies.length > 0) {
@@ -557,8 +558,9 @@ ${question}`;
           if (author === 'chat_break') {
             return;
           }
-          if (!currMsgID && unique_id) {
+          if (!currMsgID && unique_id && clientNonce) {
             currMsgID = unique_id;
+            return;
           }
           if (unique_id !== currMsgID) {
             // this.logger.info(`message id different`, {unique_id, currMsgID});
