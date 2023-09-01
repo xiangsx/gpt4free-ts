@@ -27,6 +27,7 @@ import { v4 } from 'uuid';
 import fs from 'fs';
 import { fileDebouncer } from '../../utils/file';
 import CDP from 'chrome-remote-interface';
+import puppeteer from 'puppeteer-extra';
 
 const MaxFailedTimes = 10;
 
@@ -145,7 +146,7 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
       this,
       false,
       -1,
-      true,
+      false,
     );
   }
 
@@ -229,16 +230,13 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
         value: account.token,
       });
       await page.goto(`https://www.perplexity.ai`);
-      if (!options) {
-        throw new Error('perplexity found no options');
-      }
-      let newB = Promise.resolve(browser);
       if (await this.ifCF(page)) {
-        newB = options.waitDisconnect(10 * 1000);
+        browser.disconnect();
         await sleep(5 * 1000);
         await this.handleCF(browserWSEndpoint);
       }
-      [page] = await (await newB).pages();
+      const newB = await puppeteer.connect({ browserWSEndpoint });
+      [page] = await newB.pages();
       if (!(await Perplexity.isLogin(page))) {
         await page.screenshot({
           path: `./run/${account.id}_${randomStr(6)}.png`,
