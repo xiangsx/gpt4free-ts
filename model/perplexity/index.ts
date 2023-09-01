@@ -338,13 +338,17 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
   public static UserName = '.pt-\\[12px\\] > .flex > a > .px-sm > .flex';
   public static ProTag = '.px-sm > .flex > div > .super > span';
 
-  public static async goHome(page: Page) {
-    await page.waitForSelector(
-      '.grow > .items-center > .relative:nth-child(1) > .px-sm > .md\\:hover\\:bg-offsetPlus',
-    );
-    await page.click(
-      '.grow > .items-center > .relative:nth-child(1) > .px-sm > .md\\:hover\\:bg-offsetPlus',
-    );
+  public async goHome(page: Page) {
+    try {
+      await page.waitForSelector(
+        '.grow > .items-center > .relative:nth-child(1) > .px-sm > .md\\:hover\\:bg-offsetPlus',
+      );
+      await page.click(
+        '.grow > .items-center > .relative:nth-child(1) > .px-sm > .md\\:hover\\:bg-offsetPlus',
+      );
+    } catch (e) {
+      this.logger.error('goHome failed, err:', e);
+    }
   }
 
   public static async newThread(page: Page): Promise<void> {
@@ -427,7 +431,7 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
           this.accountPool.syncfile();
           this.logger.info(`perplexity account failed cnt > 10, destroy ok`);
         } else {
-          await Perplexity.goHome(page);
+          await this.goHome(page);
           await this.changeMode(page, req.model);
           this.accountPool.syncfile();
           await page.reload();
@@ -471,7 +475,8 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
             }
             stream.write(Event.done, { content: '' });
             stream.end();
-            await Perplexity.goHome(page);
+            await sleep(1000);
+            await this.goHome(page);
             await this.changeMode(page, req.model);
             done(account);
             this.logger.info('perplexity recv msg complete');
@@ -521,7 +526,7 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
         `account: id=${account.id}, perplexity ask stream failed:`,
         e,
       );
-      await Perplexity.goHome(page);
+      await this.goHome(page);
       await this.changeMode(page, req.model);
       account.failedCnt += 1;
       account.model = undefined;
