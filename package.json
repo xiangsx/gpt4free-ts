@@ -16,6 +16,7 @@
   "license": "ISC",
   "devDependencies": {
     "@types/axios": "^0.14.0",
+    "@types/chrome-remote-interface": "^0.31.10",
     "@types/event-stream": "^4.0.0",
     "@types/koa": "^2.13.6",
     "@types/koa-bodyparser": "^4.3.10",
@@ -37,6 +38,7 @@
     "@koa/cors": "^4.0.0",
     "axios": "^1.4.0",
     "chalk": "^4.1.2",
+    "chrome-remote-interface": "^0.33.0",
     "dotenv": "^16.0.3",
     "event-stream": "^4.0.1",
     "fake-useragent": "^1.0.1",

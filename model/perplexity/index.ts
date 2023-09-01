@@ -25,6 +25,7 @@ import {
 import { v4 } from 'uuid';
 import fs from 'fs';
 import { fileDebouncer } from '../../utils/file';
+import CDP from 'chrome-remote-interface';
 
 const MaxFailedTimes = 10;
 
@@ -143,7 +144,7 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
       this,
       false,
       5 * 1000,
-      false,
+      true,
     );
   }
 
@@ -216,7 +217,8 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
       await sleep(5 * 60 * 1000);
       return [] as any;
     }
-    let page = await browser.newPage();
+    let [page] = await browser.pages();
+    const browserWSEndpoint = browser.wsEndpoint();
     await simplifyPage(page);
     try {
       await page.setViewport({ width: 1920, height: 1080 });
@@ -226,25 +228,30 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
         value: account.token,
       });
       await page.goto(`https://www.perplexity.ai`);
-      // if (!options) {
-      //     throw new Error('perplexity found no options');
-      // }
-      // let newB = await options.waitDisconnect(8 * 1000);
-      // [page] = await newB.pages();
-      // await closeOtherPages(newB, page);
+      if (!options) {
+        throw new Error('perplexity found no options');
+      }
+      let newB = Promise.resolve(browser);
+      if (await this.ifCF(page)) {
+        newB = options.waitDisconnect(10 * 1000);
+        await sleep(5 * 1000);
+        await this.handleCF(browserWSEndpoint);
+      }
+      [page] = await (await newB).pages();
       if (!(await Perplexity.isLogin(page))) {
+        await page.screenshot({ path: `./${account.id}.png` });
         account.invalid = true;
         this.accountPool.syncfile();
         throw new Error(`account:${account?.token}, no login status`);
       }
-      this.logger.info('perplexity still login!');
+      this.logger.info('check login ok!');
       await page.waitForSelector(Perplexity.InputSelector, {
         timeout: 30 * 1000,
         visible: true,
       });
       await this.closeCopilot(page);
       this.accountPool.syncfile();
-      this.logger.info(`perplexity init ok! ${account.id}`);
+      this.logger.info(`init ok! ${account.id}`);
       return [page, account];
     } catch (e: any) {
       this.logger.warn(`account:${account?.id}, something error happened.`, e);
@@ -253,6 +260,62 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
       return [] as any;
     }
   }
+  async ifCF(page: Page) {
+    try {
+      await page.waitForSelector('#challenge-running', { timeout: 5 * 1000 });
+      return true;
+    } catch (e) {
+      this.logger.info('no cf');
+      return false;
+    }
+  }
+
+  async handleCF(browserWSEndpoint: string) {
+    this.logger.info('perplexity handle cf start');
+    const buttonBox = { x: 526, y: 279, width: 24, height: 24 };
+
+    const client: CDP.Client = await CDP({
+      target: browserWSEndpoint,
+    });
+    const targets = await client.Target.getTargets();
+    const target = targets.targetInfos.find(
+      (v) => v.url.indexOf('perplexity') > -1,
+    );
+    if (!target) {
+      throw new Error('not found target');
+    }
+    const { sessionId } = await client.Target.attachToTarget({
+      targetId: target.targetId,
+      flatten: true,
+    });
+
+    // 使用CDP会话模拟点击
+    await client.send(
+      'Input.dispatchMouseEvent',
+      {
+        type: 'mousePressed',
+        x: buttonBox.x + buttonBox.width / 2,
+        y: buttonBox.y + buttonBox.height / 2,
+        button: 'left',
+        clickCount: 1,
+      },
+      sessionId,
+    );
+
+    await client.send(
+      'Input.dispatchMouseEvent',
+      {
+        type: 'mouseReleased',
+        x: buttonBox.x + buttonBox.width / 2,
+        y: buttonBox.y + buttonBox.height / 2,
+        button: 'left',
+        clickCount: 1,
+      },
+      sessionId,
+    );
+    this.logger.info('perplexity handle cf end');
+  }
+
   public static async isLogin(page: Page) {
     try {
       await page.waitForSelector(Perplexity.UserName, { timeout: 5 * 1000 });

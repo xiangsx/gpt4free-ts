@@ -134,7 +134,7 @@ export function launchChromeAndFetchWsUrl(): Promise<string | null> {
       args.push(`--proxy-server=${process.env.http_proxy}`);
     }
     if (process.env.DEBUG !== '1') {
-      args.push('--headless');
+      args.push('--headless=new');
     }
 
     const chromeProcess = spawn(command, args);
