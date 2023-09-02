@@ -241,7 +241,7 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
             throw new Error('not found cloudflare frame');
           }
           await sleep(6000);
-          const input = await frame.$('input[type=checkbox]');
+          const input = await frame.$('input');
           if (!input) {
             throw new Error('not found checkbox');
           }
