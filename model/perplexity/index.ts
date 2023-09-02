@@ -315,8 +315,8 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
       },
       sessionId,
     );
-    await client.Runtime.enable(sessionId);
     if (Config.config.perplexity.cf_debug) {
+      await client.Runtime.enable(sessionId);
       await client.Runtime.evaluate(
         {
           expression: `const dot = document.createElement('div');
