@@ -28,6 +28,7 @@ import fs from 'fs';
 import { fileDebouncer } from '../../utils/file';
 import CDP from 'chrome-remote-interface';
 import puppeteer from 'puppeteer-extra';
+import { Config } from '../../utils/config';
 
 const MaxFailedTimes = 10;
 
@@ -238,24 +239,6 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
       });
       await page.goto(`https://www.perplexity.ai`);
       if (await this.ifCF(page)) {
-        if (!boundingBox) {
-          const frame = await page.waitForFrame(
-            (req) => req.url().indexOf('cloudflare') > -1,
-          );
-          if (!frame) {
-            throw new Error('not found cloudflare frame');
-          }
-          await sleep(6000);
-          const input = await frame.$('area');
-          if (!input) {
-            throw new Error('not found checkbox');
-          }
-          boundingBox = await input?.boundingBox();
-          if (!boundingBox) {
-            throw new Error('not found checkbox');
-          }
-          throw new Error(`gen bounding box ${JSON.stringify(boundingBox)}`);
-        }
         browser.disconnect();
         await sleep(5 * 1000);
         await this.handleCF(browserWSEndpoint);
@@ -298,7 +281,7 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
 
   async handleCF(browserWSEndpoint: string) {
     this.logger.info('handle cf start');
-    const buttonBox = boundingBox || {
+    const buttonBox = Config.config.perplexity.cf_btn_bound || {
       x: 190.5,
       y: 279,
       width: 24,
@@ -333,9 +316,10 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
       sessionId,
     );
     await client.Runtime.enable(sessionId);
-    await client.Runtime.evaluate(
-      {
-        expression: `const dot = document.createElement('div');
+    if (Config.config.perplexity.cf_debug) {
+      await client.Runtime.evaluate(
+        {
+          expression: `const dot = document.createElement('div');
             dot.style.width = '100px';
             dot.style.height = '100px';
             dot.style.background = 'red';
@@ -347,9 +331,16 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
               buttonBox.x - 40 + (buttonBox.width || 24) / 2
             } + 'px';
             document.body.appendChild(dot);`,
-      },
-      sessionId,
-    );
+        },
+        sessionId,
+      );
+      await client.Page.enable(sessionId);
+      const res = await client.Page.captureScreenshot(
+        { format: 'png' },
+        sessionId,
+      );
+      fs.writeFileSync(`./run/png/${randomStr(6)}.png`, res.data, 'base64');
+    }
     await client.Input.dispatchMouseEvent(
       {
         type: 'mousePressed',

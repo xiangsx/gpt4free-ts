@@ -3,6 +3,15 @@ import { ModelType, Site } from '../model/base';
 
 // 首先定义配置的数据类型
 interface ConfigData {
+  perplexity: {
+    cf_debug: boolean;
+    cf_btn_bound: {
+      x: number;
+      y: number;
+      width: number;
+      height: number;
+    };
+  };
   site_map: Partial<Record<ModelType, { site: Site; priority: number }[]>>;
   one_api: {
     base_url: string;
@@ -18,6 +27,15 @@ interface ConfigData {
 class BaseConfig {
   private filePath: string = './run/config.json';
   private defaultConfig: ConfigData = {
+    perplexity: {
+      cf_debug: false,
+      cf_btn_bound: {
+        x: 0,
+        y: 0,
+        width: 0,
+        height: 0,
+      },
+    },
     site_map: {},
     one_api: {
       base_url: '',
