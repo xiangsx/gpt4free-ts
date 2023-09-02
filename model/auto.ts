@@ -114,7 +114,12 @@ export class Auto extends Chat {
         stream.end();
       },
     );
-    return await this.getRandomModel(req.model).askStream(req, es);
+    const chat = this.getRandomModel(req.model);
+    chat.preHandle(req);
+    return await chat.askStream(req, es).catch((err) => {
+      es.destroy();
+      throw err;
+    });
   }
 
   async askStream(req: ChatRequest, stream: EventStream): Promise<void> {
@@ -122,19 +127,12 @@ export class Auto extends Chat {
   }
 
   support(model: ModelType): number {
-    switch (model) {
-      case ModelType.GPT4:
-        return 1800;
-      case ModelType.GPT3p5Turbo:
-        return 1800;
-      case ModelType.GPT3p5_16k:
-        return 12000;
-      case ModelType.GPT4_32k:
-        return 24000;
-      case ModelType.Claude2_100k:
-        return 80000;
-      default:
-        return 0;
-    }
+    // auto站点不处理
+    return Number.MAX_SAFE_INTEGER;
+  }
+
+  preHandle(req: ChatRequest): ChatRequest {
+    // auto站点不处理
+    return req;
   }
 }

@@ -9,21 +9,21 @@ import {
   ChatResponse,
   Message,
   ModelType,
-  PromptToString,
   Site,
 } from './model/base';
 import {
+  ComError,
   Event,
   EventStream,
   getTokenSize,
   OpenaiEventStream,
+  parseJSON,
   randomStr,
   replaceConsoleWithWinston,
   ThroughEventStream,
 } from './utils';
 import moment from 'moment';
 import { Config } from './utils/config';
-import { resolve } from 'dns';
 
 process.setMaxListeners(100); // 将限制提高到20个
 
@@ -39,9 +39,9 @@ const errorHandler = async (ctx: Context, next: Next) => {
   try {
     await next();
   } catch (err: any) {
-    console.error(err);
-    ctx.body = JSON.stringify(err);
-    ctx.res.end();
+    console.error('error handle:', err);
+    ctx.body = { error: { message: err.message } };
+    ctx.status = err.status || ComError.Status.InternalServerError;
   }
 };
 app.use(errorHandler);
@@ -65,24 +65,23 @@ const AskHandle: Middleware = async (ctx) => {
     ...(ctx.params as any),
   } as AskReq;
   if (!prompt) {
-    ctx.body = { error: `need prompt in query` } as AskRes;
-    ctx.status = 500;
-    return;
+    throw new ComError(`need prompt in query`, ComError.Status.BadRequest);
   }
   const chat = chatModel.get(site);
   if (!chat) {
-    ctx.body = { error: `not support site: ${site} ` } as AskRes;
-    ctx.status = 500;
-    return;
+    throw new ComError(`not support site: ${site} `, ComError.Status.NotFound);
   }
-  const tokenLimit = chat.support(model);
-  if (!tokenLimit) {
-    ctx.body = { error: `${site} not support model ${model}` } as AskRes;
-    ctx.status = 500;
-    return;
+  let req: ChatRequest = {
+    prompt,
+    messages: parseJSON<Message[]>(prompt, [{ role: 'user', content: prompt }]),
+    model,
+  };
+  if (typeof req.messages !== 'object') {
+    // 数值类型parseJSON后为number
+    req.messages = [{ role: 'user', content: prompt }];
   }
-  const [content, messages] = PromptToString(prompt, tokenLimit);
-  const data = await chat.ask({ prompt: content, messages, model });
+  req = chat.preHandle(req);
+  const data = await chat.ask(req);
   if (data && data.error) {
     ctx.status = 500;
   }
@@ -101,38 +100,49 @@ const AskStreamHandle: (ESType: new () => EventStream) => Middleware =
       ...(ctx.params as any),
     } as AskReq;
     if (!prompt) {
-      ctx.body = { error: 'need prompt in query' };
-      ctx.status = 500;
-      return;
+      throw new ComError(`need prompt in query`, ComError.Status.BadRequest);
     }
     const chat = chatModel.get(site);
     if (!chat) {
-      ctx.body = { error: `not support site: ${site} ` };
-      ctx.status = 500;
-      return;
+      throw new ComError(
+        `not support site: ${site} `,
+        ComError.Status.NotFound,
+      );
     }
-    const tokenLimit = chat.support(model);
-    if (!tokenLimit) {
-      ctx.body = { error: `${site} not support model ${model}` };
-      ctx.status = 500;
-      return;
+    let req: ChatRequest = {
+      prompt,
+      messages: parseJSON<Message[]>(prompt, [
+        { role: 'user', content: prompt },
+      ]),
+      model,
+    };
+    if (typeof req.messages !== 'object') {
+      req.messages = [{ role: 'user', content: prompt }];
     }
+    req = chat.preHandle(req);
     let stream = new ESType();
     let ok = true;
     const timeout = setTimeout(() => {
-      ctx.body = { error: 'timeout' };
-      ctx.status = 500;
+      throw new ComError('timeout');
     }, 120 * 1000);
     return (() =>
-      new Promise<void>(async (resolve) => {
+      new Promise<void>(async (resolve, reject) => {
         const es = new ThroughEventStream(
           (event, data) => {
             switch (event) {
               case Event.error:
+                clearTimeout(timeout);
+                if (data instanceof ComError) {
+                  reject(data);
+                }
                 ok = false;
-                ctx.body = data;
-                ctx.status = 500;
-                resolve();
+                reject(
+                  new ComError(
+                    (data as any)?.error || 'unknown error',
+                    (data as any)?.status ||
+                      ComError.Status.InternalServerError,
+                  ),
+                );
                 break;
               default:
                 clearTimeout(timeout);
@@ -159,8 +169,11 @@ const AskStreamHandle: (ESType: new () => EventStream) => Middleware =
             stream.end();
           },
         );
-        const [content, messages] = PromptToString(prompt, tokenLimit);
-        await chat.askStream({ prompt: content, messages, model }, es);
+        await chat.askStream(req, es).catch((err) => {
+          clearTimeout(timeout);
+          es.destroy();
+          reject(err);
+        });
       }))();
   };
 

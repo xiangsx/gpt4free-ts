@@ -44,6 +44,7 @@
     "fake-useragent": "^1.0.1",
     "http-proxy-agent": "^6.0.1",
     "https-proxy-agent": "^5.0.1",
+    "js-tiktoken": "^1.0.7",
     "koa": "^2.14.2",
     "koa-bodyparser": "^4.4.0",
     "koa-router": "^12.0.0",

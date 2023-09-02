@@ -1,6 +1,6 @@
 import normalPPT, { Browser, Page, PuppeteerLaunchOptions } from 'puppeteer';
 import * as fs from 'fs';
-import { shuffleArray, sleep } from '../utils';
+import { ComError, shuffleArray, sleep } from '../utils';
 import { launchChromeAndFetchWsUrl } from '../utils/proxyAgent';
 
 const puppeteer = require('puppeteer-extra');
@@ -219,7 +219,10 @@ export class BrowserPool<T> {
         ];
       }
     }
-    return [] as any;
+    throw new ComError(
+      'no connection available',
+      ComError.Status.RequestTooMany,
+    );
   }
 }
 

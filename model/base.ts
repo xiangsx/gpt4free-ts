@@ -1,4 +1,4 @@
-import { colorLabel, EventStream, getTokenSize, newLogger } from '../utils';
+import { ComError, EventStream, getTokenCount, newLogger } from '../utils';
 import winston from 'winston';
 
 export interface ChatOptions {
@@ -81,38 +81,69 @@ export interface ChatRequest {
   messages: Message[];
 }
 
-export function PromptToString(
-  prompt: string,
-  limit: number,
-): [string, Message[]] {
-  try {
-    const messages: Message[] = JSON.parse(prompt);
-    for (const v of messages) {
-      if (v.role === 'system') {
-        v.role = 'user';
-      }
-    }
-    const res = `${messages
-      .map((item) => `${item.role}: ${item.content}`)
-      .join('\n')}\nassistant: `;
-    console.log(prompt.length, limit, getTokenSize(res));
-    if (getTokenSize(res) >= limit) {
-      if (messages.length > 1) {
-        return PromptToString(
-          JSON.stringify(messages.slice(1, messages.length)),
-          limit,
-        );
-      }
-      messages[0].content = messages[0].content.slice(0, limit - 50);
-      return PromptToString(JSON.stringify(messages), limit);
-    }
-    return [res, messages];
-  } catch (e: any) {
-    return [prompt, [{ role: 'user', content: prompt }]];
+// 结构体message转换为prompt
+export function messagesToPrompt(messages: Message[]): string {
+  if (messages.length === 1) {
+    return messages[0].content;
   }
+  return (
+    messages.map((item) => `${item.role}: ${item.content}`).join('\n') +
+    '\n' +
+    'assistant: '
+  );
 }
 
-export abstract class Chat {
+export function sliceMessagesByToken(
+  messages: Message[],
+  limitSize: number,
+  countPrompt: boolean = false,
+): Message[] {
+  const size = getTokenCount(
+    countPrompt
+      ? messagesToPrompt(messages)
+      : messages.reduce((prev, cur) => prev + cur.content, ''),
+  );
+  console.log(
+    `${
+      countPrompt ? 'prompt' : 'messages.content'
+    } token count ${size} / ${limitSize}`,
+  );
+  if (size < limitSize) {
+    return messages;
+  }
+  const newMessage = messages.slice(1, messages.length);
+  if (newMessage.length === 0) {
+    throw new ComError('message too long', ComError.Status.RequestTooLarge);
+  }
+  return sliceMessagesByToken(newMessage, limitSize);
+}
+
+export function sliceMessagesByLength(
+  messages: Message[],
+  limitSize: number,
+  countPrompt: boolean = false,
+): Message[] {
+  const size = (
+    countPrompt
+      ? messagesToPrompt(messages)
+      : messages.reduce((prev, cur) => prev + cur.content, '')
+  ).length;
+  console.log(
+    `${
+      countPrompt ? 'prompt' : 'messages.content'
+    } length ${size} / ${limitSize}`,
+  );
+  if (size < limitSize) {
+    return messages;
+  }
+  const newMessage = messages.slice(1, messages.length);
+  if (newMessage.length === 0) {
+    throw new ComError('message too long', ComError.Status.RequestTooLarge);
+  }
+  return sliceMessagesByLength(newMessage, limitSize);
+}
+
+export class Chat {
   protected options: ChatOptions | undefined;
   protected logger: winston.Logger;
 
@@ -121,12 +152,34 @@ export abstract class Chat {
     this.logger = newLogger(options?.name);
   }
 
-  public abstract support(model: ModelType): number;
+  public support(model: ModelType): number {
+    throw new ComError('not implement', ComError.Status.InternalServerError);
+  }
 
-  public abstract ask(req: ChatRequest): Promise<ChatResponse>;
-
-  public abstract askStream(
+  public preHandle(
     req: ChatRequest,
-    stream: EventStream,
-  ): Promise<void>;
+    options?: { token?: boolean; countPrompt?: boolean },
+  ): ChatRequest {
+    const { token = false, countPrompt = true } = options || {};
+    const size = this.support(req.model);
+    if (!size) {
+      throw new ComError(
+        `not support model: ${req.model}`,
+        ComError.Status.NotFound,
+      );
+    }
+    req.messages = token
+      ? sliceMessagesByToken(req.messages, size, countPrompt)
+      : sliceMessagesByLength(req.messages, size, countPrompt);
+    req.prompt = messagesToPrompt(req.messages);
+    return req;
+  }
+
+  public async ask(req: ChatRequest): Promise<ChatResponse> {
+    throw new ComError('not implement', ComError.Status.InternalServerError);
+  }
+
+  public async askStream(req: ChatRequest, stream: EventStream): Promise<void> {
+    throw new ComError('not implement', ComError.Status.InternalServerError);
+  }
 }

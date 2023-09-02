@@ -5,6 +5,7 @@ import TurndownService from 'turndown';
 import stringSimilarity from 'string-similarity';
 //@ts-ignore
 import UserAgent from 'user-agents';
+import { getEncoding } from 'js-tiktoken';
 import winston, { Logger } from 'winston';
 import chalk from 'chalk';
 import path from 'path';
@@ -58,7 +59,6 @@ export function parseJSON<T>(str: string, defaultObj: T): T {
   try {
     return JSON.parse(str);
   } catch (e: any) {
-    console.error(str, e);
     return defaultObj;
   }
 }
@@ -89,7 +89,7 @@ export function shuffleArray<T>(array: T[]): T[] {
   return shuffledArray;
 }
 
-export type ErrorData = { error: string };
+export type ErrorData = { error: string; message?: string; status?: number };
 export type MessageData = { content: string };
 export type SearchData = { search: any };
 export type DoneData = MessageData;
@@ -464,4 +464,41 @@ export function colorLabel(label: string) {
 
 export function getRandomOne<T>(arr: T[]) {
   return arr[Math.floor(Math.random() * arr.length)];
+}
+
+const tokenizer = getEncoding('cl100k_base');
+
+export function tokenEncode(input: string): Uint32Array {
+  return new Uint32Array(tokenizer.encode(input));
+}
+
+export function getTokenCount(input: string) {
+  return tokenEncode(input).length;
+}
+
+export class ComError extends Error {
+  public status: number;
+
+  static Status = {
+    BadRequest: 400,
+    Unauthorized: 401,
+    Forbidden: 403,
+    NotFound: 404,
+    InternalServerError: 500,
+    RequestTooLarge: 413,
+    RequestTooMany: 429,
+    Overload: 503,
+  };
+
+  constructor(
+    message?: string,
+    code: number = ComError.Status.InternalServerError,
+  ) {
+    super(message); // 调用父类构造函数
+
+    Object.setPrototypeOf(this, ComError.prototype);
+
+    this.name = this.constructor.name; // 设置错误的名称为当前类名
+    this.status = code; // 设置错误代码
+  }
 }

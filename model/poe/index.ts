@@ -8,6 +8,7 @@ import {
 import { Browser, EventEmitter, Page } from 'puppeteer';
 import { BrowserPool, BrowserUser, simplifyPage } from '../../pool/puppeteer';
 import {
+  ComError,
   DoneData,
   ErrorData,
   Event,
@@ -221,9 +222,9 @@ export class Poe extends Chat implements BrowserUser<Account> {
       case ModelType.Claude:
         return 4000;
       case ModelType.GPT4:
-        return 4500;
+        return 2400;
       case ModelType.GPT3p5Turbo:
-        return 3000;
+        return 2420;
       case ModelType.Llama_2_7b:
         return 3000;
       case ModelType.Llama_2_13b:
@@ -245,6 +246,10 @@ export class Poe extends Chat implements BrowserUser<Account> {
       default:
         return 0;
     }
+  }
+
+  preHandle(req: ChatRequest): ChatRequest {
+    return super.preHandle(req, { token: true, countPrompt: true });
   }
 
   public async ask(req: ChatRequest): Promise<ChatResponse> {
@@ -535,7 +540,7 @@ ${question}`;
           destroy();
           this.logger.error(`err in timeout: `, e);
         }
-      }, 20 * 1000);
+      }, 10 * 1000);
       let currMsgID = '';
       et = client.on('Network.webSocketFrameReceived', async ({ response }) => {
         try {
@@ -578,6 +583,16 @@ ${question}`;
             return;
           }
           switch (state) {
+            case 'error_user_message_too_long':
+              clearTimeout(tt);
+              client.removeAllListeners('Network.webSocketFrameReceived');
+              done(account);
+              stream.write(Event.error, {
+                error: 'message too long',
+                status: ComError.Status.RequestTooLarge,
+              });
+              stream.end();
+              return;
             case 'complete':
               clearTimeout(tt);
               client.removeAllListeners('Network.webSocketFrameReceived');
