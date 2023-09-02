@@ -231,13 +231,13 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
       });
       await page.goto(`https://www.perplexity.ai`);
       if (await this.ifCF(page)) {
-        const frame = await page.waitForFrame(
-          (req) => req.url().indexOf('cloudflare') > -1,
-        );
-        await sleep(5000);
-        const input = await frame.$('input[type=checkbox]');
-        const bound = await input?.boundingBox();
-        console.log(JSON.stringify(bound));
+        // const frame = await page.waitForFrame(
+        //   (req) => req.url().indexOf('cloudflare') > -1,
+        // );
+        // await sleep(5000);
+        // const input = await frame.$('input[type=checkbox]');
+        // const bound = await input?.boundingBox();
+        // console.log(JSON.stringify(bound));
 
         browser.disconnect();
         await sleep(5 * 1000);
