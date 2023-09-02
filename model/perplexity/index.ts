@@ -225,7 +225,12 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
     const browserWSEndpoint = browser.wsEndpoint();
     await simplifyPage(page);
     try {
-      // await page.setViewport({ width: 1920, height: 1080 });
+      await page.setViewport({
+        width: 1280,
+        height: 720,
+        deviceScaleFactor: 1,
+        isMobile: false,
+      });
       await page.setCookie({
         url: 'https://www.perplexity.ai',
         name: '__Secure-next-auth.session-token',
@@ -251,7 +256,6 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
           }
           throw new Error(`gen bounding box ${JSON.stringify(boundingBox)}`);
         }
-
         browser.disconnect();
         await sleep(5 * 1000);
         await this.handleCF(browserWSEndpoint);
@@ -300,6 +304,7 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
       width: 24,
       height: 24,
     };
+    console.log(JSON.stringify(buttonBox));
 
     const client: CDP.Client = await CDP({
       target: browserWSEndpoint,
@@ -316,30 +321,56 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
       flatten: true,
     });
 
-    // 使用CDP会话模拟点击
-    await client.send(
-      'Input.dispatchMouseEvent',
+    // 设置页面尺寸
+    await client.Page.enable(sessionId);
+    await client.Page.setDeviceMetricsOverride(
+      {
+        width: 1280,
+        height: 720,
+        deviceScaleFactor: 1,
+        mobile: false,
+      },
+      sessionId,
+    );
+    await client.Runtime.enable(sessionId);
+    // await client.Runtime.evaluate(
+    //   {
+    //     expression: `const dot = document.createElement('div');
+    //         dot.style.width = '100px';
+    //         dot.style.height = '100px';
+    //         dot.style.background = 'red';
+    //         dot.style.position = 'fixed';
+    //         dot.style.top = ${
+    //           buttonBox.y + (buttonBox.height || 24) / 2
+    //         } + 'px';
+    //         dot.style.left = ${
+    //           buttonBox.x - 40 + (buttonBox.width || 24) / 2
+    //         } + 'px';
+    //         document.body.appendChild(dot);`,
+    //   },
+    //   sessionId,
+    // );
+    await client.Input.dispatchMouseEvent(
       {
         type: 'mousePressed',
-        x: buttonBox.x + buttonBox.width / 2,
-        y: buttonBox.y + buttonBox.height / 2,
+        x: buttonBox.x - 40 + (buttonBox.width || 24) / 2,
+        y: buttonBox.y + (buttonBox.height || 24) / 2,
         button: 'left',
         clickCount: 1,
       },
       sessionId,
     );
-
-    await client.send(
-      'Input.dispatchMouseEvent',
+    await client.Input.dispatchMouseEvent(
       {
         type: 'mouseReleased',
-        x: buttonBox.x + buttonBox.width / 2,
-        y: buttonBox.y + buttonBox.height / 2,
+        x: buttonBox.x - 40 + (buttonBox.width || 24) / 2,
+        y: buttonBox.y + (buttonBox.height || 24) / 2,
         button: 'left',
         clickCount: 1,
       },
       sessionId,
     );
+    await sleep(5000);
     this.logger.info('handle cf end');
   }
 
