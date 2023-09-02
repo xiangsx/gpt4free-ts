@@ -324,12 +324,8 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
             dot.style.height = '100px';
             dot.style.background = 'red';
             dot.style.position = 'fixed';
-            dot.style.top = ${
-              buttonBox.y + (buttonBox.height || 24) / 2
-            } + 'px';
-            dot.style.left = ${
-              buttonBox.x - 40 + (buttonBox.width || 24) / 2
-            } + 'px';
+            dot.style.top = ${buttonBox.y + buttonBox.height / 2} + 'px';
+            dot.style.left = ${buttonBox.x + buttonBox.width / 2} + 'px';
             document.body.appendChild(dot);`,
         },
         sessionId,
@@ -344,8 +340,8 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
     await client.Input.dispatchMouseEvent(
       {
         type: 'mousePressed',
-        x: buttonBox.x - 40 + (buttonBox.width || 24) / 2,
-        y: buttonBox.y + (buttonBox.height || 24) / 2,
+        x: buttonBox.x + buttonBox.width / 2,
+        y: buttonBox.y + buttonBox.height / 2,
         button: 'left',
         clickCount: 1,
       },
@@ -354,8 +350,8 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
     await client.Input.dispatchMouseEvent(
       {
         type: 'mouseReleased',
-        x: buttonBox.x - 40 + (buttonBox.width || 24) / 2,
-        y: buttonBox.y + (buttonBox.height || 24) / 2,
+        x: buttonBox.x + buttonBox.width / 2,
+        y: buttonBox.y + buttonBox.height / 2,
         button: 'left',
         clickCount: 1,
       },
