@@ -333,23 +333,23 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
       sessionId,
     );
     await client.Runtime.enable(sessionId);
-    // await client.Runtime.evaluate(
-    //   {
-    //     expression: `const dot = document.createElement('div');
-    //         dot.style.width = '100px';
-    //         dot.style.height = '100px';
-    //         dot.style.background = 'red';
-    //         dot.style.position = 'fixed';
-    //         dot.style.top = ${
-    //           buttonBox.y + (buttonBox.height || 24) / 2
-    //         } + 'px';
-    //         dot.style.left = ${
-    //           buttonBox.x - 40 + (buttonBox.width || 24) / 2
-    //         } + 'px';
-    //         document.body.appendChild(dot);`,
-    //   },
-    //   sessionId,
-    // );
+    await client.Runtime.evaluate(
+      {
+        expression: `const dot = document.createElement('div');
+            dot.style.width = '100px';
+            dot.style.height = '100px';
+            dot.style.background = 'red';
+            dot.style.position = 'fixed';
+            dot.style.top = ${
+              buttonBox.y + (buttonBox.height || 24) / 2
+            } + 'px';
+            dot.style.left = ${
+              buttonBox.x - 40 + (buttonBox.width || 24) / 2
+            } + 'px';
+            document.body.appendChild(dot);`,
+      },
+      sessionId,
+    );
     await client.Input.dispatchMouseEvent(
       {
         type: 'mousePressed',
