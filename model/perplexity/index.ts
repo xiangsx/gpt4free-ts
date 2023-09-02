@@ -5,7 +5,7 @@ import {
   ChatResponse,
   ModelType,
 } from '../base';
-import { Browser, EventEmitter, Page } from 'puppeteer';
+import { BoundingBox, Browser, EventEmitter, Page } from 'puppeteer';
 import {
   BrowserPool,
   BrowserUser,
@@ -55,6 +55,8 @@ type Account = {
   use_left?: UseLeft;
   model?: string;
 };
+
+let boundingBox: BoundingBox | null | undefined = null;
 
 class AccountPool {
   private readonly pool: Record<string, Account> = {};
@@ -231,13 +233,24 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
       });
       await page.goto(`https://www.perplexity.ai`);
       if (await this.ifCF(page)) {
-        const frame = await page.waitForFrame(
-          (req) => req.url().indexOf('cloudflare') > -1,
-        );
-        await sleep(6000);
-        const input = await frame.$('input[type=checkbox]');
-        const bound = await input?.boundingBox();
-        console.log(JSON.stringify(bound));
+        if (!boundingBox) {
+          const frame = await page.waitForFrame(
+            (req) => req.url().indexOf('cloudflare') > -1,
+          );
+          if (!frame) {
+            throw new Error('not found cloudflare frame');
+          }
+          await sleep(6000);
+          const input = await frame.$('input[type=checkbox]');
+          if (!input) {
+            throw new Error('not found checkbox');
+          }
+          boundingBox = await input?.boundingBox();
+          if (!boundingBox) {
+            throw new Error('not found checkbox');
+          }
+          console.log(JSON.stringify(boundingBox));
+        }
 
         browser.disconnect();
         await sleep(5 * 1000);
@@ -281,7 +294,12 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
 
   async handleCF(browserWSEndpoint: string) {
     this.logger.info('handle cf start');
-    const buttonBox = { x: 190.5, y: 279, width: 24, height: 24 };
+    const buttonBox = boundingBox || {
+      x: 190.5,
+      y: 279,
+      width: 24,
+      height: 24,
+    };
 
     const client: CDP.Client = await CDP({
       target: browserWSEndpoint,
