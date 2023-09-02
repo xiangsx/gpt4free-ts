@@ -264,7 +264,7 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
       [page] = await newB.pages();
       if (!(await Perplexity.isLogin(page))) {
         await page.screenshot({
-          path: `./run/${account.id}_${randomStr(6)}.png`,
+          path: `./run/png/${account.id}_${randomStr(6)}.png`,
         });
         account.invalid = true;
         this.accountPool.syncfile();
@@ -370,7 +370,7 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
       },
       sessionId,
     );
-    await sleep(5000);
+    await sleep(10000);
     this.logger.info('handle cf end');
   }
 
