@@ -30,10 +30,10 @@ class BaseConfig {
     perplexity: {
       cf_debug: false,
       cf_btn_bound: {
-        x: 0,
-        y: 0,
-        width: 0,
-        height: 0,
+        x: 190,
+        y: 279,
+        width: 24,
+        height: 24,
       },
     },
     site_map: {},
