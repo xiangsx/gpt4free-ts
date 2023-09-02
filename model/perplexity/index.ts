@@ -233,24 +233,24 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
       });
       await page.goto(`https://www.perplexity.ai`);
       if (await this.ifCF(page)) {
-        // if (!boundingBox) {
-        //   const frame = await page.waitForFrame(
-        //     (req) => req.url().indexOf('cloudflare') > -1,
-        //   );
-        //   if (!frame) {
-        //     throw new Error('not found cloudflare frame');
-        //   }
-        //   await sleep(6000);
-        //   const input = await frame.$('input');
-        //   if (!input) {
-        //     throw new Error('not found checkbox');
-        //   }
-        //   boundingBox = await input?.boundingBox();
-        //   if (!boundingBox) {
-        //     throw new Error('not found checkbox');
-        //   }
-        //   console.log(JSON.stringify(boundingBox));
-        // }
+        if (!boundingBox) {
+          const frame = await page.waitForFrame(
+            (req) => req.url().indexOf('cloudflare') > -1,
+          );
+          if (!frame) {
+            throw new Error('not found cloudflare frame');
+          }
+          await sleep(6000);
+          const input = await frame.$('area');
+          if (!input) {
+            throw new Error('not found checkbox');
+          }
+          boundingBox = await input?.boundingBox();
+          if (!boundingBox) {
+            throw new Error('not found checkbox');
+          }
+          throw new Error(`gen bounding box ${JSON.stringify(boundingBox)}`);
+        }
 
         browser.disconnect();
         await sleep(5 * 1000);
