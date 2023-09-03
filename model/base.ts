@@ -33,6 +33,9 @@ export enum ModelType {
   Llama_2_70b = 'llama-2-70b',
   Llama_2_13b = 'llama-2-13b',
   Llama_2_7b = 'llama-2-7b',
+  Code_Llama_34b = 'code-llama-34b',
+  Code_Llama_13b = 'code-llama-13b',
+  Code_Llama_7b = 'code-llama-7b',
 }
 
 export enum Site {

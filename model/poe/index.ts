@@ -13,8 +13,6 @@ import {
   ErrorData,
   Event,
   EventStream,
-  extractStrNumber,
-  isSimilarity,
   maskLinks,
   MessageData,
   parseJSON,
@@ -40,6 +38,9 @@ const ModelMap: Partial<Record<ModelType, any>> = {
   [ModelType.Llama_2_70b]: 'Llama-2-70b',
   [ModelType.Llama_2_13b]: 'Llama-2-13b',
   [ModelType.Llama_2_7b]: 'Llama-2-7b',
+  [ModelType.Code_Llama_34b]: 'Code-Llama-34b',
+  [ModelType.Code_Llama_13b]: 'Code-Llama-13b',
+  [ModelType.Code_Llama_7b]: 'Code-Llama-7b',
 };
 
 type UseLeftInfo = {
@@ -243,6 +244,12 @@ export class Poe extends Chat implements BrowserUser<Account> {
         return 20000;
       case ModelType.Claude2_100k:
         return 80000;
+      case ModelType.Code_Llama_34b:
+        return 16000;
+      case ModelType.Code_Llama_13b:
+        return 16000;
+      case ModelType.Code_Llama_7b:
+        return 16000;
       default:
         return 0;
     }
