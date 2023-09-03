@@ -8,6 +8,7 @@ import {
 import { Browser, EventEmitter, Page } from 'puppeteer';
 import { BrowserPool, BrowserUser, simplifyPage } from '../../pool/puppeteer';
 import {
+  ComError,
   DoneData,
   ErrorData,
   Event,
@@ -152,6 +153,10 @@ class PoeAccountPool {
     fs.writeFileSync(this.account_file_path, JSON.stringify(this.pool));
   }
 
+  public release(id: string) {
+    this.using.delete(id);
+  }
+
   public getByID(id: string) {
     for (const item in this.pool) {
       if (this.pool[item].id === id) {
@@ -226,11 +231,11 @@ export class Poef extends Chat implements BrowserUser<Account> {
       case ModelType.ClaudeInstance:
         return 4000;
       case ModelType.GPT4:
-        return 4500;
+        return 2420;
       case ModelType.GPT3p5_16k:
-        return 3000;
+        return 4000;
       case ModelType.GPT3p5Turbo:
-        return 3000;
+        return 2420;
       case ModelType.Llama_2_7b:
         return 3000;
       case ModelType.Llama_2_13b:
@@ -246,6 +251,10 @@ export class Poef extends Chat implements BrowserUser<Account> {
       default:
         return 0;
     }
+  }
+
+  preHandle(req: ChatRequest): ChatRequest {
+    return super.preHandle(req, { token: true, countPrompt: true });
   }
 
   public async ask(req: ChatRequest): Promise<ChatResponse> {
@@ -284,6 +293,10 @@ export class Poef extends Chat implements BrowserUser<Account> {
 
   deleteID(id: string): void {
     this.accountPool.delete(id);
+  }
+
+  release(id: string): void {
+    this.accountPool.release(id);
   }
 
   newID(): string {
@@ -373,7 +386,8 @@ export class Poef extends Chat implements BrowserUser<Account> {
   ): Promise<[Page | undefined, Account]> {
     const account = this.accountPool.getByID(id);
     if (!account) {
-      throw new Error('get account failed');
+      await sleep(10 * 24 * 60 * 60 * 1000);
+      return [] as any;
     }
     const page = await browser.newPage();
     await simplifyPage(page);
@@ -498,6 +512,7 @@ export class Poef extends Chat implements BrowserUser<Account> {
       '.SidebarLayout_sidebar__X_iwf > .ChatBotDetailsSidebar_contents__ScQ1s > .RightColumnBotInfoCard_sectionContainer___aFTN > .BotInfoCardActionBar_actionBar__WdCr7 > .Button_primary__pIDjn',
     );
   }
+
   public async askStream(req: PoeChatRequest, stream: EventStream) {
     req.prompt = req.prompt.replace(/assistant/g, 'result');
     req.prompt = maskLinks(req.prompt);
@@ -561,37 +576,29 @@ ${question}`;
       const tt = setTimeout(async () => {
         try {
           client.removeAllListeners('Network.webSocketFrameReceived');
+          stream.write(Event.error, { error: 'please retry later!' });
+          stream.write(Event.done, { content: '' });
+          stream.end();
           await Poef.clearContext(page);
-          await sleep(2000);
+          await page.reload();
+          this.logger.info(
+            `poe time out, return error! failed prompt: [\n${req.prompt}\n]`,
+          );
           account.failedCnt += 1;
           this.accountPool.syncfile();
           if (account.failedCnt >= MaxFailedTimes) {
-            destroy(true);
+            destroy();
             this.accountPool.syncfile();
             this.logger.info(`poe account failed cnt > 10, destroy ok`);
           } else {
             await page.reload();
             done(account);
           }
-          if (!stream.stream().writableEnded && !stream.stream().closed) {
-            if ((req?.retry || 0) > 3) {
-              this.logger.info('poe try times > 3, return error');
-              stream.write(Event.error, { error: 'please retry later!' });
-              stream.write(Event.done, { content: '' });
-              stream.end();
-              return;
-            }
-            this.logger.error(
-              `pb ${account.pb} wait ack ws timeout, retry! failedCnt:${account.failedCnt}`,
-            );
-            req.retry = req.retry ? req.retry + 1 : 1;
-            await this.askStream(req, stream);
-          }
         } catch (e) {
           destroy();
           this.logger.error(`err in timeout: `, e);
         }
-      }, 20 * 1000);
+      }, 10 * 1000);
       let currMsgID = '';
       client.on('Network.webSocketFrameReceived', async ({ response }) => {
         try {
@@ -603,8 +610,13 @@ ${question}`;
           if (!message) {
             return;
           }
-          const { author, state, text, clientNonce } = message;
+          const { author, state, text, suggestedReplies, clientNonce } =
+            message;
           // this.logger.info(author, state, text, unique_id);
+
+          if (suggestedReplies.length > 0) {
+            return;
+          }
 
           if (author === 'chat_break') {
             return;
@@ -618,6 +630,16 @@ ${question}`;
             return;
           }
           switch (state) {
+            case 'error_user_message_too_long':
+              clearTimeout(tt);
+              client.removeAllListeners('Network.webSocketFrameReceived');
+              done(account);
+              stream.write(Event.error, {
+                error: 'message too long',
+                status: ComError.Status.RequestTooLarge,
+              });
+              stream.end();
+              return;
             case 'complete':
               clearTimeout(tt);
               client.removeAllListeners('Network.webSocketFrameReceived');
@@ -667,6 +689,9 @@ ${question}`;
       this.logger.info('send msg ok!');
     } catch (e: any) {
       client.removeAllListeners('Network.webSocketFrameReceived');
+      stream.write(Event.error, { error: 'some thing error, try again later' });
+      stream.write(Event.done, { content: '' });
+      stream.end();
       this.logger.error(`account: pb=${account.pb}, poe ask stream failed:`, e);
       account.failedCnt += 1;
       if (account.failedCnt >= MaxFailedTimes) {
@@ -675,13 +700,10 @@ ${question}`;
         this.logger.info(`account failed cnt > 10, destroy ok`);
       } else {
         this.accountPool.syncfile();
+        await Poef.clearContext(page);
         await page.reload();
         done(account);
       }
-      done(account);
-      stream.write(Event.error, { error: 'some thing error, try again later' });
-      stream.write(Event.done, { content: '' });
-      stream.end();
       return;
     }
   }
