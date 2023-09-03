@@ -19,6 +19,31 @@ interface RealReq {
     model: string;
 }
 
+/**
+ * {"models":[{"slug":"text-davinci-002-render-sha","max_tokens":8191,"title":"Default (GPT-3.5)","description":"Our fastest model, great for most everyday tasks.","tags":["gpt3.5"],"capabilities":{},"product_features":{}},{"slug":"gpt-4","max_tokens":4095,"title":"GPT-4","description":"Our most capable model, great for tasks that require creativity and advanced reasoning.","tags":["gpt4"],"capabilities":{},"product_features":{}},{"slug":"gpt-4-code-interpreter","max_tokens":8192,"title":"Advanced Data Analysis","description":"An experimental model that can solve tasks by generating Python code and executing it in a Jupyter notebook.\nYou can upload any kind of file, and ask model to analyse it, or produce a new file which you can download.","tags":["beta","gpt4"],"capabilities":{},"product_features":{"attachments":{"type":"code_interpreter"}},"enabled_tools":["tools2"]},{"slug":"gpt-4-plugins","max_tokens":8192,"title":"Plugins","description":"An experimental model that knows when and how to use plugins","tags":["beta","gpt4"],"capabilities":{},"product_features":{},"enabled_tools":["tools3"]}],"categories":[{"category":"gpt_3.5","human_category_name":"GPT-3.5","subscription_level":"free","default_model":"text-davinci-002-render-sha","browsing_model":"text-davinci-002-render-sha-browsing","code_interpreter_model":"text-davinci-002-render-sha-code-interpreter","plugins_model":"text-davinci-002-render-sha-plugins"},{"category":"gpt_4","human_category_name":"GPT-4","subscription_level":"plus","default_model":"gpt-4","browsing_model":"gpt-4-browsing","code_interpreter_model":"gpt-4-code-interpreter","plugins_model":"gpt-4-plugins"}]}
+ */
+
+type ValidModelsResp = {
+    models: {
+        slug: string;
+        max_tokens: number;
+        title: string;
+        description: string;
+        tags: string[];
+        capabilities: any;
+        product_features: any;
+    }[],
+    categories: {
+        category: string;
+        human_category_name: string;
+        subscription_level: string;
+        default_model: string;
+        browsing_model: string;
+        code_interpreter_model: string;
+        plugins_model: string;
+    }[]
+}
+
 type LoginRes = {
     access_token: string;
     expires_in: number;
@@ -101,10 +126,23 @@ class AccountPool {
                 continue;
             }
             try{
+                // 登录获取access_token
                 const loginResp = await this.client.post('/auth/login', {username:sig,password:main}, {
                     responseType: 'json',
                 } as AxiosRequestConfig);
                 const {access_token} = loginResp.data as LoginRes;
+                // 获取可用模型
+                const validModelsResp = await this.client.get('/api/models?history_and_training_disabled=false', {
+                    responseType: 'json',
+                    // 替换headers中的Authorization
+                    headers: {
+                        Authorization: `Bearer ${access_token}`,
+                    }
+                } as AxiosRequestConfig);
+                // 判断有无GPT-4权限,即plus权限
+                const {categories} = validModelsResp.data as ValidModelsResp;
+                const plus = categories.find(item => item.category === 'gpt_4')?.subscription_level === 'plus';
+
                 const registerResp = await this.client.post('/token/register', {unique_name:sig,access_token:access_token,expires_in:0,site_limit:'',show_conversations:true}, {
                     responseType: 'json',
                 } as AxiosRequestConfig);
@@ -117,7 +155,7 @@ class AccountPool {
                     token_key: token_key,
                     failedCnt: 0,
                     invalid: false,
-                    plus: false,
+                    plus: plus,
                 };
             } catch (e) {
                 console.error(e)
@@ -161,12 +199,12 @@ class AccountPool {
         this.using.delete(id);
     }
 
-    public get(): Account {
+    public get(isPlus: boolean): Account {
         for (const vv of shuffleArray(Object.values(this.pool))) {
             if (
                 (!vv.invalid ||
                     moment().subtract(5, 'm').isAfter(moment(vv.last_use_time))) &&
-                !this.using.has(vv.id)
+                !this.using.has(vv.id) && vv.plus === isPlus
             ) {
                 vv.invalid = false;
                 this.syncfile();
@@ -247,12 +285,13 @@ export class FakeOpen extends Chat {
             model: req.model,
             stream: true
         };
+        const account = this.accountPool.get(req.model === ModelType.GPT4);
         try {
             const res = await this.client.post('/chat/completions', data, {
                 responseType: 'stream',
                 // 替换headers中的Authorization
                 headers: {
-                    Authorization: `Bearer ${this.accountPool.get().token_key}`,
+                    Authorization: `Bearer ${account.token_key}`,
                 }
             } as AxiosRequestConfig);
             res.data.pipe(es.split(/\r?\n\r?\n/)).pipe(es.map(async (chunk: any, cb: any) => {
@@ -263,12 +302,14 @@ export class FakeOpen extends Chat {
                 if (dataStr === '[DONE]') {
                     stream.write(Event.done, {content: ''})
                     stream.end();
+                    this.accountPool.release(account.id);
                     return;
                 }
                 const data = parseJSON(dataStr, {} as any);
                 if (!data?.choices) {
                     stream.write(Event.error, {error: 'not found data.choices'})
                     stream.end();
+                    this.accountPool.release(account.id);
                     return;
                 }
                 const [{delta: {content = ""}, finish_reason}] = data.choices;
