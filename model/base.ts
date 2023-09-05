@@ -76,6 +76,7 @@ export enum Site {
   Jasper = 'jasper',
   OpenChat = 'openchat',
   Pap = 'pap',
+  MyShell = 'myshell',
 }
 
 export interface ChatRequest {

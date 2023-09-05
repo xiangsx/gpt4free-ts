@@ -34,6 +34,7 @@ import { OneAPI } from './oneapi';
 import { Jasper } from './jasper';
 import { OpenChat } from './openchat';
 import { Pap } from './pap';
+import { MyShell } from './myshell';
 
 export class ChatModelFactory {
   private readonly modelMap: Map<Site, Chat>;
@@ -93,6 +94,7 @@ export class ChatModelFactory {
     this.modelMap.set(Site.Jasper, new Jasper({ name: Site.Jasper }));
     this.modelMap.set(Site.OpenChat, new OpenChat({ name: Site.OpenChat }));
     this.modelMap.set(Site.Pap, new Pap({ name: Site.Pap }));
+    this.modelMap.set(Site.MyShell, new MyShell({ name: Site.MyShell }));
     this.modelMap.set(
       Site.Perplexity,
       new Perplexity({ name: Site.Perplexity }),

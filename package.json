@@ -26,6 +26,7 @@
     "@types/string-similarity": "^4.0.0",
     "@types/turndown": "^5.0.1",
     "@types/uuid": "^9.0.1",
+    "@types/ws": "^8.5.5",
     "prettier": "^2.7.1",
     "prettier-plugin-organize-imports": "^2",
     "prettier-plugin-packagejson": "^2",
@@ -57,6 +58,7 @@
     "turndown": "^7.1.2",
     "user-agents": "^1.0.1367",
     "uuid": "^9.0.0",
-    "winston": "^3.10.0"
+    "winston": "^3.10.0",
+    "ws": "^8.13.0"
   }
 }

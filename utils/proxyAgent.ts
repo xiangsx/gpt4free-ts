@@ -7,8 +7,8 @@ import puppeteer from 'puppeteer-extra';
 import { PuppeteerLaunchOptions } from 'puppeteer';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import { spawn } from 'child_process';
-import path from 'path';
-import { randomStr } from './index';
+import WebSocket from 'ws';
+import moment from 'moment';
 
 puppeteer.use(StealthPlugin());
 
@@ -128,7 +128,7 @@ export function launchChromeAndFetchWsUrl(): Promise<string | null> {
       '--ignore-certificate-errors',
       '--disable-background-timer-throttling',
       '--disable-backgrounding-occluded-windows',
-      `--user-data-dir=${path.join(__dirname, `${randomStr(10)}`)}`,
+      // `--user-data-dir=${path.join(__dirname, `${randomStr(10)}`)}`,
     ];
     if (process.env.http_proxy) {
       args.push(`--proxy-server=${process.env.http_proxy}`);
@@ -161,4 +161,64 @@ export function launchChromeAndFetchWsUrl(): Promise<string | null> {
       }
     });
   });
+}
+
+export class WSS {
+  private ws: WebSocket;
+  private cbMap: Record<number, Function> = {};
+
+  constructor(
+    target: string,
+    callbacks?: {
+      onOpen?: Function;
+      onClose?: Function;
+      onMessage?: (data: string) => void;
+      onError?: Function;
+    },
+  ) {
+    const { onOpen, onClose, onMessage, onError } = callbacks || {};
+    // 创建一个代理代理
+    const wsOptions: WebSocket.ClientOptions = {};
+    if (process.env.http_proxy) {
+      wsOptions.agent = HttpsProxyAgent(process.env.http_proxy || '');
+    }
+
+    // 创建一个配置了代理的 WebSocket 客户端
+    const ws = new WebSocket(target, wsOptions);
+
+    ws.on('open', () => {
+      console.log('ws open');
+      onOpen && onOpen();
+    });
+
+    ws.on('close', () => {
+      console.log('ws close');
+      onClose && onClose();
+    });
+
+    ws.on('message', (data, isBinary) => {
+      const str = data.toString('utf8');
+      onMessage && onMessage(str);
+      for (const cb of Object.values(this.cbMap)) {
+        cb(str);
+      }
+    });
+    ws.on('error', (err) => {
+      console.log('ws error', err);
+      onError && onError(err);
+    });
+    this.ws = ws;
+  }
+
+  send(data: string) {
+    this.ws.send(data);
+  }
+
+  onData(cb: (data: string) => void) {
+    const key = moment().valueOf();
+    this.cbMap[key] = cb;
+    return () => {
+      delete this.cbMap[key];
+    };
+  }
 }
