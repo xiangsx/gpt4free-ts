@@ -263,22 +263,19 @@ export class FakeOpen extends Chat {
 
   constructor(options?: ChatOptions) {
     super(options);
-    this.client = CreateAxiosProxy(
-      {
-        baseURL: 'https://ai.fakeopen.com/v1/',
-        headers: {
-          'Content-Type': 'application/json',
-          accept: 'text/event-stream',
-          'Cache-Control': 'no-cache',
-          'Proxy-Connection': 'keep-alive',
-          Authorization: `Bearer ${
-            process.env.FAKE_OPEN_KEY ||
-            'pk-this-is-a-real-free-api-key-pk-for-everyone'
-          }`,
-        },
-      } as CreateAxiosDefaults,
-      false,
-    );
+    this.client = CreateAxiosProxy({
+      baseURL: 'https://ai.fakeopen.com/v1/',
+      headers: {
+        'Content-Type': 'application/json',
+        accept: 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Proxy-Connection': 'keep-alive',
+        Authorization: `Bearer ${
+          process.env.FAKE_OPEN_KEY ||
+          'pk-this-is-a-real-free-api-key-pk-for-everyone'
+        }`,
+      },
+    } as CreateAxiosDefaults);
     this.accountPool = new AccountPool();
   }
 
