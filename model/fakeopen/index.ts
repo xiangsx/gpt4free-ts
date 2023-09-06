@@ -192,6 +192,7 @@ class AccountPool {
           invalid: false,
           plus: plus,
         };
+        this.syncfile();
       } catch (e) {
         console.error(e);
         this.pool[mail] = {
@@ -282,41 +283,14 @@ export class FakeOpen extends Chat {
   support(model: ModelType): number {
     switch (model) {
       case ModelType.GPT3p5_16k:
-        return 15000;
+        return 21000;
       case ModelType.GPT4:
         return 5000;
       case ModelType.GPT3p5Turbo:
-        return 4000;
+        return 21000;
       default:
         return 0;
     }
-  }
-
-  public async ask(req: ChatRequest): Promise<ChatResponse> {
-    const stream = new EventStream();
-    const res = await this.askStream(req, stream);
-    const result: ChatResponse = {
-      content: '',
-    };
-    return new Promise((resolve) => {
-      stream.read(
-        (event, data) => {
-          switch (event) {
-            case Event.done:
-              break;
-            case Event.message:
-              result.content += (data as MessageData).content || '';
-              break;
-            case Event.error:
-              result.error = (data as ErrorData).error;
-              break;
-          }
-        },
-        () => {
-          resolve(result);
-        },
-      );
-    });
   }
 
   public async askStream(req: ChatRequest, stream: EventStream) {

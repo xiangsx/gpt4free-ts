@@ -1,4 +1,12 @@
-import { ComError, EventStream, getTokenCount, newLogger } from '../utils';
+import {
+  ComError,
+  ErrorData,
+  Event,
+  EventStream,
+  getTokenCount,
+  MessageData,
+  newLogger,
+} from '../utils';
 import winston from 'winston';
 
 export interface ChatOptions {
@@ -180,7 +188,30 @@ export class Chat {
   }
 
   public async ask(req: ChatRequest): Promise<ChatResponse> {
-    throw new ComError('not implement', ComError.Status.InternalServerError);
+    const stream = new EventStream();
+    await this.askStream(req, stream);
+    const result: ChatResponse = {
+      content: '',
+    };
+    return new Promise((resolve) => {
+      stream.read(
+        (event, data) => {
+          switch (event) {
+            case Event.done:
+              break;
+            case Event.message:
+              result.content += (data as MessageData).content || '';
+              break;
+            case Event.error:
+              result.error = (data as ErrorData).error;
+              break;
+          }
+        },
+        () => {
+          resolve(result);
+        },
+      );
+    });
   }
 
   public async askStream(req: ChatRequest, stream: EventStream): Promise<void> {
