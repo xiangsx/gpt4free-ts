@@ -177,9 +177,9 @@ export class MyShell extends Chat implements BrowserUser<Account> {
   support(model: ModelType): number {
     switch (model) {
       case ModelType.GPT4:
-        return 2420;
+        return 1500;
       case ModelType.GPT3p5Turbo:
-        return 2420;
+        return 1500;
       default:
         return 0;
     }
@@ -473,6 +473,12 @@ export class MyShell extends Chat implements BrowserUser<Account> {
         case 'energy_info':
           account.battery = msg.data as any;
           this.accountPool.syncfile();
+          break;
+        case 'message_sent':
+          this.logger.info('message_sent');
+          break;
+        case 'reply_message_created':
+          this.logger.info('reply_message_created');
           break;
         default:
           this.logger.warn("unknown event: '" + event + "' " + str);
