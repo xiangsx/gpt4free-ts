@@ -4,11 +4,14 @@ import { SessionConstructorOptions } from 'tls-client/dist/esm/types';
 import { Session } from 'tls-client/dist/esm/sessions';
 import tlsClient from 'tls-client';
 import puppeteer from 'puppeteer-extra';
-import { PuppeteerLaunchOptions } from 'puppeteer';
+import { Page, PuppeteerLaunchOptions } from 'puppeteer';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import { spawn } from 'child_process';
 import WebSocket from 'ws';
 import moment from 'moment';
+import { closeOtherPages } from '../pool/puppeteer';
+import { v4 } from 'uuid';
+import { PassThrough } from 'stream';
 
 puppeteer.use(StealthPlugin());
 
@@ -230,3 +233,112 @@ export class WSS {
 //   }
 //   return fetch(url, { ...initOptions, ...options });
 // }
+
+export class WebFetchProxy {
+  private page?: Page;
+  private streamMap: Record<string, PassThrough> = {};
+  private readonly homeURL: string;
+  constructor(homeURL: string) {
+    this.homeURL = homeURL;
+    this.init().then(() => console.log(`web fetch proxy init ok`));
+  }
+
+  async init() {
+    const options: PuppeteerLaunchOptions = {
+      headless: process.env.DEBUG === '1' ? false : 'new',
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-background-timer-throttling',
+        '--disable-backgrounding-occluded-windows',
+      ],
+    };
+    if (process.env.http_proxy) {
+      options.args?.push(`--proxy-server=${process.env.http_proxy}`);
+    }
+    const browser = await puppeteer.launch(options);
+    this.page = await browser.newPage();
+    await this.page.goto(this.homeURL);
+    await closeOtherPages(browser, this.page);
+    await this.page.exposeFunction('onChunk', (id: string, text: string) => {
+      const stream = this.streamMap[id];
+      if (stream) {
+        stream.write(text);
+      }
+    });
+    await this.page.exposeFunction('onChunkEnd', (id: string) => {
+      const stream = this.streamMap[id];
+      if (stream) {
+        stream.end();
+        delete this.streamMap[id];
+      }
+    });
+    await this.page.exposeFunction(
+      'onChunkError',
+      (id: string, err: string) => {
+        const stream = this.streamMap[id];
+        if (stream) {
+          stream.emit('error', err);
+          delete this.streamMap[id];
+        }
+      },
+    );
+  }
+
+  async fetch(url: string, init?: RequestInit) {
+    if (!this.page) {
+      throw new Error('please retry wait init');
+    }
+    const id = v4();
+    const stream = new PassThrough();
+    this.streamMap[id] = stream;
+
+    this.page
+      .evaluate(
+        (id, url, init) => {
+          return new Promise((resolve, reject) => {
+            fetch(url, init)
+              .then((response) => {
+                if (!response.body) {
+                  resolve(null);
+                  return null;
+                }
+                const reader = response.body.getReader();
+                function readNextChunk() {
+                  reader
+                    .read()
+                    .then(({ done, value }) => {
+                      const textChunk = new TextDecoder('utf-8').decode(value);
+                      if (done) {
+                        // @ts-ignore
+                        window.onChunkEnd(id);
+                        // @ts-ignore
+                        resolve(textChunk);
+                        return;
+                      }
+                      // @ts-ignore
+                      window.onChunk(id, textChunk);
+                      readNextChunk();
+                    })
+                    .catch((err) => {
+                      // @ts-ignore
+                      window.onChunkError(id, err);
+                      reject(err);
+                    });
+                }
+                readNextChunk();
+              })
+              .catch((err) => {
+                console.error(err);
+                reject(err);
+              });
+          });
+        },
+        id,
+        url,
+        init,
+      )
+      .catch(console.error);
+    return stream;
+  }
+}
