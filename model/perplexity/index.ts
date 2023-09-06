@@ -223,6 +223,9 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
       return [] as any;
     }
     let [page] = await browser.pages();
+    await page.setUserAgent(
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36',
+    );
     const browserWSEndpoint = browser.wsEndpoint();
     await simplifyPage(page);
     try {
