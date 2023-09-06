@@ -381,7 +381,9 @@ export class MyShell extends Chat implements BrowserUser<Account> {
 
       await sleep(2000);
       // got reward
-      await page.waitForSelector('#Rewards > div > div > div > div > * > img');
+      await page.waitForSelector('#Rewards > div > div > div > div > * > img', {
+        timeout: 10000,
+      });
       await page.click('#Rewards > div > div > div > div > * > img');
 
       // use reward
@@ -397,6 +399,7 @@ export class MyShell extends Chat implements BrowserUser<Account> {
         '.chakra-modal__footer > div > .chakra-button',
       );
       await page.click('.chakra-modal__footer > div > .chakra-button');
+      await this.getChatBooster(page);
     } catch (e) {
       this.logger.error('getChatBooster error', e);
     }
