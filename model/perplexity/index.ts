@@ -240,7 +240,7 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
       await page.goto(`https://www.perplexity.ai`);
       if (await this.ifCF(page)) {
         browser.disconnect();
-        await sleep(5 * 1000);
+        await sleep(10 * 1000);
         await this.handleCF(browserWSEndpoint);
       }
       const newB = await puppeteer.connect({ browserWSEndpoint });
