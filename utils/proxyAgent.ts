@@ -222,3 +222,11 @@ export class WSS {
     };
   }
 }
+
+// export function fetchWithProxy(url: string, options?: RequestInit) {
+//   const initOptions: RequestInit = {};
+//   if (process.env.http_proxy) {
+//     initOptions.agent = HttpsProxyAgent(process.env.http_proxy || '');
+//   }
+//   return fetch(url, { ...initOptions, ...options });
+// }
