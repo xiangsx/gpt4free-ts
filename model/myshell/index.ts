@@ -323,7 +323,13 @@ export class MyShell extends Chat implements BrowserUser<Account> {
         account.battery = (await this.getBattery(account.token)).energy;
         this.accountPool.syncfile();
       }
-      const wss = await this.initWSS(account.token, account.visitorID);
+      const wss = await this.initWSS(
+        account.token,
+        account.visitorID,
+        (v: WSS) => {
+          this.wssMap[account.id] = v;
+        },
+      );
       this.wssMap[account.id] = wss;
       this.logger.info(`init ok! ${account.id}`);
       await browser.close();
@@ -348,7 +354,11 @@ export class MyShell extends Chat implements BrowserUser<Account> {
     return res.data as { energy: number; dailyEnergy: number };
   }
 
-  initWSS(token: string, visitorID: string): Promise<WSS> {
+  async initWSS(
+    token: string,
+    visitorID: string,
+    recreate: (wss: WSS) => void,
+  ): Promise<WSS> {
     return new Promise((resolve, reject) => {
       const ws = new WSS('wss://api.myshell.ai/ws/?EIO=4&transport=websocket', {
         onOpen: () => {
@@ -359,6 +369,9 @@ export class MyShell extends Chat implements BrowserUser<Account> {
           if (data === '2') {
             ws.send('3');
           }
+        },
+        onClose: async () => {
+          recreate(await this.initWSS(token, visitorID, recreate));
         },
         onError: (e: any) => {
           reject(e);
