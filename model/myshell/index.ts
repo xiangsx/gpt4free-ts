@@ -286,8 +286,9 @@ export class MyShell extends Chat implements BrowserUser<Account> {
         const frame = await page.waitForFrame(
           (v) => v.url().indexOf('particle') > -1,
         );
-        await frame.waitForSelector('.input-code-content');
-        await frame.click('.input-code-content');
+        await frame.waitForSelector('.react-input-code > .input-code-item');
+        await frame.click('.react-input-code > .input-code-item');
+        // await sleep(10 * 60 * 1000);
 
         await page.keyboard.type(validateURL, { delay: 10 });
 
