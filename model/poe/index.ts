@@ -627,7 +627,6 @@ ${question}`;
               return;
           }
         } catch (e) {
-          destroy();
           this.logger.error('err in event cb, err: ', e);
         }
       });
