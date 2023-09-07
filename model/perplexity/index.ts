@@ -146,7 +146,7 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
       +(process.env.PERPLEXITY_POOL_SIZE || 0),
       this,
       false,
-      -1,
+      10 * 1000,
       false,
     );
   }
@@ -371,7 +371,7 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
       },
       sessionId,
     );
-    await sleep(10000);
+    await sleep(5000);
     this.logger.info('handle cf end');
   }
 
