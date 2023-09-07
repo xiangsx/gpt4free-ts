@@ -244,45 +244,49 @@ export class WebFetchProxy {
   }
 
   async init() {
-    const options: PuppeteerLaunchOptions = {
-      headless: process.env.DEBUG === '1' ? false : 'new',
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-background-timer-throttling',
-        '--disable-backgrounding-occluded-windows',
-      ],
-    };
-    if (process.env.http_proxy) {
-      options.args?.push(`--proxy-server=${process.env.http_proxy}`);
-    }
-    const browser = await puppeteer.launch(options);
-    this.page = await browser.newPage();
-    await this.page.goto(this.homeURL);
-    await closeOtherPages(browser, this.page);
-    await this.page.exposeFunction('onChunk', (id: string, text: string) => {
-      const stream = this.streamMap[id];
-      if (stream) {
-        stream.write(text);
+    try {
+      const options: PuppeteerLaunchOptions = {
+        headless: process.env.DEBUG === '1' ? false : 'new',
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-background-timer-throttling',
+          '--disable-backgrounding-occluded-windows',
+        ],
+      };
+      if (process.env.http_proxy) {
+        options.args?.push(`--proxy-server=${process.env.http_proxy}`);
       }
-    });
-    await this.page.exposeFunction('onChunkEnd', (id: string) => {
-      const stream = this.streamMap[id];
-      if (stream) {
-        stream.end();
-        delete this.streamMap[id];
-      }
-    });
-    await this.page.exposeFunction(
-      'onChunkError',
-      (id: string, err: string) => {
+      const browser = await puppeteer.launch(options);
+      this.page = await browser.newPage();
+      await this.page.goto(this.homeURL);
+      await closeOtherPages(browser, this.page);
+      await this.page.exposeFunction('onChunk', (id: string, text: string) => {
         const stream = this.streamMap[id];
         if (stream) {
-          stream.emit('error', err);
+          stream.write(text);
+        }
+      });
+      await this.page.exposeFunction('onChunkEnd', (id: string) => {
+        const stream = this.streamMap[id];
+        if (stream) {
+          stream.end();
           delete this.streamMap[id];
         }
-      },
-    );
+      });
+      await this.page.exposeFunction(
+        'onChunkError',
+        (id: string, err: string) => {
+          const stream = this.streamMap[id];
+          if (stream) {
+            stream.emit('error', err);
+            delete this.streamMap[id];
+          }
+        },
+      );
+    } catch (e) {
+      console.error('WebFetchProxy init failed, ', e);
+    }
   }
 
   async fetch(url: string, init?: RequestInit) {

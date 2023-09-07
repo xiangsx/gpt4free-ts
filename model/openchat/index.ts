@@ -183,12 +183,14 @@ export class OpenChat extends Chat implements BrowserUser<Account> {
   private pagePool: BrowserPool<Account>;
   private accountPool: AccountPool;
   private readonly streamMap: Record<string, PassThrough>;
-  private client: WebFetchProxy;
+  private client!: WebFetchProxy;
 
   constructor(options?: ChatOptions) {
     super(options);
     this.accountPool = new AccountPool();
-    this.client = new WebFetchProxy('https://chat.openai.com/');
+    if (+(process.env.OPENCHAT_POOL_SIZE || 0) > 0) {
+      this.client = new WebFetchProxy('https://chat.openai.com/');
+    }
     this.pagePool = new BrowserPool<Account>(
       +(process.env.OPENCHAT_POOL_SIZE || 0),
       this,
