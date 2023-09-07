@@ -498,11 +498,13 @@ export class MyShell extends Chat implements BrowserUser<Account> {
           break;
       }
     });
-    ws.send(
-      `42/chat,["text_chat",{"reqId":"${v4()}","botUid":"${
-        ModelMap[req.model]
-      }","sourceFrom":"myshellWebsite","text":"${req.prompt}"}]`,
-    );
+    const content = JSON.stringify({
+      reqId: v4(),
+      botUid: ModelMap[req.model],
+      text: req.prompt,
+      sourceFrom: 'myshellWebsite',
+    });
+    ws.send(`42/chat,["text_chat", ${content}]`);
     account.last_use_time = moment().unix();
     this.accountPool.syncfile();
   }
