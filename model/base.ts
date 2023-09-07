@@ -5,9 +5,9 @@ import {
   EventStream,
   getTokenCount,
   MessageData,
-  newLogger,
 } from '../utils';
 import winston from 'winston';
+import { newLogger } from '../utils/log';
 
 export interface ChatOptions {
   name: Site;

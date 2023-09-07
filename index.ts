@@ -19,16 +19,16 @@ import {
   OpenaiEventStream,
   parseJSON,
   randomStr,
-  replaceConsoleWithWinston,
   ThroughEventStream,
 } from './utils';
 import moment from 'moment';
 import { Config } from './utils/config';
+import { initLog } from './utils/log';
 
 process.setMaxListeners(100); // 将限制提高到20个
 
 dotenv.config();
-replaceConsoleWithWinston();
+initLog();
 Config.load();
 Config.watchFile();
 
