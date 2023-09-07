@@ -390,42 +390,44 @@ export function replaceConsoleWithWinston(): void {
     logger.debug(`${msg.map((v) => v.toString()).join(' ')}`);
 }
 
-export function newLogger(label?: string) {
-  const logDir = path.join(process.cwd(), 'run/logs');
-  return winston.createLogger({
-    level: process.env.LOG_LEVEL || 'info', // 从环境变量中读取日志等级，如果没有设置，则默认为 'info'
-    format: winston.format.combine(
-      winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }), // 添加时间戳
-      winston.format.prettyPrint(), // 打印整个日志对象
-      winston.format.splat(), // 支持格式化的字符串
-      winston.format.printf(({ level, message, timestamp }) => {
-        const labelStr = label ? ` [${colorLabel(label)}]` : '';
-        return `${timestamp} ${level}:${labelStr} ${message}`; // 自定义输出格式
-      }),
-    ),
-    transports: [
-      ...(process.env.LOG_CONSOLE !== '0'
-        ? [
-            new winston.transports.Console({
-              format: winston.format.colorize(),
-            }),
-          ]
-        : []),
-      ...(process.env.LOG_FILE !== '0'
-        ? [
-            // 写入所有日志记录到 `combined.log`
-            new winston.transports.File({
-              filename: path.join(logDir, 'combined.log'),
-            }),
-            // 写入所有级别为 error 的日志记录和以下到 `error.log`
-            new winston.transports.File({
-              filename: path.join(logDir, 'error.log'),
-              level: 'warn',
-            }),
-          ]
-        : []),
-    ],
-  });
+const logDir = path.join(process.cwd(), 'run/logs');
+const logger = winston.createLogger({
+  level: process.env.LOG_LEVEL || 'info', // 从环境变量中读取日志等级，如果没有设置，则默认为 'info'
+  format: winston.format.combine(
+    winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }), // 添加时间戳
+    winston.format.prettyPrint(), // 打印整个日志对象
+    winston.format.splat(), // 支持格式化的字符串
+    winston.format.printf(({ level, message, timestamp, site }) => {
+      const labelStr = site ? ` [${colorLabel(site)}]` : '';
+      return `${timestamp} ${level}:${labelStr} ${message}`; // 自定义输出格式
+    }),
+  ),
+  transports: [
+    ...(process.env.LOG_CONSOLE !== '0'
+      ? [
+          new winston.transports.Console({
+            format: winston.format.colorize(),
+          }),
+        ]
+      : []),
+    ...(process.env.LOG_FILE !== '0'
+      ? [
+          // 写入所有日志记录到 `combined.log`
+          new winston.transports.File({
+            filename: path.join(logDir, 'combined.log'),
+          }),
+          // 写入所有级别为 error 的日志记录和以下到 `error.log`
+          new winston.transports.File({
+            filename: path.join(logDir, 'error.log'),
+            level: 'warn',
+          }),
+        ]
+      : []),
+  ],
+});
+
+export function newLogger(site?: string) {
+  return logger.child({ site });
 }
 
 function hashString(str: string): number {
