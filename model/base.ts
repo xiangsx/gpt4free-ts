@@ -8,6 +8,7 @@ import {
 } from '../utils';
 import winston from 'winston';
 import { newLogger } from '../utils/log';
+import { AcyToo } from './acytoo';
 
 export interface ChatOptions {
   name: Site;
@@ -85,6 +86,7 @@ export enum Site {
   OpenChat = 'openchat',
   Pap = 'pap',
   MyShell = 'myshell',
+  AcyToo = 'acytoo',
 }
 
 export interface ChatRequest {
