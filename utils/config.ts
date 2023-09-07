@@ -5,12 +5,6 @@ import { ModelType, Site } from '../model/base';
 interface ConfigData {
   perplexity: {
     cf_debug: boolean;
-    cf_btn_bound: {
-      x: number;
-      y: number;
-      width: number;
-      height: number;
-    };
   };
   site_map: Partial<Record<ModelType, { site: Site; priority: number }[]>>;
   one_api: {
@@ -29,12 +23,6 @@ class BaseConfig {
   private defaultConfig: ConfigData = {
     perplexity: {
       cf_debug: false,
-      cf_btn_bound: {
-        x: 190,
-        y: 279,
-        width: 24,
-        height: 24,
-      },
     },
     site_map: {},
     one_api: {

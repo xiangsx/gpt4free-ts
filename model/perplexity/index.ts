@@ -57,8 +57,6 @@ type Account = {
   model?: string;
 };
 
-let boundingBox: BoundingBox | null | undefined = null;
-
 class AccountPool {
   private readonly pool: Record<string, Account> = {};
   private using = new Set<string>();
@@ -284,14 +282,6 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
 
   async handleCF(browserWSEndpoint: string) {
     this.logger.info('handle cf start');
-    const buttonBox = Config.config.perplexity.cf_btn_bound || {
-      x: 190.5,
-      y: 279,
-      width: 24,
-      height: 24,
-    };
-    console.log(JSON.stringify(buttonBox));
-
     const client: CDP.Client = await CDP({
       target: browserWSEndpoint,
     });
@@ -318,6 +308,27 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
       },
       sessionId,
     );
+
+    await client.Runtime.enable(sessionId);
+    await client.DOM.enable(sessionId);
+    const iframeExpression = `document.querySelector('iframe')`;
+    const { result: iframeResult } = await client.Runtime.evaluate(
+      {
+        expression: iframeExpression,
+      },
+      sessionId,
+    );
+    const { objectId: iframeObjectId } = iframeResult;
+    const { model: iframeModel } = await client.DOM.getBoxModel(
+      {
+        objectId: iframeObjectId,
+      },
+      sessionId,
+    );
+    const iframeCoordinates = iframeModel.border; // iframe 的坐标
+    let [x, y] = iframeCoordinates;
+    x = x + 9 + 14 + 8;
+    y = y + 10 + 14 + 8;
     if (Config.config.perplexity.cf_debug) {
       await client.Runtime.enable(sessionId);
       await client.Runtime.evaluate(
@@ -327,8 +338,8 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
             dot.style.height = '100px';
             dot.style.background = 'red';
             dot.style.position = 'fixed';
-            dot.style.top = ${buttonBox.y + buttonBox.height / 2} + 'px';
-            dot.style.left = ${buttonBox.x + buttonBox.width / 2} + 'px';
+            dot.style.left = ${x} + 'px';
+            dot.style.top = ${y} + 'px';
             document.body.appendChild(dot);`,
         },
         sessionId,
@@ -343,8 +354,8 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
     await client.Input.dispatchMouseEvent(
       {
         type: 'mousePressed',
-        x: buttonBox.x + buttonBox.width / 2,
-        y: buttonBox.y + buttonBox.height / 2,
+        x,
+        y,
         button: 'left',
         clickCount: 1,
       },
@@ -353,8 +364,8 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
     await client.Input.dispatchMouseEvent(
       {
         type: 'mouseReleased',
-        x: buttonBox.x + buttonBox.width / 2,
-        y: buttonBox.y + buttonBox.height / 2,
+        x,
+        y,
         button: 'left',
         clickCount: 1,
       },
