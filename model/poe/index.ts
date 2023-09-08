@@ -243,7 +243,7 @@ export class Poe extends Chat implements BrowserUser<Account> {
       case ModelType.GPT4_32k:
         return 20000;
       case ModelType.Claude2_100k:
-        return 80000;
+        return 50000;
       case ModelType.Code_Llama_34b:
         return 16000;
       case ModelType.Code_Llama_13b:
@@ -522,32 +522,35 @@ ${question}`;
     try {
       let old = '';
       let et: EventEmitter;
-      const tt = setTimeout(async () => {
-        try {
-          client.removeAllListeners('Network.webSocketFrameReceived');
-          stream.write(Event.error, { error: 'please retry later!' });
-          stream.write(Event.done, { content: '' });
-          stream.end();
-          await Poe.clearContext(page);
-          await page.reload();
-          this.logger.info(
-            `poe time out, return error! failed prompt: [\n${req.prompt}\n]`,
-          );
-          account.failedCnt += 1;
-          this.accountPool.syncfile();
-          if (account.failedCnt >= MaxFailedTimes) {
-            destroy();
-            this.accountPool.syncfile();
-            this.logger.info(`poe account failed cnt > 10, destroy ok`);
-          } else {
+      const tt = setTimeout(
+        async () => {
+          try {
+            client.removeAllListeners('Network.webSocketFrameReceived');
+            stream.write(Event.error, { error: 'please retry later!' });
+            stream.write(Event.done, { content: '' });
+            stream.end();
+            await Poe.clearContext(page);
             await page.reload();
-            done(account);
+            this.logger.info(
+              `poe time out, return error! failed prompt: [\n${req.prompt}\n]`,
+            );
+            account.failedCnt += 1;
+            this.accountPool.syncfile();
+            if (account.failedCnt >= MaxFailedTimes) {
+              destroy();
+              this.accountPool.syncfile();
+              this.logger.info(`poe account failed cnt > 10, destroy ok`);
+            } else {
+              await page.reload();
+              done(account);
+            }
+          } catch (e) {
+            destroy();
+            this.logger.error(`err in timeout: `, e);
           }
-        } catch (e) {
-          destroy();
-          this.logger.error(`err in timeout: `, e);
-        }
-      }, 10 * 1000);
+        },
+        req.model === ModelType.Claude2_100k ? 60 * 1000 : 10 * 1000,
+      );
       let currMsgID = '';
       et = client.on('Network.webSocketFrameReceived', async ({ response }) => {
         try {
@@ -624,6 +627,12 @@ ${question}`;
                 });
                 old = text;
               }
+              return;
+            default:
+              this.logger.warn(
+                `unknown state, ${state}`,
+                JSON.stringify(message),
+              );
               return;
           }
         } catch (e) {
