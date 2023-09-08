@@ -59,33 +59,6 @@ export class OneAPI extends Chat {
     return getRandomOne(keys);
   }
 
-  public async ask(req: ChatRequest): Promise<ChatResponse> {
-    const stream = new EventStream();
-    const res = await this.askStream(req, stream);
-    const result: ChatResponse = {
-      content: '',
-    };
-    return new Promise((resolve) => {
-      stream.read(
-        (event, data) => {
-          switch (event) {
-            case Event.done:
-              break;
-            case Event.message:
-              result.content += (data as MessageData).content || '';
-              break;
-            case Event.error:
-              result.error = (data as ErrorData).error;
-              break;
-          }
-        },
-        () => {
-          resolve(result);
-        },
-      );
-    });
-  }
-
   public async askStream(req: ChatRequest, stream: EventStream) {
     const data: RealReq = {
       messages: req.messages,
