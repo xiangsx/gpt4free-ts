@@ -58,36 +58,6 @@ export class Auto extends Chat {
     return this.modelMap.get(site) as Chat;
   }
 
-  ask(req: ChatRequest): Promise<ChatResponse> {
-    return new Promise(async (resolve) => {
-      const result: ChatResponse = {
-        content: '',
-      };
-      const et = new ThroughEventStream(
-        (event, data) => {
-          switch (event) {
-            case 'message':
-              result.content += (data as MessageData).content;
-              break;
-            case 'done':
-              result.content += (data as DoneData).content;
-              break;
-            case 'error':
-              result.error = (data as ErrorData).error;
-              break;
-            default:
-              this.logger.error(data);
-              break;
-          }
-        },
-        () => {
-          resolve(result);
-        },
-      );
-      const res = await this.askStream(req, et);
-    });
-  }
-
   async tryAskStream(
     req: ChatRequest,
     stream: EventStream,
