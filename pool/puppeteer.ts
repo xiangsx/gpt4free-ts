@@ -238,14 +238,36 @@ export async function closeOtherPages(browser: Browser, page: Page) {
 
 export async function simplifyPage(page: Page) {
   await page.setRequestInterception(true);
+  const blockTypes = new Set([
+    'image',
+    'media',
+    'font',
+    'ping',
+    'cspviolationreport',
+  ]);
   page.on('request', (req) => {
-    if (
-      req.resourceType() === 'image' ||
-      req.resourceType() === 'media' ||
-      req.resourceType() === 'font' ||
-      req.resourceType() === 'ping' ||
-      req.resourceType() === 'cspviolationreport'
-    ) {
+    if (blockTypes.has(req.resourceType())) {
+      req.abort();
+    } else {
+      req.continue();
+    }
+  });
+}
+
+export async function simplifyPageAll(page: Page) {
+  await page.setRequestInterception(true);
+  const blockTypes = new Set([
+    'image',
+    'media',
+    'font',
+    'ping',
+    'cspviolationreport',
+    'stylesheet',
+    'websocket',
+    'manifest',
+  ]);
+  page.on('request', (req) => {
+    if (blockTypes.has(req.resourceType())) {
       req.abort();
     } else {
       req.continue();

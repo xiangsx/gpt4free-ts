@@ -45,6 +45,7 @@ export enum ModelType {
   Code_Llama_34b = 'code-llama-34b',
   Code_Llama_13b = 'code-llama-13b',
   Code_Llama_7b = 'code-llama-7b',
+  Search = 'search',
 }
 
 export enum Site {
@@ -87,6 +88,7 @@ export enum Site {
   Pap = 'pap',
   MyShell = 'myshell',
   AcyToo = 'acytoo',
+  Google = 'google',
 }
 
 export interface ChatRequest {

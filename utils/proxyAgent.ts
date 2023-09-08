@@ -115,6 +115,25 @@ export async function CreateNewPage(
   return page;
 }
 
+export async function CreateNewBrowser() {
+  const options: PuppeteerLaunchOptions = {
+    headless: 'new',
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-background-timer-throttling',
+      '--disable-backgrounding-occluded-windows',
+    ],
+  };
+  if (process.env.DEBUG === '1') {
+    options.headless = false;
+  }
+  if (process.env.http_proxy) {
+    options.args?.push(`--proxy-server=${process.env.http_proxy}`);
+  }
+  return await puppeteer.launch(options);
+}
+
 let pptPort = 19222 + Math.floor(Math.random() * 10000);
 export function launchChromeAndFetchWsUrl(): Promise<string | null> {
   pptPort += 1;
