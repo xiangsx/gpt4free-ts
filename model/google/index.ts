@@ -12,7 +12,6 @@ export class Google extends Chat {
   private browser?: Browser;
   constructor(options?: ChatOptions) {
     super(options);
-    this.init().then(() => this.logger.info('init ok!'));
   }
 
   async init() {
@@ -36,6 +35,10 @@ export class Google extends Chat {
   }
 
   async askStream(req: ChatRequest, stream: EventStream): Promise<void> {
+    if (!this.browser) {
+      await this.init();
+      this.logger.info('init ok');
+    }
     const page = await this.newPage();
     try {
       await page.goto(
