@@ -262,7 +262,7 @@ export class Poef extends Chat implements BrowserUser<Account> {
     }
   }
 
-  preHandle(req: ChatRequest): ChatRequest {
+  async preHandle(req: ChatRequest): Promise<ChatRequest> {
     return super.preHandle(req, { token: true, countPrompt: true });
   }
 

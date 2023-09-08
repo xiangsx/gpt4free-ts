@@ -80,7 +80,7 @@ const AskHandle: Middleware = async (ctx) => {
     // 数值类型parseJSON后为number
     req.messages = [{ role: 'user', content: prompt }];
   }
-  req = chat.preHandle(req);
+  req = await chat.preHandle(req);
   const data = await chat.ask(req);
   if (data && data.error) {
     ctx.status = 500;
@@ -119,7 +119,7 @@ const AskStreamHandle: (ESType: new () => EventStream) => Middleware =
     if (typeof req.messages !== 'object') {
       req.messages = [{ role: 'user', content: prompt }];
     }
-    req = chat.preHandle(req);
+    req = await chat.preHandle(req);
     let stream = new ESType();
     let ok = true;
     const timeout = setTimeout(() => {

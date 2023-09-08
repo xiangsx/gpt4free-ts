@@ -115,7 +115,7 @@ export class Auto extends Chat {
       },
     );
     const chat = this.getRandomModel(req.model);
-    chat.preHandle(req);
+    await chat.preHandle(req);
     return await chat.askStream(req, es).catch((err) => {
       es.destroy();
       throw err;
@@ -131,7 +131,7 @@ export class Auto extends Chat {
     return Number.MAX_SAFE_INTEGER;
   }
 
-  preHandle(req: ChatRequest): ChatRequest {
+  async preHandle(req: ChatRequest): Promise<ChatRequest> {
     // auto站点不处理
     return req;
   }

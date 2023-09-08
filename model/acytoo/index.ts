@@ -44,10 +44,10 @@ export class AcyToo extends Chat {
     }
   }
 
-  preHandle(
+  async preHandle(
     req: ChatRequest,
     options?: { token?: boolean; countPrompt?: boolean },
-  ): ChatRequest {
+  ): Promise<ChatRequest> {
     return super.preHandle(req, { token: true, countPrompt: false });
   }
 

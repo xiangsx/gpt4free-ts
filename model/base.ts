@@ -174,10 +174,10 @@ export class Chat {
     throw new ComError('not implement', ComError.Status.InternalServerError);
   }
 
-  public preHandle(
+  public async preHandle(
     req: ChatRequest,
     options?: { token?: boolean; countPrompt?: boolean },
-  ): ChatRequest {
+  ): Promise<ChatRequest> {
     const { token = false, countPrompt = true } = options || {};
     const size = this.support(req.model);
     if (!size) {
