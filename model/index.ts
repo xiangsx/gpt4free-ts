@@ -37,6 +37,7 @@ import { Pap } from './pap';
 import { MyShell } from './myshell';
 import { AcyToo } from './acytoo';
 import { Google } from './google';
+import { WWW } from './www';
 
 export class ChatModelFactory {
   private readonly modelMap: Map<Site, Chat>;
@@ -99,6 +100,7 @@ export class ChatModelFactory {
     this.modelMap.set(Site.MyShell, new MyShell({ name: Site.MyShell }));
     this.modelMap.set(Site.AcyToo, new AcyToo({ name: Site.AcyToo }));
     this.modelMap.set(Site.Google, new Google({ name: Site.Google }));
+    this.modelMap.set(Site.WWW, new WWW({ name: Site.WWW }));
     this.modelMap.set(
       Site.Perplexity,
       new Perplexity({ name: Site.Perplexity }),

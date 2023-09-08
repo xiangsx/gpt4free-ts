@@ -37,40 +37,46 @@ export class Google extends Chat {
 
   async askStream(req: ChatRequest, stream: EventStream): Promise<void> {
     const page = await this.newPage();
-    await page.goto(
-      `https://www.google.com.hk/search?q=${req.prompt}+&hl=zh-CN`,
-      { waitUntil: 'domcontentloaded' },
-    );
-    await page.waitForSelector('.g');
+    try {
+      await page.goto(
+        `https://www.google.com.hk/search?q=${req.prompt}+&hl=zh-CN`,
+        { waitUntil: 'domcontentloaded' },
+      );
+      await page.waitForSelector('.g');
 
-    // 提取搜索结果的标题和链接
-    const results = await page.evaluate(() => {
-      const nodes = document.querySelectorAll('.g');
-      // @ts-ignore
-      const extractedResults = [];
-
-      nodes.forEach((node) => {
-        const titleNode = node.querySelector('h3');
-        const linkNode = node.querySelector('.yuRUbf a');
-        const descriptionNode = node.querySelector('.VwiC3b');
-
-        const title = titleNode ? titleNode.innerText : 'N/A';
-        const link = linkNode ? linkNode.getAttribute('href') : 'N/A';
+      // 提取搜索结果的标题和链接
+      const results = await page.evaluate(() => {
+        const nodes = document.querySelectorAll('.g');
         // @ts-ignore
-        const description = descriptionNode ? descriptionNode.innerText : 'N/A';
+        const extractedResults = [];
 
-        extractedResults.push({ title, link, description });
+        nodes.forEach((node) => {
+          const titleNode = node.querySelector('h3');
+          const linkNode = node.querySelector('.yuRUbf a');
+          const descriptionNode = node.querySelector('.VwiC3b');
+
+          const title = titleNode ? titleNode.innerText : 'N/A';
+          const link = linkNode ? linkNode.getAttribute('href') : 'N/A';
+          const description = descriptionNode
+            ? // @ts-ignore
+              descriptionNode.innerText
+            : 'N/A';
+
+          extractedResults.push({ title, link, description });
+        });
+
+        // @ts-ignore
+        return extractedResults;
       });
 
-      // @ts-ignore
-      return extractedResults;
-    });
-
-    stream.write(Event.message, { content: JSON.stringify(results) });
-    stream.write(Event.done, { content: '' });
-    stream.end();
-    await sleep(10 * 60 * 1000);
-    await page.close();
-    return super.askStream(req, stream);
+      stream.write(Event.message, { content: JSON.stringify(results) });
+    } catch (e: any) {
+      this.logger.error('ask stream failed', e);
+      stream.write(Event.error, { error: e.message });
+    } finally {
+      stream.write(Event.done, { content: '' });
+      stream.end();
+      await page.close();
+    }
   }
 }
