@@ -80,7 +80,9 @@ export class WWW extends Chat {
           textEntries = Array.from(textMap.entries());
 
           // Sort by position (from top to bottom)
-          textEntries.sort((a, b) => a[1].position - b[1].position);
+          textEntries = textEntries.sort(
+            (a, b) => a[1].position - b[1].position,
+          );
 
           // Create the final text
           const maxText = textEntries.map((entry) => entry[0]).join('\n');
