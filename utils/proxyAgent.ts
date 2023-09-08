@@ -217,6 +217,10 @@ export class WSS {
     this.ws.send(data);
   }
 
+  close() {
+    this.ws.close();
+  }
+
   onData(cb: (data: string) => void) {
     const key = moment().valueOf();
     this.cbMap[key] = cb;

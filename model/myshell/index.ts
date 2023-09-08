@@ -466,6 +466,7 @@ export class MyShell extends Chat implements BrowserUser<Account> {
           stream.write(Event.error, { error: 'no_enough_energy' });
           stream.write(Event.done, { content: '' });
           stream.end();
+          ws.close();
           destroy();
           return;
         case 'text_stream':
@@ -492,6 +493,13 @@ export class MyShell extends Chat implements BrowserUser<Account> {
           break;
         case 'reply_message_created':
           this.logger.info('reply_message_created');
+          break;
+        case 'need_verify_captcha':
+          this.logger.warn('need_verify_captcha');
+          destroy();
+          ws.close();
+          stream.write(Event.error, { error: 'need_verify_captcha' });
+          stream.end();
           break;
         default:
           this.logger.warn("unknown event: '" + event + "' " + str);
