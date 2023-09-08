@@ -123,7 +123,9 @@ const AskStreamHandle: (ESType: new () => EventStream) => Middleware =
     let stream = new ESType();
     let ok = true;
     const timeout = setTimeout(() => {
-      throw new ComError('timeout');
+      stream.write(Event.error, { error: 'timeout' });
+      stream.write(Event.done, { content: '' });
+      stream.end();
     }, 120 * 1000);
     return (() =>
       new Promise<void>(async (resolve, reject) => {
