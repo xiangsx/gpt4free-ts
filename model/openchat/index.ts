@@ -206,6 +206,8 @@ export class OpenChat extends Chat implements BrowserUser<Account> {
     switch (model) {
       case ModelType.GPT3p5Turbo:
         return 21000;
+      case ModelType.GPT3p5_16k:
+        return 21000;
       default:
         return 0;
     }
