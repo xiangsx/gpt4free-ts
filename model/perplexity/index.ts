@@ -166,40 +166,6 @@ export class Perplexity extends Chat implements BrowserUser<Account> {
     }
   }
 
-  public async ask(req: ChatRequest): Promise<ChatResponse> {
-    const et = new EventStream();
-    const res = await this.askStream(req, et);
-    const result: ChatResponse = {
-      content: '',
-    };
-    return new Promise((resolve) => {
-      et.read(
-        (event, data) => {
-          if (!data) {
-            return;
-          }
-          switch (event) {
-            case 'message':
-              result.content += (data as MessageData).content;
-              break;
-            case 'done':
-              result.content += (data as DoneData).content;
-              break;
-            case 'error':
-              result.error += (data as ErrorData).error;
-              break;
-            default:
-              this.logger.error(data);
-              break;
-          }
-        },
-        () => {
-          resolve(result);
-        },
-      );
-    });
-  }
-
   deleteID(id: string): void {
     this.accountPool.delete(id);
   }
