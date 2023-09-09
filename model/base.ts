@@ -91,6 +91,7 @@ export enum Site {
   AcyToo = 'acytoo',
   Google = 'google',
   WWW = 'www',
+  Bing = 'bing',
 }
 
 export interface ChatRequest {
