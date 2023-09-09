@@ -213,38 +213,11 @@ export class OpenChat extends Chat implements BrowserUser<Account> {
     }
   }
 
-  public async ask(req: ChatRequest): Promise<ChatResponse> {
-    const et = new EventStream();
-    const res = await this.askStream(req, et);
-    const result: ChatResponse = {
-      content: '',
-    };
-    return new Promise((resolve) => {
-      et.read(
-        (event, data) => {
-          if (!data) {
-            return;
-          }
-          switch (event) {
-            case 'message':
-              result.content += (data as MessageData).content;
-              break;
-            case 'done':
-              result.content += (data as DoneData).content;
-              break;
-            case 'error':
-              result.error += (data as ErrorData).error;
-              break;
-            default:
-              this.logger.error(data);
-              break;
-          }
-        },
-        () => {
-          resolve(result);
-        },
-      );
-    });
+  async preHandle(
+    req: ChatRequest,
+    options?: { token?: boolean; countPrompt?: boolean },
+  ): Promise<ChatRequest> {
+    return super.preHandle(req, { token: true, countPrompt: true });
   }
 
   deleteID(id: string): void {
