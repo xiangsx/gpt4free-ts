@@ -59,6 +59,7 @@ const AskHandle: Middleware = async (ctx) => {
     prompt,
     model = ModelType.GPT3p5Turbo,
     site = Site.You,
+    ...rest
   } = {
     ...(ctx.query as any),
     ...(ctx.request.body as any),
@@ -72,6 +73,7 @@ const AskHandle: Middleware = async (ctx) => {
     throw new ComError(`not support site: ${site} `, ComError.Status.NotFound);
   }
   let req: ChatRequest = {
+    ...rest,
     prompt,
     messages: parseJSON<Message[]>(prompt, [{ role: 'user', content: prompt }]),
     model,
@@ -94,6 +96,7 @@ const AskStreamHandle: (ESType: new () => EventStream) => Middleware =
       prompt,
       model = ModelType.GPT3p5Turbo,
       site = Site.You,
+      ...rest
     } = {
       ...(ctx.query as any),
       ...(ctx.request.body as any),
@@ -110,6 +113,7 @@ const AskStreamHandle: (ESType: new () => EventStream) => Middleware =
       );
     }
     let req: ChatRequest = {
+      ...rest,
       prompt,
       messages: parseJSON<Message[]>(prompt, [
         { role: 'user', content: prompt },

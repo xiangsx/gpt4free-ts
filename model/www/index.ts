@@ -1,4 +1,10 @@
-import { Chat, ChatOptions, ChatRequest, ModelType } from '../base';
+import {
+  Chat,
+  ChatOptions,
+  ChatRequest,
+  ChatResponse,
+  ModelType,
+} from '../base';
 import { Event, EventStream, getTokenSize, sleep } from '../../utils';
 import puppeteer from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
@@ -7,6 +13,10 @@ import { Browser } from 'puppeteer';
 import { simplifyPageAll } from '../../pool/puppeteer';
 
 puppeteer.use(StealthPlugin());
+
+interface WWWChatRequest extends ChatRequest {
+  max_tokens?: number;
+}
 
 export class WWW extends Chat {
   private browser?: Browser;
@@ -34,7 +44,7 @@ export class WWW extends Chat {
     }
   }
 
-  async askStream(req: ChatRequest, stream: EventStream): Promise<void> {
+  async askStream(req: WWWChatRequest, stream: EventStream): Promise<void> {
     if (!this.browser) {
       await this.init();
       this.logger.info('init ok');
@@ -94,7 +104,7 @@ export class WWW extends Chat {
           return maxText.replace(/\s+/g, ' ').trim();
         },
       );
-      const maxToken = +(process.env.WWW_MAX_TOKEN || 0) || 2000;
+      const maxToken = +(req.max_tokens || process.env.WWW_MAX_TOKEN || 2000);
       const token = getTokenSize(content);
       if (token > maxToken) {
         content = content.slice(
