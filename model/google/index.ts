@@ -76,6 +76,7 @@ export class Google extends Chat {
     } catch (e: any) {
       this.logger.error('ask stream failed', e);
       stream.write(Event.error, { error: e.message });
+      await page.screenshot({ path: `./run/google.png` });
       await this.browser?.close();
       await this.init();
     } finally {
