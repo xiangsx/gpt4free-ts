@@ -26,7 +26,8 @@ import {
 import { v4 } from 'uuid';
 import fs from 'fs';
 import moment from 'moment';
-import { WebFetchProxy } from '../../utils/proxyAgent';
+import { CreateAxiosProxy } from '../../utils/proxyAgent';
+import { AxiosInstance } from 'axios';
 import { PassThrough } from 'stream';
 import es from 'event-stream';
 
@@ -182,15 +183,12 @@ interface PerplexityChatRequest extends ChatRequest {
 export class OpenChat extends Chat implements BrowserUser<Account> {
   private pagePool: BrowserPool<Account>;
   private accountPool: AccountPool;
+  private client: AxiosInstance;
   private readonly streamMap: Record<string, PassThrough>;
-  private client!: WebFetchProxy;
 
   constructor(options?: ChatOptions) {
     super(options);
     this.accountPool = new AccountPool();
-    if (+(process.env.OPENCHAT_POOL_SIZE || 0) > 0) {
-      this.client = new WebFetchProxy('https://chat.openai.com/');
-    }
     this.pagePool = new BrowserPool<Account>(
       +(process.env.OPENCHAT_POOL_SIZE || 0),
       this,
@@ -198,18 +196,53 @@ export class OpenChat extends Chat implements BrowserUser<Account> {
       10 * 1000,
       false,
     );
+    this.client = CreateAxiosProxy({
+      baseURL: 'https://chat.openai.com/backend-api/conversation',
+    });
     this.streamMap = {};
   }
 
   support(model: ModelType): number {
     switch (model) {
-      case ModelType.GPT4:
-        return 6000;
       case ModelType.GPT3p5Turbo:
-        return 6000;
+        return 21000;
       default:
         return 0;
     }
+  }
+
+  public async ask(req: ChatRequest): Promise<ChatResponse> {
+    const et = new EventStream();
+    const res = await this.askStream(req, et);
+    const result: ChatResponse = {
+      content: '',
+    };
+    return new Promise((resolve) => {
+      et.read(
+        (event, data) => {
+          if (!data) {
+            return;
+          }
+          switch (event) {
+            case 'message':
+              result.content += (data as MessageData).content;
+              break;
+            case 'done':
+              result.content += (data as DoneData).content;
+              break;
+            case 'error':
+              result.error += (data as ErrorData).error;
+              break;
+            default:
+              this.logger.error(data);
+              break;
+          }
+        },
+        () => {
+          resolve(result);
+        },
+      );
+    });
   }
 
   deleteID(id: string): void {
@@ -266,7 +299,19 @@ export class OpenChat extends Chat implements BrowserUser<Account> {
         account.accessToken = tk;
         account.last_use_time = moment().format(TimeFormat);
         this.accountPool.syncfile();
-        page.browser().close();
+      });
+      account.cookie = await this.getCookie(page);
+      await page.exposeFunction('onChunk', (text: string) => {
+        const stream = this.streamMap[account.id];
+        if (stream) {
+          stream.write(text);
+        }
+      });
+      await page.exposeFunction('onChunkEnd', () => {
+        const stream = this.streamMap[account.id];
+        if (stream) {
+          stream.end();
+        }
       });
       this.logger.info('register ok');
       return [page, account];
@@ -276,6 +321,10 @@ export class OpenChat extends Chat implements BrowserUser<Account> {
       this.accountPool.syncfile();
       return [] as any;
     }
+  }
+
+  async getCookie(page: Page) {
+    return await page.cookies('https://chat.openai.com');
   }
 
   async getAuth(page: Page): Promise<string> {
@@ -293,6 +342,8 @@ export class OpenChat extends Chat implements BrowserUser<Account> {
     await page.click('.flex > .scrollbar-trigger > .flex > .mb-1 > .flex');
   }
 
+  SLInput = `#prompt-textarea`;
+
   public async askStream(req: PerplexityChatRequest, stream: EventStream) {
     const [page, account, done, destroy] = this.pagePool.get();
     if (!account || !page) {
@@ -301,7 +352,6 @@ export class OpenChat extends Chat implements BrowserUser<Account> {
       stream.end();
       return;
     }
-    this.logger.info(account.email);
     try {
       if (moment().unix() - moment(account.last_use_time).unix() > 5 * 60) {
         this.getAuth(page).then((tk) => {
@@ -310,53 +360,8 @@ export class OpenChat extends Chat implements BrowserUser<Account> {
           this.accountPool.syncfile();
         });
       }
+      const pt = new PassThrough();
       let old = '';
-
-      const body = {
-        action: 'next',
-        messages: [
-          {
-            id: v4(),
-            author: { role: 'user' },
-            content: { content_type: 'text', parts: [req.prompt] },
-            metadata: {},
-          },
-        ],
-        parent_message_id: v4(),
-        model: 'text-davinci-002-render-sha',
-        timezone_offset_min: -480,
-        suggestions: [],
-        history_and_training_disabled: false,
-        arkose_token: null,
-      };
-
-      const pt = await this.client.fetch(
-        'https://chat.openai.com/backend-api/conversation',
-        {
-          headers: {
-            accept: 'text/event-stream',
-            'accept-language': 'en-US',
-            authorization: `Bearer ${account.accessToken}`,
-            'cache-control': 'no-cache',
-            'content-type': 'application/json',
-            pragma: 'no-cache',
-            'sec-ch-ua':
-              '"Chromium";v="116", "Not)A;Brand";v="24", "Google Chrome";v="116"',
-            'sec-ch-ua-mobile': '?0',
-            'sec-ch-ua-platform': '"Windows"',
-            'sec-fetch-dest': 'empty',
-            'sec-fetch-mode': 'cors',
-            'sec-fetch-site': 'same-origin',
-          },
-          referrer:
-            'https://chat.openai.com/?model=text-davinci-002-render-sha',
-          referrerPolicy: 'same-origin',
-          body: JSON.stringify(body),
-          method: 'POST',
-          mode: 'cors',
-          credentials: 'include',
-        },
-      );
       pt.pipe(es.split(/\r?\n\r?\n/)).pipe(
         es.map(async (chunk: any, cb: any) => {
           const dataStr = chunk.replace('data: ', '');
@@ -387,14 +392,97 @@ export class OpenChat extends Chat implements BrowserUser<Account> {
       pt.on('close', () => {
         stream.write(Event.done, { content: '' });
         stream.end();
-        done(account);
+        delete this.streamMap[account.id];
       });
-      pt.on('error', (e) => {
-        this.logger.error(e);
-        stream.write(Event.error, { error: e.message });
-        stream.end();
-        done(account);
-      });
+      this.streamMap[account.id] = pt;
+      await page.evaluate(
+        (tk, prompt, arg1, arg2) => {
+          const body = {
+            action: 'next',
+            messages: [
+              {
+                id: arg1,
+                author: { role: 'user' },
+                content: { content_type: 'text', parts: [prompt] },
+                metadata: {},
+              },
+            ],
+            parent_message_id: arg2,
+            model: 'text-davinci-002-render-sha',
+            timezone_offset_min: -480,
+            suggestions: [
+              'Compare design principles for mobile apps and desktop software in a concise table',
+              'Come up with 5 concepts for a retro-style arcade game.',
+              'Design a database schema for an online merch store.',
+              "What can I do in Paris for 5 days, if I'm especially interested in fashion?",
+            ],
+            history_and_training_disabled: false,
+            arkose_token: null,
+          };
+          return new Promise((resolve, reject) => {
+            fetch('https://chat.openai.com/backend-api/conversation', {
+              headers: {
+                accept: 'text/event-stream',
+                'accept-language': 'en-US',
+                authorization: `Bearer ${tk}`,
+                'cache-control': 'no-cache',
+                'content-type': 'application/json',
+                pragma: 'no-cache',
+                'sec-ch-ua':
+                  '"Chromium";v="116", "Not)A;Brand";v="24", "Google Chrome";v="116"',
+                'sec-ch-ua-mobile': '?0',
+                'sec-ch-ua-platform': '"Windows"',
+                'sec-fetch-dest': 'empty',
+                'sec-fetch-mode': 'cors',
+                'sec-fetch-site': 'same-origin',
+              },
+              referrer:
+                'https://chat.openai.com/?model=text-davinci-002-render-sha',
+              referrerPolicy: 'same-origin',
+              body: JSON.stringify(body),
+              method: 'POST',
+              mode: 'cors',
+              credentials: 'include',
+            })
+              .then((response) => {
+                if (!response.body) {
+                  resolve(null);
+                  return null;
+                }
+                const reader = response.body.getReader();
+                function readNextChunk() {
+                  reader
+                    .read()
+                    .then(({ done, value }) => {
+                      const textChunk = new TextDecoder('utf-8').decode(value);
+                      if (done) {
+                        // @ts-ignore
+                        window.onChunkEnd();
+                        // @ts-ignore
+                        resolve(textChunk);
+                        return;
+                      }
+                      // @ts-ignore
+                      window.onChunk(textChunk);
+                      readNextChunk();
+                    })
+                    .catch((err) => {
+                      reject(err);
+                    });
+                }
+                readNextChunk();
+              })
+              .catch((err) => {
+                reject(err);
+              });
+          });
+        },
+        account.accessToken,
+        req.prompt,
+        v4(),
+        v4(),
+      );
+      done(account);
     } catch (e: any) {
       this.logger.error(e);
       done(account);
