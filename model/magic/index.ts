@@ -6,7 +6,7 @@ import {
   ModelType,
 } from '../base';
 import { Browser, Page } from 'puppeteer';
-import { BrowserPool, BrowserUser } from '../../pool/puppeteer';
+import { BrowserPool, BrowserUser } from '../../utils/puppeteer';
 import * as fs from 'fs';
 import {
   DoneData,

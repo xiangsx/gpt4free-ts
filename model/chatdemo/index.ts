@@ -1,32 +1,16 @@
-import {
-  Chat,
-  ChatOptions,
-  ChatRequest,
-  ChatResponse,
-  ModelType,
-} from '../base';
+import { Chat, ChatOptions, ChatRequest, ModelType } from '../base';
 import { Browser, Page, Protocol } from 'puppeteer';
-import { BrowserPool, BrowserUser } from '../../pool/puppeteer';
-import {
-  CreateEmail,
-  TempEmailType,
-  TempMailMessage,
-} from '../../utils/emailFactory';
+import { BrowserPool, BrowserUser } from '../../utils/puppeteer';
 import * as fs from 'fs';
 import {
-  DoneData,
-  ErrorData,
   Event,
   EventStream,
-  MessageData,
   parseJSON,
-  randomStr,
   randomUserAgent,
   sleep,
 } from '../../utils';
 import { v4 } from 'uuid';
 import moment from 'moment';
-import TurndownService from 'turndown';
 import { AxiosInstance, AxiosRequestConfig } from 'axios';
 import es from 'event-stream';
 import { CreateAxiosProxy } from '../../utils/proxyAgent';

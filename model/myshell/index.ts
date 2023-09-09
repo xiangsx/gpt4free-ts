@@ -6,7 +6,7 @@ import {
   ModelType,
 } from '../base';
 import { Browser, Page, Protocol } from 'puppeteer';
-import { BrowserPool, BrowserUser, simplifyPage } from '../../pool/puppeteer';
+import { BrowserPool, BrowserUser, simplifyPage } from '../../utils/puppeteer';
 import {
   DoneData,
   ErrorData,

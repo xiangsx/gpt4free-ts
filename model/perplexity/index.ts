@@ -11,7 +11,7 @@ import {
   BrowserUser,
   PrepareOptions,
   simplifyPage,
-} from '../../pool/puppeteer';
+} from '../../utils/puppeteer';
 import {
   DoneData,
   ErrorData,

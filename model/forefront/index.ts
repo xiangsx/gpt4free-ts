@@ -6,7 +6,11 @@ import {
   ModelType,
 } from '../base';
 import { Browser, Page, Protocol } from 'puppeteer';
-import { BrowserPool, BrowserUser, PrepareOptions } from '../../pool/puppeteer';
+import {
+  BrowserPool,
+  BrowserUser,
+  PrepareOptions,
+} from '../../utils/puppeteer';
 import {
   CreateEmail,
   TempEmailType,

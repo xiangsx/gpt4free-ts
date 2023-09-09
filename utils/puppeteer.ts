@@ -1,7 +1,7 @@
 import normalPPT, { Browser, Page, PuppeteerLaunchOptions } from 'puppeteer';
 import * as fs from 'fs';
-import { ComError, shuffleArray, sleep } from '../utils';
-import { launchChromeAndFetchWsUrl } from '../utils/proxyAgent';
+import { ComError, shuffleArray, sleep } from './index';
+import { launchChromeAndFetchWsUrl } from './proxyAgent';
 
 const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');

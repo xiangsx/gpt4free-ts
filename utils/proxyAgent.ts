@@ -9,7 +9,7 @@ import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import { spawn } from 'child_process';
 import WebSocket from 'ws';
 import moment from 'moment';
-import { closeOtherPages } from '../pool/puppeteer';
+import { closeOtherPages } from './puppeteer';
 import { v4 } from 'uuid';
 import { PassThrough } from 'stream';
 

@@ -6,7 +6,7 @@ import {
   ModelType,
 } from '../base';
 import { Browser, EventEmitter, Page } from 'puppeteer';
-import { BrowserPool, BrowserUser, simplifyPage } from '../../pool/puppeteer';
+import { BrowserPool, BrowserUser, simplifyPage } from '../../utils/puppeteer';
 import {
   ComError,
   DoneData,

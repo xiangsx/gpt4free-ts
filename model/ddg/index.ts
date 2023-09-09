@@ -4,7 +4,7 @@ import puppeteer from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import { CreateNewBrowser } from '../../utils/proxyAgent';
 import { Browser } from 'puppeteer';
-import { simplifyPageAll } from '../../pool/puppeteer';
+import { simplifyPageAll } from '../../utils/puppeteer';
 
 puppeteer.use(StealthPlugin());
 

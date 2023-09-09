@@ -8,7 +8,6 @@ import {
 } from '../utils';
 import winston from 'winston';
 import { newLogger } from '../utils/log';
-import { AcyToo } from './acytoo';
 
 export interface ChatOptions {
   name: Site;
