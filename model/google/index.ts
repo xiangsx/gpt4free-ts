@@ -42,7 +42,7 @@ export class Google extends Chat {
     const page = await this.newPage();
     try {
       await page.goto(
-        `https://www.google.com.hk/search?q=${req.prompt}+&hl=zh-CN`,
+        `https://www.google.com/search?q=${req.prompt}+&hl=zh-CN`,
         { waitUntil: 'domcontentloaded' },
       );
       await page.waitForSelector('.g');
