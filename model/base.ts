@@ -92,6 +92,7 @@ export enum Site {
   Google = 'google',
   WWW = 'www',
   Bing = 'bing',
+  DDG = 'ddg',
 }
 
 export interface ChatRequest {
