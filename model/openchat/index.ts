@@ -315,7 +315,7 @@ export class OpenChat extends Chat implements BrowserUser<Account> {
           stream.end();
         }
       });
-      this.logger.info('register ok');
+      this.logger.info('init ok');
       return [page, account];
     } catch (e: any) {
       this.logger.warn(`account:${account?.id}, something error happened.`, e);
