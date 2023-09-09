@@ -16,6 +16,7 @@ export class Google extends Chat {
 
   async init() {
     this.browser = await CreateNewBrowser();
+    this.logger.info('init ok');
   }
 
   async newPage() {
@@ -37,7 +38,6 @@ export class Google extends Chat {
   async askStream(req: ChatRequest, stream: EventStream): Promise<void> {
     if (!this.browser) {
       await this.init();
-      this.logger.info('init ok');
     }
     const page = await this.newPage();
     try {
@@ -76,6 +76,8 @@ export class Google extends Chat {
     } catch (e: any) {
       this.logger.error('ask stream failed', e);
       stream.write(Event.error, { error: e.message });
+      await this.browser?.close();
+      await this.init();
     } finally {
       stream.write(Event.done, { content: '' });
       stream.end();
