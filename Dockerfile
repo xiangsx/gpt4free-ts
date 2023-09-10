@@ -10,12 +10,13 @@ RUN npm i --registry=https://registry.npm.taobao.org
 
 COPY --chown=pptruser . /usr/src/build
 
-RUN npm run build
+RUN npm run build && \
+    find ./dist -name "*.js" -exec npx terser {} -o {} \; && \
+    mkdir -p /usr/src/app && \
+    cp -r ./dist/* /usr/src/app/ && \
+    cp -r ./node_modules /usr/src/app/ && \
+    rm -rf /usr/src/build
 
-RUN mkdir /usr/src/app/
-RUN cp ./dist/* /usr/src/app/ -r
-RUN cp ./node_modules /usr/src/app/ -r
-RUN rm /usr/src/build -rf
 WORKDIR /usr/src/app
 
 VOLUME [ "/usr/src/app/run" ]

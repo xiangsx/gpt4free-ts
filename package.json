@@ -16,6 +16,7 @@
   "license": "ISC",
   "devDependencies": {
     "@types/axios": "^0.14.0",
+    "@types/chrome-remote-interface": "^0.31.10",
     "@types/event-stream": "^4.0.0",
     "@types/koa": "^2.13.6",
     "@types/koa-bodyparser": "^4.3.10",
@@ -25,6 +26,11 @@
     "@types/string-similarity": "^4.0.0",
     "@types/turndown": "^5.0.1",
     "@types/uuid": "^9.0.1",
+    "@types/ws": "^8.5.5",
+    "prettier": "^2.7.1",
+    "prettier-plugin-organize-imports": "^2",
+    "prettier-plugin-packagejson": "^2",
+    "terser": "^5.19.2",
     "ts-node": "^10.9.1",
     "typescript": "^5.0.4"
   },
@@ -32,11 +38,14 @@
     "@dqbd/tiktoken": "^1.0.7",
     "@koa/cors": "^4.0.0",
     "axios": "^1.4.0",
+    "chalk": "^4.1.2",
+    "chrome-remote-interface": "^0.33.0",
     "dotenv": "^16.0.3",
     "event-stream": "^4.0.1",
     "fake-useragent": "^1.0.1",
     "http-proxy-agent": "^6.0.1",
     "https-proxy-agent": "^5.0.1",
+    "js-tiktoken": "^1.0.7",
     "koa": "^2.14.2",
     "koa-bodyparser": "^4.4.0",
     "koa-router": "^12.0.0",
@@ -48,6 +57,8 @@
     "tls-client": "^0.0.5",
     "turndown": "^7.1.2",
     "user-agents": "^1.0.1367",
-    "uuid": "^9.0.0"
+    "uuid": "^9.0.0",
+    "winston": "^3.10.0",
+    "ws": "^8.13.0"
   }
 }
