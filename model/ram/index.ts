@@ -1,11 +1,21 @@
-import { Chat, ChatOptions, ChatRequest, ModelType } from '../base';
+import {
+  Chat,
+  ChatOptions,
+  ChatRequest,
+  ChatResponse,
+  ModelType,
+} from '../base';
 import { Browser, Page, Protocol } from 'puppeteer';
 import { BrowserPool, BrowserUser } from '../../utils/puppeteer';
 import * as fs from 'fs';
 import {
+  DoneData,
+  ErrorData,
   Event,
   EventStream,
+  MessageData,
   parseJSON,
+  randomStr,
   randomUserAgent,
   sleep,
 } from '../../utils';
@@ -25,20 +35,43 @@ type Account = {
   last_use_time?: string;
   password?: string;
   cookie: Protocol.Network.Cookie[];
-  token: string;
   useTimes: number;
 };
 
 interface RealReq {
-  question: string;
-  chat_id: string;
-  timestamp: number;
-  token: string;
+  api_key: string;
+  conversation_id: string;
+  action: string;
+  model: string;
+  jailbreak: string;
+  meta: Meta;
 }
 
-class AccountPool {
+interface Meta {
+  id: string;
+  content: Content;
+}
+
+interface Content {
+  conversation: ConversationItem[];
+  internet_access: boolean;
+  content_type: string;
+  parts: Part[];
+}
+
+interface ConversationItem {
+  role: string;
+  content: string;
+}
+
+interface Part {
+  content: string;
+  role: string;
+}
+
+class RamAccountPool {
   private pool: Account[] = [];
-  private readonly account_file_path = './run/account_demochat.json';
+  private readonly account_file_path = './run/account_ram.json';
   private using = new Set<string>();
 
   constructor() {
@@ -90,7 +123,6 @@ class AccountPool {
       last_use_time: now.format(TimeFormat),
       cookie: [],
       useTimes: 0,
-      token: '',
     };
     this.pool.push(newAccount);
     this.syncfile();
@@ -107,39 +139,37 @@ class AccountPool {
   }
 }
 
-export class ChatDemo extends Chat implements BrowserUser<Account> {
+export class Ram extends Chat implements BrowserUser<Account> {
   private pagePool: BrowserPool<Account>;
-  private accountPool: AccountPool;
+  private accountPool: RamAccountPool;
   private client: AxiosInstance;
   private useragent: string = randomUserAgent();
 
   constructor(options?: ChatOptions) {
     super(options);
-    this.accountPool = new AccountPool();
-    let maxSize = +(process.env.DEMOCHAT_POOL_SIZE || 0);
+    this.accountPool = new RamAccountPool();
+    let maxSize = +(process.env.RAM_POOL_SIZE || 0);
     this.pagePool = new BrowserPool<Account>(maxSize, this, false);
     this.client = CreateAxiosProxy(
       {
-        baseURL: 'https://chat.chatgptdemo.net',
+        baseURL: 'https://chat.ramxn.dev/backend-api',
         headers: {
           'Content-Type': 'application/json',
-          accept: 'text/event-stream',
+          Accept: 'text/event-stream',
+          Origin: 'https://chat.ramxn.dev',
+          Referer: 'https://chat.ramxn.dev',
           'Cache-Control': 'no-cache',
-          'Proxy-Connection': 'keep-alive',
-          Referer: 'https://chat.chatgptdemo.net/',
-          Origin: 'https://chat.chatgptdemo.net',
+          'User-Agent': this.useragent,
         },
       } as CreateAxiosDefaults,
-      true,
+      false,
     );
   }
 
   support(model: ModelType): number {
     switch (model) {
-      case ModelType.GPT3p5Turbo:
-        return 3000;
       case ModelType.GPT3p5_16k:
-        return 3000;
+        return 11000;
       default:
         return 0;
     }
@@ -166,62 +196,20 @@ export class ChatDemo extends Chat implements BrowserUser<Account> {
       const [page] = await browser.pages();
       await page.setUserAgent(this.useragent);
 
-      await page.goto('https://chat.chatgptdemo.net/');
-      await sleep(2000);
-      account.cookie = await page.cookies('https://chat.chatgptdemo.net');
+      await page.goto('https://chat.ramxn.dev/chat/');
+      await sleep(10000);
+      account.cookie = await page.cookies('https://chat.ramxn.dev');
       if (account.cookie.length === 0) {
-        throw new Error('demochat got cookie failed');
+        throw new Error('ram got cookie failed');
       }
-      await this.closePOP(page);
-      account.token = await this.getToken(page);
       this.accountPool.syncfile();
-      this.logger.info('register demochat successfully');
+      setTimeout(() => browser.close().catch(), 1000);
+      console.log('register ram successfully');
       return [page, account];
     } catch (e: any) {
-      this.logger.warn('something error happened,err:', e.message);
+      console.warn('something error happened,err:', e);
       return [] as any;
     }
-  }
-
-  public async closePOP(page: Page) {
-    await page.evaluate(
-      () =>
-        // @ts-ignore
-        (document.querySelector(
-          '#ADS-block-detect > div.ads-block-popup',
-          // @ts-ignore
-        ).style.display = 'none'),
-    );
-    // @ts-ignore
-    await page.evaluate(
-      () =>
-        // @ts-ignore
-        (document.querySelector(
-          '#ADS-block-detect > div.overlay',
-          // @ts-ignore
-        ).style.display = 'none'),
-    );
-  }
-
-  public async getToken(page: Page) {
-    // @ts-ignore
-    const token: string = await page.evaluate(() => $('#TTT').text());
-    return token;
-  }
-
-  public async getChatID(page: Page) {
-    const chatid: string = await page.evaluate(() =>
-      // @ts-ignore
-      $('.chatbox-item.focused').attr('id'),
-    );
-    return chatid;
-  }
-
-  public async newChat(page: Page) {
-    await page.waitForSelector(
-      '.app > #main-menu > .main > .button-container > .button',
-    );
-    await page.click('.app > #main-menu > .main > .button-container > .button');
   }
 
   public async askStream(req: ChatRequest, stream: EventStream) {
@@ -232,15 +220,25 @@ export class ChatDemo extends Chat implements BrowserUser<Account> {
       return;
     }
     const data: RealReq = {
-      question: req.prompt,
-      chat_id: await this.getChatID(page),
-      timestamp: moment().valueOf(),
-      token: account.token,
+      api_key: '',
+      action: 'ask',
+      conversation_id: v4(),
+      jailbreak: 'default',
+      meta: {
+        id: randomStr(15),
+        content: {
+          content_type: 'ask',
+          conversation: req.messages.slice(0, req.messages.length - 1),
+          internet_access: false,
+          parts: [req.messages[req.messages.length - 1]],
+        },
+      },
+      model: req.model,
     };
     try {
       account.useTimes += 1;
       this.accountPool.syncfile();
-      const res = await this.client.post('/chat_api_stream', data, {
+      const res = await this.client.post('/v2/conversation', data, {
         responseType: 'stream',
         headers: {
           Cookie: account.cookie
@@ -248,41 +246,28 @@ export class ChatDemo extends Chat implements BrowserUser<Account> {
             .join('; '),
         },
       } as AxiosRequestConfig);
-      res.data.pipe(es.split(/\r?\n\r?\n/)).pipe(
+      res.data.pipe(
         es.map(async (chunk: any, cb: any) => {
-          const dataStr = chunk.replace('data: ', '');
-          if (!dataStr) {
+          const res = chunk.toString();
+          if (!res) {
             return;
           }
-          const data = parseJSON(dataStr, {} as any);
-          if (!data?.choices) {
-            stream.write(Event.error, { error: 'not found data.choices' });
-            stream.end();
-            return;
-          }
-          const [
-            {
-              delta: { content = '' },
-              finish_reason,
-            },
-          ] = data.choices;
-          if (finish_reason === 'stop') {
-            return;
-          }
-          stream.write(Event.message, { content });
+          stream.write(Event.message, { content: res || '' });
         }),
       );
       res.data.on('close', () => {
         stream.write(Event.done, { content: '' });
         stream.end();
-        this.newChat(page);
-        done(account);
+        if (account.useTimes >= 500) {
+          destroy();
+        } else {
+          done(account);
+        }
       });
     } catch (e: any) {
-      this.logger.error('demochat ask stream failed, err', e.message);
+      console.error('ram ask stream failed, err', e);
       stream.write(Event.error, { error: e.message });
       stream.end();
-      await this.newChat(page);
       destroy(true);
     }
   }

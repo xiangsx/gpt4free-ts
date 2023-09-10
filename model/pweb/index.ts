@@ -14,33 +14,35 @@ import {
   EventStream,
   MessageData,
   parseJSON,
+  randomUserAgent,
 } from '../../utils';
-
-interface Message {
-  role: string;
-  content: string;
-}
+//@ts-ignore
 
 interface RealReq {
-  messages: Message[];
-  stream: boolean;
-  model: string;
+  prompt: string;
+  options: any;
+  systemMessage: string;
   temperature: number;
-  presence_penalty: number;
+  top_p: number;
+  model: string;
+  user: string | null;
 }
 
-export class Mcbbs extends Chat {
+export class PWeb extends Chat {
   private client: AxiosInstance;
 
   constructor(options?: ChatOptions) {
     super(options);
     this.client = CreateAxiosProxy({
-      baseURL: 'https://ai.88lin.eu.org/api',
+      baseURL: 'https://p.v50.ltd/api/',
       headers: {
+        Accept: 'application/json, text/plain, */*',
+        'Accept-Encoding': 'gzip, deflate, br',
+        Pragma: 'no-cache',
         'Content-Type': 'application/json',
-        accept: 'text/event-stream',
         'Cache-Control': 'no-cache',
         'Proxy-Connection': 'keep-alive',
+        'User-Agent': randomUserAgent(),
       },
     } as CreateAxiosDefaults);
   }
@@ -48,9 +50,9 @@ export class Mcbbs extends Chat {
   support(model: ModelType): number {
     switch (model) {
       case ModelType.GPT3p5Turbo:
-        return 4000;
+        return 2500;
       case ModelType.GPT3p5_16k:
-        return 15000;
+        return 10000;
       default:
         return 0;
     }
@@ -58,42 +60,32 @@ export class Mcbbs extends Chat {
 
   public async askStream(req: ChatRequest, stream: EventStream) {
     const data: RealReq = {
-      stream: true,
-      messages: [{ role: 'user', content: req.prompt }],
+      model: req.model,
+      prompt: req.prompt,
+      options: {},
+      systemMessage:
+        "You are ChatGPT, a large language model trained by OpenAI. Follow the user's instructions carefully. Respond using markdown.",
       temperature: 1,
-      presence_penalty: 2,
-      model: 'gpt-3.5-turbo',
+      top_p: 1,
+      user: null,
     };
     try {
-      const res = await this.client.post('/openai/v1/chat/completions', data, {
+      const res = await this.client.post('/chat-process', data, {
         responseType: 'stream',
       } as AxiosRequestConfig);
-      res.data.pipe(es.split(/\r?\n\r?\n/)).pipe(
-        es.map(async (chunk: any, cb: any) => {
-          const dataStr = chunk.replace('data: ', '');
-          if (dataStr === '[DONE]') {
-            stream.write(Event.done, { content: '' });
-            return;
-          }
-          const data = parseJSON(dataStr, {} as any);
-          if (!data?.choices) {
-            cb(null, '');
-            return;
-          }
-          const [
-            {
-              delta: { content = '' },
-            },
-          ] = data.choices;
-          stream.write(Event.message, { content });
+      res.data.pipe(
+        es.map((chunk: any, cb: any) => {
+          stream.write(Event.message, { content: chunk.toString() });
         }),
       );
       res.data.on('close', () => {
+        stream.write(Event.done, { content: '' });
         stream.end();
       });
     } catch (e: any) {
       console.error(e.message);
       stream.write(Event.error, { error: e.message });
+      stream.end();
     }
   }
 }
