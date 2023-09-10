@@ -174,7 +174,7 @@ export class OpenPrompt extends Chat implements BrowserUser<Account> {
       if (account.cookie?.length > 0) {
         await page.setCookie(...account.cookie);
         await page.goto('https://openprompt.co/');
-        if (await OpenPrompt.ifLogin(page)) {
+        if (await this.ifLogin(page)) {
           setTimeout(() => browser.close().catch(), 1000);
           return [page, account];
         }
@@ -232,27 +232,27 @@ export class OpenPrompt extends Chat implements BrowserUser<Account> {
       await page.goto(validateURL);
       await sleep(3000);
       await page.reload();
-      const ok = await OpenPrompt.ifLogin(page);
+      const ok = await this.ifLogin(page);
       if (!ok) {
         throw new Error('openprompt login failed');
       }
       account.cookie = await page.cookies('https://openprompt.co/');
       this.accountPool.syncfile();
       setTimeout(() => browser.close().catch(), 1000);
-      console.log('register openprompt successfully');
+      this.logger.info('register openprompt successfully');
       return [page, account];
     } catch (e: any) {
-      console.warn('something error happened,err:', e);
+      this.logger.warn('something error happened,err:', e);
       return [] as any;
     }
   }
 
-  public static async ifLogin(page: Page): Promise<boolean> {
+  public async ifLogin(page: Page): Promise<boolean> {
     try {
       await page.waitForSelector('.relative > div > * > .inline-flex > .w-6', {
         timeout: 10 * 1000,
       });
-      console.log('still login in');
+      this.logger.info('still login in');
       return true;
     } catch (e: any) {
       return false;
@@ -300,7 +300,7 @@ export class OpenPrompt extends Chat implements BrowserUser<Account> {
         }
       });
     } catch (e: any) {
-      console.error('openprompt ask stream failed, err', e.message);
+      this.logger.error('openprompt ask stream failed, err', e.message);
       stream.write(Event.error, { error: e.message });
       stream.end();
       done(account);
