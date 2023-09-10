@@ -17,6 +17,8 @@ Still striving to keep updating.
 Have implemented models here:
 If you do not want your website to appear here, please raise an issue and I will remove it immediately. Unfortunately, most of the sites here are no longer available.
 
+***Update At 2023-09-10***
+
 | Site     | Models                                            |
 |----------|---------------------------------------------------|
 | you      | gpt-3.5-turbo                                     |
