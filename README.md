@@ -15,18 +15,43 @@ I suggest you fork this project first. Some websites may go offline at any time.
 Still striving to keep updating.
 
 Have implemented models here:
-If you do not want your website to appear here, please raise an issue and I will remove it immediately.
-|model|support|status|active time|
-|--|--|--|--|
-|[vita]()|👍gpt3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-06-17|
-|[chatdemo]()|👍gpt3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-06-17|
-|[you.com](https://you.com)|👍GPT-3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-06-17
-|[phind.com](https://www.phind.com/)|Gpt3.5/ Internet / good search|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-06-17
-|[forefront.ai](https://chat.forefront.ai)|GPT-4/gpt3.5|![Active](https://img.shields.io/badge/Active-lightgrey)||
-|[bing.com/chat](https://bing.com/chat)|GPT-4/3.5||
-|[poe.com](https://poe.com)| GPT-4/3.5||
-|[writesonic.com](https://writesonic.com)| GPT-3.5 / Internet||
-|[t3nsor.com](https://t3nsor.com)|GPT-3.5||
+If you do not want your website to appear here, please raise an issue and I will remove it immediately. Unfortunately, most of the sites here are no longer available.
+
+| Site     | Models                                            |
+|----------|---------------------------------------------------|
+| you      | gpt-3.5-turbo                                     |
+| phind    | net-gpt-3.5-turbo                                 |
+| forefront| gpt-3.5-turbo, claude                             |
+| mcbbs    | gpt-3.5-turbo, gpt-3.5-turbo-16k                  |
+| chatdemo | gpt-3.5-turbo, gpt-3.5-turbo-16k                  |
+| vita     | gpt-3.5-turbo                                     |
+| skailar  | gpt-4                                             |
+| fakeopen | gpt-3.5-turbo, gpt-3.5-turbo-16k, gpt-4           |
+| easychat | gpt-4                                             |
+| better   | gpt-3.5-turbo, gpt-3.5-turbo-16k, gpt-4           |
+| pweb     | gpt-3.5-turbo, gpt-3.5-turbo-16k                  |
+| bai      | gpt-3.5-turbo                                     |
+| gra      | gpt-3.5-turbo, gpt-3.5-turbo-16k                  |
+| magic    | gpt-3.5-turbo, gpt-4, claude-instance, claude, claude-100k  |
+| chim     | gpt-3.5-turbo, gpt-3.5-turbo-16k, gpt-4           |
+| ram      | gpt-3.5-turbo-16k                                 |
+| chur     | gpt-3.5-turbo, gpt-3.5-turbo-16k                  |
+| xun      | gpt-3.5-turbo, gpt-3.5-turbo-16k                  |
+| vvm      | gpt-3.5-turbo, gpt-3.5-turbo-16k, gpt-4           |
+| poef     |                                                   |
+| claude   | claude-2-100k                                     |
+| cursor   | gpt-3.5-turbo, gpt-4                              |
+| chatbase | gpt-3.5-turbo                                     |
+| ails     | gpt-3.5-turbo                                     |
+| sincode  | gpt-3.5-turbo, gpt-4                              |
+| openai   | too much                              |
+| jasper   | gpt-3.5-turbo, gpt-4                              |
+| pap      |                                                   |
+| myshell  | gpt-3.5-turbo, gpt-4                              |
+| acytoo   | gpt-3.5-turbo                                     |
+| google   | search                                            |
+| www      | url                                               |
+| ddg      | search                                            |
 
 ## 🏃‍♂️ Run
 
@@ -115,52 +140,7 @@ query supports site and models with api `127.0.0.1:3000/supports`
       "gpt-3.5-turbo"
     ]
   },
-  {
-    "site": "phind",
-    "models": [
-      "net-gpt3.5-turbo"
-    ]
-  },
-  {
-    "site": "mcbbs",
-    "models": [
-      "gpt-3.5-turbo",
-      "gpt-3.5-turbo-16k"
-    ]
-  },
-  {
-    "site": "chatdemo",
-    "models": [
-      "gpt-3.5-turbo"
-    ]
-  },
-  {
-    "site": "vita",
-    "models": [
-      "gpt-3.5-turbo"
-    ]
-  },
-  {
-    "site": "fakeopen",
-    "models": [
-      "gpt-3.5-turbo-16k"
-    ]
-  },
-  {
-    "site": "better",
-    "models": [
-      "gpt-3.5-turbo",
-      "gpt-3.5-turbo-16k",
-      "gpt-4"
-    ]
-  },
-  {
-    "site": "xun",
-    "models": [
-      "gpt-3.5-turbo",
-      "gpt-3.5-turbo-16k"
-    ]
-  }
+  ...
 ]
 ```
 
