@@ -10,7 +10,7 @@ import winston from 'winston';
 import { newLogger } from '../utils/log';
 
 export interface ChatOptions {
-  name: Site;
+  name: string;
 }
 
 export interface ChatResponse {

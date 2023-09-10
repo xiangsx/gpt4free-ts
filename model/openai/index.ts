@@ -1,22 +1,8 @@
-import {
-  Chat,
-  ChatOptions,
-  ChatRequest,
-  ChatResponse,
-  ModelType,
-} from '../base';
+import { Chat, ChatOptions, ChatRequest, ModelType } from '../base';
 import { AxiosInstance, AxiosRequestConfig, CreateAxiosDefaults } from 'axios';
 import { CreateAxiosProxy } from '../../utils/proxyAgent';
 import es from 'event-stream';
-import {
-  ErrorData,
-  Event,
-  EventStream,
-  getRandomOne,
-  MessageData,
-  parseJSON,
-} from '../../utils';
-import { getRandomValues } from 'crypto';
+import { Event, EventStream, parseJSON } from '../../utils';
 
 interface Message {
   role: string;
@@ -30,39 +16,35 @@ interface RealReq {
   model: string;
 }
 
+interface OpenAIChatOptions extends ChatOptions {
+  base_url?: string;
+  api_key?: string;
+  proxy?: boolean;
+}
+
 export class OpenAI extends Chat {
   private client: AxiosInstance;
 
-  constructor(options?: ChatOptions) {
+  constructor(options?: OpenAIChatOptions) {
     super(options);
     this.client = CreateAxiosProxy(
       {
-        baseURL: ' https://api.openai.com/v1/',
+        baseURL: options?.base_url || 'https://api.openai.com/',
         headers: {
           'Content-Type': 'application/json',
           accept: 'text/event-stream',
           'Cache-Control': 'no-cache',
           'Proxy-Connection': 'keep-alive',
+          Authorization: `Bearer ${options?.api_key || ''}`,
         },
       } as CreateAxiosDefaults,
       false,
+      !!options?.proxy,
     );
   }
 
   support(model: ModelType): number {
-    switch (model) {
-      case ModelType.GPT3p5Turbo:
-        return 3000;
-      case ModelType.GPT3p5_16k:
-        return 10000;
-      default:
-        return 0;
-    }
-  }
-
-  getRandomKey() {
-    const keys: string[] = process.env.OPENAI_KEY?.split?.('|') || [];
-    return getRandomOne(keys);
+    return Number.MAX_SAFE_INTEGER;
   }
 
   public async askStream(req: ChatRequest, stream: EventStream) {
@@ -73,10 +55,7 @@ export class OpenAI extends Chat {
       stream: true,
     };
     try {
-      const res = await this.client.post('/chat/completions', data, {
-        headers: {
-          Authorization: `Bearer ${this.getRandomKey()}`,
-        },
+      const res = await this.client.post('/v1/chat/completions', data, {
         responseType: 'stream',
       } as AxiosRequestConfig);
       res.data.pipe(es.split(/\r?\n\r?\n/)).pipe(

@@ -34,8 +34,8 @@ export function CreateAxiosProxy(
   const { retry = true } = options || {};
   const createConfig = { ...config };
   const useProxy = proxy ? process.env.http_proxy : '';
+  createConfig.proxy = false;
   if (useProxy) {
-    createConfig.proxy = false;
     createConfig.httpAgent = HttpsProxyAgent(useProxy);
     createConfig.httpsAgent = HttpsProxyAgent(useProxy);
   }

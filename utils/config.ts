@@ -1,12 +1,20 @@
 import { existsSync, readFileSync, watch } from 'fs';
 import { ModelType, Site } from '../model/base';
 
+export type SiteCfg = {
+  site: Site;
+  priority: number;
+  base_url?: string;
+  api_key?: string;
+  label?: string;
+  proxy?: boolean;
+};
 // 首先定义配置的数据类型
 interface ConfigData {
   perplexity: {
     cf_debug: boolean;
   };
-  site_map: Partial<Record<ModelType, { site: Site; priority: number }[]>>;
+  site_map: Partial<Record<ModelType, SiteCfg[]>>;
   one_api: {
     base_url: string;
     api_key: string;
