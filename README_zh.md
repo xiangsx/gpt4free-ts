@@ -269,6 +269,12 @@ docker run -p 3000:3000 --env-file .env xiangsx/gpt4free-ts:latest
 docker-compose up --build -d
 ```
 
+### 一站式整合clash+one-api+gpt4free-ts 无脑一键启动 😮
+
+该项目整合了onapi(开箱即用的api售卖平台) + clash(项目运行所需代理) + upma(项目监控) + gpt4free-ts(项目本体)
+
+[gpt4free-ts-deploy](https://github.com/xiangsx/gpt4free-ts-deploy)
+
 ### 使用Sealos详细部署教程 🌐
 
 [详细教程](https://icloudnative.io/posts/completely-free-to-use-gpt4/)
@@ -424,8 +430,8 @@ data: {"content":"done"}
 ```
 ## 👥 加群细聊
 
-<image src="https://github.com/xiangsx/gpt4free-ts/assets/29322721/213d34c6-0640-4f49-b65f-e6178720d8af" width=240 />
-<image src="https://github.com/xiangsx/gpt4free-ts/assets/29322721/5c79b921-f744-4b26-872d-e05436316215" width=240 />
+<image src="https://github.com/xiangsx/gpt4free-ts/assets/29322721/4e14d056-a22e-43f7-972f-daaf2b36077e" width=240 />
+<image src="https://github.com/xiangsx/gpt4free-ts/assets/29322721/da4a08c5-8340-4da1-9f6b-03780d56f5b3" width=240 />
 
 ## 🌟 Star History
 
