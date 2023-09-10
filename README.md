@@ -1,5 +1,5 @@
 <div align="center">
-
+  
 # GPT4Free TypeScript Version 🆓
 ###### Providing a free OpenAI GPT-4 API!
 English | [中文](README_zh.md) | [日本語](README_ja.md)
@@ -78,6 +78,10 @@ deploy
 ```
 docker-compose up --build -d
 ```
+
+### Clash+one-api+gpt4free-ts Start with one command 😮
+
+[gpt4free-ts-deploy](https://github.com/xiangsx/gpt4free-ts-deploy)
 
 ## 🚀 Let's Use GPT4
 
@@ -231,8 +235,8 @@ data: {"content":"done"}
 
 ## 👥 Wechat Group
 
-<image src="https://github.com/xiangsx/gpt4free-ts/assets/29322721/213d34c6-0640-4f49-b65f-e6178720d8af" width=240 />
-<image src="https://github.com/xiangsx/gpt4free-ts/assets/29322721/5c79b921-f744-4b26-872d-e05436316215" width=240 />
+<image src="https://github.com/xiangsx/gpt4free-ts/assets/29322721/4e14d056-a22e-43f7-972f-daaf2b36077e" width=240 />
+<image src="https://github.com/xiangsx/gpt4free-ts/assets/29322721/da4a08c5-8340-4da1-9f6b-03780d56f5b3" width=240 />
 
 ## 🌟 Star History
 
