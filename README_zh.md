@@ -33,192 +33,47 @@
 仍在努力保持更新,使用人数太多， 更新赶不上封的速度
 现不公开部分站点了
 
-<details>
-<summary><strong> ⭐最新站点支持，部分站点未公开，加群获取, 点击展开⭐ </strong></summary>
-
-```json
-  [
-    {
-        "site": "you",
-        "models": [
-            "gpt-3.5-turbo"
-        ]
-    },
-    {
-        "site": "phind",
-        "models": [
-            "net-gpt3.5-turbo"
-        ]
-    },
-    {
-        "site": "forefront",
-        "models": [
-            "gpt-3.5-turbo",
-            "gpt-4",
-            "claude-instance",
-            "claude"
-        ]
-    },
-    {
-        "site": "forefront_net",
-        "models": []
-    },
-    {
-        "site": "mcbbs",
-        "models": [
-            "gpt-3.5-turbo",
-            "gpt-3.5-turbo-16k"
-        ]
-    },
-    {
-        "site": "chatdemo",
-        "models": [
-            "gpt-3.5-turbo"
-        ]
-    },
-    {
-        "site": "vita",
-        "models": [
-            "gpt-3.5-turbo"
-        ]
-    },
-    {
-        "site": "copilot",
-        "models": [
-            "gpt-4"
-        ]
-    },
-    {
-        "site": "skailar",
-        "models": [
-            "gpt-4"
-        ]
-    },
-    {
-        "site": "fakeopen",
-        "models": [
-            "gpt-3.5-turbo-16k"
-        ]
-    },
-    {
-        "site": "easychat",
-        "models": [
-            "gpt-4"
-        ]
-    },
-    {
-        "site": "better",
-        "models": [
-            "gpt-3.5-turbo",
-            "gpt-3.5-turbo-16k",
-            "gpt-4"
-        ]
-    },
-    {
-        "site": "pweb",
-        "models": [
-            "gpt-3.5-turbo",
-            "gpt-4",
-            "claude",
-            "claude-100k"
-        ]
-    },
-    {
-        "site": "bai",
-        "models": []
-    },
-    {
-        "site": "gra",
-        "models": [
-            "gpt-3.5-turbo",
-            "gpt-3.5-turbo-16k"
-        ]
-    },
-    {
-        "site": "magic",
-        "models": [
-            "gpt-3.5-turbo",
-            "gpt-4",
-            "claude-instance",
-            "claude",
-            "claude-100k"
-        ]
-    },
-    {
-        "site": "chim",
-        "models": [
-            "gpt-3.5-turbo",
-            "gpt-3.5-turbo-16k",
-            "gpt-4"
-        ]
-    },
-    {
-        "site": "poe",
-        "models": [
-            "gpt-3.5-turbo",
-            "gpt-3.5-turbo-16k",
-            "gpt-4",
-            "gpt-4-32k",
-            "sage",
-            "claude-instance",
-            "claude",
-            "claude-100k",
-            "claude-2-100k",
-            "gpt4free",
-            "google-palm"
-        ]
-    },
-    {
-        "site": "ram",
-        "models": [
-            "gpt-3.5-turbo",
-            "gpt-3.5-turbo-16k",
-            "gpt-4",
-            "claude-100k",
-            "claude-2-100k"
-        ]
-    },
-    {
-        "site": "chur",
-        "models": [
-            "gpt-3.5-turbo",
-            "gpt-3.5-turbo-16k"
-        ]
-    },
-    {
-        "site": "xun",
-        "models": [
-            "gpt-3.5-turbo",
-            "gpt-3.5-turbo-16k"
-        ]
-    },
-    {
-        "site": "vvm",
-        "models": [
-            "gpt-3.5-turbo",
-            "gpt-3.5-turbo-16k",
-            "gpt-4"
-        ]
-    }
-]
-```
-
-</details>
+⭐最新站点支持，部分站点未公开，加群获取, 点击展开⭐
 
 这里是已经实现转换成api的网站列表以及支持的对话模型，如果你不幸发现你的网站也在其中，请联系我，我会立刻下线
 
-|model|support|status|active time|
-|--|--|--|--|
-|[xun]()|👍gpt-3.5&gpt-3.5-16k|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-06-17|
-|[vita]()|gpt-3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-06-17|
-|[chatdemo]()|gpt3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-06-13|
-|[you.com](https://you.com)|GPT-3.5|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-06-13
-|[phind.com](https://www.phind.com/)|Gpt3.5/ Internet / good search|![Active](https://img.shields.io/badge/Active-brightgreen)|after 2023-06-14
-|[forefront.ai](https://chat.forefront.ai)|GPT-4/gpt3.5|![Active](https://img.shields.io/badge/Active-lightgrey)|after 2023-06-13|
-|[bing.com/chat](https://bing.com/chat)|GPT-4/3.5||
-|[poe.com](https://poe.com)| GPT-4/3.5||
-|[writesonic.com](https://writesonic.com)| GPT-3.5 / Internet||
-|[t3nsor.com](https://t3nsor.com)|GPT-3.5||
+***Update At 2023-09-10***
+
+| Site     | Models                                            |
+|----------|---------------------------------------------------|
+| you      | gpt-3.5-turbo                                     |
+| phind    | net-gpt-3.5-turbo                                 |
+| forefront| gpt-3.5-turbo, claude                             |
+| mcbbs    | gpt-3.5-turbo, gpt-3.5-turbo-16k                  |
+| chatdemo | gpt-3.5-turbo, gpt-3.5-turbo-16k                  |
+| vita     | gpt-3.5-turbo                                     |
+| skailar  | gpt-4                                             |
+| fakeopen | gpt-3.5-turbo, gpt-3.5-turbo-16k, gpt-4           |
+| easychat | gpt-4                                             |
+| better   | gpt-3.5-turbo, gpt-3.5-turbo-16k, gpt-4           |
+| pweb     | gpt-3.5-turbo, gpt-3.5-turbo-16k                  |
+| bai      | gpt-3.5-turbo                                     |
+| gra      | gpt-3.5-turbo, gpt-3.5-turbo-16k                  |
+| magic    | gpt-3.5-turbo, gpt-4, claude-instance, claude, claude-100k  |
+| chim     | gpt-3.5-turbo, gpt-3.5-turbo-16k, gpt-4           |
+| ram      | gpt-3.5-turbo-16k                                 |
+| chur     | gpt-3.5-turbo, gpt-3.5-turbo-16k                  |
+| xun      | gpt-3.5-turbo, gpt-3.5-turbo-16k                  |
+| vvm      | gpt-3.5-turbo, gpt-3.5-turbo-16k, gpt-4           |
+| poef     |                                                   |
+| claude   | claude-2-100k                                     |
+| cursor   | gpt-3.5-turbo, gpt-4                              |
+| chatbase | gpt-3.5-turbo                                     |
+| ails     | gpt-3.5-turbo                                     |
+| sincode  | gpt-3.5-turbo, gpt-4                              |
+| openai   | too much                              |
+| jasper   | gpt-3.5-turbo, gpt-4                              |
+| pap      |                                                   |
+| myshell  | gpt-3.5-turbo, gpt-4                              |
+| acytoo   | gpt-3.5-turbo                                     |
+| google   | search                                            |
+| www      | url                                               |
+| ddg      | search                                            |
 
 ## 🏃‍♂️ 运行
 
