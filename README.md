@@ -49,7 +49,6 @@ If you do not want your website to appear here, please raise an issue and I will
 | openai   | too much                              |
 | jasper   | gpt-3.5-turbo, gpt-4                              |
 | pap      |                                                   |
-| myshell  | gpt-3.5-turbo, gpt-4                              |
 | acytoo   | gpt-3.5-turbo                                     |
 | google   | search                                            |
 | www      | url                                               |

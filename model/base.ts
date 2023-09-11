@@ -80,7 +80,6 @@ export enum Site {
   OneAPI = 'oneapi',
   Jasper = 'jasper',
   Pap = 'pap',
-  MyShell = 'myshell',
   AcyToo = 'acytoo',
   Google = 'google',
   WWW = 'www',
