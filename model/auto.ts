@@ -52,6 +52,7 @@ export class Auto extends Chat {
       rand -= list[i].priority;
       if (rand < 0) {
         v = list[i];
+        break;
       }
     }
     if (!v) {
