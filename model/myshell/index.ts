@@ -262,7 +262,7 @@ export class MyShell extends Chat implements BrowserUser<Account> {
 
         await page.waitForSelector('.chakra-form-control > div > input');
         await page.click('.chakra-form-control > div > input');
-        await page.keyboard.type('e97145', { delay: 10 });
+        await page.keyboard.type('26e86e', { delay: 10 });
 
         await page.waitForSelector('.chakra-form-control > button');
         await page.click('.chakra-form-control > button');
