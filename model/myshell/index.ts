@@ -223,10 +223,10 @@ export class MyShell extends Chat implements BrowserUser<Account> {
         await page.goto('https://app.myshell.ai/');
         // await page.setUserAgent('Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101 Firefox/102.0');
         await page.waitForSelector(
-          '.tw-block > #sidebar > .tw-overflow-hidden > .tw-justify-center > .chakra-button',
+          '.relative > #sidebar > .overflow-hidden > .justify-center > .chakra-button',
         );
         await page.click(
-          '.tw-block > #sidebar > .tw-overflow-hidden > .tw-justify-center > .chakra-button',
+          '.relative > #sidebar > .overflow-hidden > .justify-center > .chakra-button',
         );
 
         await page.waitForSelector(`.chakra-form-control > div`);
