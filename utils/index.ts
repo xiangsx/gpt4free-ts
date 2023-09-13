@@ -448,3 +448,13 @@ export class ComError extends Error {
     this.status = code; // 设置错误代码
   }
 }
+
+export function removeRandomChars(str: string, percentage: number): string {
+  let result = '';
+  for (let i = 0; i < str.length; i++) {
+    if (Math.random() > percentage) {
+      result += str[i];
+    }
+  }
+  return result;
+}

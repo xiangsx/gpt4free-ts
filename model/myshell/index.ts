@@ -186,7 +186,11 @@ export class MyShell extends Chat implements BrowserUser<Account> {
   }
 
   async preHandle(req: ChatRequest): Promise<ChatRequest> {
-    return super.preHandle(req, { token: true, countPrompt: true });
+    return super.preHandle(req, {
+      token: true,
+      countPrompt: true,
+      forceRemove: true,
+    });
   }
 
   deleteID(id: string): void {

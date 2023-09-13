@@ -5,6 +5,7 @@ import {
   EventStream,
   getTokenCount,
   MessageData,
+  removeRandomChars,
 } from '../utils';
 import winston from 'winston';
 import { newLogger } from '../utils/log';
@@ -116,6 +117,7 @@ export function sliceMessagesByToken(
   messages: Message[],
   limitSize: number,
   countPrompt: boolean = false,
+  forceRemove: boolean = false,
 ): Message[] {
   const size = getTokenCount(
     countPrompt
@@ -132,7 +134,14 @@ export function sliceMessagesByToken(
   }
   const newMessage = messages.slice(1, messages.length);
   if (newMessage.length === 0) {
-    throw new ComError('message too long', ComError.Status.RequestTooLarge);
+    if (!forceRemove) {
+      throw new ComError('message too long', ComError.Status.RequestTooLarge);
+    }
+    messages[0].content = removeRandomChars(
+      messages[0].content,
+      (size - limitSize || 1) / size,
+    );
+    return sliceMessagesByToken(messages, limitSize, countPrompt, forceRemove);
   }
   return sliceMessagesByToken(newMessage, limitSize);
 }
@@ -141,6 +150,7 @@ export function sliceMessagesByLength(
   messages: Message[],
   limitSize: number,
   countPrompt: boolean = false,
+  forceRemove: boolean = false,
 ): Message[] {
   const size = (
     countPrompt
@@ -157,7 +167,14 @@ export function sliceMessagesByLength(
   }
   const newMessage = messages.slice(1, messages.length);
   if (newMessage.length === 0) {
-    throw new ComError('message too long', ComError.Status.RequestTooLarge);
+    if (!forceRemove) {
+      throw new ComError('message too long', ComError.Status.RequestTooLarge);
+    }
+    messages[0].content = removeRandomChars(
+      messages[0].content,
+      (size - limitSize || 1) / size,
+    );
+    return sliceMessagesByLength(messages, limitSize, countPrompt, forceRemove);
   }
   return sliceMessagesByLength(newMessage, limitSize);
 }
@@ -177,9 +194,17 @@ export class Chat {
 
   public async preHandle(
     req: ChatRequest,
-    options?: { token?: boolean; countPrompt?: boolean },
+    options?: {
+      token?: boolean;
+      countPrompt?: boolean;
+      forceRemove?: boolean;
+    },
   ): Promise<ChatRequest> {
-    const { token = false, countPrompt = true } = options || {};
+    const {
+      token = false,
+      countPrompt = true,
+      forceRemove = false,
+    } = options || {};
     const size = this.support(req.model);
     if (!size) {
       throw new ComError(
@@ -188,8 +213,8 @@ export class Chat {
       );
     }
     req.messages = token
-      ? sliceMessagesByToken(req.messages, size, countPrompt)
-      : sliceMessagesByLength(req.messages, size, countPrompt);
+      ? sliceMessagesByToken(req.messages, size, countPrompt, forceRemove)
+      : sliceMessagesByLength(req.messages, size, countPrompt, forceRemove);
     req.prompt = messagesToPrompt(req.messages);
     return req;
   }
