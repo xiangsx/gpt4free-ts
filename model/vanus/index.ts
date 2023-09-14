@@ -171,9 +171,9 @@ export class Vanus extends Chat implements BrowserUser<Account> {
   support(model: ModelType): number {
     switch (model) {
       case ModelType.GPT4:
-        return 7800;
+        return 6000;
       case ModelType.GPT3p5Turbo:
-        return 3900;
+        return 3000;
       default:
         return 0;
     }
