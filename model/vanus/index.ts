@@ -349,6 +349,7 @@ export class Vanus extends Chat implements BrowserUser<Account> {
     }
     try {
       account.left -= req.model === ModelType.GPT4 ? 20 : 1;
+      this.accountPool.syncfile();
       this.logger.info(`${account.email} left: ${account.left}`);
       const res = await this.client.post(
         `https://ai.vanus.ai/api/chat/${account.appid}`,
@@ -395,6 +396,14 @@ export class Vanus extends Chat implements BrowserUser<Account> {
         done(account);
       });
     } catch (e: any) {
+      account.failedCnt++;
+      if (account.failedCnt > 5) {
+        this.logger.warn(
+          `account ${account.email} failed too many times! left:${account.left}`,
+        );
+        destroy(true);
+        return;
+      }
       this.logger.error('ask failed, ', e);
       stream.write(Event.error, { error: e.message });
       stream.write(Event.done, { content: '' });
