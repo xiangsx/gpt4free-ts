@@ -47,6 +47,8 @@ export enum ModelType {
   Code_Llama_7b = 'code-llama-7b',
   Search = 'search',
   URL = 'url',
+  ErnieBotTurbo = 'ernie-bot-turbo',
+  ErnieBot = 'ernie-bot',
 }
 
 export enum Site {

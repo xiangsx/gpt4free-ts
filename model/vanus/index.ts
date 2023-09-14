@@ -16,7 +16,6 @@ import moment from 'moment';
 import { CreateAxiosProxy } from '../../utils/proxyAgent';
 import { AxiosInstance } from 'axios';
 import es from 'event-stream';
-import { throws } from 'assert';
 
 const ModelMap: Partial<Record<ModelType, any>> = {
   [ModelType.GPT4]: '01c8de4fbfc548df903712b0922a4e01',
@@ -178,6 +177,10 @@ export class Vanus extends Chat implements BrowserUser<Account> {
         return 6000;
       case ModelType.GPT3p5Turbo:
         return 3000;
+      case ModelType.ErnieBot:
+        return 2000;
+      case ModelType.ErnieBotTurbo:
+        return 2000;
       default:
         return 0;
     }
