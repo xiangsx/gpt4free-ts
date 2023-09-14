@@ -68,7 +68,7 @@ interface TextStream {
   data: TextStreamData;
 }
 
-class PoeAccountPool {
+class AccountPool {
   private pool: Account[] = [];
   private using = new Set<string>();
   private readonly account_file_path = './run/account_vanus.json';
@@ -145,12 +145,12 @@ class PoeAccountPool {
 
 export class Vanus extends Chat implements BrowserUser<Account> {
   private pagePool: BrowserPool<Account>;
-  private accountPool: PoeAccountPool;
+  private accountPool: AccountPool;
   private client: AxiosInstance;
 
   constructor(options?: ChatOptions) {
     super(options);
-    this.accountPool = new PoeAccountPool();
+    this.accountPool = new AccountPool();
     this.pagePool = new BrowserPool<Account>(
       +(process.env.VANUS_POOL_SIZE || 0),
       this,
