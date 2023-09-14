@@ -270,6 +270,7 @@ export class Vanus extends Chat implements BrowserUser<Account> {
           account.appid = appid;
           account.left = left.total - left.used;
           this.accountPool.syncfile();
+          break;
         }
       }
       this.logger.info(`init ok! ${account.id}`);
@@ -285,7 +286,7 @@ export class Vanus extends Chat implements BrowserUser<Account> {
 
   async getInfo(page: Page) {
     try {
-      this.createGPT4(page).then(() => console.log('create gpt4 ok!'));
+      this.createGPT4(page).then(() => this.logger.info('create gpt4 ok!'));
       const [appid, left] = await Promise.all([
         this.getToken(page),
         this.getLeft(page),
