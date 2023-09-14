@@ -381,6 +381,7 @@ export class Vanus extends Chat implements BrowserUser<Account> {
         stream.end();
         done(account);
         if (account.left < 20) {
+          this.logger.info('account left < 20, register new now!');
           destroy(true);
         }
       });
