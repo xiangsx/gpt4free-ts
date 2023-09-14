@@ -345,6 +345,7 @@ export class Vanus extends Chat implements BrowserUser<Account> {
     }
     try {
       account.left -= req.model === ModelType.GPT4 ? 20 : 1;
+      this.logger.info(`${account.email} left: ${account.left}`);
       const res = await this.client.post(
         `https://ai.vanus.ai/api/chat/${account.appid}`,
         {
