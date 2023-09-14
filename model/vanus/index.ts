@@ -153,7 +153,7 @@ export class Vanus extends Chat implements BrowserUser<Account> {
     this.accountPool = new AccountPool();
     let size = +(process.env.VANUS_POOL_SIZE || 0);
     if (size > 30) {
-      size = 30;
+      size = 20;
     }
     this.pagePool = new BrowserPool<Account>(
       +(process.env.VANUS_POOL_SIZE || 0),
