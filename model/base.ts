@@ -93,6 +93,7 @@ export enum Site {
   WWW = 'www',
   Bing = 'bing',
   DDG = 'ddg',
+  Vanus = 'vanus',
 }
 
 export interface ChatRequest {

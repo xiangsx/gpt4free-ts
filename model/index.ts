@@ -40,6 +40,7 @@ import { Google } from './google';
 import { WWW } from './www';
 import { Bing } from './bing';
 import { DDG } from './ddg';
+import { Vanus } from './vanus';
 
 export class ChatModelFactory {
   private readonly modelMap: Map<Site, Chat>;
@@ -105,6 +106,7 @@ export class ChatModelFactory {
     this.modelMap.set(Site.WWW, new WWW({ name: Site.WWW }));
     this.modelMap.set(Site.Bing, new Bing({ name: Site.Bing }));
     this.modelMap.set(Site.DDG, new DDG({ name: Site.DDG }));
+    this.modelMap.set(Site.Vanus, new Vanus({ name: Site.Vanus }));
     this.modelMap.set(
       Site.Perplexity,
       new Perplexity({ name: Site.Perplexity }),
