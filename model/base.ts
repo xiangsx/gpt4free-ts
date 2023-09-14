@@ -146,7 +146,7 @@ export function sliceMessagesByToken(
     );
     return sliceMessagesByToken(messages, limitSize, countPrompt, forceRemove);
   }
-  return sliceMessagesByToken(newMessage, limitSize);
+  return sliceMessagesByToken(newMessage, limitSize, countPrompt, forceRemove);
 }
 
 export function sliceMessagesByLength(
@@ -179,7 +179,7 @@ export function sliceMessagesByLength(
     );
     return sliceMessagesByLength(messages, limitSize, countPrompt, forceRemove);
   }
-  return sliceMessagesByLength(newMessage, limitSize);
+  return sliceMessagesByLength(messages, limitSize, countPrompt, forceRemove);
 }
 
 export class Chat {
