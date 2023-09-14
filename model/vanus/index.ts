@@ -151,6 +151,10 @@ export class Vanus extends Chat implements BrowserUser<Account> {
   constructor(options?: ChatOptions) {
     super(options);
     this.accountPool = new AccountPool();
+    let size = +(process.env.VANUS_POOL_SIZE || 0);
+    if (size > 30) {
+      size = 30;
+    }
     this.pagePool = new BrowserPool<Account>(
       +(process.env.VANUS_POOL_SIZE || 0),
       this,
@@ -362,30 +366,36 @@ export class Vanus extends Chat implements BrowserUser<Account> {
       );
       res.data.pipe(es.split(/\r?\n\r?\n/)).pipe(
         es.map(async (chunk: any, cb: any) => {
-          const data = chunk.toString().replace('data: ', '');
-          if (!data) {
-            return;
-          }
-          const res = parseJSON<{
-            token: string;
-            more: boolean;
-            time?: number;
-          }>(data, { token: '', more: false });
-          if (res.token) {
-            stream.write(Event.message, { content: res.token });
+          try {
+            const data = chunk.toString().replace('data: ', '');
+            if (!data) {
+              return;
+            }
+            const res = parseJSON<{
+              token: string;
+              more: boolean;
+              time?: number;
+            }>(data, { token: '', more: false });
+            if (res.token) {
+              stream.write(Event.message, { content: res.token });
+            }
+          } catch (e) {
+            this.logger.error('parse data failed, ', e);
           }
         }),
       );
       res.data.on('close', () => {
         stream.write(Event.done, { content: '' });
         stream.end();
-        done(account);
         if (account.left < 20) {
           this.logger.info('account left < 20, register new now!');
           destroy(true);
+          return;
         }
+        done(account);
       });
     } catch (e: any) {
+      this.logger.error('ask failed, ', e);
       stream.write(Event.error, { error: e.message });
       stream.write(Event.done, { content: '' });
       stream.end();
