@@ -235,11 +235,21 @@ export class Vanus extends Chat implements BrowserUser<Account> {
         account.password = `Ab1${randomStr(20)}`;
         await page.keyboard.type(account.email, { delay: 10 });
 
-        await page.waitForSelector('#password');
-        await page.click('#password');
-        await page.keyboard.type(account.password, { delay: 10 });
+        let handleCaptcha = false;
+        for (let i = 0; i < 3; i++) {
+          await page.waitForSelector('#password');
+          await page.click('#password');
+          await page.keyboard.type(account.password, { delay: 10 });
 
-        await this.handleCaptcha(page);
+          const ok = await this.handleCaptcha(page);
+          if (ok) {
+            handleCaptcha = true;
+            break;
+          }
+        }
+        if (!handleCaptcha) {
+          throw new Error('Handle captcha failed, register new account!');
+        }
 
         await page.waitForSelector('#given_name');
         await page.click('#given_name');
@@ -283,36 +293,35 @@ export class Vanus extends Chat implements BrowserUser<Account> {
   }
 
   async handleCaptcha(page: Page) {
-    for (let i = 0; i < 3; i++) {
-      try {
-        // 选择你想要截图的元素
-        const element = await page.$('div > div > img');
-        if (!element) {
-          this.logger.error('got captcha img failed');
-          continue;
-        }
-        this.logger.info('start handle capture!');
-        // 对该元素进行截图并获得一个 Buffer
-        const imageBuffer = await element.screenshot();
-        // 将 Buffer 转换为 Base64 格式的字符串
-        const base64String = imageBuffer.toString('base64');
-        const captcha = await getCaptchaCode(base64String);
-        if (!captcha) {
-          this.logger.error('got captcha failed');
-          continue;
-        }
-        this.logger.info(`got capture ${captcha}`);
-        await page.waitForSelector('#captcha');
-        await page.click('#captcha');
-        await page.keyboard.type(captcha);
-        await page.keyboard.press('Enter');
-        await page.waitForSelector('#error-element-captcha', {
-          timeout: 5 * 1000,
-        });
-      } catch (e) {
-        this.logger.info('handle capture ok!');
-        return true;
+    try {
+      // 选择你想要截图的元素
+      const element = await page.$('div > div > img');
+      if (!element) {
+        this.logger.error('got captcha img failed');
+        return false;
       }
+      this.logger.info('start handle capture!');
+      // 对该元素进行截图并获得一个 Buffer
+      const imageBuffer = await element.screenshot();
+      // 将 Buffer 转换为 Base64 格式的字符串
+      const base64String = imageBuffer.toString('base64');
+      const captcha = await getCaptchaCode(base64String);
+      if (!captcha) {
+        this.logger.error('got captcha failed');
+        return false;
+      }
+      this.logger.info(`got capture ${captcha}`);
+      await page.waitForSelector('#captcha');
+      await page.click('#captcha');
+      await page.keyboard.type(captcha);
+      await page.keyboard.press('Enter');
+      await page.waitForSelector('#error-element-captcha', {
+        timeout: 5 * 1000,
+      });
+      return false;
+    } catch (e) {
+      this.logger.info('handle capture ok!');
+      return true;
     }
   }
 
