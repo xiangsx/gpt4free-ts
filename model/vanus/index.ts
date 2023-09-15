@@ -167,7 +167,7 @@ export class Vanus extends Chat implements BrowserUser<Account> {
           'x-vanusai-host': 'ai.vanus.ai',
         },
       },
-      false,
+      true,
     );
   }
 
