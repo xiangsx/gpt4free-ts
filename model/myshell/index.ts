@@ -169,7 +169,7 @@ export class MyShell extends Chat implements BrowserUser<Account> {
       +(process.env.MYSHELL_POOL_SIZE || 0),
       this,
       false,
-      -1,
+      10000,
       false,
     );
   }
