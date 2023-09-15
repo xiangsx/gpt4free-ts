@@ -295,7 +295,7 @@ export class Vanus extends Chat implements BrowserUser<Account> {
       await browser.close();
       return [page, account];
     } catch (e: any) {
-      await page.screenshot({ path: `./run/error_${account.id}.png` });
+      // await page.screenshot({ path: `./run/error_${account.id}.png` });
       await browser.close();
       this.logger.warn(`account:${account?.id}, something error happened.`, e);
       return [] as any;
