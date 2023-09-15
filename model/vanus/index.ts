@@ -112,9 +112,7 @@ class AccountPool {
   }
 
   public delete(id: string) {
-    for (const v in this.pool) {
-      const vv = this.pool[v];
-    }
+    this.pool = this.pool.filter((v) => v.id !== id);
     this.using.delete(id);
     this.syncfile();
   }
@@ -170,7 +168,7 @@ export class Vanus extends Chat implements BrowserUser<Account> {
           'x-vanusai-host': 'ai.vanus.ai',
         },
       },
-      false,
+      true,
     );
   }
 
