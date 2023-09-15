@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, watch } from 'fs';
+import { existsSync, readFileSync, statSync, watch } from 'fs';
 import { ModelType, Site } from '../model/base';
 
 export type SiteCfg = {
@@ -73,32 +73,34 @@ class BaseConfig {
   }
 
   watchFile() {
-    if (!existsSync(this.filePath)) {
-      // console.log(`Configuration file ${this.filePath} not found. Retrying in 5 seconds...`);
-      setTimeout(() => this.watchFile(), 5000);
-      return;
-    }
-    let timeoutId: NodeJS.Timeout | null = null;
-    const debounceDelay = 300;
+    let lastModifiedTime: Date | null = null;
 
-    try {
-      watch(this.filePath, (event) => {
-        if (event === 'change') {
-          if (timeoutId) {
-            clearTimeout(timeoutId);
-          }
+    // 每隔5秒钟读取一次文件
+    const intervalId = setInterval(() => {
+      if (!existsSync(this.filePath)) {
+        // console.log(
+        //   `Configuration file ${this.filePath} not found. Retrying in 5 seconds...`,
+        // );
+        return;
+      }
 
-          timeoutId = setTimeout(() => {
-            console.log(
-              `Configuration file ${this.filePath} has been changed! Reloading...`,
-            );
-            this.load();
-          }, debounceDelay);
+      try {
+        const stats = statSync(this.filePath);
+        const newModifiedTime = stats.mtime;
+
+        // 检查文件是否被修改
+        if (lastModifiedTime && newModifiedTime > lastModifiedTime) {
+          console.log(
+            `Configuration file ${this.filePath} has been changed! Reloading...`,
+          );
+          this.load();
         }
-      });
-    } catch (e) {
-      console.error(e);
-    }
+
+        lastModifiedTime = newModifiedTime;
+      } catch (e) {
+        console.error(e);
+      }
+    }, +(process.env.CONFIG_SYNC_INTERVAL || 5000));
   }
 }
 
