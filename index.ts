@@ -46,6 +46,7 @@ const errorHandler = async (ctx: Context, next: Next) => {
 };
 app.use(errorHandler);
 app.use(bodyParser({ jsonLimit: '10mb' }));
+app.use(checkApiKey);
 const chatModel = new ChatModelFactory();
 
 interface AskReq extends ChatRequest {
@@ -53,6 +54,22 @@ interface AskReq extends ChatRequest {
 }
 
 interface AskRes extends ChatResponse {}
+
+async function checkApiKey(ctx: Context, next: Next) {
+  if (!process.env.API_KEY) {
+    await next();
+    return;
+  }
+  const authorStr = ctx.request.headers.authorization;
+  if (!authorStr) {
+    throw new ComError('invalid api key', 401);
+  }
+  const secret = authorStr.replace(/Bearer /, '');
+  if (secret !== process.env.API_KEY) {
+    throw new ComError('invalid api key', 401);
+  }
+  await next();
+}
 
 const AskHandle: Middleware = async (ctx) => {
   const {
