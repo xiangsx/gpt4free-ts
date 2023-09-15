@@ -16,6 +16,7 @@ import moment from 'moment';
 import { CreateAxiosProxy } from '../../utils/proxyAgent';
 import { AxiosInstance } from 'axios';
 import es from 'event-stream';
+import { getCaptchaCode } from '../../utils/captcha';
 
 const ModelMap: Partial<Record<ModelType, any>> = {
   [ModelType.GPT4]: '01c8de4fbfc548df903712b0922a4e01',
@@ -224,31 +225,21 @@ export class Vanus extends Chat implements BrowserUser<Account> {
         await page.goto('https://ai.vanus.ai/');
         await sleep(5000);
 
-        await page.waitForSelector('#a-signup');
-        await page.click('#a-signup');
+        await page.waitForSelector('section > div > div > div > div > p > a');
+        await page.click('section > div > div > div > div > p > a');
 
-        await page.waitForSelector('#signup-email');
-        await page.click('#signup-email');
+        await page.waitForSelector('#email');
+        await page.click('#email');
 
         account.email = `${randomStr(20)}@googlemail.com`.toLowerCase();
         account.password = `Ab1${randomStr(20)}`;
         await page.keyboard.type(account.email, { delay: 10 });
 
-        await page.waitForSelector('#signup-password');
-        await page.click('#signup-password');
+        await page.waitForSelector('#password');
+        await page.click('#password');
         await page.keyboard.type(account.password, { delay: 10 });
 
-        await page.waitForSelector(
-          '.widget-container > #sign-up > form > #checkbox > input',
-        );
-        await page.click(
-          '.widget-container > #sign-up > form > #checkbox > input',
-        );
-        await sleep(1000);
-        await page.keyboard.press('Enter');
-
-        await page.waitForSelector('#btn-signup');
-        await page.click('#btn-signup');
+        await this.handleCaptcha(page);
 
         await page.waitForSelector('#given_name');
         await page.click('#given_name');
@@ -291,6 +282,40 @@ export class Vanus extends Chat implements BrowserUser<Account> {
     }
   }
 
+  async handleCaptcha(page: Page) {
+    for (let i = 0; i < 3; i++) {
+      try {
+        // 选择你想要截图的元素
+        const element = await page.$('div > div > img');
+        if (!element) {
+          this.logger.error('got captcha img failed');
+          continue;
+        }
+        this.logger.info('start handle capture!');
+        // 对该元素进行截图并获得一个 Buffer
+        const imageBuffer = await element.screenshot();
+        // 将 Buffer 转换为 Base64 格式的字符串
+        const base64String = imageBuffer.toString('base64');
+        const captcha = await getCaptchaCode(base64String);
+        if (!captcha) {
+          this.logger.error('got captcha failed');
+          continue;
+        }
+        this.logger.info(`got capture ${captcha}`);
+        await page.waitForSelector('#captcha');
+        await page.click('#captcha');
+        await page.keyboard.type(captcha);
+        await page.keyboard.press('Enter');
+        await page.waitForSelector('#error-element-captcha', {
+          timeout: 5 * 1000,
+        });
+      } catch (e) {
+        this.logger.info('handle capture ok!');
+        return true;
+      }
+    }
+  }
+
   async getInfo(page: Page) {
     try {
       this.createGPT4(page).then(() => this.logger.info('create gpt4 ok!'));
@@ -322,7 +347,7 @@ export class Vanus extends Chat implements BrowserUser<Account> {
       (req) => req.url().indexOf('https://ai.vanus.ai/api/ai/apps/') > -1,
     );
     const data = await res.json();
-    console.log('get token ok!', data.api_id);
+    this.logger.info('get token ok!', data.api_id);
     return data.api_id;
   }
 
@@ -335,7 +360,7 @@ export class Vanus extends Chat implements BrowserUser<Account> {
     } = await res.json();
     for (const v of data.quota_items) {
       if (v.type === 'credits') {
-        console.log('get left ok!', JSON.stringify(v));
+        this.logger.info('get left ok!', JSON.stringify(v));
         return v;
       }
     }
