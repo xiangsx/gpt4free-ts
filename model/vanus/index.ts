@@ -6,6 +6,7 @@ import {
   EventStream,
   parseJSON,
   randomStr,
+  randomUserAgent,
   shuffleArray,
   sleep,
 } from '../../utils';
@@ -165,10 +166,11 @@ export class Vanus extends Chat implements BrowserUser<Account> {
     this.client = CreateAxiosProxy(
       {
         headers: {
+          'User-Agent': randomUserAgent(),
           'x-vanusai-host': 'ai.vanus.ai',
         },
       },
-      true,
+      false,
     );
   }
 
@@ -208,6 +210,12 @@ export class Vanus extends Chat implements BrowserUser<Account> {
     return account.id;
   }
 
+  getRandomMail() {
+    return `${randomStr(15 + Math.random() * 5)}@${
+      Math.random() > 0.5 ? 'gmail' : 'outlook'
+    }.com`.toLowerCase();
+  }
+
   async init(
     id: string,
     browser: Browser,
@@ -231,8 +239,10 @@ export class Vanus extends Chat implements BrowserUser<Account> {
         await page.waitForSelector('#email');
         await page.click('#email');
 
-        account.email = `${randomStr(20)}@googlemail.com`.toLowerCase();
-        account.password = `Ab1${randomStr(20)}`;
+        account.email = this.getRandomMail();
+        account.password = `${randomStr(5)}A${randomStr(5)}v${randomStr(
+          5,
+        )}1${randomStr(5)}`;
         await page.keyboard.type(account.email, { delay: 10 });
 
         let handleCaptcha = false;
@@ -301,7 +311,7 @@ export class Vanus extends Chat implements BrowserUser<Account> {
         return false;
       }
       this.logger.info('start handle capture!');
-      // 对该元素进行截图并获得一个 Buffer
+      // 对该元素进行截图并获得一个 Buffers
       const imageBuffer = await element.screenshot();
       // 将 Buffer 转换为 Base64 格式的字符串
       const base64String = imageBuffer.toString('base64');
@@ -433,6 +443,14 @@ export class Vanus extends Chat implements BrowserUser<Account> {
         done(account);
       });
     } catch (e: any) {
+      stream.write(Event.error, { error: e.message });
+      stream.write(Event.done, { content: '' });
+      stream.end();
+      if (e.response.status === 403) {
+        this.logger.error(`account ${account.email} has been baned`);
+        destroy(true);
+        return;
+      }
       account.failedCnt++;
       if (account.failedCnt > 5) {
         this.logger.warn(
@@ -442,9 +460,6 @@ export class Vanus extends Chat implements BrowserUser<Account> {
         return;
       }
       this.logger.error('ask failed, ', e);
-      stream.write(Event.error, { error: e.message });
-      stream.write(Event.done, { content: '' });
-      stream.end();
       destroy();
     }
   }
