@@ -97,6 +97,7 @@ class PoeAccountPool {
     }
     for (const v of this.pool) {
       v.failedCnt = 0;
+      v.last_use_time = moment().unix();
       v.battery =
         v.battery +
         Math.floor((moment().unix() - v.last_use_time) / 60 / 60) * 8;
@@ -134,6 +135,9 @@ class PoeAccountPool {
   public get(): Account {
     for (const vv of shuffleArray(this.pool)) {
       if (this.using.has(vv.id)) {
+        continue;
+      }
+      if (!vv.token || !vv.visitorID) {
         continue;
       }
       if (vv.battery < 30) {
