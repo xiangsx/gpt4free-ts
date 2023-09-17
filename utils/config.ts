@@ -1,5 +1,6 @@
 import { existsSync, readFileSync, statSync, watch } from 'fs';
 import { ModelType, Site } from '../model/base';
+import { TempEmailType } from './emailFactory';
 
 export type SiteCfg = {
   site: Site;
@@ -23,6 +24,7 @@ interface ConfigData {
   cursor: {
     primary_model: ModelType;
   };
+  mixer: { size: number; mailType: TempEmailType };
   // 当添加新字段时，需要在此处更新类型定义
 }
 
@@ -40,6 +42,10 @@ class BaseConfig {
     }, // Add new fields here, with their default values
     cursor: {
       primary_model: ModelType.GPT4,
+    },
+    mixer: {
+      size: 0,
+      mailType: TempEmailType.TempMailLOL,
     },
   };
   public config: ConfigData;

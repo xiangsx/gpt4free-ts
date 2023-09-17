@@ -96,6 +96,7 @@ export enum Site {
   Bing = 'bing',
   DDG = 'ddg',
   Vanus = 'vanus',
+  Mixer = 'mixer',
 }
 
 export interface ChatRequest {

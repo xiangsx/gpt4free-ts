@@ -334,6 +334,11 @@
   resolved "https://registry.npmjs.org/@types/node/-/node-18.16.6.tgz"
   integrity sha512-N7KINmeB8IN3vRR8dhgHEp+YpWvGFcpDoh5XZ8jB5a00AdFKCKEyyGTOPTddUf4JqU1ZKTVxkOxakDvchNVI2Q==
 
+"@types/opencc-js@^1.0.1":
+  version "1.0.1"
+  resolved "https://registry.npmmirror.com/@types/opencc-js/-/opencc-js-1.0.1.tgz#0766ece12234d823feddaba4f2117269d5230f61"
+  integrity sha512-hGie64YbDP48Gc/h3+c8iMhal/zg3ek0gszDS5BsiKw15+PANL55J+N47bw+/Cc/LgsLJ7yJ9Xxu1R68peieVQ==
+
 "@types/qs@*":
   version "6.9.7"
   resolved "https://registry.npmjs.org/@types/qs/-/qs-6.9.7.tgz"
@@ -1814,6 +1819,11 @@ open@^9.1.0:
     define-lazy-prop "^3.0.0"
     is-inside-container "^1.0.0"
     is-wsl "^2.2.0"
+
+opencc-js@^1.0.5:
+  version "1.0.5"
+  resolved "https://registry.npmmirror.com/opencc-js/-/opencc-js-1.0.5.tgz#4754a9407590c5d581c9b4788acd43e8627dd464"
+  integrity sha512-LD+1SoNnZdlRwtYTjnQdFrSVCAaYpuDqL5CkmOaHOkKoKh7mFxUicLTRVNLU5C+Jmi1vXQ3QL4jWdgSaa4sKjg==
 
 parent-module@^1.0.0:
   version "1.0.1"

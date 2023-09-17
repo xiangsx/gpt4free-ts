@@ -5,6 +5,7 @@ import { colorLabel } from './index';
 import Transport from 'winston-transport';
 import { Socket } from 'dgram';
 import * as dgram from 'dgram';
+import { format } from 'util';
 
 let logger: Logger;
 
@@ -71,14 +72,13 @@ function replaceConsoleWithWinston(): void {
   const logger: Logger = newLogger();
 
   // 替换所有 console 方法
-  console.log = (...msg) =>
-    logger.info(`${msg.map((v) => v.toString()).join(' ')}`);
-  console.error = (...msg) =>
-    logger.error(`${msg.map((v) => v.toString()).join(' ')}`);
-  console.warn = (...msg) =>
-    logger.warn(`${msg.map((v) => v.toString()).join(' ')}`);
-  console.debug = (...msg) =>
-    logger.debug(`${msg.map((v) => v.toString()).join(' ')}`);
+  console.log = (...msg) => logger.info(format(...msg));
+
+  console.error = (...msg) => logger.error(format(...msg));
+
+  console.warn = (...msg) => logger.warn(format(...msg));
+
+  console.debug = (...msg) => logger.debug(format(...msg));
 }
 
 export function newLogger(site?: string) {

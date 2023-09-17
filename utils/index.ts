@@ -7,6 +7,7 @@ import stringSimilarity from 'string-similarity';
 import UserAgent from 'user-agents';
 import { getEncoding } from 'js-tiktoken';
 import chalk from 'chalk';
+import * as OpenCC from 'opencc-js';
 
 const turndownService = new TurndownService({ codeBlockStyle: 'fenced' });
 
@@ -457,4 +458,9 @@ export function removeRandomChars(str: string, percentage: number): string {
     }
   }
   return result;
+}
+
+const converter = OpenCC.Converter({ from: 'tw', to: 'cn' });
+export function TWToCN(str: string) {
+  return converter(str);
 }
