@@ -113,6 +113,11 @@ export class Mixer extends Chat {
   }
 
   async preHandle(req: ChatRequest): Promise<ChatRequest> {
+    for (const v of req.messages) {
+      if (v.role === 'system') {
+        v.role = 'assistant';
+      }
+    }
     return super.preHandle(req, {
       token: false,
       countPrompt: false,
