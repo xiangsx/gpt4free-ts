@@ -171,11 +171,11 @@ data: {"error":"some thind wrong"}
 
 ### Example💡
 
-1. request to site you with history
+1. Request to site you with history
 
 req:
 
-[127.0.0.1:3000/ask?site=you&prompt=[{"role":"user","content":"hello"},{"role":"assistant","content":"Hi there! How can I assist you today?"},{"role":"user","content":"who are you"}]]()
+[127.0.0.1:3000/ask?site=you&prompt=[{"role":"user","content":"hello"},{"role":"assistant","content":"Hi there! How can I assist you today?"},{"role":"user","content":"who are you"}]](http://127.0.0.1:3000/ask?site=you&prompt=[{"role":"user","content":"hello"},{"role":"assistant","content":"Hi%20there!%20How%20can%20I%20assist%20you%20today%3F"},{"role":"user","content":"who%20are%20you"}])
 
 res:
 
@@ -185,13 +185,13 @@ res:
 }
 ```
 
-[127.0.0.1:3000/ask?site=you&prompt=[{"role":"user","content":"你好\n"},{"role":"assistant","content":"你好！有什么我可以帮助你的吗？"},{"role":"user","content":"你是谁"}]]()
+[127.0.0.1:3000/ask?site=you&prompt=[{"role":"user","content":"你好\n"},{"role":"assistant","content":"你好！有什么我可以帮助你的吗？"},{"role":"user","content":"你是谁"}]](127.0.0.1:3000/ask?site=you&prompt=[{"role":"user","content":"你好\n"},{"role":"assistant","content":"%E4%BD%A0%E5%A5%BD%EF%BC%81%E6%9C%89%E4%BB%80%E4%B9%88%E6%88%91%E5%8F%AF%E4%BB%A5%E5%B8%AE%E5%8A%A9%E4%BD%A0%E7%9A%84%E5%90%97%EF%BC%9F"},{"role":"user","content":"你是谁"}])
 
-2. request to site you with stream return
+2. Request to site you with stream return
 
 req:
 
-[127.0.0.1:3000/ask/stream?site=you&prompt=who are you]()
+[127.0.0.1:3000/ask/stream?site=you&prompt=who are you](http://127.0.0.1:3000/ask/stream?site=you&prompt=who%20are%20you)
 
 res:
 ```
