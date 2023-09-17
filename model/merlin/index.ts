@@ -1,6 +1,12 @@
 import { Chat, ChatOptions, ChatRequest, ModelType } from '../base';
 import { Event, EventStream, parseJSON, randomStr, sleep } from '../../utils';
-import { ChildOptions, ComChild, ComInfo, Pool } from '../../utils/pool';
+import {
+  ChildOptions,
+  ComChild,
+  ComInfo,
+  DestroyOptions,
+  Pool,
+} from '../../utils/pool';
 import { Config } from '../../utils/config';
 import { CreateAxiosProxy, CreateNewPage } from '../../utils/proxyAgent';
 import { CreateEmail } from '../../utils/emailFactory';
@@ -110,10 +116,15 @@ class Child extends ComChild<Account> {
       this.page?.browser().close();
       this.options?.onInitFailed({
         delFile: true,
-        createNew: true,
+        delMem: true,
       });
       throw e;
     }
+  }
+
+  destroy(options?: DestroyOptions) {
+    super.destroy(options);
+    this.page?.browser()?.close();
   }
 
   async getLoginStatus(page: Page) {
@@ -286,7 +297,7 @@ export class Merlin extends Chat {
         stream.end();
         if (child.info.left < 10) {
           child.update({ useOutTime: moment().unix() });
-          child.destroy({ delFile: false, createNew: true });
+          child.destroy({ delFile: false, delMem: true });
         }
       });
     } catch (e: any) {

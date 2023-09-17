@@ -28,7 +28,7 @@ interface PoolChild<T extends Info> {
   release(): void;
 
   // 销毁，删除数据
-  destroy(): void;
+  destroy(options?: DestroyOptions): void;
 }
 
 export interface ComInfo extends Info {
@@ -36,9 +36,9 @@ export interface ComInfo extends Info {
   lastUseTime: number;
 }
 
-interface DestroyOptions {
+export interface DestroyOptions {
   delFile: boolean;
-  createNew: boolean;
+  delMem: boolean;
 }
 
 export interface ChildOptions {
@@ -128,9 +128,11 @@ export class Pool<U extends Info, T extends PoolChild<U>> {
     fileDebouncer.writeFileSync(this.filepath, this.stringify());
   }
 
-  private del(id: string, delFile?: boolean) {
-    this.childMap.delete(id);
-    this.children = this.children.filter((child) => child.info.id !== id);
+  private del(id: string, delFile: boolean, delMem: boolean) {
+    if (delMem) {
+      this.childMap.delete(id);
+      this.children = this.children.filter((child) => child.info.id !== id);
+    }
     if (delFile) {
       this.allInfos = this.allInfos.filter((v) => v.id !== id);
       this.save();
@@ -160,9 +162,9 @@ export class Pool<U extends Info, T extends PoolChild<U>> {
         this.save();
       },
       onDestroy: (options) => {
-        const { delFile = false, createNew = true } = options || {};
-        if (createNew) {
-          this.del(info.id, delFile);
+        const { delFile = false, delMem = true } = options || {};
+        if (delMem) {
+          this.del(info.id, delFile, delMem);
         }
       },
       onRelease: () => {
@@ -172,10 +174,8 @@ export class Pool<U extends Info, T extends PoolChild<U>> {
         this.using.add(info.id);
       },
       onInitFailed: (options) => {
-        const { delFile = false, createNew = true } = options || {};
-        if (createNew) {
-          this.del(info.id, delFile);
-        }
+        const { delFile = false, delMem = true } = options || {};
+        this.del(info.id, delFile, delMem);
       },
     });
     child.update({ ready: false } as Partial<U>);
@@ -218,6 +218,18 @@ export class Pool<U extends Info, T extends PoolChild<U>> {
       }
       if (this.children.length > this.maxsize()) {
         // 随机剔除一个
+        for (const child of shuffleArray(this.children)) {
+          if (!this.using.has(child.info.id)) {
+            child.destroy({ delFile: false, delMem: true });
+            this.logger.info(
+              `delete child ok, current ready size: ${this.children.reduce(
+                (prev, cur) => prev + (cur.info.ready ? 1 : 0),
+                0,
+              )}/${this.maxsize()}`,
+            );
+            break;
+          }
+        }
         return;
       }
       this.create();

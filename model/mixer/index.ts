@@ -61,7 +61,7 @@ class Child extends ComChild<Account> {
     } catch (e) {
       this.options?.onInitFailed({
         delFile: true,
-        createNew: true,
+        delMem: true,
       });
       throw e;
     }
