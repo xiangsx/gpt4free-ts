@@ -180,7 +180,7 @@ export function sliceMessagesByLength(
     );
     return sliceMessagesByLength(messages, limitSize, countPrompt, forceRemove);
   }
-  return sliceMessagesByLength(messages, limitSize, countPrompt, forceRemove);
+  return sliceMessagesByLength(newMessage, limitSize, countPrompt, forceRemove);
 }
 
 export class Chat {
