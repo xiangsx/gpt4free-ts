@@ -104,17 +104,20 @@ export async function CreateNewPage(
     args = [],
     simplify = true,
   } = options || {};
-  const browser = await puppeteer.launch({
+  const launchOpt: PuppeteerLaunchOptions = {
     headless: process.env.DEBUG === '1' ? false : 'new',
     args: [
       '--no-sandbox',
       '--disable-setuid-sandbox',
-      `--proxy-server=${proxy}`,
       '--disable-background-timer-throttling',
       '--disable-backgrounding-occluded-windows',
       ...args,
     ],
-  } as PuppeteerLaunchOptions);
+  };
+  const browser = await puppeteer.launch(launchOpt);
+  if (proxy) {
+    launchOpt.args?.push(`--proxy-server=${proxy}`);
+  }
   const page = await browser.newPage();
   if (simplify) {
     await simplifyPage(page);
