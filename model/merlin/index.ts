@@ -293,6 +293,7 @@ export class Merlin extends Chat {
         }),
       );
       res.data.on('close', () => {
+        this.logger.info('Msg recv ok');
         stream.write(Event.done, { content: '' });
         stream.end();
         if (child.info.left < 10) {
