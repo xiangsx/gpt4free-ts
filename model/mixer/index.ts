@@ -206,6 +206,7 @@ export class Mixer extends Chat {
         }),
       );
       res.data.on('close', () => {
+        this.logger.info('Msg recv ok');
         stream.write(Event.done, { content: '' });
         stream.end();
       });
