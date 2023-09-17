@@ -9,7 +9,7 @@ import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import { spawn } from 'child_process';
 import WebSocket from 'ws';
 import moment from 'moment';
-import { closeOtherPages } from './puppeteer';
+import { closeOtherPages, simplifyPage } from './puppeteer';
 import { v4 } from 'uuid';
 import { PassThrough } from 'stream';
 
@@ -91,12 +91,18 @@ export function CreateTlsProxy(
 
 export async function CreateNewPage(
   url: string,
-  options?: { allowExtensions?: boolean; proxy?: string; args?: string[] },
+  options?: {
+    allowExtensions?: boolean;
+    proxy?: string;
+    args?: string[];
+    simplify: boolean;
+  },
 ) {
   const {
     allowExtensions = false,
     proxy = process.env.http_proxy,
     args = [],
+    simplify = true,
   } = options || {};
   const browser = await puppeteer.launch({
     headless: process.env.DEBUG === '1' ? false : 'new',
@@ -110,6 +116,9 @@ export async function CreateNewPage(
     ],
   } as PuppeteerLaunchOptions);
   const page = await browser.newPage();
+  if (simplify) {
+    await simplifyPage(page);
+  }
   await page.goto(url);
   await page.setViewport({ width: 1920, height: 1080 });
   return page;

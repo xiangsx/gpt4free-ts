@@ -97,6 +97,7 @@ export enum Site {
   DDG = 'ddg',
   Vanus = 'vanus',
   Mixer = 'mixer',
+  Merlin = 'merlin',
 }
 
 export interface ChatRequest {

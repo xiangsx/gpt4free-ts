@@ -25,6 +25,7 @@ interface ConfigData {
     primary_model: ModelType;
   };
   mixer: { size: number; mailType: TempEmailType };
+  merlin: { size: number; mailType: TempEmailType };
   // 当添加新字段时，需要在此处更新类型定义
 }
 
@@ -44,6 +45,10 @@ class BaseConfig {
       primary_model: ModelType.GPT4,
     },
     mixer: {
+      size: 0,
+      mailType: TempEmailType.TempMailLOL,
+    },
+    merlin: {
       size: 0,
       mailType: TempEmailType.TempMailLOL,
     },

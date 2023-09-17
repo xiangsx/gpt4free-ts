@@ -52,7 +52,7 @@ export interface ChildOptions {
 export class ComChild<T extends ComInfo> implements PoolChild<T> {
   private _info: T;
   protected options: ChildOptions | undefined;
-  private logger: winston.Logger;
+  protected logger: winston.Logger;
 
   constructor(label: string, info: T, options?: ChildOptions) {
     this.logger = newLogger(label);

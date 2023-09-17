@@ -316,11 +316,11 @@ export function maskLinks(input: string): string {
 
 export class Lock {
   private locked = false;
-  private resolver?: Function;
+  private resolver?: () => void; // 更明确的类型
   private timeoutId?: NodeJS.Timeout;
 
   async lock(timeout = 5 * 60 * 1000) {
-    const timeoutPromise = new Promise((resolve, reject) => {
+    const timeoutPromise = new Promise<never>((_, reject) => {
       this.timeoutId = setTimeout(() => {
         this.locked = false;
         reject(new Error('Lock timeout'));
@@ -330,14 +330,19 @@ export class Lock {
     while (this.locked) {
       try {
         await Promise.race([
-          new Promise((resolve) => (this.resolver = resolve)),
+          new Promise<void>((resolve) => (this.resolver = resolve)),
           timeoutPromise,
         ]);
       } catch (error) {
         throw error;
       }
     }
-    this.locked = true;
+
+    this.locked = true; // 现在在这里设置
+    if (this.timeoutId) {
+      clearTimeout(this.timeoutId); // 清除超时
+      this.timeoutId = undefined;
+    }
   }
 
   unlock() {
@@ -345,10 +350,6 @@ export class Lock {
       throw new Error('Cannot unlock a lock that is not locked');
     }
     this.locked = false;
-    if (this.timeoutId) {
-      clearTimeout(this.timeoutId);
-      this.timeoutId = undefined;
-    }
     if (this.resolver) {
       const resolve = this.resolver;
       this.resolver = undefined;

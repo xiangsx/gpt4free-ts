@@ -389,14 +389,14 @@ export class SmailPro extends BaseEmail {
     this.lock = options.lock;
   }
   async getMailAddress() {
-    await this.lock.lock(120 * 1000);
-    if (!this.page) {
-      this.page = await CreateNewPage('http://smailpro.com/advanced');
-      setTimeout(() => {
-        this.page?.browser().close();
-      }, 360 * 1000);
-    }
     try {
+      await this.lock.lock(120 * 1000);
+      if (!this.page) {
+        this.page = await CreateNewPage('http://smailpro.com/advanced');
+        setTimeout(() => {
+          this.page?.browser().close();
+        }, 360 * 1000);
+      }
       const page = this.page;
       await page.waitForSelector(
         '.grid > .md\\:rounded-md > .absolute:nth-child(2) > .w-6 > path',
@@ -436,7 +436,7 @@ export class SmailPro extends BaseEmail {
       }
     } catch (e) {
       console.log('get mail failed, err:', e);
-      this.page.browser?.().close();
+      this.page?.browser?.().close();
       this.lock.unlock();
       throw e;
     }
