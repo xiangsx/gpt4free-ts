@@ -212,7 +212,10 @@ export class Mixer extends Chat {
         stream.end();
       });
     } catch (e: any) {
-      this.logger.error('ask failed: %s', e);
+      this.logger.error(
+        `ask failed，msg:${JSON.stringify(req.messages)}: %s`,
+        e,
+      );
       stream.write(Event.error, { error: e.message, status: 500 });
       stream.write(Event.done, { content: '' });
       stream.end();
