@@ -30,6 +30,7 @@ class Child extends ComChild<Account> {
         },
       },
       false,
+      false,
     );
   }
   async init(): Promise<void> {
