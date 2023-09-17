@@ -73,10 +73,6 @@ class Child extends ComChild<Account> {
       useCount: (this.info.useCount || 0) + 1,
     });
   }
-
-  valid(): boolean {
-    return !!this.info.token;
-  }
 }
 
 export class Mixer extends Chat {
