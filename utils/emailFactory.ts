@@ -400,7 +400,7 @@ export class SmailPro extends BaseEmail {
         }, 360 * 1000);
       }
       const page = this.page;
-      await sleep(2000);
+      await sleep(5000);
       await page.waitForSelector(
         '.grid > .md\\:rounded-md > .absolute:nth-child(2) > .w-6 > path',
       );
