@@ -93,6 +93,8 @@ export class ComChild<T extends ComInfo> implements PoolChild<T> {
 
 interface PoolOptions {
   delay?: number;
+  // 串行
+  serial?: boolean;
 }
 
 // 根据maxsize控制创建的数量
@@ -108,6 +110,7 @@ export class Pool<U extends Info, T extends PoolChild<U>> {
   private readonly childMap: Map<string, T> = new Map();
   private readonly logger: winston.Logger;
   private readonly filepath: string;
+  private creating = false;
 
   constructor(
     private readonly label: string = 'Unknown',
@@ -185,7 +188,7 @@ export class Pool<U extends Info, T extends PoolChild<U>> {
     }
     this.children.push(child);
     this.childMap.set(child.info.id, child);
-    child
+    await child
       .init()
       .then(() => {
         child.update({ ready: true } as Partial<U>);
@@ -212,7 +215,10 @@ export class Pool<U extends Info, T extends PoolChild<U>> {
     this.allInfos = parseJSON<U[]>(str, []);
     this.logger.info('read old info ok, total: ' + this.allInfos.length);
 
-    setInterval(() => {
+    setInterval(async () => {
+      if (this.options?.serial && this.creating) {
+        return;
+      }
       if (this.children.length === this.maxsize()) {
         return;
       }
@@ -232,7 +238,9 @@ export class Pool<U extends Info, T extends PoolChild<U>> {
         }
         return;
       }
-      this.create();
+      this.creating = true;
+      await this.create();
+      this.creating = false;
     }, this.options?.delay || 5000);
   }
 

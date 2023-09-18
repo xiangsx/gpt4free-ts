@@ -201,7 +201,7 @@ export class Merlin extends Chat {
       }
       return true;
     },
-    { delay: 10000 },
+    { delay: 1000, serial: true },
   );
   constructor(options?: ChatOptions) {
     super(options);
