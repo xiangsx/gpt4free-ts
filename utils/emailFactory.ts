@@ -13,6 +13,9 @@ export enum TempEmailType {
   Inbox = 'inbox',
   Internal = 'internal',
   SmailPro = 'smail-pro',
+  SmailProGmail = 'smail-pro-gmail',
+  SmailProGoogleMail = 'smail-pro-googlemail',
+  SmailProOutlook = 'smail-pro-outlook',
   Gmail = 'gmail',
 }
 
@@ -35,7 +38,21 @@ export function CreateEmail(
     case TempEmailType.Internal:
       return new Internal(options);
     case TempEmailType.SmailPro:
-      return new SmailPro({ ...options, lock: smailProLock });
+      return new SmailPro({ ...options, lock: smailProLock, mail: 'gmail' });
+    case TempEmailType.SmailProGmail:
+      return new SmailPro({ ...options, lock: smailProLock, mail: 'gmail' });
+    case TempEmailType.SmailProGoogleMail:
+      return new SmailPro({
+        ...options,
+        lock: smailProLock,
+        mail: 'googlemail',
+      });
+    case TempEmailType.SmailProOutlook:
+      return new SmailPro({
+        ...options,
+        lock: smailProLock,
+        mail: 'outlook',
+      });
     case TempEmailType.Gmail:
       return new Gmail({ ...options, lock: gmailLock });
     default:
@@ -384,9 +401,11 @@ class Internal extends BaseEmail {
 export class SmailPro extends BaseEmail {
   private page?: Page;
   private lock: Lock;
-  constructor(options: GmailOptions) {
+  private mail: string;
+  constructor(options: SmailProOptions) {
     super(options);
     this.lock = options.lock;
+    this.mail = options.mail || 'gmail';
   }
   async getMailAddress() {
     try {
@@ -415,12 +434,13 @@ export class SmailPro extends BaseEmail {
       await sleep(1000);
       await page.waitForSelector('#autosuggest__input', { visible: true });
       await page.click('#autosuggest__input');
-      await page.keyboard.type('random@gmail.com', {
+      await page.keyboard.type(`random@${this.mail}.com`, {
         delay: 20,
       });
       await sleep(1000);
       await page.keyboard.press('Enter');
       console.log('generating email');
+      await sleep(3000);
       let times = 0;
       while (true) {
         times += 1;
@@ -435,7 +455,7 @@ export class SmailPro extends BaseEmail {
           await sleep(5 * 1000);
           continue;
         }
-        return email + '@gmail.com';
+        return email + `@${this.mail}.com`;
       }
     } catch (e) {
       console.log('get mail failed, err:', e);
@@ -486,7 +506,7 @@ export class SmailPro extends BaseEmail {
           this.lock.unlock();
           return [{ content }];
         }
-        await sleep(5 * 1000);
+        await sleep(10 * 1000);
       } catch (e: any) {
         if (times >= 6) {
           this.lock.unlock();
@@ -507,6 +527,11 @@ export class SmailPro extends BaseEmail {
 
 export interface GmailOptions extends BaseOptions {
   lock: Lock;
+}
+
+export interface SmailProOptions extends GmailOptions {
+  lock: Lock;
+  mail: string;
 }
 
 class Gmail extends BaseEmail {
