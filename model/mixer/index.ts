@@ -220,6 +220,10 @@ export class Mixer extends Chat {
       stream.write(Event.error, { error: e.message, status: 500 });
       stream.write(Event.done, { content: '' });
       stream.end();
+      if (e.response.status === 403) {
+        child.destroy({ delFile: true, delMem: true });
+        return;
+      }
       if (e.response.status === 429) {
         e.response.data.on('data', (chunk: any) => {
           const data = parseJSON<any>(chunk.toString(), {});
