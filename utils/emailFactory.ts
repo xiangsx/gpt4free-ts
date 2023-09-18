@@ -439,6 +439,9 @@ export class SmailPro extends BaseEmail {
       }
     } catch (e) {
       console.log('get mail failed, err:', e);
+      await this.page?.screenshot({
+        path: `./run/smailpro_${randomStr(10)}.png`,
+      });
       this.page?.browser?.().close();
       this.lock.unlock();
       throw e;
