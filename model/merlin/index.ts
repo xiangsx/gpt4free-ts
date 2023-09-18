@@ -309,6 +309,7 @@ export class Merlin extends Chat {
       });
       stream.write(Event.done, { content: '' });
       stream.end();
+      child.destroy({ delFile: false, delMem: true });
     }
   }
 }
