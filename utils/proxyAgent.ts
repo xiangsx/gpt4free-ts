@@ -114,10 +114,10 @@ export async function CreateNewPage(
       ...args,
     ],
   };
-  const browser = await puppeteer.launch(launchOpt);
   if (proxy) {
     launchOpt.args?.push(`--proxy-server=${proxy}`);
   }
+  const browser = await puppeteer.launch(launchOpt);
   const page = await browser.newPage();
   if (simplify) {
     await simplifyPage(page);
