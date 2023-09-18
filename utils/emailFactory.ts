@@ -392,7 +392,9 @@ export class SmailPro extends BaseEmail {
     try {
       await this.lock.lock(120 * 1000);
       if (!this.page) {
-        this.page = await CreateNewPage('http://smailpro.com/advanced');
+        this.page = await CreateNewPage('http://smailpro.com/advanced', {
+          simplify: true,
+        });
         setTimeout(() => {
           this.page?.browser().close();
         }, 360 * 1000);
@@ -413,7 +415,7 @@ export class SmailPro extends BaseEmail {
       await page.waitForSelector('#autosuggest__input', { visible: true });
       await page.click('#autosuggest__input');
       await page.keyboard.type('random@gmail.com', {
-        delay: 40,
+        delay: 20,
       });
       await sleep(1000);
       await page.keyboard.press('Enter');
