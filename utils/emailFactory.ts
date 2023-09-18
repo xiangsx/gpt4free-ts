@@ -490,10 +490,10 @@ export class SmailPro extends BaseEmail {
       } catch (e: any) {
         if (times >= 6) {
           this.lock.unlock();
-          await this.page?.browser().close();
           await this.page?.screenshot({
             path: `./run/smailpro_${randomStr(10)}.png`,
           });
+          await this.page?.browser().close();
           throw new Error('got mails failed');
         }
       } finally {
