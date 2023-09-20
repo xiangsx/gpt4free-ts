@@ -104,6 +104,8 @@ export interface ChatRequest {
   prompt: string;
   model: ModelType;
   messages: Message[];
+  search?: boolean;
+  max_tokens?: number;
 }
 
 // 结构体message转换为prompt

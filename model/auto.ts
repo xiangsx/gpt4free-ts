@@ -1,18 +1,9 @@
-import {
-  Chat,
-  ChatOptions,
-  ChatRequest,
-  ChatResponse,
-  ModelType,
-  Site,
-} from './base';
+import { Chat, ChatOptions, ChatRequest, ModelType, Site } from './base';
 import {
   ComError,
-  DoneData,
-  ErrorData,
   Event,
   EventStream,
-  MessageData,
+  parseJSON,
   ThroughEventStream,
 } from '../utils';
 import { Config, SiteCfg } from '../utils/config';
@@ -136,6 +127,42 @@ export class Auto extends Chat {
   }
 
   async preHandle(req: ChatRequest): Promise<ChatRequest> {
+    if (req.search) {
+      const searchStr = req.messages[req.messages.length - 1].content;
+      const searchRes = await this.ask({
+        model: ModelType.Search,
+        messages: [{ role: 'user', content: req.prompt }],
+        prompt: req.prompt,
+      });
+      if (!searchRes.content) {
+        return req;
+      }
+      let searchParsed = parseJSON<any[]>(searchRes.content || '', []);
+      if (searchParsed.length === 0) {
+        return req;
+      }
+      searchParsed = searchParsed.slice(0, 5);
+      const searchResStr = searchParsed
+        .map((item) => item.description)
+        .join('\n');
+      const urlParse = await this.ask({
+        model: ModelType.URL,
+        messages: [{ role: 'user', content: searchParsed[0].link }],
+        prompt: searchParsed[0].link,
+        max_tokens: 1000,
+      });
+      const urlContent = urlParse.content;
+      if (!urlContent) {
+        return req;
+      }
+      req.messages = [
+        ...req.messages.slice(0, -1),
+        {
+          role: 'user',
+          content: `我的问题是:${searchStr}\n 搜索结果是:${searchResStr}\n${urlContent}\n 我需要你作为一个智能助手，参考搜索结果并且忽略一些不想干的网页内容，总结一下，回答我的问题, 答案如下: `,
+        },
+      ];
+    }
     // auto站点不处理
     return req;
   }
