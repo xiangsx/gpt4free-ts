@@ -282,13 +282,13 @@ export class Poef extends Chat implements BrowserUser<Account> {
   public async getUseLeft(page: Page): Promise<UseLeft> {
     await page.goto('https://poe.com/settings');
     await page.waitForSelector(
-      '.SettingsPageMain_container__3Se4O > .SettingsSubscriptionSection_subscriptionSettingsContainer__DfZCW > .SettingsSubscriptionSection_botLimitSection__j4mSO > .SettingsSubscriptionSection_sectionBubble__nlU_b:nth-child(1) > .SettingsSubscriptionSection_title__aFmeI',
+      '.SidebarLayout_wrapper__0fQUj > .MainColumn_scrollSection__TuAiS > .MainColumn_column__z1_q8 > .SettingsPageMain_container__3Se4O > .SettingsSubscriptionSection_subscriptionSettingsContainer__DfZCW',
     );
     const length: number = await page.evaluate(
       () =>
         // @ts-ignore
         document.querySelector(
-          '.SidebarLayout_main__x1QPg > .MainColumn_scrollSection__TuAiS > .MainColumn_column__z1_q8 > .SettingsPageMain_container__3Se4O > .SettingsSubscriptionSection_subscriptionSettingsContainer__DfZCW',
+          '.SidebarLayout_wrapper__0fQUj > .MainColumn_scrollSection__TuAiS > .MainColumn_column__z1_q8 > .SettingsPageMain_container__3Se4O > .SettingsSubscriptionSection_subscriptionSettingsContainer__DfZCW',
         ).children[2].children.length,
     );
     const useLeft: UseLeft = {};
@@ -298,7 +298,7 @@ export class Poef extends Chat implements BrowserUser<Account> {
         (idx) =>
           // @ts-ignore
           document.querySelector(
-            '.SidebarLayout_main__x1QPg > .MainColumn_scrollSection__TuAiS > .MainColumn_column__z1_q8 > .SettingsPageMain_container__3Se4O > .SettingsSubscriptionSection_subscriptionSettingsContainer__DfZCW',
+            '.SidebarLayout_wrapper__0fQUj > .MainColumn_scrollSection__TuAiS > .MainColumn_column__z1_q8 > .SettingsPageMain_container__3Se4O > .SettingsSubscriptionSection_subscriptionSettingsContainer__DfZCW',
           ).children[2].children[idx].children[0].textContent,
         i,
       );
@@ -307,7 +307,7 @@ export class Poef extends Chat implements BrowserUser<Account> {
         (idx) =>
           // @ts-ignore
           document.querySelector(
-            '.SidebarLayout_main__x1QPg > .MainColumn_scrollSection__TuAiS > .MainColumn_column__z1_q8 > .SettingsPageMain_container__3Se4O > .SettingsSubscriptionSection_subscriptionSettingsContainer__DfZCW',
+            '.SidebarLayout_wrapper__0fQUj > .MainColumn_scrollSection__TuAiS > .MainColumn_column__z1_q8 > .SettingsPageMain_container__3Se4O > .SettingsSubscriptionSection_subscriptionSettingsContainer__DfZCW',
           ).children[2].children[idx].children[1].textContent,
         i,
       );
