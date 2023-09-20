@@ -292,7 +292,9 @@ app.use(router.routes());
     });
   });
   process.on('uncaughtException', (e) => {
-    console.error('uncaughtException', e);
-    process.exit(1);
+    console.error('uncaught exception, exit after 5s! err=', e);
+    setTimeout(() => {
+      process.exit(1);
+    }, 5000);
   });
 })();
