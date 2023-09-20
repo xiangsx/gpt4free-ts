@@ -104,6 +104,8 @@ const AskHandle: Middleware = async (ctx) => {
   if (data && data.error) {
     ctx.status = 500;
   }
+  req.messages.push({ role: 'assistant', content: data.content || '' });
+  console.debug(req.messages);
   ctx.body = data;
 };
 
@@ -148,6 +150,8 @@ const AskStreamHandle: (ESType: new () => EventStream) => Middleware =
       stream.write(Event.done, { content: '' });
       stream.end();
     }, 120 * 1000);
+    const input = req.messages;
+    let output = '';
     return (() =>
       new Promise<void>(async (resolve, reject) => {
         try {
@@ -183,6 +187,7 @@ const AskStreamHandle: (ESType: new () => EventStream) => Middleware =
                   }
                   resolve();
                   stream.write(event, data);
+                  output += (data as any).content;
                   break;
               }
             },
@@ -190,6 +195,8 @@ const AskStreamHandle: (ESType: new () => EventStream) => Middleware =
               if (!ok) {
                 return;
               }
+              input.push({ role: 'assistant', content: output });
+              console.debug(input);
               stream.end();
             },
           );
