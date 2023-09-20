@@ -33,7 +33,23 @@ export class Auto extends Chat {
   }
 
   getRandomModel(model: ModelType): Chat {
-    const list = Config.config.site_map[model];
+    const list: SiteCfg[] = [];
+    for (const m in Config.config.site_map) {
+      const v = Config.config.site_map[m as ModelType] || [];
+      if (m === '*') {
+        list.push(...v);
+        continue;
+      }
+      if (m === model) {
+        list.push(...v);
+        continue;
+      }
+      // 支持正则匹配
+      if (new RegExp(m).test(model)) {
+        list.push(...v);
+        continue;
+      }
+    }
     if (!list) {
       throw new ComError(
         `not cfg ${model} in site_map}`,
