@@ -481,10 +481,10 @@ export class Poef extends Chat implements BrowserUser<Account> {
     await page.click(Poef.ClearSelector);
     // new chat
     await page.waitForSelector(
-      '.SidebarLayout_sidebar__X_iwf > .ChatBotDetailsSidebar_contents__ScQ1s > .RightColumnBotInfoCard_sectionContainer___aFTN > .BotInfoCardActionBar_actionBar__WdCr7 > .Button_primary__pIDjn',
+      '.SidebarLayout_wrapper__0fQUj > .ChatBotDetailsSidebar_contents__ScQ1s > .RightColumnBotInfoCard_sectionContainer___aFTN > .BotInfoCardActionBar_actionBar__WdCr7 > .Button_primary__pIDjn',
     );
     await page.click(
-      '.SidebarLayout_sidebar__X_iwf > .ChatBotDetailsSidebar_contents__ScQ1s > .RightColumnBotInfoCard_sectionContainer___aFTN > .BotInfoCardActionBar_actionBar__WdCr7 > .Button_primary__pIDjn',
+      '.SidebarLayout_wrapper__0fQUj > .ChatBotDetailsSidebar_contents__ScQ1s > .RightColumnBotInfoCard_sectionContainer___aFTN > .BotInfoCardActionBar_actionBar__WdCr7 > .Button_primary__pIDjn',
     );
   }
 
