@@ -150,53 +150,57 @@ const AskStreamHandle: (ESType: new () => EventStream) => Middleware =
     }, 120 * 1000);
     return (() =>
       new Promise<void>(async (resolve, reject) => {
-        const es = new ThroughEventStream(
-          (event, data) => {
-            switch (event) {
-              case Event.error:
-                clearTimeout(timeout);
-                if (data instanceof ComError) {
-                  reject(data);
-                }
-                ok = false;
-                reject(
-                  new ComError(
-                    (data as any)?.error || 'unknown error',
-                    (data as any)?.status ||
-                      ComError.Status.InternalServerError,
-                  ),
-                );
-                break;
-              default:
-                clearTimeout(timeout);
-                if (!ok) {
+        try {
+          const es = new ThroughEventStream(
+            (event, data) => {
+              switch (event) {
+                case Event.error:
+                  clearTimeout(timeout);
+                  if (data instanceof ComError) {
+                    reject(data);
+                  }
+                  ok = false;
+                  reject(
+                    new ComError(
+                      (data as any)?.error || 'unknown error',
+                      (data as any)?.status ||
+                        ComError.Status.InternalServerError,
+                    ),
+                  );
                   break;
-                }
-                if (!ctx.body) {
-                  ctx.set({
-                    'Content-Type': 'text/event-stream;charset=utf-8',
-                    'Cache-Control': 'no-cache',
-                    Connection: 'keep-alive',
-                  });
-                  ctx.body = stream.stream();
-                }
-                resolve();
-                stream.write(event, data);
-                break;
-            }
-          },
-          () => {
-            if (!ok) {
-              return;
-            }
-            stream.end();
-          },
-        );
-        await chat.askStream(req, es).catch((err) => {
-          clearTimeout(timeout);
-          es.destroy();
-          reject(err);
-        });
+                default:
+                  clearTimeout(timeout);
+                  if (!ok) {
+                    break;
+                  }
+                  if (!ctx.body) {
+                    ctx.set({
+                      'Content-Type': 'text/event-stream;charset=utf-8',
+                      'Cache-Control': 'no-cache',
+                      Connection: 'keep-alive',
+                    });
+                    ctx.body = stream.stream();
+                  }
+                  resolve();
+                  stream.write(event, data);
+                  break;
+              }
+            },
+            () => {
+              if (!ok) {
+                return;
+              }
+              stream.end();
+            },
+          );
+          await chat.askStream(req, es).catch((err) => {
+            clearTimeout(timeout);
+            es.destroy();
+            reject(err);
+          });
+        } catch (e) {
+          reject(e);
+        }
       }))();
   };
 

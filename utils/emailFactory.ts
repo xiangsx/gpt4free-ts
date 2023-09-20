@@ -17,6 +17,7 @@ export enum TempEmailType {
   SmailProGoogleMail = 'smail-pro-googlemail',
   SmailProOutlook = 'smail-pro-outlook',
   Gmail = 'gmail',
+  EmailNator = 'emailnator',
 }
 
 const gmailLock = new Lock();
@@ -55,6 +56,8 @@ export function CreateEmail(
       });
     case TempEmailType.Gmail:
       return new Gmail({ ...options, lock: gmailLock });
+    case TempEmailType.EmailNator:
+      return new EmailNator(options);
     default:
       throw new Error('not support TempEmailType');
   }
@@ -621,6 +624,132 @@ class Gmail extends BaseEmail {
 
         time++;
       }, 20 * 1000);
+    });
+  }
+}
+
+export class EmailNator extends BaseEmail {
+  page!: Page;
+  private clear?: NodeJS.Timeout;
+  private email?: string;
+
+  constructor(options?: BaseOptions) {
+    super(options);
+  }
+
+  async getMailAddress(): Promise<string> {
+    try {
+      if (!this.page) {
+        this.page = await CreateNewPage('https://emailnator.com/');
+        await this.page.waitForSelector('#custom-switch-domain');
+        await this.page.click('#custom-switch-domain');
+        await this.page.waitForSelector(
+          '.mb-3 > .card-body > .justify-content-md-center > .mx-auto > .btn-lg',
+        );
+        await this.page.click(
+          '.mb-3 > .card-body > .justify-content-md-center > .mx-auto > .btn-lg',
+        );
+        this.clear = setTimeout(() => {
+          this.page.browser().close();
+        }, 360 * 1000);
+      }
+      await this.page.waitForSelector(
+        '.col-lg-7 > .mb-3 > .card-body > .mb-3 > .form-control-lg',
+      );
+      const emailInput = await this.page.$(
+        '.col-lg-7 > .mb-3 > .card-body > .mb-3 > .form-control-lg',
+      );
+      await sleep(5000);
+      // @ts-ignore
+      const email = await emailInput.evaluate((el) => el.value);
+      // await sleep(10 * 60 * 1000);
+      if (!email) {
+        throw new Error('get email failed');
+      }
+      this.email = email;
+
+      await sleep(3000);
+      await this.page.waitForSelector(
+        '.col-lg-7 > .mb-3 > .card-body > .text-center > .btn-lg',
+      );
+      await this.page.click(
+        '.col-lg-7 > .mb-3 > .card-body > .text-center > .btn-lg',
+      );
+      return email;
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  private async getMails() {
+    try {
+      await this.page.waitForSelector(
+        '.card > .card-body > .mb-3 > .col-md-6 > .float-md-end',
+      );
+      setImmediate(() => {
+        this.page.click(
+          '.card > .card-body > .mb-3 > .col-md-6 > .float-md-end',
+        );
+      });
+      const res = await this.page.waitForResponse(
+        (res) =>
+          res.url() === 'https://www.emailnator.com/message-list' &&
+          res.headers()['content-type'].indexOf('application/json') > -1,
+      );
+      let mails: any[] = (await res.json()).messageData;
+      mails = mails.filter((v) => v.messageID !== 'ADSVPN');
+      return mails || [];
+    } catch (e: any) {
+      console.log('get mails failed, err = ', e.message);
+      return [];
+    }
+  }
+
+  async getMailDetail(mail: string, messageID: string) {
+    try {
+      this.page
+        .goto(`https://www.emailnator.com/inbox/${mail}/${messageID}`)
+        .catch(console.error);
+      const res = await this.page.waitForResponse(
+        (res) => res.url() === 'https://www.emailnator.com/message-list',
+      );
+      return await res.text();
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  async waitMails(): Promise<BaseMailMessage[]> {
+    let tryTimes = 0;
+
+    return new Promise(async (resolve, reject) => {
+      try {
+        for (let i = 0; i < 3; i++) {
+          const mails = await this.getMails();
+          const v = mails.find(
+            (v) =>
+              v.time.indexOf('Just Now') > -1 ||
+              v.time.indexOf('one minute ago') > -1,
+          );
+          if (!v) {
+            if (tryTimes >= 3) {
+              reject(new Error('get mail failed'));
+              await this.page.browser().close();
+              return;
+            }
+            await sleep(5000);
+            continue;
+          }
+          const content =
+            (await this.getMailDetail(this.email || '', v.messageID)) || '';
+          resolve([{ content } as BaseMailMessage]);
+          setTimeout(() => this.page.browser().close(), 5000);
+          return;
+        }
+        reject(new Error('get mail failed'));
+      } catch (e) {
+        reject(e);
+      }
     });
   }
 }
