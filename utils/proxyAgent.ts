@@ -4,7 +4,7 @@ import { SessionConstructorOptions } from 'tls-client/dist/esm/types';
 import { Session } from 'tls-client/dist/esm/sessions';
 import tlsClient from 'tls-client';
 import puppeteer from 'puppeteer-extra';
-import { Page, PuppeteerLaunchOptions } from 'puppeteer';
+import { Page, Protocol, PuppeteerLaunchOptions } from 'puppeteer';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import { spawn } from 'child_process';
 import WebSocket from 'ws';
@@ -273,9 +273,22 @@ export class WebFetchProxy {
   private page?: Page;
   private streamMap: Record<string, PassThrough> = {};
   private readonly homeURL: string;
-  constructor(homeURL: string) {
+  private options: { cookie: Protocol.Network.Cookie[] } | undefined;
+  constructor(
+    homeURL: string,
+    options?: { cookie: Protocol.Network.Cookie[] },
+  ) {
     this.homeURL = homeURL;
+    this.options = options;
     this.init().then(() => console.log(`web fetch proxy init ok`));
+  }
+
+  getPage() {
+    return this.page;
+  }
+
+  close() {
+    this.page?.browser().close();
   }
 
   async init() {
@@ -332,52 +345,50 @@ export class WebFetchProxy {
     const stream = new PassThrough();
     this.streamMap[id] = stream;
 
-    this.page
-      .evaluate(
-        (id, url, init) => {
-          return new Promise((resolve, reject) => {
-            fetch(url, init)
-              .then((response) => {
-                if (!response.body) {
-                  resolve(null);
-                  return null;
-                }
-                const reader = response.body.getReader();
-                function readNextChunk() {
-                  reader
-                    .read()
-                    .then(({ done, value }) => {
-                      const textChunk = new TextDecoder('utf-8').decode(value);
-                      if (done) {
-                        // @ts-ignore
-                        window.onChunkEnd(id);
-                        // @ts-ignore
-                        resolve(textChunk);
-                        return;
-                      }
+    await this.page.evaluate(
+      (id, url, init) => {
+        return new Promise((resolve, reject) => {
+          fetch(url, init)
+            .then((response) => {
+              if (!response.body) {
+                resolve(null);
+                return null;
+              }
+              const reader = response.body.getReader();
+              function readNextChunk() {
+                reader
+                  .read()
+                  .then(({ done, value }) => {
+                    const textChunk = new TextDecoder('utf-8').decode(value);
+                    if (done) {
                       // @ts-ignore
-                      window.onChunk(id, textChunk);
-                      readNextChunk();
-                    })
-                    .catch((err) => {
+                      window.onChunkEnd(id);
                       // @ts-ignore
-                      window.onChunkError(id, err);
-                      reject(err);
-                    });
-                }
-                readNextChunk();
-              })
-              .catch((err) => {
-                console.error(err);
-                reject(err);
-              });
-          });
-        },
-        id,
-        url,
-        init,
-      )
-      .catch(console.error);
+                      resolve(textChunk);
+                      return;
+                    }
+                    // @ts-ignore
+                    window.onChunk(id, textChunk);
+                    readNextChunk();
+                  })
+                  .catch((err) => {
+                    // @ts-ignore
+                    window.onChunkError(id, err);
+                    reject(err);
+                  });
+              }
+              readNextChunk();
+            })
+            .catch((err) => {
+              console.error(err);
+              reject(err);
+            });
+        });
+      },
+      id,
+      url,
+      init,
+    );
     return stream;
   }
 }

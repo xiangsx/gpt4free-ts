@@ -1,8 +1,21 @@
 import { Chat, ChatOptions, ChatRequest, ModelType } from '../base';
-import { Event, EventStream, TWToCN, sleep, parseJSON } from '../../utils';
-import { ChildOptions, ComChild, ComInfo, Info, Pool } from '../../utils/pool';
+import {
+  Event,
+  EventStream,
+  TWToCN,
+  sleep,
+  parseJSON,
+  TimeFormat,
+} from '../../utils';
+import {
+  ChildOptions,
+  ComChild,
+  ComInfo,
+  DestroyOptions,
+  Pool,
+} from '../../utils/pool';
 import { Config } from '../../utils/config';
-import { CreateAxiosProxy } from '../../utils/proxyAgent';
+import { CreateAxiosProxy, WebFetchProxy } from '../../utils/proxyAgent';
 import { AxiosInstance } from 'axios';
 import { CreateEmail } from '../../utils/emailFactory';
 import es from 'event-stream';
@@ -17,9 +30,9 @@ interface Account extends ComInfo {
 }
 class Child extends ComChild<Account> {
   public readonly client: AxiosInstance;
+  public webFetch = new WebFetchProxy('https://chatai.mixerbox.com/chat');
   constructor(label: string, info: any, options?: ChildOptions) {
     super(label, info, options);
-
     this.client = CreateAxiosProxy(
       {
         baseURL: 'https://chatai.mixerbox.com/api/',
@@ -72,6 +85,11 @@ class Child extends ComChild<Account> {
       lastUseTime: moment().unix(),
       useCount: (this.info.useCount || 0) + 1,
     });
+  }
+
+  destroy(options?: DestroyOptions) {
+    super.destroy(options);
+    this.webFetch.close();
   }
 }
 
@@ -146,68 +164,87 @@ export class Mixer extends Chat {
       return;
     }
     try {
-      const res = await child.client.post(
-        '/chat/stream',
+      const res = await child.webFetch.fetch(
+        'https://chatai.mixerbox.com/api/chat/stream',
         {
-          prompt: req.messages,
-          lang: 'zh',
-          model: req.model,
-          // plugins: [ 'browsing', 'web_search', 'chat_map', 'weather', 'image_gen', 'news', 'translate', 'qr', 'chat_pdf', 'scholar', 'chat_video', 'prompt_pro', 'one_player', 'tv', 'podcasts', 'photo_magic', 'calculator', 'chat_email', 'calendar', 'chat_drive',],
-          plugins: [],
-          getRecommendQuestions: true,
-          isSummarize: false,
-          webVersion: '1.3.0',
-          userAgent:
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36 Edg/116.0.1938.76',
-          isExtension: false,
-        },
-        {
+          method: 'POST',
+          referrer: 'https://chatai.mixerbox.com/chat',
+          referrerPolicy: 'strict-origin-when-cross-origin',
+          mode: 'cors',
+          credentials: 'include',
           headers: {
-            authority: 'chatai.mixerbox.com',
-            accept: '*/*',
-            'accept-language':
+            'User-Agent':
+              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36',
+            Cookie: `access_token=${child.info.token}; has_token=true`,
+            'Accept-Language':
               'zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6',
-            'content-type': 'application/json',
-            origin: 'https://chatai.mixerbox.com',
-            referer: 'https://chatai.mixerbox.com/chat',
-            'sec-ch-ua':
-              '"Chromium";v="116", "Not)A;Brand";v="24", "Microsoft Edge";v="116"',
-            'sec-ch-ua-mobile': '?0',
-            'sec-ch-ua-platform': '"Windows"',
-            'sec-fetch-dest': 'empty',
-            'sec-fetch-mode': 'cors',
-            'sec-fetch-site': 'same-origin',
-            'user-agent':
-              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36 Edg/116.0.1938.76',
-            cookie: `access_token=${child.info.token};has_token=true`,
+            Referer: 'https://chatai.mixerbox.com/chat',
+            Origin: 'https://chatai.mixerbox.com',
+            'Content-Type': 'application/json',
           },
-          responseType: 'stream',
+          body: JSON.stringify({
+            prompt: req.messages,
+            lang: 'zh',
+            model: req.model,
+            // plugins: [ 'browsing', 'web_search', 'chat_map', 'weather', 'image_gen', 'news', 'translate', 'qr', 'chat_pdf', 'scholar', 'chat_video', 'prompt_pro', 'one_player', 'tv', 'podcasts', 'photo_magic', 'calculator', 'chat_email', 'calendar', 'chat_drive',],
+            plugins: [],
+            pluginSets: [],
+            getRecommendQuestions: true,
+            isSummarize: false,
+            webVersion: '1.4.2',
+            userAgent:
+              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36',
+            isExtension: false,
+          }),
         },
       );
-      res.data.pipe(es.split(/\r?\n\r?\n/)).pipe(
+      res.pipe(es.split(/\r?\n\r?\n/)).pipe(
         es.map((chunk: any) => {
-          const data = chunk.toString();
-          if (!data) {
-            return;
+          try {
+            const data = chunk.toString();
+            if (!data) {
+              return;
+            }
+            if (data.indexOf('Too many requests.') > -1) {
+              const v = parseJSON<{
+                status: number;
+                rewardId: string;
+                retryAfter: number;
+              }>(data, {} as any);
+              this.logger.info('Too many requests, try get reward:');
+              if (!v.rewardId) {
+                this.logger.info(
+                  'no rewardId, retryAfter:',
+                  moment.unix(v.retryAfter).format(TimeFormat),
+                );
+                child.update({ limited: true, retryAfter: v.retryAfter });
+                child.destroy({ delFile: false, delMem: true });
+                return;
+              }
+              this.getReward(child.client, v.rewardId);
+              return;
+            }
+            let [event, , content] = data.split('\n');
+            if (
+              !event ||
+              event.indexOf('signal') > -1 ||
+              event.indexOf('undefined') > -1
+            ) {
+              return;
+            }
+            content = content
+              .replace('data:', '')
+              .replace(/\[SPACE\]/g, ' ')
+              .replace(/\[NEWLINE\]/g, '\n')
+              .replace(/MixerBox/g, 'OpenAi');
+            content = TWToCN(content);
+            stream.write(Event.message, { content });
+          } catch (e: any) {
+            this.logger.error('parse failed, ', e);
           }
-          let [event, , content] = data.split('\n');
-          if (
-            !event ||
-            event.indexOf('signal') > -1 ||
-            event.indexOf('undefined') > -1
-          ) {
-            return;
-          }
-          content = content
-            .replace('data:', '')
-            .replace(/\[SPACE\]/g, ' ')
-            .replace(/\[NEWLINE\]/g, '\n')
-            .replace(/MixerBox/g, 'OpenAi');
-          content = TWToCN(content);
-          stream.write(Event.message, { content });
         }),
       );
-      res.data.on('close', () => {
+      res.on('close', () => {
         this.logger.info('Msg recv ok');
         stream.write(Event.done, { content: '' });
         stream.end();
@@ -220,21 +257,6 @@ export class Mixer extends Chat {
       stream.write(Event.error, { error: e.message, status: 500 });
       stream.write(Event.done, { content: '' });
       stream.end();
-      if (e.response.status === 403) {
-        child.destroy({ delFile: true, delMem: true });
-        return;
-      }
-      if (e.response.status === 429) {
-        e.response.data.on('data', (chunk: any) => {
-          const data = parseJSON<any>(chunk.toString(), {});
-          if (!data.rewardId) {
-            child.destroy();
-            child.update({ limited: true, retryAfter: data.retryAfter });
-            return;
-          }
-          this.getReward(child.client, data.rewardId);
-        });
-      }
     }
   }
 }
