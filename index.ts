@@ -39,7 +39,14 @@ const errorHandler = async (ctx: Context, next: Next) => {
   try {
     await next();
   } catch (err: any) {
-    console.error('error handle:', err);
+    console.error(
+      `req: ${JSON.stringify({
+        ...(ctx.query as any),
+        ...(ctx.request.body as any),
+        ...(ctx.params as any),
+      })}, error handle: `,
+      err,
+    );
     ctx.body = { error: { message: err.message } };
     ctx.status = err.status || ComError.Status.InternalServerError;
   }
