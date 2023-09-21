@@ -110,7 +110,7 @@ export class Auto extends Chat {
       },
     );
     const chat = this.getRandomModel(req.model);
-    await chat.preHandle(req);
+    await chat.preHandle(req, { stream });
     return await chat.askStream(req, es).catch((err) => {
       es.destroy();
       throw err;
@@ -126,7 +126,7 @@ export class Auto extends Chat {
     return Number.MAX_SAFE_INTEGER;
   }
 
-  async preHandle(req: ChatRequest): Promise<ChatRequest> {
+  async preHandle(req: ChatRequest, options: any): Promise<ChatRequest> {
     if (req.search) {
       const searchStr = req.messages[req.messages.length - 1].content;
       const searchRes = await this.ask({
@@ -142,6 +142,13 @@ export class Auto extends Chat {
         return req;
       }
       searchParsed = searchParsed.slice(0, 5);
+      if (options?.stream) {
+        options.stream.write(Event.message, {
+          content: `${searchParsed
+            .map((v) => `- [${v.title}](${v.link})`)
+            .join('\n')}\n\n`,
+        });
+      }
       const searchResStr = searchParsed
         .map((item) => item.description)
         .join('\n');

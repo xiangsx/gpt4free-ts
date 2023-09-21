@@ -142,8 +142,8 @@ const AskStreamHandle: (ESType: new () => EventStream) => Middleware =
     if (typeof req.messages !== 'object') {
       req.messages = [{ role: 'user', content: prompt }];
     }
-    req = await chat.preHandle(req);
     let stream = new ESType();
+    req = await chat.preHandle(req, { stream });
     let ok = true;
     const timeout = setTimeout(() => {
       stream.write(Event.error, { error: 'timeout' });

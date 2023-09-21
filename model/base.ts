@@ -5,6 +5,7 @@ import {
   EventStream,
   getTokenCount,
   MessageData,
+  OpenaiEventStream,
   removeRandomChars,
 } from '../utils';
 import winston from 'winston';
@@ -205,6 +206,7 @@ export class Chat {
       token?: boolean;
       countPrompt?: boolean;
       forceRemove?: boolean;
+      stream?: EventStream;
     },
   ): Promise<ChatRequest> {
     const {
