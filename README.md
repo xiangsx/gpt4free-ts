@@ -216,8 +216,8 @@ data: {"content":"done"}
 
 ## 👥 Wechat Group
 
-<image src="https://github.com/xiangsx/gpt4free-ts/assets/29322721/dd4ae1a8-ebfb-4ea8-afdc-146f07d2d51e" width=240 />
-<image src="https://github.com/xiangsx/gpt4free-ts/assets/29322721/d337e1c0-6909-4009-bab9-ac02a29886ae" width=240 />
+<image src="https://github.com/xiangsx/gpt4free-ts/assets/29322721/8ca34ced-27f2-4e68-80c2-0eecdf6f7d71" width=240 />
+<image src="https://github.com/xiangsx/gpt4free-ts/assets/29322721/d13f194e-5faf-496c-a6da-8d94e8309116" width=240 />
 
 ## 🌟 Star History
 
