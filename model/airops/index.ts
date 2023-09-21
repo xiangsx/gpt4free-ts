@@ -1,5 +1,5 @@
 import { Chat, ChatOptions, ChatRequest, ModelType } from '../base';
-import { Event, EventStream, parseJSON } from '../../utils';
+import { Event, EventStream, parseJSON, randomStr, sleep } from '../../utils';
 import {
   ChildOptions,
   ComChild,
@@ -8,48 +8,156 @@ import {
   Pool,
 } from '../../utils/pool';
 import { Config } from '../../utils/config';
-import { CreateAxiosProxy, WSS } from '../../utils/proxyAgent';
+import { CreateAxiosProxy, CreateNewPage, WSS } from '../../utils/proxyAgent';
 import { AxiosInstance } from 'axios';
 import moment from 'moment/moment';
 import { v4 } from 'uuid';
+import { CreateEmail } from '../../utils/emailFactory';
+import { Page } from 'puppeteer';
 
 const APP_KEY = 'af9e46318302fccfc6db';
 const APP_CLUSTER = 'mt1';
 
 interface Account extends ComInfo {
+  email: string;
+  password: string;
+  company_name: string;
+  app_name: string;
   app_uuid: string;
   api_key: string;
   left: number;
+  failed_times: number;
 }
 class Child extends ComChild<Account> {
-  public readonly client: AxiosInstance;
-  public channel = v4();
+  public client!: AxiosInstance;
   public ws!: WSS;
-  private onMsg?: (event: string, data: string) => void;
+  private channelMap: Record<
+    string,
+    ((event: string, data: string) => void) | null
+  > = {};
   constructor(label: string, info: any, options?: ChildOptions) {
     super(label, info, options);
-    this.client = CreateAxiosProxy(
-      {
-        baseURL: `https://app.airops.com/public_api/airops_apps/${this.info.app_uuid}/`,
-        headers: {
-          accept: 'application/json',
-          'content-type': 'application/json',
-          Authorization: `Bearer ${this.info.api_key}`,
-        },
-      },
-      false,
-    );
   }
 
   public setMsgListener(cb: (event: string, data: string) => void) {
-    this.onMsg = cb;
+    for (const channel in this.channelMap) {
+      if (!this.channelMap[channel]) {
+        this.channelMap[channel] = cb;
+        return channel;
+      }
+    }
+    const channel = v4();
+    this.ws.send(
+      JSON.stringify({
+        event: 'pusher:subscribe',
+        data: {
+          auth: '',
+          channel: `public-${channel}`,
+        },
+      }),
+    );
+    this.channelMap[channel] = cb;
+    return channel;
+  }
+
+  public removeMsgListener(channel: string) {
+    this.channelMap[channel] = null;
   }
 
   async init(): Promise<void> {
-    if (!this.info.app_uuid || !this.info.api_key) {
-      throw new Error('app_uuid or api_key is empty');
-    }
     try {
+      let page;
+      if (!this.info.api_key) {
+        page = await CreateNewPage('https://app.airops.com/users/sign_up');
+        await page.waitForSelector('#user_first_name');
+        await page.click('#user_first_name');
+        await page.keyboard.type(randomStr(5));
+
+        await page.waitForSelector('#user_last_name');
+        await page.click('#user_last_name');
+        await page.keyboard.type(randomStr(5));
+
+        await page.waitForSelector('#user_email');
+        await page.click('#user_email');
+        const mailbox = CreateEmail(Config.config.langdock.mail_type);
+        const email = await mailbox.getMailAddress();
+        await page.keyboard.type(email);
+        this.update({ email });
+
+        await page.waitForSelector('#user_password');
+        await page.click('#user_password');
+        const password = randomStr(20);
+        await page.keyboard.type(password);
+
+        await page.waitForSelector('#user_password_confirmation');
+        await page.click('#user_password_confirmation');
+        await page.keyboard.type(password);
+        this.update({ password });
+        await page.keyboard.press('Enter');
+
+        for (const v of await mailbox.waitMails()) {
+          let verifyUrl = v.content.match(/href="([^"]*)/i)?.[1] || '';
+          if (!verifyUrl) {
+            throw new Error('verifyUrl not found');
+          }
+          verifyUrl = verifyUrl.replace(/&amp;/g, '&');
+          await page.goto(verifyUrl);
+          this.logger.info('verify email ok');
+          break;
+        }
+        await sleep(3000);
+        const company_name = randomStr(10);
+        await page.waitForSelector('#companyName');
+        await page.click('#companyName');
+        await page.keyboard.type(company_name);
+        this.update({ company_name });
+
+        await page.waitForSelector('#role');
+        await page.click('#role');
+
+        await page.waitForSelector(
+          '.mt-10 > .grid > .flex > .z-50 > .text-body-sm:nth-child(1)',
+        );
+        await page.click(
+          '.mt-10 > .grid > .flex > .z-50 > .text-body-sm:nth-child(1)',
+        );
+
+        await page.waitForSelector(
+          '.flex > .box-border > .mt-10 > .mt-8 > .relative:nth-child(2)',
+        );
+        await page.click(
+          '.flex > .box-border > .mt-10 > .mt-8 > .relative:nth-child(2)',
+        );
+        await sleep(3000);
+        await this.createNewApp(page);
+        await sleep(3000);
+        const app = await this.getApp(page);
+        if (!app) {
+          throw new Error('get app failed');
+        }
+        this.logger.info(`get app ok, app_uuid: ${app.uuid}`);
+        this.update({ app_uuid: app.uuid });
+
+        const api_key = await this.getApiKey(page);
+        if (!api_key) {
+          throw new Error('get api key failed');
+        }
+        this.update({ api_key });
+        this.logger.info('get api key ok, api_key: ' + api_key);
+        this.update({ left: 5000 });
+      }
+
+      this.client = CreateAxiosProxy(
+        {
+          baseURL: `https://app.airops.com/public_api/`,
+          headers: {
+            accept: 'application/json',
+            'content-type': 'application/json',
+            Authorization: `Bearer ${this.info.api_key}`,
+          },
+        },
+        false,
+      );
       this.ws = new WSS(
         `wss://ws-${APP_CLUSTER}.pusher.com/app/${APP_KEY}?protocol=7&client=js&version=8.1.0&flash=false`,
         {
@@ -63,15 +171,6 @@ class Child extends ComChild<Account> {
                 }),
               );
             }, 2 * 60 * 1000);
-            this.ws.send(
-              JSON.stringify({
-                event: 'pusher:subscribe',
-                data: {
-                  auth: '',
-                  channel: `public-${this.channel}`,
-                },
-              }),
-            );
           },
           onMessage: (data) => {
             const msg = parseJSON<{
@@ -79,8 +178,14 @@ class Child extends ComChild<Account> {
               data: string;
               channel: string;
             }>(data, {} as any);
+            if (msg.channel) {
+              msg.channel = msg.channel.replace('public-', '');
+            }
             this.logger.debug(JSON.stringify(data));
-            this.onMsg?.(msg.event, msg.data);
+            const cb = this.channelMap[msg.channel];
+            if (cb) {
+              cb(msg.event, msg.data);
+            }
           },
           onError: (err: any) => {
             this.logger.error('ws on error, ', err);
@@ -100,8 +205,141 @@ class Child extends ComChild<Account> {
     }
   }
 
+  async getApiKey(page: Page) {
+    try {
+      page.goto(
+        `https://app.airops.com/${this.info.company_name.toLowerCase()}-0/account/workspace`,
+      );
+      const res = await page.waitForResponse(
+        (res) => res.url().indexOf('/customer_apis/current') > -1,
+      );
+      const data: { base: string } = await res.json();
+      return data.base;
+    } catch (e) {
+      this.logger.error('get api key failed, ', e);
+    }
+  }
+
+  async getApp(page: Page) {
+    try {
+      page.goto('https://app.airops.com/');
+      const res = await page.waitForResponse(
+        (res) => res.url().indexOf('airops_app_bases') > -1,
+      );
+      const data: {
+        active_version_id: number;
+        active_version_number: number;
+        uuid: string;
+      }[] = await res.json();
+      return data[0];
+    } catch (e) {
+      this.logger.error(e);
+    }
+  }
+
+  async createNewApp(page: Page) {
+    try {
+      await page.goto(
+        `https://app.airops.com/${this.info.company_name.toLowerCase()}-0/apps/new-chat?template=blank_chat`,
+      );
+      await sleep(10 * 1000);
+      await page.waitForSelector(
+        '.relative > .grid > .grid > .flex > .relative:nth-child(2)',
+      );
+      await page.click(
+        '.relative > .grid > .grid > .flex > .relative:nth-child(2)',
+      );
+      await sleep(3000);
+      await page.click(
+        '.relative > .grid > .grid > .flex > .relative:nth-child(2)',
+      );
+
+      await page.keyboard.press('Tab');
+      await page.keyboard.press('Tab');
+      await page.keyboard.press('Tab');
+
+      const app_name = randomStr(10);
+      await page.keyboard.type(app_name, { delay: 20 });
+      this.update({ app_name });
+
+      await page.waitForSelector(
+        '.ReactModal__Content > .flex > .flex > .mt-3 > .relative:nth-child(2)',
+      );
+      await page.click(
+        '.ReactModal__Content > .flex > .flex > .mt-3 > .relative:nth-child(2)',
+      );
+      this.logger.info('save draft ok');
+
+      await sleep(3000);
+      await page.waitForSelector(
+        '.react-flow__nodes > .react-flow__node > #initial > .flex:nth-child(2) > .flex',
+      );
+      await page.click(
+        '.react-flow__nodes > .react-flow__node > #initial > .flex:nth-child(2) > .flex',
+      );
+
+      await page.waitForSelector('#model');
+      await page.click('#model');
+
+      await page.waitForSelector(
+        '.flex > .flex > .z-50 > .text-body-sm:nth-child(3) > .flex',
+      );
+      await page.click(
+        '.flex > .flex > .z-50 > .text-body-sm:nth-child(3) > .flex',
+      );
+
+      await page.waitForSelector('#initial-show-tool-usage');
+      await page.click('#initial-show-tool-usage');
+
+      await page.waitForSelector(
+        '.flex > .h-fit > #initial-system > .ace_scroller > .ace_content',
+      );
+      await page.click(
+        '.flex > .h-fit > #initial-system > .ace_scroller > .ace_content',
+      );
+
+      await page.waitForSelector(
+        '.flex > .h-fit > #initial-system > .ace_scroller > .ace_content',
+      );
+      await page.click(
+        '.flex > .h-fit > #initial-system > .ace_scroller > .ace_content',
+      );
+
+      await page.waitForSelector(
+        '.flex > .h-fit > #initial-system > .ace_scroller > .ace_content',
+      );
+      await page.click(
+        '.flex > .h-fit > #initial-system > .ace_scroller > .ace_content',
+      );
+
+      await page.keyboard.type('You are AI model made by openai');
+
+      await page.waitForSelector(
+        '.absolute > .flex > .flex:nth-child(1) > .flex > .relative',
+      );
+      await page.click(
+        '.absolute > .flex > .flex:nth-child(1) > .flex > .relative',
+      );
+      await page.waitForSelector(
+        '.grid > .grid > .flex > .flex > .relative:nth-child(1)',
+      );
+      await page.click(
+        '.grid > .grid > .flex > .flex > .relative:nth-child(1)',
+      );
+
+      await page.waitForSelector(
+        '.absolute > .relative > .inline-flex > .relative > .peer:nth-child(2)',
+      );
+      await page.click(
+        '.absolute > .relative > .inline-flex > .relative > .peer:nth-child(2)',
+      );
+      this.logger.info('publish app ok');
+    } catch (e) {
+      this.logger.error('create new app failed, ', e);
+    }
+  }
+
   use(): void {
-    this.options?.onUse();
     this.update({
       lastUseTime: moment().unix(),
       useCount: (this.info.useCount || 0) + 1,
@@ -122,28 +360,10 @@ export class Airops extends Chat {
       return new Child(this.options?.name || '', info, options);
     },
     (v) => {
-      if (!v.app_uuid || !v.api_key) {
-        return false;
-      }
-      return v.left > 0;
+      return !!v.api_key && !!v.app_uuid && v.left >= 5;
     },
     {
       delay: 1000,
-      preHandleAllInfos: async () => {
-        const allInfos = [];
-        for (const v of Config.config.airops.account) {
-          for (let i = 0; i < Config.config.airops.concurrency_size; i++) {
-            allInfos.push({
-              id: v4(),
-              left: 5000,
-              ready: false,
-              app_uuid: v.app_uuid,
-              api_key: v.api_key,
-            } as Account);
-          }
-        }
-        return allInfos;
-      },
     },
   );
   constructor(options?: ChatOptions) {
@@ -176,29 +396,43 @@ export class Airops extends Chat {
       return;
     }
     try {
-      child.setMsgListener((event, data) => {
-        switch (event) {
-          case 'chunk':
-            const { content } = parseJSON<{ content: string }>(data, {
-              content: '',
-            });
-            stream.write(Event.message, { content });
-            return;
-          case 'step-stream-completed':
-            stream.write(Event.done, { content: '' });
-            stream.end();
-            child.release();
-            return;
-          default:
-            return;
+      const channel = child.setMsgListener((event, data) => {
+        if (event !== 'agent-response') {
+          return;
         }
+        const { token, stream_finished } = parseJSON<{
+          token: string;
+          stream_finished: boolean;
+        }>(data, {
+          token: '',
+          stream_finished: false,
+        });
+        if (stream_finished) {
+          stream.write(Event.done, { content: '' });
+          stream.end();
+          return;
+        }
+        stream.write(Event.message, { content: token });
       });
-      const res = await child.client.post('/execute', {
-        inputs: {
-          question: req.prompt,
+      const res: { data: { credits_used: number } } = await child.client.post(
+        `agent_apps/${child.info.app_uuid}/chat`,
+        {
+          message: req.prompt,
+          session_id: v4(),
+          user_current_time: moment().format(),
+          inputs: {},
+          stream_channel_id: channel,
         },
-        stream_channel_id: child.channel,
+      );
+      child.update({
+        left: child.info.left - (res.data.credits_used || 1),
+        failed_times: 0,
       });
+
+      child.removeMsgListener(channel);
+      if (child.info.left < 5) {
+        child.destroy({ delFile: false, delMem: true });
+      }
       this.logger.info(JSON.stringify(res.data));
     } catch (e: any) {
       this.logger.error(
@@ -208,6 +442,9 @@ export class Airops extends Chat {
       stream.write(Event.error, { error: e.message, status: 500 });
       stream.write(Event.done, { content: '' });
       stream.end();
+      if (child.info.failed_times >= 10) {
+        child.destroy({ delFile: true, delMem: true });
+      }
     }
   }
 }

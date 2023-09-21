@@ -29,10 +29,6 @@ interface ConfigData {
   airops: {
     size: number;
     concurrency_size: number;
-    account: {
-      app_uuid: string;
-      api_key: string;
-    }[];
   };
   langdock: {
     size: number;
@@ -67,7 +63,6 @@ class BaseConfig {
     airops: {
       size: 0,
       concurrency_size: 0,
-      account: [],
     },
     langdock: {
       size: 0,
