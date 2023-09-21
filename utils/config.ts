@@ -28,7 +28,7 @@ interface ConfigData {
   merlin: { size: number; mailType: TempEmailType };
   airops: {
     size: number;
-    concurrency_size: number;
+    mail_type: TempEmailType;
   };
   langdock: {
     size: number;
@@ -62,7 +62,7 @@ class BaseConfig {
     },
     airops: {
       size: 0,
-      concurrency_size: 0,
+      mail_type: TempEmailType.TempMailLOL,
     },
     langdock: {
       size: 0,

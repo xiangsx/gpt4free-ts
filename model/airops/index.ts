@@ -66,9 +66,10 @@ class Child extends ComChild<Account> {
 
   async init(): Promise<void> {
     try {
-      let page;
       if (!this.info.api_key) {
-        page = await CreateNewPage('https://app.airops.com/users/sign_up');
+        const page = await CreateNewPage(
+          'https://app.airops.com/users/sign_up',
+        );
         await page.waitForSelector('#user_first_name');
         await page.click('#user_first_name');
         await page.keyboard.type(randomStr(5));
@@ -79,7 +80,7 @@ class Child extends ComChild<Account> {
 
         await page.waitForSelector('#user_email');
         await page.click('#user_email');
-        const mailbox = CreateEmail(Config.config.langdock.mail_type);
+        const mailbox = CreateEmail(Config.config.airops.mail_type);
         const email = await mailbox.getMailAddress();
         await page.keyboard.type(email);
         this.update({ email });
@@ -145,8 +146,8 @@ class Child extends ComChild<Account> {
         this.update({ api_key });
         this.logger.info('get api key ok, api_key: ' + api_key);
         this.update({ left: 5000 });
+        await page.browser().close();
       }
-
       this.client = CreateAxiosProxy(
         {
           baseURL: `https://app.airops.com/public_api/`,
