@@ -427,7 +427,7 @@ export class Airops extends Chat {
       );
       child.update({
         left: child.info.left - (res.data.credits_used || 1),
-        failed_times: 0,
+        failed_times: (child.info.failed_times || 0) + 1,
       });
 
       child.removeMsgListener(channel);
