@@ -44,6 +44,7 @@ import { Vanus } from './vanus';
 import { Mixer } from './mixer';
 import { Merlin } from './merlin';
 import { Airops } from './airops';
+import { Langdock } from './langdock';
 
 export class ChatModelFactory {
   private readonly modelMap: Map<Site, Chat>;
@@ -113,6 +114,7 @@ export class ChatModelFactory {
     this.modelMap.set(Site.Mixer, new Mixer({ name: Site.Mixer }));
     this.modelMap.set(Site.Merlin, new Merlin({ name: Site.Merlin }));
     this.modelMap.set(Site.Airops, new Airops({ name: Site.Airops }));
+    this.modelMap.set(Site.Langdock, new Langdock({ name: Site.Langdock }));
     this.modelMap.set(
       Site.Perplexity,
       new Perplexity({ name: Site.Perplexity }),

@@ -34,6 +34,10 @@ interface ConfigData {
       api_key: string;
     }[];
   };
+  langdock: {
+    size: number;
+    mail_type: TempEmailType;
+  };
   // 当添加新字段时，需要在此处更新类型定义
 }
 
@@ -64,6 +68,10 @@ class BaseConfig {
       size: 0,
       concurrency_size: 0,
       account: [],
+    },
+    langdock: {
+      size: 0,
+      mail_type: TempEmailType.TempMailLOL,
     },
   };
   public config: ConfigData;

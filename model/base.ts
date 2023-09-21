@@ -100,6 +100,7 @@ export enum Site {
   Mixer = 'mixer',
   Merlin = 'merlin',
   Airops = 'airops',
+  Langdock = 'langdock',
 }
 
 export interface ChatRequest {
