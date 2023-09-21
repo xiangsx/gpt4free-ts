@@ -26,6 +26,14 @@ interface ConfigData {
   };
   mixer: { size: number; mailType: TempEmailType };
   merlin: { size: number; mailType: TempEmailType };
+  airops: {
+    size: number;
+    concurrency_size: number;
+    account: {
+      app_uuid: string;
+      api_key: string;
+    }[];
+  };
   // 当添加新字段时，需要在此处更新类型定义
 }
 
@@ -51,6 +59,11 @@ class BaseConfig {
     merlin: {
       size: 0,
       mailType: TempEmailType.TempMailLOL,
+    },
+    airops: {
+      size: 0,
+      concurrency_size: 0,
+      account: [],
     },
   };
   public config: ConfigData;

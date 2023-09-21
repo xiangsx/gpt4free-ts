@@ -99,6 +99,7 @@ export enum Site {
   Vanus = 'vanus',
   Mixer = 'mixer',
   Merlin = 'merlin',
+  Airops = 'airops',
 }
 
 export interface ChatRequest {

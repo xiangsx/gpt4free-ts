@@ -221,7 +221,6 @@ export class WSS {
     const ws = new WebSocket(target, wsOptions);
 
     ws.on('open', () => {
-      console.log('ws open');
       onOpen && onOpen();
     });
 

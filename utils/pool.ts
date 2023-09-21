@@ -95,6 +95,7 @@ interface PoolOptions {
   delay?: number;
   // 串行
   serial?: boolean;
+  preHandleAllInfos?: (allInfos: any[]) => Promise<any[]>;
 }
 
 // 根据maxsize控制创建的数量
@@ -213,16 +214,20 @@ export class Pool<U extends Info, T extends PoolChild<U>> {
 
     const str = fs.readFileSync(this.filepath, { encoding: 'utf-8' });
     this.allInfos = parseJSON<U[]>(str, []);
+    if (this.options?.preHandleAllInfos) {
+      this.allInfos = await this.options.preHandleAllInfos(this.allInfos);
+    }
     this.logger.info('read old info ok, total: ' + this.allInfos.length);
 
     setInterval(async () => {
+      const maxSize = +this.maxsize() || 0;
       if (this.options?.serial && this.creating) {
         return;
       }
-      if (this.children.length === this.maxsize()) {
+      if (this.children.length === maxSize) {
         return;
       }
-      if (this.children.length > this.maxsize()) {
+      if (this.children.length > maxSize) {
         // 随机剔除一个
         for (const child of shuffleArray(this.children)) {
           if (!this.using.has(child.info.id)) {
@@ -231,7 +236,7 @@ export class Pool<U extends Info, T extends PoolChild<U>> {
               `delete child ok, current ready size: ${this.children.reduce(
                 (prev, cur) => prev + (cur.info.ready ? 1 : 0),
                 0,
-              )}/${this.maxsize()}`,
+              )}/${maxSize}`,
             );
             break;
           }
