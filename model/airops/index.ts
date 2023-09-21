@@ -411,6 +411,7 @@ export class Airops extends Chat {
         if (stream_finished) {
           stream.write(Event.done, { content: '' });
           stream.end();
+          this.logger.info('recv msg ok');
           return;
         }
         stream.write(Event.message, { content: token });
