@@ -427,7 +427,7 @@ export class Airops extends Chat {
       );
       child.update({
         left: child.info.left - (res.data.credits_used || 1),
-        failed_times: (child.info.failed_times || 0) + 1,
+        failed_times: 0,
       });
 
       child.removeMsgListener(channel);
@@ -436,8 +436,9 @@ export class Airops extends Chat {
       }
       this.logger.info(JSON.stringify(res.data));
     } catch (e: any) {
+      child.update({ failed_times: (child.info.failed_times || 0) + 1 });
       this.logger.error(
-        `ask failed，msg:${JSON.stringify(req.messages)}: %s`,
+        `ask failed mail:${child.info.email},failed_times:${child.info.failed_times}`,
         e,
       );
       stream.write(Event.error, { error: e.message, status: 500 });
