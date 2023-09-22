@@ -169,6 +169,7 @@ const AskStreamHandle: (ESType: new () => EventStream) => Middleware =
                   clearTimeout(timeout);
                   if (data instanceof ComError) {
                     reject(data);
+                    return;
                   }
                   ok = false;
                   reject(
