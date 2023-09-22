@@ -194,6 +194,7 @@ class Child extends ComChild<Account> {
           },
           onClose: () => {
             this.logger.error('ws on close');
+            this.destroy({ delFile: false, delMem: true });
           },
         },
       );
