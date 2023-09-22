@@ -465,3 +465,19 @@ const converter = OpenCC.Converter({ from: 'tw', to: 'cn' });
 export function TWToCN(str: string) {
   return converter(str);
 }
+
+export function matchPattern(pattern: string, str: string): boolean {
+  // First, escape special characters except for '*' and '?'
+  const escapedPattern = pattern.replace(/[-\/\\^$+.()|[\]{}]/g, '\\$&');
+
+  // Now, replace '*' with '.*' and '?' with '.'
+  const regexPattern = escapedPattern.replace(/\*/g, '.*').replace(/\?/g, '.');
+
+  try {
+    const regex = new RegExp(`^${regexPattern}$`);
+    return regex.test(str);
+  } catch (e) {
+    console.error(`Invalid pattern: ${pattern}`);
+    return false;
+  }
+}

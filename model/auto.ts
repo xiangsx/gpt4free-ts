@@ -3,6 +3,7 @@ import {
   ComError,
   Event,
   EventStream,
+  matchPattern,
   parseJSON,
   ThroughEventStream,
 } from '../utils';
@@ -27,18 +28,10 @@ export class Auto extends Chat {
     const list: SiteCfg[] = [];
     for (const m in Config.config.site_map) {
       const v = Config.config.site_map[m as ModelType] || [];
-      if (m === '*') {
+      // 通配符
+      if (matchPattern(m, model)) {
+        this.logger.debug(`auto site match ${m} ${model}`);
         list.push(...v);
-        continue;
-      }
-      if (m === model) {
-        list.push(...v);
-        continue;
-      }
-      // 支持正则匹配
-      if (new RegExp(m).test(model)) {
-        list.push(...v);
-        continue;
       }
     }
     if (!list) {
