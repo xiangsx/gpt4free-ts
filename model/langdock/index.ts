@@ -62,6 +62,12 @@ class Child extends ComChild<Account> {
         await page.click('#password');
         await page.keyboard.type(this.info.password);
         await page.keyboard.press('Enter');
+        await page.waitForSelector(
+          '#app > div.login-sec > div > div.w-form > form > div.button.big.blue.w-button',
+        );
+        await page.click(
+          '#app > div.login-sec > div > div.w-form > form > div.button.big.blue.w-button',
+        );
       } else {
         this.logger.info('register new account ...');
         page = await CreateNewPage(
@@ -98,22 +104,22 @@ class Child extends ComChild<Account> {
           await page.goto(verifyUrl);
           this.logger.info('verify email ok');
         }
+        await this.newWorkspace(page);
+        await this.selectAllModel(page);
+        await sleep(1000);
+        await page.waitForSelector(
+          '.login-sec > .w-form > .form-360-width > .full > .button',
+        );
+        await page.click(
+          '.login-sec > .w-form > .form-360-width > .full > .button',
+        );
+        await page.waitForSelector('#prompt');
+        await page.click('#prompt');
+        await page.keyboard.type('hello');
+        await page.keyboard.press('Enter');
       }
 
-      await this.newWorkspace(page);
-      await this.selectAllModel(page);
-      await sleep(1000);
-      await page.waitForSelector(
-        '.login-sec > .w-form > .form-360-width > .full > .button',
-      );
-      await page.click(
-        '.login-sec > .w-form > .form-360-width > .full > .button',
-      );
-      await page.waitForSelector('#prompt');
-      await page.click('#prompt');
-      await page.keyboard.type('hello');
-      await page.keyboard.press('Enter');
-      await sleep(3000);
+      await sleep(10 * 60 * 1000);
       const { accessToken, refreshToken } = await this.getTK(page);
       if (!accessToken || !refreshToken) {
         throw new Error('get token failed');
@@ -142,15 +148,18 @@ class Child extends ComChild<Account> {
   }
 
   async selectAllModel(page: Page) {
-    for (let i = 2; i <= 14; i++) {
-      await page.waitForSelector(
-        `.w-form > .form-360-width > .full > .selectable-models > .button:nth-child(${i})`,
-      );
-      await page.click(
-        `.w-form > .form-360-width > .full > .selectable-models > .button:nth-child(${i})`,
-      );
-      await sleep(200);
-    }
+    await page.waitForSelector(
+      `.w-form > .form-360-width > .full > .selectable-models > .button:nth-child(1)`,
+    );
+    await page.click(
+      `.w-form > .form-360-width > .full > .selectable-models > .button:nth-child(1)`,
+    );
+    await page.waitForSelector(
+      `.w-form > .form-360-width > .full > .selectable-models > .button:nth-child(4)`,
+    );
+    await page.click(
+      `.w-form > .form-360-width > .full > .selectable-models > .button:nth-child(4)`,
+    );
   }
 
   async newWorkspace(page: Page) {
@@ -204,6 +213,20 @@ class Child extends ComChild<Account> {
       lastUseTime: moment().unix(),
       useCount: (this.info.useCount || 0) + 1,
     });
+  }
+
+  async newChat() {
+    try {
+      const page = await this.page?.browser().newPage();
+      if (!page) {
+        throw new Error();
+      }
+      await page.goto('https://platform.langdock.com/chat');
+      await page.waitForSelector('#prompt');
+      await page.click('#prompt');
+      await page.keyboard.type('say 1');
+      await page.keyboard.press('Enter');
+    } catch (e) {}
   }
 }
 
