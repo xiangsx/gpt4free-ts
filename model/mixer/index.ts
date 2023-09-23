@@ -30,7 +30,6 @@ interface Account extends ComInfo {
 }
 class Child extends ComChild<Account> {
   public readonly client: AxiosInstance;
-  public webFetch = new WebFetchProxy('https://chatai.mixerbox.com/chat');
   constructor(label: string, info: any, options?: ChildOptions) {
     super(label, info, options);
     this.client = CreateAxiosProxy(
@@ -89,11 +88,11 @@ class Child extends ComChild<Account> {
 
   destroy(options?: DestroyOptions) {
     super.destroy(options);
-    this.webFetch.close();
   }
 }
 
 export class Mixer extends Chat {
+  public webFetch = new WebFetchProxy('https://chatai.mixerbox.com/chat');
   private pool: Pool<Account, Child> = new Pool(
     this.options?.name || '',
     () => Config.config.mixer.size,
@@ -164,7 +163,7 @@ export class Mixer extends Chat {
       return;
     }
     try {
-      const res = await child.webFetch.fetch(
+      const res = await this.webFetch.fetch(
         'https://chatai.mixerbox.com/api/chat/stream',
         {
           method: 'POST',
