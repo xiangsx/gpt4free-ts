@@ -15,6 +15,7 @@ import { v4 } from 'uuid';
 import { Page } from 'puppeteer';
 import { AxiosInstance } from 'axios';
 import es from 'event-stream';
+import { handleCF } from '../../utils/captcha';
 
 const ModelMap: Partial<Record<ModelType, string>> = {
   [ModelType.GPT4]: 'GPT 4',
@@ -53,6 +54,7 @@ class Child extends ComChild<Account> {
         page = await CreateNewPage(
           'https://platform.langdock.com/login?password=true',
         );
+        page = await handleCF(page);
         this.page = page;
         await page.waitForSelector('#email');
         await page.click('#email');
@@ -73,6 +75,7 @@ class Child extends ComChild<Account> {
         page = await CreateNewPage(
           'https://platform.langdock.com/sign-up?email=&password=true',
         );
+        page = await handleCF(page);
         this.page = page;
 
         await page.waitForSelector('#email');
