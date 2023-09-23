@@ -10,14 +10,14 @@ import {
   shuffleArray,
   sleep,
 } from '../../utils';
-import { v4 } from 'uuid';
 
-import fs from 'fs';
 import moment from 'moment';
-import { CreateAxiosProxy } from '../../utils/proxyAgent';
+import { CreateAxiosProxy, CreateNewPage } from '../../utils/proxyAgent';
 import { AxiosInstance } from 'axios';
 import es from 'event-stream';
-import { getCaptchaCode } from '../../utils/captcha';
+import { ComChild, ComInfo, Pool } from '../../utils/pool';
+import { CreateEmail } from '../../utils/emailFactory';
+import { Config } from '../../utils/config';
 
 const ModelMap: Partial<Record<ModelType, any>> = {
   [ModelType.GPT4]: '01c8de4fbfc548df903712b0922a4e01',
@@ -26,17 +26,15 @@ const ModelMap: Partial<Record<ModelType, any>> = {
 
 const MaxFailedTimes = 10;
 
-type Account = {
-  id: string;
+interface Account extends ComInfo {
   email?: string;
   password?: string;
   login_time?: string;
   appid?: string;
-  last_use_time: number;
   failedCnt: number;
   token: string;
   left: number;
-};
+}
 
 interface ReplyMessage {
   id: number;
@@ -69,284 +67,7 @@ interface TextStream {
   data: TextStreamData;
 }
 
-class AccountPool {
-  private pool: Account[] = [];
-  private using = new Set<string>();
-  private readonly account_file_path = './run/account_vanus.json';
-
-  constructor() {
-    if (fs.existsSync(this.account_file_path)) {
-      const accountStr = fs.readFileSync(this.account_file_path, 'utf-8');
-      this.pool = parseJSON(accountStr, [] as Account[]);
-      if (!Array.isArray(this.pool)) {
-        this.pool = [];
-        this.syncfile();
-      }
-    } else {
-      fs.mkdirSync('./run', { recursive: true });
-      this.syncfile();
-    }
-    for (const v of this.pool) {
-      v.failedCnt = 0;
-    }
-    console.log(
-      `read vanus old account total:${Object.keys(this.pool).length}`,
-    );
-    this.syncfile();
-  }
-
-  public syncfile() {
-    fs.writeFileSync(this.account_file_path, JSON.stringify(this.pool));
-  }
-
-  public release(id: string) {
-    this.using.delete(id);
-  }
-
-  public getByID(id: string) {
-    for (const item in this.pool) {
-      if (this.pool[item].id === id) {
-        return this.pool[item];
-      }
-    }
-  }
-
-  public delete(id: string) {
-    this.pool = this.pool.filter((v) => v.id !== id);
-    this.using.delete(id);
-    this.syncfile();
-  }
-
-  public get(): Account {
-    for (const vv of shuffleArray(this.pool)) {
-      if (this.using.has(vv.id)) {
-        continue;
-      }
-      if ((vv.left || 0) < 20) {
-        continue;
-      }
-      this.using.add(vv.id);
-      vv.failedCnt = 0;
-      return vv;
-    }
-    console.log('vanus account run out, register new now!');
-    const newV: Account = {
-      id: v4(),
-      failedCnt: 0,
-      left: 0,
-      token: '',
-      last_use_time: moment().unix(),
-    };
-    this.pool.push(newV);
-    return newV;
-  }
-}
-
-export class Vanus extends Chat implements BrowserUser<Account> {
-  private pagePool: BrowserPool<Account>;
-  private accountPool: AccountPool;
-  private client: AxiosInstance;
-
-  constructor(options?: ChatOptions) {
-    super(options);
-    this.accountPool = new AccountPool();
-    let size = +(process.env.VANUS_POOL_SIZE || 0);
-    if (size > 30) {
-      size = 10;
-    }
-    this.pagePool = new BrowserPool<Account>(
-      +(process.env.VANUS_POOL_SIZE || 0),
-      this,
-      false,
-      5000,
-      false,
-    );
-    this.client = CreateAxiosProxy(
-      {
-        headers: {
-          'User-Agent': randomUserAgent(),
-          'x-vanusai-host': 'ai.vanus.ai',
-        },
-      },
-      true,
-    );
-  }
-
-  support(model: ModelType): number {
-    switch (model) {
-      case ModelType.GPT4:
-        return 6000;
-      case ModelType.GPT3p5Turbo:
-        return 3000;
-      case ModelType.ErnieBot:
-        return 2000;
-      case ModelType.ErnieBotTurbo:
-        return 2000;
-      default:
-        return 0;
-    }
-  }
-
-  async preHandle(req: ChatRequest): Promise<ChatRequest> {
-    return super.preHandle(req, {
-      token: true,
-      countPrompt: true,
-      forceRemove: true,
-    });
-  }
-
-  deleteID(id: string): void {
-    this.accountPool.delete(id);
-  }
-
-  release(id: string): void {
-    this.accountPool.release(id);
-  }
-
-  newID(): string {
-    const account = this.accountPool.get();
-    return account.id;
-  }
-
-  getRandomMail() {
-    return `${randomStr(15 + Math.random() * 5)}@${
-      Math.random() > 0.5 ? 'gmail' : 'outlook'
-    }.com`.toLowerCase();
-  }
-
-  async init(
-    id: string,
-    browser: Browser,
-  ): Promise<[Page | undefined, Account]> {
-    const account = this.accountPool.getByID(id);
-    if (!account) {
-      await sleep(10 * 24 * 60 * 60 * 1000);
-      return [] as any;
-    }
-    const page = await browser.newPage();
-    await page.setViewport({ width: 1920, height: 1080 });
-    await simplifyPage(page);
-    try {
-      if (!account.appid) {
-        await page.goto('https://ai.vanus.ai/');
-        await sleep(5000);
-
-        await page.waitForSelector('section > div > div > div > div > p > a');
-        await page.click('section > div > div > div > div > p > a');
-
-        await page.waitForSelector('#email');
-        await page.click('#email');
-
-        account.email = this.getRandomMail();
-        account.password = `${randomStr(5)}A${randomStr(5)}v${randomStr(
-          5,
-        )}1${randomStr(5)}`;
-        await page.keyboard.type(account.email, { delay: 10 });
-
-        let handleCaptcha = false;
-        for (let i = 0; i < 3; i++) {
-          await page.waitForSelector('#password');
-          await page.click('#password');
-          await page.keyboard.type(account.password, { delay: 10 });
-
-          const ok = await this.handleCaptcha(page);
-          if (ok) {
-            handleCaptcha = true;
-            break;
-          }
-        }
-        if (!handleCaptcha) {
-          throw new Error('Handle captcha failed, register new account!');
-        }
-
-        await page.waitForSelector('#given_name');
-        await page.click('#given_name');
-        await page.keyboard.type(randomStr(5));
-
-        await page.waitForSelector('#family_name');
-        await page.click('#family_name');
-
-        await page.waitForSelector('#company_name');
-        await page.click('#company_name');
-        await page.keyboard.type(randomStr(5));
-
-        await page.waitForSelector('#company_email');
-        await page.click('#company_email');
-        await page.waitForSelector(
-          '.ant-row > .ant-col > .ant-form-item-control-input > .ant-form-item-control-input-content > .ant-btn',
-        );
-        await page.click(
-          '.ant-row > .ant-col > .ant-form-item-control-input > .ant-form-item-control-input-content > .ant-btn',
-        );
-        for (let i = 0; i < 3; i++) {
-          const [appid, left] = await this.getInfo(page);
-          if (!appid || !left) {
-            continue;
-          }
-          account.appid = appid;
-          account.left = left.total - left.used;
-          this.accountPool.syncfile();
-          break;
-        }
-      }
-      this.logger.info(`init ok! ${account.id}`);
-      await browser.close();
-      return [page, account];
-    } catch (e: any) {
-      // await page.screenshot({ path: `./run/error_${account.id}.png` });
-      await browser.close();
-      this.logger.warn(`account:${account?.id}, something error happened.`, e);
-      return [] as any;
-    }
-  }
-
-  async handleCaptcha(page: Page) {
-    try {
-      // 选择你想要截图的元素
-      const element = await page.$('div > div > img');
-      if (!element) {
-        this.logger.error('got captcha img failed');
-        return false;
-      }
-      this.logger.info('start handle capture!');
-      // 对该元素进行截图并获得一个 Buffers
-      const imageBuffer = await element.screenshot();
-      // 将 Buffer 转换为 Base64 格式的字符串
-      const base64String = imageBuffer.toString('base64');
-      const captcha = await getCaptchaCode(base64String);
-      if (!captcha) {
-        this.logger.error('got captcha failed');
-        return false;
-      }
-      this.logger.info(`got capture ${captcha}`);
-      await page.waitForSelector('#captcha');
-      await page.click('#captcha');
-      await page.keyboard.type(captcha);
-      await page.keyboard.press('Enter');
-      await page.waitForSelector('#error-element-captcha', {
-        timeout: 5 * 1000,
-      });
-      return false;
-    } catch (e) {
-      this.logger.info('handle capture ok!');
-      return true;
-    }
-  }
-
-  async getInfo(page: Page) {
-    try {
-      this.createGPT4(page).then(() => this.logger.info('create gpt4 ok!'));
-      const [appid, left] = await Promise.all([
-        this.getToken(page),
-        this.getLeft(page),
-      ]);
-      return [appid, left];
-    } catch (e) {
-      this.logger.error('get info failed, retry', e);
-      return [];
-    }
-  }
-
+class Child extends ComChild<Account> {
   async createGPT4(page: Page) {
     try {
       await page.waitForSelector(
@@ -384,20 +105,183 @@ export class Vanus extends Chat implements BrowserUser<Account> {
     return { total: 0, used: 0 };
   }
 
+  async getInfo(page: Page) {
+    try {
+      this.createGPT4(page).then(() => this.logger.info('create gpt4 ok!'));
+      const [appid, left] = await Promise.all([
+        this.getToken(page),
+        this.getLeft(page),
+      ]);
+      return [appid, left];
+    } catch (e) {
+      this.logger.error('get info failed, retry', e);
+      return [];
+    }
+  }
+
+  async init(): Promise<void> {
+    if (!this.info.appid) {
+      const page = await CreateNewPage('https://ai.vanus.ai/');
+      await sleep(5000);
+
+      await page.waitForSelector('#a-signup');
+      await page.click('#a-signup');
+
+      await page.waitForSelector('#signup-email');
+      await page.click('#signup-email');
+      const mailbox = CreateEmail(Config.config.langdock.mail_type);
+      const email = await mailbox.getMailAddress();
+      await page.keyboard.type(email, { delay: 10 });
+
+      const password = `${randomStr(5)}A${randomStr(5)}v${randomStr(
+        5,
+      )}1${randomStr(5)}`;
+      await page.waitForSelector('#signup-password');
+      await page.click('#signup-password');
+      await page.keyboard.type(password, { delay: 10 });
+      this.update({ email, password });
+
+      await page.waitForSelector(
+        '.widget-container > #sign-up > form > #checkbox > input',
+      );
+      await page.click(
+        '.widget-container > #sign-up > form > #checkbox > input',
+      );
+
+      await page.keyboard.press('Enter');
+      await page.waitForSelector('#btn-signup');
+      await page.click('#btn-signup');
+
+      for (const v of await mailbox.waitMails()) {
+        let verifyUrl = v.content.match(/href="([^"]*)/i)?.[1] || '';
+        if (!verifyUrl) {
+          throw new Error('verifyUrl not found');
+        }
+        verifyUrl = verifyUrl.replace(/&amp;/g, '&');
+        await page.goto(verifyUrl);
+        this.logger.info('verify email ok');
+      }
+
+      await page.goto('https://ai.vanus.ai/dashboard');
+      await page.waitForSelector('#given_name');
+      await page.click('#given_name');
+      await page.keyboard.type(randomStr(5));
+
+      await page.waitForSelector('#family_name');
+      await page.click('#family_name');
+
+      await page.waitForSelector('#company_name');
+      await page.click('#company_name');
+      await page.keyboard.type(randomStr(5));
+
+      await page.waitForSelector('#company_email');
+      await page.click('#company_email');
+      await page.waitForSelector(
+        '.ant-row > .ant-col > .ant-form-item-control-input > .ant-form-item-control-input-content > .ant-btn',
+      );
+      await page.click(
+        '.ant-row > .ant-col > .ant-form-item-control-input > .ant-form-item-control-input-content > .ant-btn',
+      );
+      for (let i = 0; i < 3; i++) {
+        const [appid, left] = await this.getInfo(page);
+        if (!appid || !left) {
+          continue;
+        }
+        this.update({ appid, left: left.total - left.used });
+        break;
+      }
+    }
+  }
+
+  public use(): void {
+    this.update({
+      lastUseTime: moment().unix(),
+      useCount: (this.info.useCount || 0) + 1,
+    });
+  }
+}
+
+export class Vanus extends Chat {
+  private client: AxiosInstance;
+  private pool: Pool<Account, Child> = new Pool(
+    this.options?.name || '',
+    () => Config.config.vanus.size,
+    (info, options) => {
+      return new Child(this.options?.name || '', info, options);
+    },
+    (v) => {
+      if (!v.appid) {
+        return false;
+      }
+      if (v.left < 20) {
+        return false;
+      }
+      return true;
+    },
+    { delay: 1000, serial: false },
+  );
+  constructor(options?: ChatOptions) {
+    super(options);
+    let size = +(process.env.VANUS_POOL_SIZE || 0);
+    if (size > 30) {
+      size = 10;
+    }
+
+    this.client = CreateAxiosProxy(
+      {
+        headers: {
+          'User-Agent': randomUserAgent(),
+          'x-vanusai-host': 'ai.vanus.ai',
+        },
+      },
+      true,
+    );
+  }
+
+  support(model: ModelType): number {
+    switch (model) {
+      case ModelType.GPT4:
+        return 6000;
+      case ModelType.GPT3p5Turbo:
+        return 3000;
+      case ModelType.ErnieBot:
+        return 2000;
+      case ModelType.ErnieBotTurbo:
+        return 2000;
+      default:
+        return 0;
+    }
+  }
+
+  async preHandle(req: ChatRequest): Promise<ChatRequest> {
+    return super.preHandle(req, {
+      token: true,
+      countPrompt: true,
+      forceRemove: true,
+    });
+  }
+
+  getRandomMail() {
+    return `${randomStr(15 + Math.random() * 5)}@${
+      Math.random() > 0.5 ? 'gmail' : 'outlook'
+    }.com`.toLowerCase();
+  }
+
   public async askStream(req: ChatRequest, stream: EventStream) {
-    const [page, account, done, destroy] = this.pagePool.get();
-    if (!account) {
-      stream.write(Event.error, { error: 'please retry later!' });
+    const child = await this.pool.pop();
+    if (!child) {
+      stream.write(Event.error, { error: 'No valid connections', status: 429 });
       stream.write(Event.done, { content: '' });
       stream.end();
       return;
     }
     try {
-      account.left -= req.model === ModelType.GPT4 ? 20 : 1;
-      this.accountPool.syncfile();
-      this.logger.info(`${account.email} left: ${account.left}`);
+      child.update({
+        left: child.info.left - (req.model === ModelType.GPT4 ? 20 : 1),
+      });
+      this.logger.info(`${child.info.email} left: ${child.info.left}`);
       const res = await this.client.post(
-        `https://ai.vanus.ai/api/chat/${account.appid}`,
+        `https://ai.vanus.ai/api/chat/${child.info.appid}`,
         {
           prompt: req.prompt,
           stream: true,
@@ -433,32 +317,32 @@ export class Vanus extends Chat implements BrowserUser<Account> {
       res.data.on('close', () => {
         stream.write(Event.done, { content: '' });
         stream.end();
-        if (account.left < 20) {
+        if (child.info.left < 20) {
           this.logger.info('account left < 20, register new now!');
-          destroy(true);
+          child.destroy({ delFile: true, delMem: true });
           return;
         }
-        done(account);
+        child.release();
       });
     } catch (e: any) {
       stream.write(Event.error, { error: e.message });
       stream.write(Event.done, { content: '' });
       stream.end();
       if (e.response.status === 403) {
-        this.logger.error(`account ${account.email} has been baned`);
-        destroy(true);
+        this.logger.error(`account ${child.info.email} has been baned`);
+        child.destroy({ delFile: true, delMem: true });
         return;
       }
-      account.failedCnt++;
-      if (account.failedCnt > 5) {
+      child.update({ failedCnt: child.info.failedCnt + 1 });
+      if (child.info.failedCnt > 5) {
         this.logger.warn(
-          `account ${account.email} failed too many times! left:${account.left}`,
+          `account ${child.info.email} failed too many times! left:${child.info.left}`,
         );
-        destroy(true);
+        child.destroy({ delFile: true, delMem: true });
         return;
       }
       this.logger.error('ask failed, ', e);
-      destroy();
+      child.destroy({ delFile: false, delMem: true });
     }
   }
 }

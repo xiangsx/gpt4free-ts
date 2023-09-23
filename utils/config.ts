@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, statSync, watch } from 'fs';
+import { existsSync, readFileSync, statSync } from 'fs';
 import { ModelType, Site } from '../model/base';
 import { TempEmailType } from './emailFactory';
 
@@ -34,6 +34,10 @@ interface ConfigData {
     size: number;
     mail_type: TempEmailType;
   };
+  vanus: {
+    size: number;
+    mail_type: TempEmailType;
+  };
   // 当添加新字段时，需要在此处更新类型定义
 }
 
@@ -65,6 +69,10 @@ class BaseConfig {
       mail_type: TempEmailType.TempMailLOL,
     },
     langdock: {
+      size: 0,
+      mail_type: TempEmailType.TempMailLOL,
+    },
+    vanus: {
       size: 0,
       mail_type: TempEmailType.TempMailLOL,
     },
