@@ -95,7 +95,8 @@ export async function CreateNewPage(
     allowExtensions?: boolean;
     proxy?: string;
     args?: string[];
-    simplify: boolean;
+    simplify?: boolean;
+    cookies?: Protocol.Network.CookieParam[];
   },
 ) {
   const {
@@ -103,6 +104,7 @@ export async function CreateNewPage(
     proxy = process.env.http_proxy,
     args = [],
     simplify = true,
+    cookies = [],
   } = options || {};
   const launchOpt: PuppeteerLaunchOptions = {
     headless: process.env.DEBUG === '1' ? false : 'new',
@@ -122,8 +124,11 @@ export async function CreateNewPage(
   if (simplify) {
     await simplifyPage(page);
   }
-  await page.goto(url);
+  if (cookies.length > 0) {
+    await page.setCookie(...cookies);
+  }
   await page.setViewport({ width: 1920, height: 1080 });
+  await page.goto(url);
   return page;
 }
 

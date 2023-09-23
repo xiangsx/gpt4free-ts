@@ -29,6 +29,8 @@ interface PoolChild<T extends Info> {
 
   // 销毁，删除数据
   destroy(options?: DestroyOptions): void;
+
+  initFailed(): void;
 }
 
 export interface ComInfo extends Info {
@@ -89,13 +91,17 @@ export class ComChild<T extends ComInfo> implements PoolChild<T> {
   public release(): void {
     this.options?.onRelease();
   }
+
+  public initFailed(): void {
+    this.options?.onInitFailed({ delFile: false, delMem: true });
+  }
 }
 
-interface PoolOptions {
+interface PoolOptions<T extends Info> {
   delay?: number;
   // 串行
   serial?: boolean;
-  preHandleAllInfos?: (allInfos: any[]) => Promise<any[]>;
+  preHandleAllInfos?: (allInfos: T[]) => Promise<T[]>;
 }
 
 // 根据maxsize控制创建的数量
@@ -118,7 +124,7 @@ export class Pool<U extends Info, T extends PoolChild<U>> {
     private readonly maxsize: () => number = () => 0,
     private readonly createChild: (info: U, options: ChildOptions) => T,
     private readonly isInfoValid: (info: U) => boolean,
-    private readonly options?: PoolOptions,
+    private readonly options?: PoolOptions<U>,
   ) {
     this.logger = newLogger(label);
     this.filepath = path.join(PoolDir, `${this.label}.json`);
@@ -200,7 +206,10 @@ export class Pool<U extends Info, T extends PoolChild<U>> {
           )}/${this.maxsize()}`,
         );
       })
-      .catch((e) => this.logger.error(`create new child failed: ${e}`));
+      .catch((e) => {
+        this.logger.error(`create new child failed: ${e}`);
+        child.initFailed();
+      });
     return true;
   }
 
@@ -220,6 +229,9 @@ export class Pool<U extends Info, T extends PoolChild<U>> {
     this.logger.info('read old info ok, total: ' + this.allInfos.length);
 
     setInterval(async () => {
+      if (this.options?.preHandleAllInfos) {
+        this.allInfos = await this.options.preHandleAllInfos(this.allInfos);
+      }
       const maxSize = +this.maxsize() || 0;
       if (this.options?.serial && this.creating) {
         return;

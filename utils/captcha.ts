@@ -97,7 +97,10 @@ export async function ifCF(page: Page) {
   }
 }
 
-export async function handleCF(page: Page): Promise<Page> {
+export async function handleCF(
+  page: Page,
+  debug: boolean = false,
+): Promise<Page> {
   if (!(await ifCF(page))) {
     return page;
   }
@@ -152,7 +155,7 @@ export async function handleCF(page: Page): Promise<Page> {
   let [x, y] = iframeCoordinates;
   x = x + 9 + 14 + 8;
   y = y + 10 + 14 + 8;
-  if (false) {
+  if (debug) {
     await client.Runtime.enable(sessionId);
     await client.Runtime.evaluate(
       {
@@ -198,5 +201,7 @@ export async function handleCF(page: Page): Promise<Page> {
   await sleep(5000);
   console.log('handle cf end');
   const newB = await puppeteer.connect({ browserWSEndpoint: wsEndpoint });
-  return (await newB.pages())[pageIdx];
+  return (await newB.pages()).find(
+    (v) => v.url().indexOf('blank') === -1,
+  ) as Page;
 }

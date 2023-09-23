@@ -436,6 +436,7 @@ export class ComError extends Error {
     RequestTooLarge: 413,
     RequestTooMany: 429,
     Overload: 503,
+    Timeout: 504,
   };
 
   constructor(

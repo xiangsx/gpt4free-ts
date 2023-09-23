@@ -13,7 +13,9 @@ export type SiteCfg = {
 // 首先定义配置的数据类型
 interface ConfigData {
   perplexity: {
-    cf_debug: boolean;
+    size: number;
+    tokens: string[];
+    concurrency: number;
   };
   site_map: Partial<Record<ModelType, SiteCfg[]>>;
   one_api: {
@@ -44,9 +46,6 @@ interface ConfigData {
 class BaseConfig {
   private filePath: string = './run/config.json';
   private defaultConfig: ConfigData = {
-    perplexity: {
-      cf_debug: false,
-    },
     site_map: {},
     one_api: {
       base_url: '',
@@ -71,6 +70,11 @@ class BaseConfig {
     langdock: {
       size: 0,
       mail_type: TempEmailType.TempMailLOL,
+    },
+    perplexity: {
+      size: 0,
+      tokens: [],
+      concurrency: 1,
     },
     vanus: {
       size: 0,
