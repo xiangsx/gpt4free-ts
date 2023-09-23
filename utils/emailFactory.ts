@@ -1,7 +1,8 @@
 import { AxiosInstance, AxiosRequestConfig, CreateAxiosDefaults } from 'axios';
-import { Lock, md5, randomStr, sleep } from './index';
+import { getRandomOne, Lock, md5, randomStr, sleep } from './index';
 import { CreateAxiosProxy, CreateNewPage } from './proxyAgent';
 import { Page } from 'puppeteer';
+import Mailjs from '@cemalgnlts/mailjs';
 
 export enum TempEmailType {
   // need credit card https://rapidapi.com/Privatix/api/temp-mail
@@ -18,6 +19,7 @@ export enum TempEmailType {
   SmailProOutlook = 'smail-pro-outlook',
   Gmail = 'gmail',
   EmailNator = 'emailnator',
+  MailTM = 'mailtm',
 }
 
 const gmailLock = new Lock();
@@ -58,6 +60,8 @@ export function CreateEmail(
       return new Gmail({ ...options, lock: gmailLock });
     case TempEmailType.EmailNator:
       return new EmailNator(options);
+    case TempEmailType.MailTM:
+      return new MailTM();
     default:
       throw new Error('not support TempEmailType');
   }
@@ -751,5 +755,37 @@ export class EmailNator extends BaseEmail {
         reject(e);
       }
     });
+  }
+}
+
+export class MailTM extends BaseEmail {
+  private readonly mailjs: Mailjs;
+  private password?: string;
+  private account?: string;
+
+  constructor() {
+    super();
+    this.mailjs = new Mailjs();
+  }
+
+  async getMailAddress(): Promise<string> {
+    const account = await this.mailjs.createOneAccount();
+
+    this.mailjs.on('ready', () => console.log('Ready To Listen!'));
+    // @ts-ignore
+    return account.data.username;
+  }
+
+  async waitMails(): Promise<BaseMailMessage[]> {
+    for (let i = 0; i < 3; i++) {
+      const messages = await this.mailjs.getMessages(1);
+      if (messages.data.length === 0) {
+        continue;
+      }
+      const one = messages.data[0];
+      const message = await this.mailjs.getMessage(one.id);
+      return [{ content: message.data.text }];
+    }
+    return [];
   }
 }

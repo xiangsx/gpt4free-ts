@@ -36,6 +36,7 @@
     "typescript": "^5.0.4"
   },
   "dependencies": {
+    "@cemalgnlts/mailjs": "^2.2.0",
     "@dqbd/tiktoken": "^1.0.7",
     "@koa/cors": "^4.0.0",
     "axios": "^1.4.0",
