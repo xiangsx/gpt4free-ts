@@ -14,7 +14,7 @@ interface AutoOptions extends ChatOptions {
   ModelMap: Map<Site, Chat>;
 }
 
-const MaxRetryTimes = +(process.env.AUTO_RETRY_TIMES || 2);
+const MaxRetryTimes = +(process.env.AUTO_RETRY_TIMES || 0);
 
 export class Auto extends Chat {
   private modelMap: Map<Site, Chat>;
