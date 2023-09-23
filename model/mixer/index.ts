@@ -92,11 +92,14 @@ class Child extends ComChild<Account> {
 }
 
 export class Mixer extends Chat {
-  public webFetch = new WebFetchProxy('https://chatai.mixerbox.com/chat');
+  public webFetch!: WebFetchProxy;
   private pool: Pool<Account, Child> = new Pool(
     this.options?.name || '',
     () => Config.config.mixer.size,
     (info, options) => {
+      if (!this.webFetch) {
+        this.webFetch = new WebFetchProxy('https://chatai.mixerbox.com/chat');
+      }
       return new Child(this.options?.name || '', info, options);
     },
     (v) => {
