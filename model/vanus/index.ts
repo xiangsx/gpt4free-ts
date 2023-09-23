@@ -1,13 +1,11 @@
 import { Chat, ChatOptions, ChatRequest, ModelType } from '../base';
-import { Browser, Page } from 'puppeteer';
-import { BrowserPool, BrowserUser, simplifyPage } from '../../utils/puppeteer';
+import { Page } from 'puppeteer';
 import {
   Event,
   EventStream,
   parseJSON,
   randomStr,
   randomUserAgent,
-  shuffleArray,
   sleep,
 } from '../../utils';
 
@@ -222,11 +220,6 @@ export class Vanus extends Chat {
   );
   constructor(options?: ChatOptions) {
     super(options);
-    let size = +(process.env.VANUS_POOL_SIZE || 0);
-    if (size > 30) {
-      size = 10;
-    }
-
     this.client = CreateAxiosProxy(
       {
         headers: {
@@ -259,12 +252,6 @@ export class Vanus extends Chat {
       countPrompt: true,
       forceRemove: true,
     });
-  }
-
-  getRandomMail() {
-    return `${randomStr(15 + Math.random() * 5)}@${
-      Math.random() > 0.5 ? 'gmail' : 'outlook'
-    }.com`.toLowerCase();
   }
 
   public async askStream(req: ChatRequest, stream: EventStream) {
