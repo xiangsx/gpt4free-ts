@@ -344,7 +344,7 @@ export class WebFetchProxy {
     const stream = new PassThrough();
     this.streamMap[id] = stream;
 
-    await this.page.evaluate(
+    this.page.evaluate(
       (id, url, init) => {
         return new Promise((resolve, reject) => {
           fetch(url, init)
