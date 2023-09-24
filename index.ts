@@ -195,7 +195,7 @@ const AskStreamHandle: (ESType: new () => EventStream) => Middleware =
                   }
                   resolve();
                   stream.write(event, data);
-                  output += (data as any).content;
+                  output += (data as any).content || '';
                   break;
               }
             },
@@ -256,7 +256,7 @@ router.post('/ask', AskHandle);
 router.get('/ask/stream', AskStreamHandle(EventStream));
 router.post('/ask/stream', AskStreamHandle(EventStream));
 const openAIHandle: Middleware = async (ctx, next) => {
-  const { stream, messages } = {
+  const { stream, messages, model } = {
     ...(ctx.query as any),
     ...(ctx.request.body as any),
     ...(ctx.params as any),
@@ -277,12 +277,13 @@ const openAIHandle: Middleware = async (ctx, next) => {
     id: `chatcmpl-${randomStr()}`,
     object: 'chat.completion',
     created: moment().unix(),
+    model,
     choices: [
       {
         index: 0,
         message: {
           role: 'assistant',
-          content: ctx.body.content || ctx.body.error,
+          ...ctx.body,
         },
         finish_reason: 'stop',
       },

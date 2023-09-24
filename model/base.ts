@@ -17,6 +17,8 @@ export interface ChatOptions {
 
 export interface ChatResponse {
   content?: string;
+  role?: string;
+  function_call?: { name: string; arguments: string };
   error?: string;
 }
 
@@ -244,7 +246,23 @@ export class Chat {
             case Event.done:
               break;
             case Event.message:
-              result.content += (data as MessageData).content || '';
+              data = data as MessageData;
+              result.content += data.content || '';
+              if (data.role) {
+                result.role = data.role;
+              }
+              if (data.function_call) {
+                if (!result.function_call) {
+                  result.function_call = data.function_call;
+                }
+                if (data.function_call.name) {
+                  result.function_call = data.function_call;
+                }
+                if (data.function_call.arguments) {
+                  result.function_call.arguments +=
+                    data.function_call.arguments;
+                }
+              }
               break;
             case Event.error:
               result.error = (data as ErrorData).error;

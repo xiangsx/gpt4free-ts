@@ -10,10 +10,24 @@ interface Message {
 }
 
 interface RealReq {
-  messages: Message[];
-  temperature: number;
-  stream: boolean;
   model: string;
+  messages: Message[];
+  functions?: {
+    name: string;
+    description?: string;
+    parameters: object;
+  };
+  function_call?: string;
+  temperature?: number;
+  top_p?: number;
+  n?: number;
+  stream?: boolean;
+  stop?: string | string[];
+  max_tokens?: number;
+  presence_penalty?: number;
+  frequency_penalty?: number;
+  logit_bias?: {};
+  user?: string;
 }
 
 interface OpenAIChatOptions extends ChatOptions {
@@ -22,6 +36,22 @@ interface OpenAIChatOptions extends ChatOptions {
   proxy?: boolean;
 }
 
+const ParamsList = [
+  'model',
+  'messages',
+  'functions',
+  'function_call',
+  'temperature',
+  'top_p',
+  'n',
+  'stream',
+  'stop',
+  'max_tokens',
+  'presence_penalty',
+  'frequency_penalty',
+  'logit_bias',
+  'user',
+];
 export class OpenAI extends Chat {
   private client: AxiosInstance;
 
@@ -49,11 +79,16 @@ export class OpenAI extends Chat {
 
   public async askStream(req: ChatRequest, stream: EventStream) {
     const data: RealReq = {
+      ...req,
       messages: req.messages,
-      temperature: 1.0,
       model: req.model,
       stream: true,
     };
+    for (const key in data) {
+      if (ParamsList.indexOf(key) === -1) {
+        delete (data as any)[key];
+      }
+    }
     try {
       const res = await this.client.post('/v1/chat/completions', data, {
         responseType: 'stream',
@@ -73,16 +108,11 @@ export class OpenAI extends Chat {
             stream.end();
             return;
           }
-          const [
-            {
-              delta: { content = '' },
-              finish_reason,
-            },
-          ] = data.choices;
+          const [{ delta, finish_reason }] = data.choices;
           if (finish_reason === 'stop') {
             return;
           }
-          stream.write(Event.message, { content });
+          stream.write(Event.message, delta);
         }),
       );
       res.data.on('close', () => {
@@ -91,6 +121,7 @@ export class OpenAI extends Chat {
       });
     } catch (e: any) {
       this.logger.error(e.message);
+      e.response.data.on('data', (chunk: any) => console.log(chunk.toString()));
       stream.write(Event.error, { error: e.message });
       stream.end();
     }

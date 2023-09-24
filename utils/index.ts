@@ -8,6 +8,7 @@ import UserAgent from 'user-agents';
 import { getEncoding } from 'js-tiktoken';
 import chalk from 'chalk';
 import * as OpenCC from 'opencc-js';
+import { ModelType } from '../model/base';
 
 const turndownService = new TurndownService({ codeBlockStyle: 'fenced' });
 
@@ -89,7 +90,11 @@ export function shuffleArray<T>(array: T[]): T[] {
 }
 
 export type ErrorData = { error: string; message?: string; status?: number };
-export type MessageData = { content: string };
+export type MessageData = {
+  content: string;
+  function_call?: { name: string; arguments: string };
+  role?: string;
+};
 export type SearchData = { search: any };
 export type DoneData = MessageData;
 
