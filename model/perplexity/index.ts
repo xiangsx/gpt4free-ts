@@ -353,11 +353,21 @@ export class Perplexity extends Chat {
           stream.write(Event.done, { content: '' });
           stream.end();
           end();
-          child.release();
+          child.update({ failedCnt: child.info.failedCnt + 1 });
+          if (child.info.failedCnt > 5) {
+            child.destroy({ delFile: false, delMem: true });
+          } else {
+            child.release();
+          }
         },
       )
       .catch((err) => {
-        child.release();
+        child.update({ failedCnt: child.info.failedCnt + 1 });
+        if (child.info.failedCnt > 5) {
+          child.destroy({ delFile: false, delMem: true });
+        } else {
+          child.release();
+        }
         throw new ComError(err.message, ComError.Status.BadRequest);
       });
   }
