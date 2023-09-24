@@ -49,7 +49,7 @@ export class Toyy extends Chat {
           if (dataStr === '[DONE]') {
             return;
           }
-          stream.write(Event.message, { content: dataStr });
+          stream.write(Event.message, { content: eval("'" + dataStr + "'") });
         }),
       );
       res.data.on('close', () => {
