@@ -38,7 +38,7 @@ export class Toyy extends Chat {
   public async askStream(req: ChatRequest, stream: EventStream) {
     try {
       const res = await this.client.get(
-        `/api/ai/common/chatgpt?model=${req.model}&userInput=${req.prompt}&clientSendTime=1695556992089&phone=`,
+        `/api/ai/common/chatgpt?model=${req.model}&userInput=${req.prompt}&clientSendTime=${new Date().getTime()}&phone=`,
         {
           responseType: 'stream',
         } as AxiosRequestConfig,
