@@ -429,7 +429,7 @@ export class Airops extends Chat {
           stream_channel_id: channel,
         },
       );
-      if (output.indexOf('We have noticed you')) {
+      if (output.indexOf('We have noticed you') > -1) {
         this.logger.error('ask failed, We have noticed you');
         child.destroy({ delFile: true, delMem: true });
         return;
