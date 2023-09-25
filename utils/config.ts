@@ -62,6 +62,7 @@ class BaseConfig {
     },
     merlin: {
       size: 0,
+      serial: 0,
       mailType: TempEmailType.TempMailLOL,
     },
     airops: {
