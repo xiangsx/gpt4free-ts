@@ -232,7 +232,7 @@ export class Perplexity extends Chat {
     },
     {
       delay: 1000,
-      serial: false,
+      serial: true,
       preHandleAllInfos: async (allInfos) => {
         const infos: Account[] = [];
         const infoMap: Record<string, Account[]> = {};
