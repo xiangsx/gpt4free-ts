@@ -100,7 +100,7 @@ export class ComChild<T extends ComInfo> implements PoolChild<T> {
 interface PoolOptions<T extends Info> {
   delay?: number;
   // 串行
-  serial?: boolean;
+  serial?: number | (() => number);
   preHandleAllInfos?: (allInfos: T[]) => Promise<T[]>;
 }
 
@@ -117,7 +117,7 @@ export class Pool<U extends Info, T extends PoolChild<U>> {
   private readonly childMap: Map<string, T> = new Map();
   private readonly logger: winston.Logger;
   private readonly filepath: string;
-  private creating = false;
+  private creating = 0;
 
   constructor(
     private readonly label: string = 'Unknown',
@@ -233,8 +233,14 @@ export class Pool<U extends Info, T extends PoolChild<U>> {
         this.allInfos = await this.options.preHandleAllInfos(this.allInfos);
       }
       const maxSize = +this.maxsize() || 0;
-      if (this.options?.serial && this.creating) {
-        return;
+      if (this.options?.serial) {
+        const serials =
+          this.options.serial instanceof Function
+            ? this.options.serial()
+            : this.options.serial;
+        if (serials && this.creating >= serials) {
+          return;
+        }
       }
       if (this.children.length === maxSize) {
         return;
@@ -255,9 +261,9 @@ export class Pool<U extends Info, T extends PoolChild<U>> {
         }
         return;
       }
-      this.creating = true;
+      this.creating += 1;
       await this.create();
-      this.creating = false;
+      this.creating -= 1;
     }, this.options?.delay || 5000);
   }
 

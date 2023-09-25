@@ -15,6 +15,7 @@ interface ConfigData {
   perplexity: {
     size: number;
     tokens: string[];
+    serial: number;
     concurrency: number;
   };
   site_map: Partial<Record<ModelType, SiteCfg[]>>;
@@ -73,6 +74,7 @@ class BaseConfig {
     },
     perplexity: {
       size: 0,
+      serial: 0,
       tokens: [],
       concurrency: 1,
     },
