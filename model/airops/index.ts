@@ -415,7 +415,12 @@ export class Airops extends Chat {
           this.logger.info('recv msg ok');
           return;
         }
-        stream.write(Event.message, { content: token });
+        if (token.indexOf('We have noticed you') === -1) {
+          stream.write(Event.message, { content: token });
+        } else {
+          this.logger.error('ask failed, recv msg: ' + token);
+          child.update({ failed_times: (child.info.failed_times || 0) + 1 });
+        }
       });
       const res: { data: { credits_used: number } } = await child.client.post(
         `agent_apps/${child.info.app_uuid}/chat`,
