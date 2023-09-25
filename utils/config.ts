@@ -28,7 +28,7 @@ interface ConfigData {
     primary_model: ModelType;
   };
   mixer: { size: number; mailType: TempEmailType };
-  merlin: { size: number; mailType: TempEmailType };
+  merlin: { size: number; mailType: TempEmailType; serial: number };
   airops: {
     size: number;
     mail_type: TempEmailType;
