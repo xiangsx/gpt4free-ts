@@ -216,7 +216,7 @@ export class Vanus extends Chat {
       }
       return true;
     },
-    { delay: 1000, serial: false },
+    { delay: 1000, serial: true },
   );
   constructor(options?: ChatOptions) {
     super(options);
