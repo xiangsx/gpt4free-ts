@@ -285,6 +285,10 @@ export class Perplexity extends Chat {
   }
 
   async preHandle(req: ChatRequest): Promise<ChatRequest> {
+    req.messages = req.messages.map((v) => ({
+      ...v,
+      role: v.role === 'system' ? 'user' : v.role,
+    }));
     const reqH = await super.preHandle(req, {
       token: false,
       countPrompt: true,
