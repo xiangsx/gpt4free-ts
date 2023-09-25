@@ -307,6 +307,9 @@ export class Merlin extends Chat {
       });
     } catch (e: any) {
       this.logger.error('ask failed, ', e);
+      child.update({
+        left: child.info.left - 10,
+      });
       stream.write(Event.error, {
         error: 'Something error, please retry later',
         status: 500,
