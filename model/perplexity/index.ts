@@ -272,13 +272,13 @@ export class Perplexity extends Chat {
   support(model: ModelType): number {
     switch (model) {
       case ModelType.GPT4:
-        return 2000;
+        return 3900;
       case ModelType.NetGPT4:
-        return 2000;
+        return 3900;
       case ModelType.GPT3p5Turbo:
-        return 4000;
+        return 3900;
       case ModelType.NetGpt3p5:
-        return 4000;
+        return 3900;
       default:
         return 0;
     }
