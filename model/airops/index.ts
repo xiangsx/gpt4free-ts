@@ -398,6 +398,7 @@ export class Airops extends Chat {
       return;
     }
     try {
+      let output = '';
       const channel = child.setMsgListener((event, data) => {
         if (event !== 'agent-response') {
           return;
@@ -415,12 +416,8 @@ export class Airops extends Chat {
           this.logger.info('recv msg ok');
           return;
         }
-        if (token.indexOf('We have noticed you') === -1) {
-          stream.write(Event.message, { content: token });
-        } else {
-          this.logger.error('ask failed, recv msg: ' + token);
-          child.update({ failed_times: (child.info.failed_times || 0) + 1 });
-        }
+        stream.write(Event.message, { content: token });
+        output += token;
       });
       const res: { data: { credits_used: number } } = await child.client.post(
         `agent_apps/${child.info.app_uuid}/chat`,
@@ -432,6 +429,11 @@ export class Airops extends Chat {
           stream_channel_id: channel,
         },
       );
+      if (output.indexOf('We have noticed you')) {
+        this.logger.error('ask failed, We have noticed you');
+        child.destroy({ delFile: true, delMem: true });
+        return;
+      }
       child.update({
         left: child.info.left - (res.data.credits_used || 1),
         failed_times: 0,
