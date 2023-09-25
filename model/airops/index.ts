@@ -382,6 +382,7 @@ export class Airops extends Chat {
   }
 
   async preHandle(req: ChatRequest): Promise<ChatRequest> {
+    req.messages = req.messages.filter((v) => v.role !== 'system');
     return super.preHandle(req, {
       token: true,
       countPrompt: true,
@@ -430,8 +431,8 @@ export class Airops extends Chat {
         },
       );
       if (output.indexOf('We have noticed you') > -1) {
-        this.logger.error('ask failed, We have noticed you');
-        child.destroy({ delFile: true, delMem: true });
+        this.logger.error(`We have noticed you, ${req.messages}`);
+        // child.destroy({ delFile: true, delMem: true });
         return;
       }
       child.update({
