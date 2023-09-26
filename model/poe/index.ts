@@ -496,9 +496,6 @@ ${question}`;
       const tt = setTimeout(async () => {
         try {
           client.removeAllListeners('Network.webSocketFrameReceived');
-          await page.screenshot({
-            path: `./run/poe-timeout_${randomStr(5)}.png`,
-          });
           stream.write(Event.error, { error: 'please retry later!' });
           stream.write(Event.done, { content: '' });
           stream.end();
