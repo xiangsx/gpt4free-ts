@@ -17,6 +17,7 @@ interface ConfigData {
     tokens: string[];
     serial: number;
     concurrency: number;
+    system: string;
   };
   site_map: Partial<Record<ModelType, SiteCfg[]>>;
   one_api: {
@@ -78,6 +79,7 @@ class BaseConfig {
       serial: 0,
       tokens: [],
       concurrency: 1,
+      system: '',
     },
     vanus: {
       size: 0,
