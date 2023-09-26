@@ -71,6 +71,9 @@ class Child extends ComChild<Account> {
 
   public async goHome() {
     const page = this.page;
+    if (page.isClosed()) {
+      return;
+    }
     try {
       await page.waitForSelector(
         '.grow > .items-center > .relative:nth-child(1) > .px-sm > .md\\:hover\\:bg-offsetPlus',
@@ -91,6 +94,9 @@ class Child extends ComChild<Account> {
 
   public async changeMode(t: FocusType) {
     const page = this.page;
+    if (page.isClosed()) {
+      return false;
+    }
     try {
       await page.waitForSelector(
         '.grow:nth-child(1) > div > .rounded-md > .relative > .absolute > .absolute > div > div > *',
@@ -155,25 +161,40 @@ class Child extends ComChild<Account> {
     ) => void,
     onTimeOut: () => void,
   ) {
-    if (t !== this.focusType) {
-      await this.changeMode(t);
-      this.focusType = t;
+    try {
+      if (t !== this.focusType) {
+        await this.changeMode(t);
+        this.focusType = t;
+      }
+      const delay = setTimeout(() => {
+        try {
+          this.cb = undefined;
+          if (!this.page.close()) {
+            this.goHome();
+            this.changeMode(t);
+          }
+          clearTimeout(delay);
+          onTimeOut();
+        } catch (e) {
+          this.logger.error('timeout failed, ', e);
+        }
+      }, 10 * 1000);
+      this.cb = cb;
+      await this.client.send('Input.insertText', { text: prompt });
+      this.logger.info('find input ok');
+      await this.page.keyboard.press('Enter');
+      this.logger.info('send msg ok!');
+      this.refresh = () => delay.refresh();
+      return async () => {
+        this.cb = undefined;
+        await this.goHome();
+        await this.changeMode(t);
+        clearTimeout(delay);
+      };
+    } catch (e) {
+      this.logger.error(e);
+      throw e;
     }
-    const delay = setTimeout(() => {
-      onTimeOut();
-    }, 10 * 1000);
-    this.cb = cb;
-    await this.client.send('Input.insertText', { text: prompt });
-    this.logger.info('find input ok');
-    await this.page.keyboard.press('Enter');
-    this.logger.info('send msg ok!');
-    this.refresh = () => delay.refresh();
-    return async () => {
-      this.cb = undefined;
-      await this.goHome();
-      await this.changeMode(t);
-      clearTimeout(delay);
-    };
   }
 
   async init(): Promise<void> {
@@ -309,8 +330,8 @@ export class Perplexity extends Chat {
       return;
     }
     let old = '';
-    const end = await child
-      .sendMsg(
+    try {
+      const end = await child.sendMsg(
         req.model.indexOf('net') > -1 ? FocusType.All : FocusType.Writing,
         req.prompt,
         async (ansType, ansObj) => {
@@ -365,23 +386,22 @@ export class Perplexity extends Chat {
           stream.write(Event.error, { error: 'timeout' });
           stream.write(Event.done, { content: '' });
           stream.end();
-          end();
           child.update({ failedCnt: child.info.failedCnt + 1 });
-          if (child.info.failedCnt > 5) {
+          if (child.info.failedCnt > 3) {
             child.destroy({ delFile: false, delMem: true });
           } else {
             child.release();
           }
         },
-      )
-      .catch((err) => {
-        child.update({ failedCnt: child.info.failedCnt + 1 });
-        if (child.info.failedCnt > 5) {
-          child.destroy({ delFile: false, delMem: true });
-        } else {
-          child.release();
-        }
-        throw new ComError(err.message, ComError.Status.BadRequest);
-      });
+      );
+    } catch (err: any) {
+      child.update({ failedCnt: child.info.failedCnt + 1 });
+      if (child.info.failedCnt > 5) {
+        child.destroy({ delFile: false, delMem: true });
+      } else {
+        child.release();
+      }
+      throw new ComError(err.message, ComError.Status.BadRequest);
+    }
   }
 }
