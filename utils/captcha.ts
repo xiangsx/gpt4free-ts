@@ -89,7 +89,7 @@ export async function getCaptchaCode(base64: string) {
 
 export async function ifCF(page: Page) {
   try {
-    await page.waitForSelector('#challenge-running', { timeout: 5 * 1000 });
+    await page.waitForSelector('#challenge-running', { timeout: 2 * 1000 });
     return true;
   } catch (e) {
     console.log('no cf');
@@ -115,6 +115,7 @@ export async function handleCF(
   });
   try {
     const targets = await client.Target.getTargets();
+    await sleep(10000);
     const target = targets.targetInfos.find((v) => v.url.indexOf(url) > -1);
     if (!target) {
       throw new Error('not found target');
@@ -178,7 +179,6 @@ export async function handleCF(
       );
       fs.writeFileSync(`./run/png/${randomStr(6)}.png`, res.data, 'base64');
     }
-    await sleep(5000);
     await client.Input.dispatchMouseEvent(
       {
         type: 'mousePressed',
