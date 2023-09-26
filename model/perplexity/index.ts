@@ -371,6 +371,9 @@ export class Perplexity extends Chat {
                 child.release();
                 break;
               case 'query_progress':
+                if (!old && ansObj.answer.startsWith(':')) {
+                  ansObj.answer = ansObj.answer.slice(1);
+                }
                 if (
                   ansObj.answer.length === 0 &&
                   (req.model === ModelType.NetGPT4 ||
