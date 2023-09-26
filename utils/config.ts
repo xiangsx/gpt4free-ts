@@ -19,6 +19,7 @@ interface ConfigData {
     serial: number;
     concurrency: number;
     system: string;
+    model: string;
   };
   site_map: Partial<Record<ModelType, SiteCfg[]>>;
   one_api: {
@@ -82,6 +83,7 @@ class BaseConfig {
       tokens: [],
       concurrency: 1,
       system: '',
+      model: 'perplexity',
     },
     vanus: {
       size: 0,

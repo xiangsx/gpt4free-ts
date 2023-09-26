@@ -1,20 +1,11 @@
 import { Chat, ChatOptions, ChatRequest, ModelType } from '../base';
 import { CDPSession, Page } from 'puppeteer';
-import {
-  ComError,
-  Event,
-  EventStream,
-  parseJSON,
-  sleep,
-  TimeFormat,
-} from '../../utils';
+import { ComError, Event, EventStream, parseJSON } from '../../utils';
 import { Config } from '../../utils/config';
 import { ComChild, ComInfo, DestroyOptions, Pool } from '../../utils/pool';
 import { CreateNewPage } from '../../utils/proxyAgent';
 import { handleCF, ifCF } from '../../utils/captcha';
 import { v4 } from 'uuid';
-import moment from 'moment';
-import * as wasi from 'wasi';
 import * as util from 'util';
 
 type UseLeft = Partial<Record<ModelType, number>>;
@@ -26,6 +17,10 @@ enum FocusType {
   Wolfram = 4,
   YouTube = 5,
   Reddit = 6,
+}
+
+enum PerModel {
+  Perplexity = 'Perplexity',
 }
 
 interface Account extends ComInfo {
@@ -68,6 +63,18 @@ class Child extends ComChild<Account> {
       await page.click('.text-super > .flex > div > .rounded-full > .relative');
     } catch (e) {
       this.logger.info('not need close copilot');
+    }
+  }
+
+  async setModel(page: Page, model: PerModel) {
+    try {
+      await page.goto('https://www.perplexity.ai/settings');
+      await page.waitForSelector('#model-select');
+      await page.click('#model-select');
+      await page.select('#model-select', 'gpt4');
+    } catch (e) {
+      this.logger.error('set model failed', e);
+      throw new Error('set model failed');
     }
   }
 
@@ -227,6 +234,11 @@ class Child extends ComChild<Account> {
       throw new Error(`account:${this.info.id}, no login status`);
     }
     await this.closeCopilot(page);
+    await this.setModel(
+      page,
+      (Config.config.perplexity.model as PerModel) || PerModel.Perplexity,
+    );
+
     await this.startListener();
     await this.goHome();
     await this.changeMode(this.focusType);
