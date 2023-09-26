@@ -351,6 +351,9 @@ export class Poe extends Chat implements BrowserUser<Account> {
       return [] as any;
     }
     const page = await browser.newPage();
+    await page.setUserAgent(
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36',
+    );
     await simplifyPage(page);
     try {
       await page.setCookie({
