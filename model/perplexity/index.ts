@@ -11,9 +11,10 @@ import {
 import { Config } from '../../utils/config';
 import { ComChild, ComInfo, DestroyOptions, Pool } from '../../utils/pool';
 import { CreateNewPage } from '../../utils/proxyAgent';
-import { handleCF } from '../../utils/captcha';
+import { handleCF, ifCF } from '../../utils/captcha';
 import { v4 } from 'uuid';
 import moment from 'moment';
+import * as wasi from 'wasi';
 
 type UseLeft = Partial<Record<ModelType, number>>;
 
@@ -215,6 +216,10 @@ class Child extends ComChild<Account> {
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36',
     );
     page = await handleCF(page);
+    if (await ifCF(page)) {
+      await page.browser().close();
+      throw new Error('cf failed');
+    }
     this.page = page;
     if (!(await this.isLogin(page))) {
       this.update({ invalid: true });
