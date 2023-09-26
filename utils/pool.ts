@@ -175,6 +175,7 @@ export class Pool<U extends Info, T extends PoolChild<U>> {
         const { delFile = false, delMem = true } = options || {};
         if (delMem) {
           this.del(info.id, delFile, delMem);
+          this.using.delete(info.id);
         }
       },
       onRelease: () => {
@@ -186,6 +187,7 @@ export class Pool<U extends Info, T extends PoolChild<U>> {
       onInitFailed: (options) => {
         const { delFile = false, delMem = true } = options || {};
         this.del(info.id, delFile, delMem);
+        this.using.delete(info.id);
       },
     });
     child.update({ ready: false } as Partial<U>);

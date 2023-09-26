@@ -12,6 +12,7 @@ export type SiteCfg = {
 };
 // 首先定义配置的数据类型
 interface ConfigData {
+  exit: boolean;
   perplexity: {
     size: number;
     tokens: string[];
@@ -48,6 +49,7 @@ interface ConfigData {
 class BaseConfig {
   private filePath: string = './run/config.json';
   private defaultConfig: ConfigData = {
+    exit: true,
     site_map: {},
     one_api: {
       base_url: '',
