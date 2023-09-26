@@ -16,6 +16,7 @@ import {
   maskLinks,
   MessageData,
   parseJSON,
+  randomStr,
   shuffleArray,
   sleep,
 } from '../../utils';
@@ -351,9 +352,6 @@ export class Poe extends Chat implements BrowserUser<Account> {
       return [] as any;
     }
     const page = await browser.newPage();
-    await page.setUserAgent(
-      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36',
-    );
     await simplifyPage(page);
     try {
       await page.setCookie({
@@ -498,6 +496,9 @@ ${question}`;
       const tt = setTimeout(async () => {
         try {
           client.removeAllListeners('Network.webSocketFrameReceived');
+          await page.screenshot({
+            path: `./run/poe-timeout_${randomStr(5)}.png`,
+          });
           stream.write(Event.error, { error: 'please retry later!' });
           stream.write(Event.done, { content: '' });
           stream.end();
