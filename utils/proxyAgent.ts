@@ -277,10 +277,10 @@ export class WebFetchProxy {
   private page?: Page;
   private streamMap: Record<string, PassThrough> = {};
   private readonly homeURL: string;
-  private options: { cookie: Protocol.Network.Cookie[] } | undefined;
+  private options: { cookie: Protocol.Network.CookieParam[] } | undefined;
   constructor(
     homeURL: string,
-    options?: { cookie: Protocol.Network.Cookie[] },
+    options?: { cookie: Protocol.Network.CookieParam[] },
   ) {
     this.homeURL = homeURL;
     this.options = options;
@@ -311,6 +311,9 @@ export class WebFetchProxy {
       }
       const browser = await puppeteer.launch(options);
       this.page = await browser.newPage();
+      if (this.options?.cookie && this.options.cookie.length > 0) {
+        await this.page.setCookie(...this.options.cookie);
+      }
       await this.page.goto(this.homeURL);
       await closeOtherPages(browser, this.page);
       await this.page.exposeFunction('onChunk', (id: string, text: string) => {
