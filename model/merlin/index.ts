@@ -312,6 +312,7 @@ export class Merlin extends Chat {
       this.logger.error('ask failed, ', e);
       child.update({
         left: child.info.left - 10,
+        useOutTime: moment().unix(),
       });
       stream.write(Event.error, {
         error: 'Something error, please retry later',
