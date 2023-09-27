@@ -456,7 +456,7 @@ export class Airops extends Chat {
       stream.write(Event.done, { content: '' });
       stream.end();
       if (child.info.failed_times >= 10) {
-        child.destroy({ delFile: true, delMem: true });
+        child.destroy({ delFile: false, delMem: true });
       }
     }
   }
