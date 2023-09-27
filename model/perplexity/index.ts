@@ -69,9 +69,10 @@ class Child extends ComChild<Account> {
   async setModel(page: Page, model: PerModel) {
     try {
       await page.goto('https://www.perplexity.ai/settings');
-      await page.waitForSelector('#model-select');
+      await page.reload();
+      await page.waitForSelector('#model-select', { timeout: 3000 });
       await page.click('#model-select');
-      await page.select('#model-select', 'gpt4');
+      await page.select('#model-select', model);
     } catch (e) {
       this.logger.error('set model failed', e);
       throw new Error('set model failed');
@@ -85,20 +86,18 @@ class Child extends ComChild<Account> {
     }
     try {
       await page.waitForSelector(
-        '.grow > .items-center > .relative:nth-child(1) > .px-sm > .md\\:hover\\:bg-offsetPlus',
+        '.grow > .items-center > .relative:nth-child(1)',
+        { timeout: 3000 },
       );
-      await page.click(
-        '.grow > .items-center > .relative:nth-child(1) > .px-sm > .md\\:hover\\:bg-offsetPlus',
-      );
-      await this.page.waitForSelector(this.InputSelector, {
-        timeout: 3 * 1000,
-      });
-      await this.page.click(this.InputSelector);
+      await page.click('.grow > .items-center > .relative:nth-child(1)');
     } catch (e) {
       await page.goto('https://www.perplexity.ai');
-      await this.goHome();
       this.logger.error('go home failed', e);
     }
+    await this.page.waitForSelector(this.InputSelector, {
+      timeout: 3 * 1000,
+    });
+    await this.page.click(this.InputSelector);
   }
 
   public async changeMode(t: FocusType) {
@@ -240,8 +239,11 @@ class Child extends ComChild<Account> {
     );
 
     await this.startListener();
+    this.logger.info('start listener ok');
     await this.goHome();
+    this.logger.info('go home ok');
     await this.changeMode(this.focusType);
+    this.logger.info('change mode ok');
   }
 
   initFailed() {
