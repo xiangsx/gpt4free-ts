@@ -366,6 +366,7 @@ export class Airops extends Chat {
     },
     {
       delay: 1000,
+      serial: 1,
     },
   );
   constructor(options?: ChatOptions) {
