@@ -37,8 +37,9 @@ export class Toyy extends Chat {
 
   public async askStream(req: ChatRequest, stream: EventStream) {
     try {
+      const xe = new Date().getTime();
       const res = await this.client.get(
-        `/api/ai/common/chatgpt?model=${req.model}&userInput=${req.prompt}&clientSendTime=${new Date().getTime()}&phone=`,
+        `/api/ai/common/chatgpt?model=${req.model}&userInput=${req.prompt}&clientSendTime=${xe}&phone=&key=${this.$e(xe + "")}`,
         {
           responseType: 'stream',
         } as AxiosRequestConfig,
@@ -60,5 +61,16 @@ export class Toyy extends Chat {
       console.error(e.message);
       throw e;
     }
+  }
+  $e(Z:string) {
+    const xe = "snkliduffkdslsuerdjfkfhdssdfder";
+    let Le = "";
+    for (let G = 0; G < Z.length; G++) {
+      const fe = Z.charCodeAt(G)
+          , de = xe[G % xe.length].charCodeAt(0)
+          , ve = fe ^ de;
+      Le += String.fromCharCode(ve)
+    }
+    return Le
   }
 }
