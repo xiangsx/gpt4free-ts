@@ -297,7 +297,7 @@ export class Poe extends Chat implements BrowserUser<Account> {
           // @ts-ignore
           document.querySelector(
             '.SidebarLayout_wrapper__0fQUj > .MainColumn_scrollSection__TuAiS > .MainColumn_column__z1_q8 > .SettingsPageMain_container__3Se4O > .SettingsSubscriptionSection_subscriptionSettingsContainer__DfZCW',
-          ).children[2].children[idx].children[0].textContent,
+          ).children[2].children[0].children[idx].children[0].textContent,
         i,
       );
       // @ts-ignore
@@ -306,7 +306,7 @@ export class Poe extends Chat implements BrowserUser<Account> {
           // @ts-ignore
           document.querySelector(
             '.SidebarLayout_wrapper__0fQUj > .MainColumn_scrollSection__TuAiS > .MainColumn_column__z1_q8 > .SettingsPageMain_container__3Se4O > .SettingsSubscriptionSection_subscriptionSettingsContainer__DfZCW',
-          ).children[2].children[idx].children[1].textContent,
+          ).children[2].children[0].children[idx].children[1].textContent,
         i,
       );
       const { daily, monthly } = this.extractRemaining(left);
