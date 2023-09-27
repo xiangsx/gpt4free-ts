@@ -332,9 +332,11 @@ export class Perplexity extends Chat {
       countPrompt: true,
       forceRemove: true,
     });
-    reqH.prompt =
-      util.format(Config.config.perplexity.system || '', req.model) +
-      reqH.prompt;
+    if (Config.config.perplexity.system) {
+      reqH.prompt =
+        Config.config.perplexity.system.replace(/\%s/g, req.model) +
+        reqH.prompt;
+    }
     return reqH;
   }
 
