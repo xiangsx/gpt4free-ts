@@ -102,6 +102,7 @@ class Child extends ComChild<Account> {
         throw new Error('get login status failed');
       }
       if (!loginStatus.left || loginStatus.left < 10) {
+        this.update({ left: loginStatus.left || 0 });
         throw new Error(`left size:${loginStatus.left} < 10`);
       }
       this.logger.info('get session ...');
