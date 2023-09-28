@@ -269,6 +269,9 @@ export class Mixer extends Chat {
             ) {
               return;
             }
+            if (!content) {
+              return;
+            }
             content = content
               .replace('data:', '')
               .replace(/\[SPACE\]/g, ' ')
