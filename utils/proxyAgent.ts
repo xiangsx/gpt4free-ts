@@ -306,6 +306,7 @@ export class WebFetchProxy {
       await this.close();
       return;
     }
+    console.log('web fetch proxy closed ok');
     this.page?.browser().close();
   }
 
