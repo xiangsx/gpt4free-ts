@@ -365,7 +365,7 @@ export class WebFetchProxy {
     const id = v4();
     const stream = new PassThrough();
     this.streamMap[id] = stream;
-    this.useCount + 1;
+    this.useCount += 1;
     this.page.evaluate(
       (id, url, init) => {
         return new Promise((resolve, reject) => {
