@@ -137,24 +137,28 @@ class Child extends ComChild<Account> {
     const et = client.on(
       'Network.webSocketFrameReceived',
       async ({ response }) => {
-        const dataStr = response.payloadData
-          .replace(/^(\d+(\.\d+)?)/, '')
-          .trim();
-        if (!dataStr) {
-          return;
+        try {
+          const dataStr = response.payloadData
+            .replace(/^(\d+(\.\d+)?)/, '')
+            .trim();
+          if (!dataStr) {
+            return;
+          }
+          const data = parseJSON(dataStr, []);
+          if (data.length !== 2) {
+            return;
+          }
+          const [ansType, textObj] = data;
+          const text = (textObj as any).text;
+          const ansObj = parseJSON<{ answer: string; web_results: any[] }>(text, {
+            answer: '',
+            web_results: [],
+          });
+          this.refresh?.();
+          this.cb?.(ansType, ansObj);
+        }catch (e) {
+          this.logger.warn('parse failed, ', e);
         }
-        const data = parseJSON(dataStr, []);
-        if (data.length !== 2) {
-          return;
-        }
-        const [ansType, textObj] = data;
-        const text = (textObj as any).text;
-        const ansObj = parseJSON<{ answer: string; web_results: any[] }>(text, {
-          answer: '',
-          web_results: [],
-        });
-        this.refresh?.();
-        this.cb?.(ansType, ansObj);
       },
     );
     return client;
