@@ -115,6 +115,7 @@ class Child extends ComChild<Account> {
       page.browser().close();
     } catch (e) {
       this.page?.browser().close();
+      this.update({ left: 0, useOutTime: moment().unix() });
       this.options?.onInitFailed({
         delFile: false,
         delMem: true,
