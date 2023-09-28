@@ -12,6 +12,7 @@ import moment from 'moment';
 import { closeOtherPages, simplifyPage } from './puppeteer';
 import { v4 } from 'uuid';
 import { PassThrough } from 'stream';
+import { sleep } from './index';
 
 puppeteer.use(StealthPlugin());
 
@@ -278,6 +279,7 @@ export class WebFetchProxy {
   private streamMap: Record<string, PassThrough> = {};
   private readonly homeURL: string;
   private options: { cookie: Protocol.Network.CookieParam[] } | undefined;
+  private useCount = 0;
   constructor(
     homeURL: string,
     options?: { cookie: Protocol.Network.CookieParam[] },
@@ -287,11 +289,23 @@ export class WebFetchProxy {
     this.init().then(() => console.log(`web fetch proxy init ok`));
   }
 
+  public isUsing() {
+    return this.useCount > 0;
+  }
+
   getPage() {
     return this.page;
   }
 
-  close() {
+  async close() {
+    if (this.isUsing()) {
+      console.log(
+        `web fetch proxy is using,usecount:${this.useCount}, wait 5s`,
+      );
+      await sleep(5000);
+      await this.close();
+      return;
+    }
     this.page?.browser().close();
   }
 
@@ -351,7 +365,7 @@ export class WebFetchProxy {
     const id = v4();
     const stream = new PassThrough();
     this.streamMap[id] = stream;
-
+    this.useCount + 1;
     this.page.evaluate(
       (id, url, init) => {
         return new Promise((resolve, reject) => {
@@ -389,6 +403,9 @@ export class WebFetchProxy {
             .catch((err) => {
               console.error(err);
               reject(err);
+            })
+            .finally(() => {
+              this.useCount -= 1;
             });
         });
       },
