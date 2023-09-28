@@ -30,7 +30,7 @@ interface ConfigData {
   cursor: {
     primary_model: ModelType;
   };
-  mixer: { size: number; mailType: TempEmailType };
+  mixer: { size: number; mailType: TempEmailType; serial: number };
   merlin: { size: number; mailType: TempEmailType; serial: number };
   airops: {
     size: number;
@@ -62,6 +62,7 @@ class BaseConfig {
     },
     mixer: {
       size: 0,
+      serial: 0,
       mailType: TempEmailType.TempMailLOL,
     },
     merlin: {
