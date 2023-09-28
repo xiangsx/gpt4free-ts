@@ -293,6 +293,10 @@ export class WebFetchProxy {
     return this.useCount > 0;
   }
 
+  public useEnd() {
+    this.useCount -= 1;
+  }
+
   getPage() {
     return this.page;
   }
@@ -404,9 +408,6 @@ export class WebFetchProxy {
             .catch((err) => {
               console.error(err);
               reject(err);
-            })
-            .finally(() => {
-              this.useCount -= 1;
             });
         });
       },
