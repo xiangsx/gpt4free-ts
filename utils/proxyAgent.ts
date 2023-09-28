@@ -302,16 +302,18 @@ export class WebFetchProxy {
   }
 
   async close() {
-    if (this.isUsing()) {
-      console.log(
-        `web fetch proxy is using,usecount:${this.useCount}, wait 5s`,
-      );
-      await sleep(5000);
-      await this.close();
-      return;
+    for (let i = 0; i <= 10; i++) {
+      if (this.isUsing()) {
+        console.log(
+          `web fetch proxy is using,usecount:${this.useCount}, wait 5s`,
+        );
+        await sleep(5000);
+        continue;
+      }
+      console.log(`web fetch proxy closed ok, usecount:${this.useCount}`);
+      this.page?.browser().close();
+      break;
     }
-    console.log('web fetch proxy closed ok');
-    this.page?.browser().close();
   }
 
   async init() {
