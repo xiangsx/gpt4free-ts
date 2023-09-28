@@ -137,7 +137,7 @@ export class Mixer extends Chat {
       }
       return true;
     },
-    { delay: 1000 },
+    { delay: 1000, serial: () => 3 },
   );
   constructor(options?: ChatOptions) {
     super(options);
