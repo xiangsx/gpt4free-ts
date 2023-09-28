@@ -283,6 +283,7 @@ export class Mixer extends Chat {
       );
       res.on('close', () => {
         this.logger.info('Msg recv ok');
+        child.webFetch.useEnd();
         stream.write(Event.done, { content: '' });
         stream.end();
       });
