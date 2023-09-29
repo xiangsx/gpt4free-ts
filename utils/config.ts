@@ -33,6 +33,7 @@ interface ConfigData {
   mixer: { size: number; mailType: TempEmailType; serial: number };
   merlin: { size: number; mailType: TempEmailType; serial: number };
   takeoff: { size: number; mailType: TempEmailType; serial: number };
+  navit: { size: number; mailType: TempEmailType; serial: number };
   airops: {
     size: number;
     mail_type: TempEmailType;
@@ -72,6 +73,11 @@ class BaseConfig {
       mailType: TempEmailType.TempMailLOL,
     },
     merlin: {
+      size: 0,
+      serial: 0,
+      mailType: TempEmailType.TempMailLOL,
+    },
+    navit: {
       size: 0,
       serial: 0,
       mailType: TempEmailType.TempMailLOL,

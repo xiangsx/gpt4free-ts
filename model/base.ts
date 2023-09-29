@@ -105,6 +105,7 @@ export enum Site {
   Langdock = 'langdock',
   Toyy = 'toyy',
   TakeOff = 'takeoff',
+  Navit = 'navit',
 }
 
 export interface ChatRequest {
