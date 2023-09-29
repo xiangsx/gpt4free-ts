@@ -15,6 +15,7 @@ import {
   ComError,
   Event,
   EventStream,
+  getTokenCount,
   getTokenSize,
   OpenaiEventStream,
   parseJSON,
@@ -290,8 +291,8 @@ const openAIHandle: Middleware = async (ctx, next) => {
     ],
     usage: {
       prompt_tokens: reqLen,
-      completion_tokens: getTokenSize(ctx.body.content || ''),
-      total_tokens: reqLen + getTokenSize(ctx.body.content || ''),
+      completion_tokens: getTokenCount(ctx.body.content || ''),
+      total_tokens: reqLen + getTokenCount(ctx.body.content || ''),
     },
   };
 };
