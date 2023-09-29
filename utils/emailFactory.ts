@@ -272,23 +272,27 @@ class TempMail44 extends BaseEmail {
     return new Promise((resolve) => {
       let time = 0;
       const itl = setInterval(async () => {
-        const response = await this.client.get(`/${this.address}/messages`);
-        if (response.data && response.data.length > 0) {
-          resolve(
-            response.data.map((item: any) => ({
-              ...item,
-              content: item.body_html,
-            })),
-          );
-          clearInterval(itl);
-          return;
+        try {
+          const response = await this.client.get(`/${this.address}/messages`);
+          if (response.data && response.data.length > 0) {
+            resolve(
+              response.data.map((item: any) => ({
+                ...item,
+                content: item.body_html,
+              })),
+            );
+            clearInterval(itl);
+            return;
+          }
+          if (time > 5) {
+            resolve([]);
+            clearInterval(itl);
+            return;
+          }
+          time++;
+        } catch (e) {
+          console.error('tempmail lol error', e.message);
         }
-        if (time > 5) {
-          resolve([]);
-          clearInterval(itl);
-          return;
-        }
-        time++;
       }, 10000);
     });
   }
