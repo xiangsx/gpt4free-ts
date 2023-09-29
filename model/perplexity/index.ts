@@ -20,7 +20,8 @@ enum FocusType {
 }
 
 enum PerModel {
-  Perplexity = 'Perplexity',
+  Perplexity = 'perplexity',
+  Gpt4 = 'gpt4',
 }
 
 interface Account extends ComInfo {
@@ -36,7 +37,7 @@ interface Account extends ComInfo {
 
 class Child extends ComChild<Account> {
   private page!: Page;
-  private focusType: FocusType = FocusType.All;
+  private focusType: FocusType = FocusType.Writing;
   private cb?: (ansType: string, ansObj: any) => void;
   private refresh?: () => void;
   private client!: CDPSession;
@@ -150,13 +151,16 @@ class Child extends ComChild<Account> {
           }
           const [ansType, textObj] = data;
           const text = (textObj as any).text;
-          const ansObj = parseJSON<{ answer: string; web_results: any[] }>(text, {
-            answer: '',
-            web_results: [],
-          });
+          const ansObj = parseJSON<{ answer: string; web_results: any[] }>(
+            text,
+            {
+              answer: '',
+              web_results: [],
+            },
+          );
           this.refresh?.();
           this.cb?.(ansType, ansObj);
-        }catch (e) {
+        } catch (e) {
           this.logger.warn('parse failed, ', e);
         }
       },
@@ -231,6 +235,11 @@ class Child extends ComChild<Account> {
       await page.browser().close();
       throw new Error('cf failed');
     }
+    if (Config.config.perplexity.model === PerModel.Gpt4) {
+      if (!(await this.isPro(page))) {
+        throw new Error('not pro');
+      }
+    }
     this.page = page;
     if (!(await this.isLogin(page))) {
       this.update({ invalid: true });
@@ -258,6 +267,10 @@ class Child extends ComChild<Account> {
   destroy(options?: DestroyOptions) {
     super.destroy(options);
     this.page?.browser?.().close?.();
+  }
+
+  async isPro(page: Page) {
+    return !!(await page.evaluate(() => document.querySelector('.fill-super')));
   }
 }
 
