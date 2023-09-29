@@ -290,7 +290,7 @@ class TempMail44 extends BaseEmail {
             return;
           }
           time++;
-        } catch (e) {
+        } catch (e: any) {
           console.error('tempmail lol error', e.message);
         }
       }, 10000);
