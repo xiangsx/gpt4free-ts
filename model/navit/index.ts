@@ -15,9 +15,9 @@ import { v4 } from 'uuid';
 import { Page } from 'puppeteer';
 import { AxiosInstance } from 'axios';
 
-const ModelMap: Partial<Record<ModelType, number>> = {
-  [ModelType.GPT4]: 112968,
-  [ModelType.GPT3p5Turbo]: 112972,
+const ModelMap: Partial<Record<ModelType, string>> = {
+  [ModelType.GPT4]: '9675b1e8f62811eda0d10242ac130004',
+  [ModelType.GPT3p5Turbo]: 'e5aba828ebef11edb9980242ac130003',
 };
 
 interface Account extends ComInfo {
@@ -28,6 +28,7 @@ interface Account extends ComInfo {
   uuid: string;
   token: string;
   created: number;
+  model_id_map: { [key: string]: number };
 }
 
 class Child extends ComChild<Account> {
@@ -81,7 +82,9 @@ class Child extends ComChild<Account> {
     try {
       let page;
       this.logger.info('register new account ...');
-      page = await CreateNewPage('https://navit.ai/auth/login');
+      page = await CreateNewPage('https://navit.ai/auth/login', {
+        simplify: false,
+      });
       this.page = page;
 
       await page.evaluate(() => {
@@ -125,8 +128,9 @@ class Child extends ComChild<Account> {
       const user = await this.getUserInfo(page);
       this.update({ uuid: user.uuid, created: moment().unix() });
       await this.updateQuota();
+      await this.updateModelID();
       this.createWSS();
-      // page.browser().close();
+      page.browser().close();
     } catch (e) {
       throw e;
     }
@@ -170,6 +174,42 @@ class Child extends ComChild<Account> {
       left: res.data.data.quota,
       refresh_time: moment().unix() + res.data.data.countdown / 1000,
     });
+  }
+
+  async updateModelID() {
+    const res: {
+      data: { code: number; data: { id: number; bot_uuid: string }[] };
+    } = await this.client.get(
+      `https://api.navit.ai/api/user/me/conversations?uuid=${this.info.uuid}&bot_name=GPT-4
+`,
+      {
+        headers: {
+          Authorization: `Bearer ${this.info.token}`,
+        },
+      },
+    );
+    if (res.data.code !== 200) {
+      throw new Error('get quota failed');
+    }
+    for (const v of res.data.data) {
+      switch (v.bot_uuid) {
+        case ModelMap[ModelType.GPT4]:
+          this.update({
+            model_id_map: { ...this.info.model_id_map, [ModelType.GPT4]: v.id },
+          });
+          break;
+        case ModelMap[ModelType.GPT3p5Turbo]:
+          this.update({
+            model_id_map: {
+              ...this.info.model_id_map,
+              [ModelType.GPT3p5Turbo]: v.id,
+            },
+          });
+          break;
+        default:
+          break;
+      }
+    }
   }
 
   initFailed() {
@@ -238,7 +278,7 @@ class Child extends ComChild<Account> {
       JSON.stringify({
         type: 'message',
         data: {
-          conversation_id: ModelMap[model],
+          conversation_id: this.info.model_id_map[model],
           type: 'text',
           content,
           sender_uuid: this.info.uuid,
@@ -253,10 +293,10 @@ class Child extends ComChild<Account> {
       JSON.stringify({
         type: 'message',
         data: {
-          conversation_id: ModelMap[model],
+          conversation_id: this.info.model_id_map[model],
           type: 'text',
           content: '/clear context',
-          sender_uuid: '374f7a29-c194-45a9-9c01-e8c8965c412e',
+          sender_uuid: this.info.uuid,
           id: v4(),
         },
       }),
