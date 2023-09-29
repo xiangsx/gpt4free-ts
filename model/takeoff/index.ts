@@ -113,7 +113,7 @@ class Child extends ComChild<Account> {
         throw new Error('get cookie failed');
       }
       this.update({ ckkey: cookie.name, ckvalue: cookie.value, left: 20000 });
-      // page.browser().close();
+      page.browser().close();
     } catch (e) {
       throw e;
     }
