@@ -235,15 +235,16 @@ class Child extends ComChild<Account> {
       await page.browser().close();
       throw new Error('cf failed');
     }
-    if (Config.config.perplexity.model === PerModel.Gpt4) {
-      if (!(await this.isPro(page))) {
-        throw new Error('not pro');
-      }
-    }
     this.page = page;
     if (!(await this.isLogin(page))) {
       this.update({ invalid: true });
       throw new Error(`account:${this.info.id}, no login status`);
+    }
+    if (Config.config.perplexity.model === PerModel.Gpt4) {
+      if (!(await this.isPro(page))) {
+        this.update({ invalid: true });
+        throw new Error('not pro');
+      }
     }
     await this.closeCopilot(page);
     await this.setModel(
