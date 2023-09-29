@@ -38,8 +38,9 @@ export class Toyy extends Chat {
   public async askStream(req: ChatRequest, stream: EventStream) {
     try {
       const xe = new Date().getTime();
+      const message:string = JSON.stringify([{"role":"user","content":req.prompt}]);
       const res = await this.client.get(
-        `/api/ai/common/chatgpt?model=${req.model}&userInput=${req.prompt}&clientSendTime=${xe}&phone=&key=${this.$e(xe + "")}`,
+          `/api/ai/common/chatgpt?model=${req.model}&userInput=${req.prompt}&clientSendTime=${xe}&phone=&key=${this.uR(xe + "")}&messages=${message}`,
         {
           responseType: 'stream',
         } as AxiosRequestConfig,
@@ -62,15 +63,15 @@ export class Toyy extends Chat {
       throw e;
     }
   }
-  $e(Z:string) {
-    const xe = "snkliduffkdslsuerdjfkfhdssdfder";
-    let Le = "";
-    for (let G = 0; G < Z.length; G++) {
-      const fe = Z.charCodeAt(G)
-          , de = xe[G % xe.length].charCodeAt(0)
-          , ve = fe ^ de;
-      Le += String.fromCharCode(ve)
+  uR(e:string) {
+    const t = "snkliduffkdslsuerdjfkfhdssdfder";
+    let n = "";
+    for (let s = 0; s < e.length; s++) {
+      const o = e.charCodeAt(s)
+          , a = t[s % t.length].charCodeAt(0)
+          , l = o ^ a;
+      n += String.fromCharCode(l)
     }
-    return Le
+    return n
   }
 }
