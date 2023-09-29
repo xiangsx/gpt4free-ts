@@ -276,10 +276,6 @@ export class OpenaiEventStream extends EventStream {
   }
 }
 
-export const getTokenSize = (str: string) => {
-  return str.length;
-};
-
 export const htmlToMarkdown = (html: string): string => {
   return turndownService.turndown(html);
 };

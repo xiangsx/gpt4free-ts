@@ -16,7 +16,6 @@ import {
   Event,
   EventStream,
   getTokenCount,
-  getTokenSize,
   OpenaiEventStream,
   parseJSON,
   randomStr,
@@ -270,9 +269,9 @@ const openAIHandle: Middleware = async (ctx, next) => {
     return;
   }
   await AskHandle(ctx, next);
-  let reqLen = 0;
+  let reqLen = getTokenCount(messages.reduce((prev, cur) => prev + cur, ''));
   for (const v of messages) {
-    reqLen += getTokenSize(v.content);
+    reqLen += getTokenCount(v.content);
   }
   ctx.body = {
     id: `chatcmpl-${randomStr()}`,

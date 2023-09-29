@@ -5,7 +5,7 @@ import {
   ChatResponse,
   ModelType,
 } from '../base';
-import { Event, EventStream, getTokenSize, sleep } from '../../utils';
+import { Event, EventStream, getTokenCount, sleep } from '../../utils';
 import puppeteer from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import { CreateNewBrowser } from '../../utils/proxyAgent';
@@ -105,7 +105,7 @@ export class WWW extends Chat {
         },
       );
       const maxToken = +(req.max_tokens || process.env.WWW_MAX_TOKEN || 2000);
-      const token = getTokenSize(content);
+      const token = getTokenCount(content);
       if (token > maxToken) {
         content = content.slice(
           0,
