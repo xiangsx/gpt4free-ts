@@ -243,6 +243,7 @@ class Child extends ComChild<Account> {
     if (Config.config.perplexity.model === PerModel.Gpt4) {
       if (!(await this.isPro(page))) {
         this.update({ invalid: true });
+        this.logger.error(`account:${this.info.token}, not pro`);
         throw new Error('not pro');
       }
     }
@@ -271,7 +272,7 @@ class Child extends ComChild<Account> {
   }
 
   async isPro(page: Page) {
-    return !!(await page.evaluate(() => document.querySelector('.fill-super')));
+    return (await page.$('.fill-super')) !== null;
   }
 }
 
