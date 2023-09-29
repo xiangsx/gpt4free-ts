@@ -64,7 +64,7 @@ class Child extends ComChild<Account> {
             type: string;
             data: { message: string; name: string };
           }>(msg, {} as any);
-          this.onData?.(data.type, data.data.name, data.data.message);
+          this.onData?.(data);
         } catch (e) {
           this.logger.error('onMessage failed, ', e);
         }
@@ -126,7 +126,7 @@ class Child extends ComChild<Account> {
       this.update({ uuid: user.uuid, created: moment().unix() });
       await this.updateQuota();
       this.createWSS();
-      page.browser().close();
+      // page.browser().close();
     } catch (e) {
       throw e;
     }
@@ -194,7 +194,14 @@ class Child extends ComChild<Account> {
       this.onData = undefined;
     }, 10 * 1000);
     let old = '';
-    this.onData = (t: string, name: string, message: string) => {
+    this.onData = (data: any) => {
+      const {
+        type: t,
+        data: { message, name, from_type },
+      } = data;
+      if (from_type === 'person') {
+        return;
+      }
       switch (t) {
         case 'message':
           if (message.indexOf("I'm a limited access bot") > -1) {
@@ -210,13 +217,16 @@ class Child extends ComChild<Account> {
           return;
         case 'action':
           if (name === 'End') {
-            if (model === ModelType.GPT4) {
-              this.update({ left: this.info.left - 1 });
-            }
             onEnd();
             this.logger.info('Recv msg ok');
             clearTimeout(timeout);
             this.clearContext(model);
+            if (model === ModelType.GPT4) {
+              this.update({ left: this.info.left - 1 });
+            }
+            if (this.info.left <= 0) {
+              this.destroy({ delFile: false, delMem: true });
+            }
             return;
           }
           return;
