@@ -51,6 +51,8 @@ class Child extends ComChild<Account> {
     this.wss = new WSS(`wss://api.navit.ai/api/ws?uuid=${this.info.uuid}`, {
       onOpen: () => {
         this.logger.info('wss connected');
+        this.clearContext(ModelType.GPT4);
+        this.clearContext(ModelType.GPT3p5Turbo);
       },
       onError: (err: any) => {
         this.logger.error('wss error, ', err);
@@ -334,10 +336,10 @@ export class Navit extends Chat {
     switch (model) {
       case ModelType.GPT4:
         return 5000;
-      case ModelType.GPT3p5_16k:
-        return 13000;
       case ModelType.GPT3p5Turbo:
         return 3000;
+      case ModelType.GPT3p5_16k:
+        return 12000;
       default:
         return 0;
     }
@@ -361,7 +363,7 @@ export class Navit extends Chat {
     }
     child.sendMsg(
       req.prompt,
-      req.model,
+      req.model === ModelType.GPT3p5_16k ? ModelType.GPT3p5Turbo : req.model,
       (content) => {
         stream.write(Event.message, { content });
       },
