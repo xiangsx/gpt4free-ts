@@ -1,5 +1,12 @@
 import { Chat, ChatOptions, ChatRequest, ModelType } from '../base';
-import { Event, EventStream, parseJSON, randomStr, sleep } from '../../utils';
+import {
+  Event,
+  EventStream,
+  getRandomOne,
+  parseJSON,
+  randomStr,
+  sleep,
+} from '../../utils';
 import {
   ChildOptions,
   ComChild,
@@ -14,6 +21,7 @@ import moment from 'moment/moment';
 import { v4 } from 'uuid';
 import { CreateEmail } from '../../utils/emailFactory';
 import { Page } from 'puppeteer';
+import { loginGoogle } from '../../utils/puppeteer';
 
 const APP_KEY = 'af9e46318302fccfc6db';
 const APP_CLUSTER = 'mt1';
@@ -21,6 +29,7 @@ const APP_CLUSTER = 'mt1';
 interface Account extends ComInfo {
   email: string;
   password: string;
+  recovery_mail: string;
   company_name: string;
   app_name: string;
   app_uuid: string;
@@ -70,42 +79,26 @@ class Child extends ComChild<Account> {
         const page = await CreateNewPage(
           'https://app.airops.com/users/sign_up',
         );
-        await page.waitForSelector('#user_first_name');
-        await page.click('#user_first_name');
-        await page.keyboard.type(randomStr(5));
+        await page.waitForSelector(
+          '.min-h-screen > .rounded-lg > .mt-8 > form > .inline-flex',
+        );
+        await page.click(
+          '.min-h-screen > .rounded-lg > .mt-8 > form > .inline-flex',
+        );
 
-        await page.waitForSelector('#user_last_name');
-        await page.click('#user_last_name');
-        await page.keyboard.type(randomStr(5));
-
-        await page.waitForSelector('#user_email');
-        await page.click('#user_email');
-        const mailbox = CreateEmail(Config.config.airops.mail_type);
-        const email = await mailbox.getMailAddress();
-        await page.keyboard.type(email);
-        this.update({ email });
-
-        await page.waitForSelector('#user_password');
-        await page.click('#user_password');
-        const password = randomStr(20);
-        await page.keyboard.type(password);
-
-        await page.waitForSelector('#user_password_confirmation');
-        await page.click('#user_password_confirmation');
-        await page.keyboard.type(password);
-        this.update({ password });
-        await page.keyboard.press('Enter');
-
-        for (const v of await mailbox.waitMails()) {
-          let verifyUrl = v.content.match(/href="([^"]*)/i)?.[1] || '';
-          if (!verifyUrl) {
-            throw new Error('verifyUrl not found');
-          }
-          verifyUrl = verifyUrl.replace(/&amp;/g, '&');
-          await page.goto(verifyUrl);
-          this.logger.info('verify email ok');
-          break;
-        }
+        const gmail = getRandomOne(Config.config.gmail_list);
+        await loginGoogle(
+          page,
+          gmail.email,
+          gmail.password,
+          gmail.recovery_email,
+        );
+        this.update({
+          email: gmail.email,
+          password: gmail.password,
+          recovery_mail: gmail.recovery_email,
+        });
+        this.logger.info('login google ok');
         await sleep(3000);
         const company_name = randomStr(10);
         await page.waitForSelector('#companyName');

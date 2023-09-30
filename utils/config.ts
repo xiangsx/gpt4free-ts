@@ -13,6 +13,7 @@ export type SiteCfg = {
 // 首先定义配置的数据类型
 interface ConfigData {
   exit: boolean;
+  gmail_list: { email: string; password: string; recovery_email: string }[];
   perplexity: {
     size: number;
     tokens: string[];
@@ -102,6 +103,7 @@ class BaseConfig {
       size: 0,
       mail_type: TempEmailType.TempMailLOL,
     },
+    gmail_list: [],
   };
   public config: ConfigData;
 

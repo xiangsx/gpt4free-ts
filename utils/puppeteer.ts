@@ -274,3 +274,41 @@ export async function simplifyPageAll(page: Page) {
     }
   });
 }
+
+export async function loginGoogle(
+  page: Page,
+  email: string,
+  password: string,
+  recovery_email: string,
+) {
+  await page.waitForSelector('#identifierId', { timeout: 10 * 60 * 1000 });
+  await sleep(2000);
+  await page.click('#identifierId');
+  await page.keyboard.type(email);
+  await page.keyboard.press('Enter');
+  await sleep(2000);
+
+  await page.waitForSelector('#password');
+  await page.click('#password');
+  await page.keyboard.type(password);
+  await page.keyboard.press('Enter');
+  await sleep(2000);
+  await checkRecoveryMail(page, recovery_email);
+}
+
+export async function checkRecoveryMail(page: Page, email: string) {
+  const str = await page.evaluate(
+    // @ts-ignore
+    () => document.querySelector('li:nth-child(3)')?.textContent || '',
+  );
+  if (!str.includes('recovery email')) {
+    return;
+  }
+  await page.waitForSelector('li:nth-child(3)');
+  await page.click('li:nth-child(3)');
+  await sleep(2000);
+  await page.waitForSelector('input');
+  await page.click('input');
+  await page.keyboard.type(email);
+  await page.keyboard.press('Enter');
+}
