@@ -48,6 +48,7 @@ export enum ModelType {
   Code_Llama_34b = 'code-llama-34b',
   Code_Llama_13b = 'code-llama-13b',
   Code_Llama_7b = 'code-llama-7b',
+  StableDiffusion = 'stable-diffusion',
   Search = 'search',
   URL = 'url',
   ErnieBotTurbo = 'ernie-bot-turbo',

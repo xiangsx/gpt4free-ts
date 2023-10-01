@@ -46,6 +46,7 @@ const ModelMap: Partial<Record<ModelType, any>> = {
   [ModelType.Code_Llama_34b]: 'Code-Llama-34b',
   [ModelType.Code_Llama_13b]: 'Code-Llama-13b',
   [ModelType.Code_Llama_7b]: 'Code-Llama-7b',
+  [ModelType.StableDiffusion]: 'StableDiffusionXL',
 };
 
 type UseLeftInfo = {
@@ -257,6 +258,8 @@ export class Poef extends Chat implements BrowserUser<Account> {
         return 16000;
       case ModelType.Code_Llama_7b:
         return 16000;
+      case ModelType.StableDiffusion:
+        return 500;
       default:
         return 0;
     }
@@ -467,19 +470,14 @@ export class Poef extends Chat implements BrowserUser<Account> {
   }
 
   public static InputSelector = 'textarea';
-  public static ClearSelector =
-    '.ChatPageMain_container__1aaCT > .ChatPageMainFooter_footer__Hm4Rt > .ChatMessageInputFooter_footer__1cb8J > .Button_buttonBase__0QP_m > svg';
+  public static ClearSelector = 'footer > div > button > svg ';
 
   public static async clearContext(page: Page) {
     await page.waitForSelector(Poef.ClearSelector, { timeout: 10 * 60 * 1000 });
     await page.click(Poef.ClearSelector);
     // new chat
-    await page.waitForSelector(
-      '.SidebarLayout_wrapper__0fQUj > .ChatBotDetailsSidebar_contents__ScQ1s > .RightColumnBotInfoCard_sectionContainer___aFTN > .BotInfoCardActionBar_actionBar__WdCr7 > .Button_primary__pIDjn',
-    );
-    await page.click(
-      '.SidebarLayout_wrapper__0fQUj > .ChatBotDetailsSidebar_contents__ScQ1s > .RightColumnBotInfoCard_sectionContainer___aFTN > .BotInfoCardActionBar_actionBar__WdCr7 > .Button_primary__pIDjn',
-    );
+    await page.waitForSelector('aside > div > div > div > div > a');
+    await page.click('aside > div > div > div > div > a');
   }
 
   public async askStream(req: PoeChatRequest, stream: EventStream) {
@@ -632,7 +630,10 @@ ${question}`;
               this.logger.info('poe recv msg complete');
               return;
             case 'incomplete':
-              if (text.length > old.length) {
+              if (
+                req.model !== ModelType.StableDiffusion &&
+                text.length > old.length
+              ) {
                 stream.write(Event.message, {
                   content: text.substring(old.length),
                 });
@@ -649,11 +650,7 @@ ${question}`;
       await Poef.clearContext(page);
       await page.waitForSelector(Poef.InputSelector);
       await page.click(Poef.InputSelector);
-      await page.type(Poef.InputSelector, `1`);
-      this.logger.info('find input ok');
-      const input = await page.$(Poef.InputSelector);
-      //@ts-ignore
-      await input?.evaluate((el, content) => (el.value = content), req.prompt);
+      await client.send('Input.insertText', { text: req.prompt });
       await page.keyboard.press('Enter');
       this.logger.info('send msg ok!');
     } catch (e: any) {
