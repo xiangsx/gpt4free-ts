@@ -279,15 +279,12 @@ export class Poe extends Chat implements BrowserUser<Account> {
 
   public async getUseLeft(page: Page): Promise<UseLeft> {
     await page.goto('https://poe.com/settings');
-    await page.waitForSelector(
-      '.SidebarLayout_wrapper__0fQUj > .MainColumn_scrollSection__TuAiS > .MainColumn_column__z1_q8 > .SettingsPageMain_container__3Se4O > .SettingsSubscriptionSection_subscriptionSettingsContainer__DfZCW',
-    );
+    await page.waitForSelector('main > div > div > div > div > div');
     const length: number = await page.evaluate(
       () =>
         // @ts-ignore
-        document.querySelector(
-          '.SidebarLayout_wrapper__0fQUj > .MainColumn_scrollSection__TuAiS > .MainColumn_column__z1_q8 > .SettingsPageMain_container__3Se4O > .SettingsSubscriptionSection_subscriptionSettingsContainer__DfZCW',
-        ).children[2].children.length,
+        document.querySelector('main > div > div > div > div > div').children[2]
+          .children.length,
     );
     const useLeft: UseLeft = {};
     for (let i = 0; i < length; i++) {
@@ -295,18 +292,16 @@ export class Poe extends Chat implements BrowserUser<Account> {
       const title: string = await page.evaluate(
         (idx) =>
           // @ts-ignore
-          document.querySelector(
-            '.SidebarLayout_wrapper__0fQUj > .MainColumn_scrollSection__TuAiS > .MainColumn_column__z1_q8 > .SettingsPageMain_container__3Se4O > .SettingsSubscriptionSection_subscriptionSettingsContainer__DfZCW',
-          ).children[2].children[0].children[idx].children[0].textContent,
+          document.querySelector('main > div > div > div > div > div')
+            .children[2].children[0].children[idx].children[0].textContent,
         i,
       );
       // @ts-ignore
       const left: string = await page.evaluate(
         (idx) =>
           // @ts-ignore
-          document.querySelector(
-            '.SidebarLayout_wrapper__0fQUj > .MainColumn_scrollSection__TuAiS > .MainColumn_column__z1_q8 > .SettingsPageMain_container__3Se4O > .SettingsSubscriptionSection_subscriptionSettingsContainer__DfZCW',
-          ).children[2].children[0].children[idx].children[1].textContent,
+          document.querySelector('main > div > div > div > div > div')
+            .children[2].children[0].children[idx].children[1].textContent,
         i,
       );
       const { daily, monthly } = this.extractRemaining(left);
@@ -406,8 +401,7 @@ export class Poe extends Chat implements BrowserUser<Account> {
     }
   }
 
-  public static InputSelector =
-    '.ChatPageMainFooter_footer__Hm4Rt > .ChatMessageInputFooter_footer__1cb8J > .ChatMessageInputContainer_inputContainer__SQvPA > .GrowingTextArea_growWrap___1PZM > .GrowingTextArea_textArea__eadlu';
+  public static InputSelector = 'textarea';
   public static ClearSelector =
     '.ChatPageMain_container__1aaCT > .ChatPageMainFooter_footer__Hm4Rt > .ChatMessageInputFooter_footer__1cb8J > .Button_buttonBase__0QP_m > svg';
   public static FreeModal =
