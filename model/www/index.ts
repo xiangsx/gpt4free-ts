@@ -53,11 +53,10 @@ export class WWW extends Chat {
     try {
       await page
         .goto(req.prompt, {
-          waitUntil: 'domcontentloaded',
+          waitUntil: 'networkidle0',
           timeout: 5000,
         })
         .catch((err) => this.logger.error(`page load failed, `, err));
-
       // @ts-ignore
       let content = await page.$$eval(
         'p, h1, h2, h3, h4, h5, h6, div, section, article, main',
