@@ -253,7 +253,7 @@ export class Poe extends Chat implements BrowserUser<Account> {
       case ModelType.Code_Llama_7b:
         return 16000;
       case ModelType.StableDiffusion:
-        return 500;
+        return 2000;
       default:
         return 0;
     }
