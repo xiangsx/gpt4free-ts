@@ -12,9 +12,21 @@ import moment from 'moment';
 import { closeOtherPages, simplifyPage } from './puppeteer';
 import { v4 } from 'uuid';
 import { PassThrough } from 'stream';
-import { sleep } from './index';
+import { getRandomOne, sleep } from './index';
+import { Config } from './config';
 
 puppeteer.use(StealthPlugin());
+
+export const getProxy = () => {
+  let proxy = '';
+  if (Config.config.proxy_pool?.enable) {
+    proxy = getRandomOne(Config.config.proxy_pool.proxy_list);
+  } else {
+    proxy = process.env.http_proxy || '';
+  }
+  console.log('use proxy:', proxy);
+  return proxy;
+};
 
 const reqProxy = (config: any) => {
   config.params = {
@@ -34,7 +46,7 @@ export function CreateAxiosProxy(
 ): AxiosInstance {
   const { retry = true } = options || {};
   const createConfig = { ...config };
-  const useProxy = proxy ? process.env.http_proxy : '';
+  const useProxy = proxy ? getProxy() : '';
   createConfig.proxy = false;
   if (useProxy) {
     createConfig.httpAgent = HttpsProxyAgent(useProxy);
@@ -83,7 +95,7 @@ export function CreateTlsProxy(
   proxy?: string,
 ): Session {
   const client = new tlsClient.Session(config);
-  const useProxy = process.env.http_proxy || proxy;
+  const useProxy = getProxy() || proxy;
   if (useProxy) {
     client.proxy = useProxy;
   }
@@ -102,7 +114,7 @@ export async function CreateNewPage(
 ) {
   const {
     allowExtensions = false,
-    proxy = process.env.http_proxy,
+    proxy = getProxy(),
     args = [],
     simplify = true,
     cookies = [],
@@ -146,8 +158,8 @@ export async function CreateNewBrowser() {
   if (process.env.DEBUG === '1') {
     options.headless = false;
   }
-  if (process.env.http_proxy) {
-    options.args?.push(`--proxy-server=${process.env.http_proxy}`);
+  if (getProxy()) {
+    options.args?.push(`--proxy-server=${getProxy()}`);
   }
   return await puppeteer.launch(options);
 }
@@ -170,8 +182,8 @@ export function launchChromeAndFetchWsUrl(): Promise<string | null> {
       '--disable-backgrounding-occluded-windows',
       // `--user-data-dir=${path.join(__dirname, `${randomStr(10)}`)}`,
     ];
-    if (process.env.http_proxy) {
-      args.push(`--proxy-server=${process.env.http_proxy}`);
+    if (getProxy()) {
+      args.push(`--proxy-server=${getProxy()}`);
     }
     if (process.env.DEBUG !== '1') {
       args.push('--headless=new');
@@ -219,8 +231,8 @@ export class WSS {
     const { onOpen, onClose, onMessage, onError } = callbacks || {};
     // 创建一个代理代理
     const wsOptions: WebSocket.ClientOptions = {};
-    if (process.env.http_proxy) {
-      wsOptions.agent = HttpsProxyAgent(process.env.http_proxy || '');
+    if (getProxy()) {
+      wsOptions.agent = HttpsProxyAgent(getProxy());
     }
 
     // 创建一个配置了代理的 WebSocket 客户端
@@ -327,8 +339,8 @@ export class WebFetchProxy {
           '--disable-backgrounding-occluded-windows',
         ],
       };
-      if (process.env.http_proxy) {
-        options.args?.push(`--proxy-server=${process.env.http_proxy}`);
+      if (getProxy()) {
+        options.args?.push(`--proxy-server=${getProxy()}`);
       }
       const browser = await puppeteer.launch(options);
       this.page = await browser.newPage();

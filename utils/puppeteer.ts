@@ -1,7 +1,7 @@
 import normalPPT, { Browser, Page, PuppeteerLaunchOptions } from 'puppeteer';
 import * as fs from 'fs';
 import { ComError, shuffleArray, sleep } from './index';
-import { launchChromeAndFetchWsUrl } from './proxyAgent';
+import { getProxy, launchChromeAndFetchWsUrl } from './proxyAgent';
 
 const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
@@ -99,8 +99,8 @@ export class BrowserPool<T> {
       ],
       userDataDir: this.savefile ? `run/${info.id}` : undefined,
     };
-    if (process.env.http_proxy) {
-      options.args?.push(`--proxy-server=${process.env.http_proxy}`);
+    if (getProxy()) {
+      options.args?.push(`--proxy-server=${getProxy()}`);
     }
     let browser: Browser;
     try {

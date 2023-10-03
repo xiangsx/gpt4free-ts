@@ -13,6 +13,10 @@ export type SiteCfg = {
 // 首先定义配置的数据类型
 interface ConfigData {
   exit: boolean;
+  proxy_pool: {
+    enable: boolean;
+    proxy_list: string[];
+  };
   gmail_list: { email: string; password: string; recovery_email: string }[];
   perplexity: {
     size: number;
@@ -54,6 +58,10 @@ class BaseConfig {
   private filePath: string = './run/config.json';
   private defaultConfig: ConfigData = {
     exit: true,
+    proxy_pool: {
+      enable: true,
+      proxy_list: [],
+    },
     site_map: {},
     one_api: {
       base_url: '',
