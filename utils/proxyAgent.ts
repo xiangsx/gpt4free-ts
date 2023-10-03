@@ -24,7 +24,7 @@ export const getProxy = () => {
   } else {
     proxy = process.env.http_proxy || '';
   }
-  console.log('use proxy:', proxy);
+  console.debug('use proxy: ', proxy);
   return proxy;
 };
 

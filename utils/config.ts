@@ -59,7 +59,7 @@ class BaseConfig {
   private defaultConfig: ConfigData = {
     exit: true,
     proxy_pool: {
-      enable: true,
+      enable: false,
       proxy_list: [],
     },
     site_map: {},
