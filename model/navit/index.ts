@@ -84,9 +84,12 @@ class Child extends ComChild<Account> {
     try {
       let page;
       this.logger.info('register new account ...');
-      page = await CreateNewPage('https://navit.ai/auth/login', {
-        simplify: false,
-      });
+      page = await CreateNewPage(
+        `${Config.config.navit.reverse || 'https://navit.ai'}/auth/login`,
+        {
+          simplify: false,
+        },
+      );
       this.page = page;
 
       await page.evaluate(() => {
@@ -107,7 +110,7 @@ class Child extends ComChild<Account> {
       );
       let verifyCode: string = '';
       for (const v of await mailbox.waitMails()) {
-        verifyCode = (v as any).subject.match(/\d{6}/)?.[0] || '';
+        verifyCode = (v as any).content.match(/\d{6}/)?.[0] || '';
         if (verifyCode) {
           break;
         }
