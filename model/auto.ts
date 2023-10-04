@@ -9,6 +9,7 @@ import {
 } from '../utils';
 import { Config, SiteCfg } from '../utils/config';
 import { OpenAI } from './openai';
+import { ClaudeAPI } from './claudeapi';
 
 interface AutoOptions extends ChatOptions {
   ModelMap: Map<Site, Chat>;
@@ -67,6 +68,14 @@ export class Auto extends Chat {
     });
     if (v.site === Site.OpenAI) {
       return new OpenAI({
+        api_key: v.api_key,
+        base_url: v.base_url,
+        name: v.label || v.site,
+        proxy: v.proxy,
+      });
+    }
+    if (v.site === Site.Claude) {
+      return new ClaudeAPI({
         api_key: v.api_key,
         base_url: v.base_url,
         name: v.label || v.site,
