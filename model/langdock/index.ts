@@ -45,6 +45,7 @@ class Child extends ComChild<Account> {
   public page?: Page;
   dataClient: AxiosInstance;
   private chatIDMap: Set<string> = new Set();
+  private delay!: NodeJS.Timeout;
 
   constructor(label: string, info: any, options?: ChildOptions) {
     super(label, info, options);
@@ -288,6 +289,9 @@ class Child extends ComChild<Account> {
       tokenGotTime: moment().unix(),
       userId: authData.user.id,
     });
+    this.delay = setTimeout(() => {
+      this.destroy({ delMem: true, delFile: false });
+    }, (authData.expires_at - moment().unix() - 60) * 1000);
     this.logger.info('get token ok');
   }
 
