@@ -147,6 +147,9 @@ class Child extends ComChild<Account> {
       await this.getTK(page);
       await this.getID();
       await this.selectModel();
+      await page.reload();
+      await page.reload();
+      await sleep(3000);
       await this.sayHello(page);
       await page.browser().close();
     } catch (e) {
