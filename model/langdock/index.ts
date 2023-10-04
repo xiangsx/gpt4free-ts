@@ -43,7 +43,7 @@ class Child extends ComChild<Account> {
   public client: AxiosInstance;
   public page?: Page;
   dataClient: AxiosInstance;
-  public chatID!: string;
+  private chatIDMap: Set<string> = new Set();
 
   constructor(label: string, info: any, options?: ChildOptions) {
     super(label, info, options);
@@ -59,6 +59,16 @@ class Child extends ComChild<Account> {
       },
       false,
     );
+  }
+
+  async getChatID(): Promise<[string, () => Promise<void>]> {
+    if (this.chatIDMap.size > 0) {
+      const id = this.chatIDMap.values().next().value;
+      this.chatIDMap.delete(id);
+      return [id, () => this.newChat()];
+    }
+    await this.newChat();
+    return this.getChatID();
   }
 
   async acceptCK(page: Page): Promise<void> {
@@ -77,7 +87,7 @@ class Child extends ComChild<Account> {
     }
   }
 
-  async createConversation() {
+  async newChat() {
     const res: { data: { id: string }[] } = await this.dataClient.get(
       `/rest/v1/conversations?select=id%2Cname%2Cuser_ids%2Ccreated_at%2Cupdated_at%2Corg_id%2Ctool_ids%2Cmodel%2Cdocument_ids%2Cassistant_id%2Cmode%2Cpinned%2Cconfiguration%2Cextensions&org_id=eq.${this.info.orgId}&user_ids=cs.%7B${this.info.userId}%7D`,
       {
@@ -87,8 +97,7 @@ class Child extends ComChild<Account> {
         },
       },
     );
-
-    this.chatID = res.data[0]?.id;
+    this.chatIDMap.add(res.data[0]?.id);
   }
 
   async init(): Promise<void> {
@@ -134,7 +143,7 @@ class Child extends ComChild<Account> {
 
       await this.getTK(page);
       await this.getID(page);
-      await this.createConversation();
+      await this.newChat();
       await page.browser().close();
     } catch (e) {
       this.page?.browser().close();
@@ -289,13 +298,14 @@ export class Langdock extends Chat {
       return;
     }
     try {
+      const [id, end] = await child.getChatID();
       const res = await child.client.post(
         '/v0/query-messaging',
         {
           query: req.prompt,
           userId: child.info.userId,
           orgId: child.info.orgId,
-          conversationId: child.chatID,
+          conversationId: id,
           assistantId: '',
           toolIds: null,
           userMessageId: v4(),
@@ -318,7 +328,8 @@ export class Langdock extends Chat {
         this.logger.info('Msg recv ok');
         stream.write(Event.done, { content: '' });
         stream.end();
-        child.createConversation();
+        child.newChat();
+        end();
       });
     } catch (e: any) {
       e.response.data.on('data', (chunk: any) =>
