@@ -292,7 +292,7 @@ export async function loginGoogle(
   await page.click('#password');
   await page.keyboard.type(password);
   await page.keyboard.press('Enter');
-  await sleep(2000);
+  await sleep(3000);
   await checkRecoveryMail(page, recovery_email);
 }
 

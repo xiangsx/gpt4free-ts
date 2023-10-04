@@ -1,5 +1,11 @@
 import { Chat, ChatOptions, ChatRequest, ModelType } from '../base';
-import { Event, EventStream, parseJSON, randomStr, sleep } from '../../utils';
+import {
+  Event,
+  EventStream,
+  getRandomOne,
+  parseJSON,
+  sleep,
+} from '../../utils';
 import {
   ChildOptions,
   ComChild,
@@ -9,13 +15,13 @@ import {
 } from '../../utils/pool';
 import { Config } from '../../utils/config';
 import { CreateAxiosProxy, CreateNewPage } from '../../utils/proxyAgent';
-import { CreateEmail } from '../../utils/emailFactory';
 import moment from 'moment/moment';
 import { v4 } from 'uuid';
 import { Page } from 'puppeteer';
 import { AxiosInstance } from 'axios';
 import es from 'event-stream';
 import { handleCF } from '../../utils/captcha';
+import { loginGoogle } from '../../utils/puppeteer';
 
 const ModelMap: Partial<Record<ModelType, string>> = {
   [ModelType.GPT4]: 'GPT 4',
@@ -25,6 +31,7 @@ const ModelMap: Partial<Record<ModelType, string>> = {
 interface Account extends ComInfo {
   email: string;
   password: string;
+  recovery_email: string;
   orgId: string;
   userId: string;
   accessToken: string;
@@ -35,9 +42,17 @@ interface Account extends ComInfo {
 class Child extends ComChild<Account> {
   public client: AxiosInstance;
   public page?: Page;
+  dataClient: AxiosInstance;
+  public chatID!: string;
 
   constructor(label: string, info: any, options?: ChildOptions) {
     super(label, info, options);
+    this.dataClient = CreateAxiosProxy(
+      {
+        baseURL: 'https://data.langdock.com',
+      },
+      false,
+    );
     this.client = CreateAxiosProxy(
       {
         baseURL: 'https://engine.langdock.com',
@@ -46,67 +61,66 @@ class Child extends ComChild<Account> {
     );
   }
 
+  async acceptCK(page: Page): Promise<void> {
+    try {
+      await sleep(5000);
+      await page.evaluate(() => {
+        // @ts-ignore
+        document
+          .querySelector('#usercentrics-root')
+          .shadowRoot.querySelector(`button[role="button"]:nth-child(1)`)
+          // @ts-ignore
+          .click();
+      });
+    } catch (e) {
+      this.logger.error('accept ck failed', e);
+    }
+  }
+
+  async createConversation() {
+    const res: { data: { id: string }[] } = await this.dataClient.get(
+      `/rest/v1/conversations?select=id%2Cname%2Cuser_ids%2Ccreated_at%2Cupdated_at%2Corg_id%2Ctool_ids%2Cmodel%2Cdocument_ids%2Cassistant_id%2Cmode%2Cpinned%2Cconfiguration%2Cextensions&org_id=eq.${this.info.orgId}&user_ids=cs.%7B${this.info.userId}%7D`,
+      {
+        headers: {
+          Authorization: `Bearer ${this.info.accessToken}`,
+          apikey: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pbnpjcWh5b3dmbW90cWt6emxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE2ODkyMjk0MTQsImV4cCI6MjAwNDgwNTQxNH0.kWeRsir1qBwcGR-wXHF3R0R6GeGKnxjqc7ocamWpcEc`,
+        },
+      },
+    );
+
+    this.chatID = res.data[0]?.id;
+  }
+
   async init(): Promise<void> {
     try {
-      let page;
-      if (this.info.accessToken) {
-        this.logger.info('login with token ...');
-        page = await CreateNewPage(
-          'https://platform.langdock.com/login?password=true',
-        );
-        page = await handleCF(page);
-        this.page = page;
-        await page.waitForSelector('#email');
-        await page.click('#email');
-        await page.keyboard.type(this.info.email);
+      let page = await CreateNewPage('https://platform.langdock.com/sign-up', {
+        simplify: false,
+      });
 
-        await page.waitForSelector('#password');
-        await page.click('#password');
-        await page.keyboard.type(this.info.password);
-        await page.keyboard.press('Enter');
-        await page.waitForSelector(
-          '#app > div.login-sec > div > div.w-form > form > div.button.big.blue.w-button',
-        );
-        await page.click(
-          '#app > div.login-sec > div > div.w-form > form > div.button.big.blue.w-button',
-        );
-      } else {
-        this.logger.info('register new account ...');
-        page = await CreateNewPage(
-          'https://platform.langdock.com/sign-up?email=&password=true',
-        );
-        page = await handleCF(page);
-        this.page = page;
+      page = await handleCF(page);
+      this.page = page;
+      await this.acceptCK(page);
+      await page.waitForSelector(
+        '.login-sec > .max-500-center > .w-form > .form-360-width > .button:nth-child(5)',
+      );
+      await page.click(
+        '.login-sec > .max-500-center > .w-form > .form-360-width > .button:nth-child(5)',
+      );
+      if (!this.info.email) {
+        const mail = getRandomOne(Config.config.gmail_list);
+        const { email, password, recovery_email } = mail;
+        this.update({ email, password, recovery_email });
+      }
 
-        await page.waitForSelector('#email');
-        await page.click('#email');
-        const mailbox = CreateEmail(Config.config.langdock.mail_type);
-        const email = await mailbox.getMailAddress();
-        await page.keyboard.type(email);
-        this.update({ email });
-
-        await page.waitForSelector('#password');
-        await page.click('#password');
-        const password = randomStr(20);
-        await page.keyboard.type(password);
-        this.update({ password });
-
-        await page.waitForSelector(
-          '.login-sec > .max-500-center > .w-form > .form-360-width > .blue',
-        );
-        await page.click(
-          '.login-sec > .max-500-center > .w-form > .form-360-width > .blue',
-        );
-
-        for (const v of await mailbox.waitMails()) {
-          let verifyUrl = v.content.match(/href="([^"]*)/i)?.[1] || '';
-          if (!verifyUrl) {
-            throw new Error('verifyUrl not found');
-          }
-          verifyUrl = verifyUrl.replace(/&amp;/g, '&');
-          await page.goto(verifyUrl);
-          this.logger.info('verify email ok');
-        }
+      await loginGoogle(
+        page,
+        this.info.email,
+        this.info.password,
+        this.info.recovery_email,
+      );
+      await sleep(10000);
+      await page.reload();
+      if (!this.info.accessToken) {
         await this.newWorkspace(page);
         await this.selectAllModel(page);
         await sleep(1000);
@@ -116,25 +130,12 @@ class Child extends ComChild<Account> {
         await page.click(
           '.login-sec > .w-form > .form-360-width > .full > .button',
         );
-        await page.waitForSelector('#prompt');
-        await page.click('#prompt');
-        await page.keyboard.type('hello');
-        await page.keyboard.press('Enter');
       }
 
-      await sleep(10 * 60 * 1000);
-      const { accessToken, refreshToken } = await this.getTK(page);
-      if (!accessToken || !refreshToken) {
-        throw new Error('get token failed');
-      }
-      this.update({
-        accessToken,
-        refreshToken,
-        tokenGotTime: moment().unix(),
-      });
-      const { orgId, userId } = await this.getID(page);
-      this.update({ userId, orgId });
-      page.browser().close();
+      await this.getTK(page);
+      await this.getID(page);
+      await this.createConversation();
+      await page.browser().close();
     } catch (e) {
       this.page?.browser().close();
       this.options?.onInitFailed({
@@ -151,18 +152,25 @@ class Child extends ComChild<Account> {
   }
 
   async selectAllModel(page: Page) {
-    await page.waitForSelector(
-      `.w-form > .form-360-width > .full > .selectable-models > .button:nth-child(1)`,
-    );
-    await page.click(
-      `.w-form > .form-360-width > .full > .selectable-models > .button:nth-child(1)`,
-    );
-    await page.waitForSelector(
-      `.w-form > .form-360-width > .full > .selectable-models > .button:nth-child(4)`,
-    );
-    await page.click(
-      `.w-form > .form-360-width > .full > .selectable-models > .button:nth-child(4)`,
-    );
+    try {
+      await page.waitForSelector(
+        `.w-form > .form-360-width > .full > .selectable-models > .button:nth-child(1)`,
+        { timeout: 5000 },
+      );
+      await page.click(
+        `.w-form > .form-360-width > .full > .selectable-models > .button:nth-child(1)`,
+      );
+      await page.waitForSelector(
+        `.w-form > .form-360-width > .full > .selectable-models > .button:nth-child(4)`,
+        { timeout: 5000 },
+      );
+      await page.click(
+        `.w-form > .form-360-width > .full > .selectable-models > .button:nth-child(4)`,
+      );
+      this.logger.info('select all model ok');
+    } catch (e) {
+      this.logger.info('select all model failed', e);
+    }
   }
 
   async newWorkspace(page: Page) {
@@ -172,12 +180,13 @@ class Child extends ComChild<Account> {
       });
       await sleep(1000);
       await page.click('#email-form > div.button.big');
-    } catch (e) {}
+      this.logger.info('click new workspace ok');
+    } catch (e) {
+      this.logger.error('click new workspace failed', e);
+    }
   }
 
-  async getTK(
-    page: Page,
-  ): Promise<{ accessToken: string; refreshToken: string }> {
+  async getTK(page: Page) {
     await page.reload();
     await sleep(3000);
     const authStr = await page.evaluate(() =>
@@ -192,10 +201,15 @@ class Child extends ComChild<Account> {
       refresh_token: string;
     }>(authStr, {} as any);
 
-    return {
+    if (!authData.access_token || !authData.refresh_token) {
+      throw new Error('get token failed');
+    }
+    this.update({
       accessToken: authData.access_token,
       refreshToken: authData.refresh_token,
-    };
+      tokenGotTime: moment().unix(),
+    });
+    this.logger.info('get token ok');
   }
 
   async getID(page: Page) {
@@ -205,9 +219,14 @@ class Child extends ComChild<Account> {
         (res) => res.url().indexOf('/v1/orgs') > -1,
       );
       const data: { id: string; users: string[] }[] = await res.json();
-      return { orgId: data?.[0]?.id, userId: data?.[0]?.users?.[0] };
+      const orgId = data?.[0]?.id;
+      const userId = data?.[0]?.users?.[0];
+      if (!orgId || !userId) {
+        throw new Error('get id failed');
+      }
+      this.update({ orgId, userId });
     } catch (e) {
-      return {};
+      throw e;
     }
   }
 
@@ -217,22 +236,7 @@ class Child extends ComChild<Account> {
       useCount: (this.info.useCount || 0) + 1,
     });
   }
-
-  async newChat() {
-    try {
-      const page = await this.page?.browser().newPage();
-      if (!page) {
-        throw new Error();
-      }
-      await page.goto('https://platform.langdock.com/chat');
-      await page.waitForSelector('#prompt');
-      await page.click('#prompt');
-      await page.keyboard.type('say 1');
-      await page.keyboard.press('Enter');
-    } catch (e) {}
-  }
 }
-
 export class Langdock extends Chat {
   private pool: Pool<Account, Child> = new Pool(
     this.options?.name || '',
@@ -285,15 +289,13 @@ export class Langdock extends Chat {
       return;
     }
     try {
-      if (moment().unix() - child.info.tokenGotTime > 3600) {
-      }
       const res = await child.client.post(
         '/v0/query-messaging',
         {
           query: req.prompt,
           userId: child.info.userId,
           orgId: child.info.orgId,
-          conversationId: v4(),
+          conversationId: child.chatID,
           assistantId: '',
           toolIds: null,
           userMessageId: v4(),
@@ -307,43 +309,16 @@ export class Langdock extends Chat {
           responseType: 'stream',
         },
       );
-      res.data.pipe(es.split(/\r?\n\r?\n/)).pipe(
+      res.data.pipe(
         es.map((chunk: any) => {
-          try {
-            const data = chunk.toString().replace('event: message\ndata: ', '');
-            if (!data) {
-              return;
-            }
-            const v = parseJSON<{
-              data: {
-                content: string;
-                eventType: string;
-                usage?: { used: number; limit: number };
-              };
-            }>(data, {} as any);
-            switch (v.data.eventType) {
-              case 'CHUNK':
-                stream.write(Event.message, { content: v.data.content });
-                return;
-              case 'SYSTEM':
-                if (!v.data.usage) {
-                  return;
-                }
-                return;
-              case 'DONE':
-                return;
-              default:
-                return;
-            }
-          } catch (e) {
-            this.logger.error('parse data failed, ', e);
-          }
+          stream.write(Event.message, { content: chunk.toString() });
         }),
       );
       res.data.on('close', () => {
         this.logger.info('Msg recv ok');
         stream.write(Event.done, { content: '' });
         stream.end();
+        child.createConversation();
       });
     } catch (e: any) {
       this.logger.error('ask failed, ', e);
