@@ -82,7 +82,9 @@ export class ClaudeAPI extends Chat {
       reqH.messages
         .map(
           (v) =>
-            `\n\n${v.role === 'user' ? 'Human' : 'Assistant'}: ${v.content}`,
+            `\n\n${v.role === 'assistant' ? 'Assistant' : 'Human'}: ${
+              v.content
+            }`,
         )
         .join() + '\n\nAssistant:';
     return reqH;
