@@ -321,7 +321,10 @@ export class Langdock extends Chat {
         child.createConversation();
       });
     } catch (e: any) {
-      this.logger.error('ask failed, ', e);
+      e.response.on('data', (chunk: any) =>
+        this.logger.error(chunk.toString()),
+      );
+      this.logger.error('ask failed, ', e.message);
       stream.write(Event.error, {
         error: 'Something error, please retry later',
         status: 500,
