@@ -4,6 +4,7 @@ import {
   EventStream,
   getRandomOne,
   parseJSON,
+  randomStr,
   sleep,
 } from '../../utils';
 import {
@@ -87,6 +88,29 @@ class Child extends ComChild<Account> {
     }
   }
 
+  async setChatModel() {
+    const res: { data: { id: string }[] } = await this.dataClient.post(
+      `/rest/v1/conversations?select=id%2Cname%2Cuser_ids%2Ccreated_at%2Cupdated_at%2Corg_id%2Ctool_ids%2Cmodel%2Cdocument_ids%2Cassistant_id%2Cmode%2Cpinned%2Cconfiguration%2Cextensions&org_id=eq.${this.info.orgId}&user_ids=cs.%7B${this.info.userId}%7D`,
+      {
+        name: randomStr(10),
+        user_ids: [this.info.userId],
+        org_id: this.info.orgId,
+        tool_ids: null,
+        model: 'openai_gpt-4',
+        document_ids: null,
+        assistant_id: null,
+        mode: 'chat',
+        extensions: null,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${this.info.accessToken}`,
+          apikey: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pbnpjcWh5b3dmbW90cWt6emxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE2ODkyMjk0MTQsImV4cCI6MjAwNDgwNTQxNH0.kWeRsir1qBwcGR-wXHF3R0R6GeGKnxjqc7ocamWpcEc`,
+        },
+      },
+    );
+  }
+
   async newChat() {
     const res: { data: { id: string }[] } = await this.dataClient.get(
       `/rest/v1/conversations?select=id%2Cname%2Cuser_ids%2Ccreated_at%2Cupdated_at%2Corg_id%2Ctool_ids%2Cmodel%2Cdocument_ids%2Cassistant_id%2Cmode%2Cpinned%2Cconfiguration%2Cextensions&org_id=eq.${this.info.orgId}&user_ids=cs.%7B${this.info.userId}%7D`,
@@ -147,9 +171,7 @@ class Child extends ComChild<Account> {
       await this.getTK(page);
       await this.getID();
       await this.selectModel();
-      await page.reload();
-      await page.reload();
-      await sleep(3000);
+      await this.setChatModel();
       await this.sayHello(page);
       await page.browser().close();
     } catch (e) {
