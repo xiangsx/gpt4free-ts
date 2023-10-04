@@ -129,21 +129,25 @@ class Child extends ComChild<Account> {
       );
       await sleep(10000);
       await page.reload();
-      if (!this.info.accessToken) {
+      if (!(await this.readyChat(page))) {
         await this.newWorkspace(page);
+        await sleep(2000);
         await this.selectAllModel(page);
-        await sleep(1000);
+        await sleep(2000);
         await page.waitForSelector(
           '.login-sec > .w-form > .form-360-width > .full > .button',
         );
         await page.click(
           '.login-sec > .w-form > .form-360-width > .full > .button',
         );
+        await sleep(5000);
       }
-
+      await page.reload();
+      await sleep(3000);
       await this.getTK(page);
-      await this.getID(page);
-      await this.newChat();
+      await this.getID();
+      await this.selectModel();
+      await this.sayHello(page);
       await page.browser().close();
     } catch (e) {
       this.page?.browser().close();
@@ -158,6 +162,47 @@ class Child extends ComChild<Account> {
   destroy(options?: DestroyOptions) {
     super.destroy(options);
     this.page?.browser()?.close();
+  }
+
+  async readyChat(page: Page) {
+    try {
+      await page.waitForSelector('.chat-textarea', { timeout: 10000 });
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  async sayHello(page: Page) {
+    try {
+      await page.waitForSelector('.chat-textarea', { timeout: 5000 });
+      await page.click('.chat-textarea');
+      await page.keyboard.type('say 1');
+      await page.keyboard.press('Enter');
+      await sleep(5000);
+    } catch (e) {}
+  }
+
+  async selectModel() {
+    await this.dataClient.patch(
+      `/rest/v1/orgs?id=eq.${this.info.orgId}`,
+      {
+        name: 'New Workspace',
+        domain_name: null,
+        admins: [this.info.userId],
+        users: [this.info.userId],
+        join_by_domain: false,
+        active_models: ['openai_gpt-4'],
+        retention_policy: null,
+        description: null,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${this.info.accessToken}`,
+          apikey: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pbnpjcWh5b3dmbW90cWt6emxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE2ODkyMjk0MTQsImV4cCI6MjAwNDgwNTQxNH0.kWeRsir1qBwcGR-wXHF3R0R6GeGKnxjqc7ocamWpcEc`,
+        },
+      },
+    );
   }
 
   async selectAllModel(page: Page) {
@@ -196,8 +241,6 @@ class Child extends ComChild<Account> {
   }
 
   async getTK(page: Page) {
-    await page.reload();
-    await sleep(3000);
     const authStr = await page.evaluate(() =>
       localStorage.getItem('sb-data-auth-token'),
     );
@@ -208,6 +251,7 @@ class Child extends ComChild<Account> {
       access_token: string;
       expires_at: number;
       refresh_token: string;
+      user: { id: string };
     }>(authStr, {} as any);
 
     if (!authData.access_token || !authData.refresh_token) {
@@ -217,23 +261,28 @@ class Child extends ComChild<Account> {
       accessToken: authData.access_token,
       refreshToken: authData.refresh_token,
       tokenGotTime: moment().unix(),
+      userId: authData.user.id,
     });
     this.logger.info('get token ok');
   }
 
-  async getID(page: Page) {
+  async getID() {
     try {
-      page.reload();
-      const res = await page.waitForResponse(
-        (res) => res.url().indexOf('/v1/orgs') > -1,
+      const res: { data: { id: string }[] } = await this.dataClient.get(
+        `/rest/v1/orgs?select=id%2Cname%2Cdomain_name%2Cadmins%2Cusers%2Cjoin_by_domain%2Cactive_models%2Cretention_policy%2Cstripe_active_subscription_id%2Cstripe_customer_id%2Ctrial_ends_at%2Cdescription&users=cs.%7B${this.info.userId}%7D`,
+        {
+          headers: {
+            Authorization: `Bearer ${this.info.accessToken}`,
+            apikey: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pbnpjcWh5b3dmbW90cWt6emxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE2ODkyMjk0MTQsImV4cCI6MjAwNDgwNTQxNH0.kWeRsir1qBwcGR-wXHF3R0R6GeGKnxjqc7ocamWpcEc`,
+          },
+        },
       );
-      const data: { id: string; users: string[] }[] = await res.json();
-      const orgId = data?.[0]?.id;
-      const userId = data?.[0]?.users?.[0];
-      if (!orgId || !userId) {
-        throw new Error('get id failed');
+      const orgId = res.data[0]?.id;
+      if (!orgId) {
+        throw new Error('get orgId failed');
       }
-      this.update({ orgId, userId });
+      this.update({ orgId });
+      this.logger.info('get orgId ok');
     } catch (e) {
       throw e;
     }
@@ -328,7 +377,6 @@ export class Langdock extends Chat {
         this.logger.info('Msg recv ok');
         stream.write(Event.done, { content: '' });
         stream.end();
-        child.newChat();
         end();
       });
     } catch (e: any) {
