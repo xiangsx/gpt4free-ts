@@ -214,10 +214,9 @@ event: done
 data: {"content":"done"}
 ```
 
-## 👥 Wechat Group
+## 👥 Chat Group
 
-<image src="https://github.com/xiangsx/gpt4free-ts/assets/29322721/8ca34ced-27f2-4e68-80c2-0eecdf6f7d71" width=240 />
-<image src="https://github.com/xiangsx/gpt4free-ts/assets/29322721/d13f194e-5faf-496c-a6da-8d94e8309116" width=240 />
+<image src="https://github.com/xiangsx/gpt4free-ts/assets/29322721/311ba62d-e611-4aed-98f6-b34cf115866a" width=240 />
 
 ## 🌟 Star History
 
