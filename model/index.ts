@@ -49,6 +49,7 @@ import { Toyy } from './toyy';
 import { TakeOff } from './takeoff';
 import { Navit } from './navit';
 import { ClaudeAPI } from './claudeapi';
+import { Stack } from './stack';
 
 export class ChatModelFactory {
   private readonly modelMap: Map<Site, Chat>;
@@ -123,6 +124,7 @@ export class ChatModelFactory {
     this.modelMap.set(Site.TakeOff, new TakeOff({ name: Site.TakeOff }));
     this.modelMap.set(Site.Navit, new Navit({ name: Site.Navit }));
     this.modelMap.set(Site.Claude, new ClaudeAPI({ name: Site.Claude }));
+    this.modelMap.set(Site.Stack, new Stack({ name: Site.Stack }));
     this.modelMap.set(
       Site.Perplexity,
       new Perplexity({ name: Site.Perplexity }),

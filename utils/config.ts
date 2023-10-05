@@ -35,6 +35,11 @@ interface ConfigData {
   cursor: {
     primary_model: ModelType;
   };
+  stack: {
+    size: number;
+    serial: number;
+    accounts: { email: string; password: string }[];
+  };
   mixer: { size: number; mailType: TempEmailType; serial: number };
   merlin: { size: number; mailType: TempEmailType; serial: number };
   takeoff: { size: number; mailType: TempEmailType; serial: number };
@@ -81,6 +86,11 @@ class BaseConfig {
       size: 0,
       serial: 0,
       mailType: TempEmailType.TempMailLOL,
+    },
+    stack: {
+      size: 0,
+      serial: 0,
+      accounts: [],
     },
     takeoff: {
       size: 0,
