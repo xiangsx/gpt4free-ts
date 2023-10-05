@@ -415,7 +415,7 @@ export class Langdock extends Chat {
         end();
       });
     } catch (e: any) {
-      e.response.data.on('data', (chunk: any) =>
+      e.response?.data.on('data', (chunk: any) =>
         this.logger.error(chunk.toString()),
       );
       this.logger.error('ask failed, ', e.message);
