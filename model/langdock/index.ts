@@ -38,6 +38,7 @@ interface Account extends ComInfo {
   accessToken: string;
   refreshToken: string;
   tokenGotTime: number;
+  retryTime: number;
 }
 
 class Child extends ComChild<Account> {
@@ -164,7 +165,7 @@ class Child extends ComChild<Account> {
       await this.getID();
       await this.selectModel();
       await this.sayHello(page);
-      // await page.browser().close();
+      await page.browser().close();
     } catch (e) {
       this.page?.browser().close();
       this.options?.onInitFailed({
@@ -325,6 +326,9 @@ export class Langdock extends Chat {
       if (!v.accessToken) {
         return false;
       }
+      if (v.retryTime && v.retryTime > moment().unix()) {
+        return false;
+      }
       return true;
     },
     { delay: 1000, serial: 1 },
@@ -389,7 +393,19 @@ export class Langdock extends Chat {
       );
       res.data.pipe(
         es.map((chunk: any) => {
-          stream.write(Event.message, { content: chunk.toString() });
+          const content = chunk.toString();
+          if (
+            content.indexOf(
+              'You have reached your current 3-hour usage limit',
+            ) > -1
+          ) {
+            this.logger.error('reach limit');
+            child.update({ retryTime: moment().unix() + 60 * 60 * 3 });
+            stream.write(Event.error, { error: 'reach limit', status: 429 });
+            child.destroy({ delFile: false, delMem: true });
+            return;
+          }
+          stream.write(Event.message, { content });
         }),
       );
       res.data.on('close', () => {
