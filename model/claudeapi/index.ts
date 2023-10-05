@@ -132,7 +132,12 @@ export class ClaudeAPI extends Chat {
         e.message,
       );
       e.response?.data.on('data', (chunk: any) =>
-        console.log(chunk.toString()),
+        console.log(
+          `ask stream failed, apikey:${
+            (this.options as OpenAIChatOptions).api_key
+          }`,
+          chunk.toString(),
+        ),
       );
       stream.write(Event.error, { error: e.message });
       stream.end();
