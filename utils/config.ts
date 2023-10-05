@@ -51,6 +51,7 @@ interface ConfigData {
   langdock: {
     size: number;
     mail_type: TempEmailType;
+    serial: number;
   };
   vanus: {
     size: number;
@@ -104,6 +105,7 @@ class BaseConfig {
     langdock: {
       size: 0,
       mail_type: TempEmailType.TempMailLOL,
+      serial: 0,
     },
     perplexity: {
       size: 0,

@@ -331,7 +331,7 @@ export class Langdock extends Chat {
       }
       return true;
     },
-    { delay: 1000, serial: 1 },
+    { delay: 1000, serial: Config.config.langdock.serial || 1 },
   );
 
   constructor(options?: ChatOptions) {
