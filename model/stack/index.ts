@@ -178,6 +178,8 @@ export class Stack extends Chat {
         return 5800;
       case ModelType.GPT3p5Turbo:
         return 2500;
+      case ModelType.GPT4_32k:
+        return 30000;
       default:
         return 0;
     }
@@ -303,14 +305,14 @@ export class Stack extends Chat {
                   stream: true,
                   prompt_stop_token: '\n\n###\n\n',
                   stop: null,
-                  max_tokens: 3352,
+                  max_tokens: null,
                   frequency_penalty: 0,
                   presence_penalty: 0,
                   logit_bias: {},
                   user: '',
                 },
                 provider: 'OpenAI',
-                model: 'gpt-4',
+                model: req.model,
                 system: '你是openai创造的AI机器人, 基于GPT-4模型',
                 prompt: 'Answer {in-0}',
                 key: 'llm-0',
