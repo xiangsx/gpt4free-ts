@@ -19,6 +19,7 @@ export enum TempEmailType {
   SmailProGmail = 'smail-pro-gmail',
   SmailProGoogleMail = 'smail-pro-googlemail',
   SmailProOutlook = 'smail-pro-outlook',
+  SmailProRandom = 'smail-pro-random',
   Gmail = 'gmail',
   EmailNator = 'emailnator',
   MailTM = 'mailtm',
@@ -44,20 +45,34 @@ export function CreateEmail(
     case TempEmailType.Internal:
       return new Internal(options);
     case TempEmailType.SmailPro:
-      return new SmailPro({ ...options, lock: smailProLock, mail: 'gmail' });
+      return new SmailPro({
+        ...options,
+        lock: smailProLock,
+        mail: 'gmail.com',
+      });
     case TempEmailType.SmailProGmail:
-      return new SmailPro({ ...options, lock: smailProLock, mail: 'gmail' });
+      return new SmailPro({
+        ...options,
+        lock: smailProLock,
+        mail: 'gmail.com',
+      });
     case TempEmailType.SmailProGoogleMail:
       return new SmailPro({
         ...options,
         lock: smailProLock,
-        mail: 'googlemail',
+        mail: 'googlemail.com',
       });
     case TempEmailType.SmailProOutlook:
       return new SmailPro({
         ...options,
         lock: smailProLock,
-        mail: 'outlook',
+        mail: 'outlook.com',
+      });
+    case TempEmailType.SmailProRandom:
+      return new SmailPro({
+        ...options,
+        lock: smailProLock,
+        mail: 'random',
       });
     case TempEmailType.Gmail:
       return new Gmail({ ...options, lock: gmailLock });
@@ -450,19 +465,22 @@ export class SmailPro extends BaseEmail {
       await sleep(1000);
       await page.waitForSelector('#autosuggest__input', { visible: true });
       await page.click('#autosuggest__input');
-      await page.keyboard.type(`random@${this.mail}.com`, {
+      await page.keyboard.type(`random@${this.mail}`, {
         delay: 20,
       });
       await sleep(1000);
       await page.keyboard.press('Enter');
       console.log('generating email');
-      await sleep(3000);
+      await sleep(5000);
       let times = 0;
       while (true) {
         times += 1;
         await page.waitForSelector('#my-email');
         const email = await page.evaluate(
           () => document.querySelector('#my-email')?.textContent || '',
+        );
+        const domain = await page.evaluate(
+          () => document.querySelector('.text-right')?.textContent || '',
         );
         if (email === '...') {
           if (times > 5) {
@@ -471,7 +489,7 @@ export class SmailPro extends BaseEmail {
           await sleep(5 * 1000);
           continue;
         }
-        return email + `@${this.mail}.com`;
+        return email + domain;
       }
     } catch (e) {
       console.log('get mail failed, err:', e);
