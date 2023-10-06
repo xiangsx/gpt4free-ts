@@ -465,10 +465,7 @@ export class SmailPro extends BaseEmail {
       await sleep(1000);
       await page.waitForSelector('#autosuggest__input', { visible: true });
       await page.click('#autosuggest__input');
-      await page.keyboard.type(`random@${this.mail}`, {
-        delay: 20,
-      });
-      await sleep(1000);
+      await page.keyboard.type(`random@${this.mail}`);
       await page.keyboard.press('Enter');
       console.log('generating email');
       await sleep(5000);
