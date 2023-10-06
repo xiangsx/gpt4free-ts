@@ -313,6 +313,7 @@ class Child extends ComChild<Account> {
       userId: authData.user.id,
     });
     this.delay = setTimeout(() => {
+      this.logger.info('refresh token ...');
       this.destroy({ delMem: true, delFile: false });
     }, (authData.expires_at - moment().unix() - 60) * 1000);
     this.logger.info('get token ok');
