@@ -96,6 +96,7 @@ class Child extends ComChild<Account> {
       await sleep(3000);
       await page.bringToFront();
       await page.reload();
+      await sleep(2000);
       this.logger.info('get loginToken ...');
       const loginStatus = await this.getLoginStatus(page);
       if (!loginStatus || !loginStatus.token) {
@@ -105,6 +106,7 @@ class Child extends ComChild<Account> {
         this.update({ left: loginStatus.left || 0 });
         throw new Error(`left size:${loginStatus.left} < 10`);
       }
+      await sleep(2000);
       this.logger.info('get session ...');
       await this.getSession(loginStatus.token);
       this.update({
