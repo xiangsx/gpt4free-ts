@@ -3,6 +3,9 @@ import { getRandomOne, Lock, md5, randomStr, sleep } from './index';
 import { CreateAxiosProxy, CreateNewPage } from './proxyAgent';
 import { Page } from 'puppeteer';
 import Mailjs from '@cemalgnlts/mailjs';
+// @ts-ignore
+import * as cheerio from 'cheerio';
+import { type } from 'os';
 
 export enum TempEmailType {
   // need credit card https://rapidapi.com/Privatix/api/temp-mail
@@ -20,6 +23,7 @@ export enum TempEmailType {
   Gmail = 'gmail',
   EmailNator = 'emailnator',
   MailTM = 'mailtm',
+  YopMail = 'yopmail',
 }
 
 const gmailLock = new Lock();
@@ -62,6 +66,8 @@ export function CreateEmail(
       return new EmailNator(options);
     case TempEmailType.MailTM:
       return new MailTM();
+    case TempEmailType.YopMail:
+      return new YopMail();
     default:
       throw new Error('not support TempEmailType');
   }
@@ -791,5 +797,319 @@ export class MailTM extends BaseEmail {
       return [{ content: message.data.text }];
     }
     return [];
+  }
+}
+
+export class YopMail extends BaseEmail {
+  client = CreateAxiosProxy({ baseURL: 'https://yopmail.com/' }, false, true);
+  private realMail!: string;
+  private randomMail!: string;
+  private mailName!: string;
+
+  async getMailAddress(): Promise<string> {
+    this.realMail = await this.getMail();
+    this.mailName = this.realMail.split('@')[0];
+    const mailSfx = getRandomOne(await this.getMailSuffix());
+    this.randomMail = this.realMail.replace('yopmail.com', mailSfx);
+    return this.randomMail;
+  }
+
+  async waitMails(): Promise<BaseMailMessage[]> {
+    let msgs: BaseMailMessage[] = [];
+    for (let i = 0; i <= 3; i++) {
+      const inbox: { inbox: { id: string; subject: string }[] } =
+        await this.getInbox(this.realMail);
+      inbox.inbox = inbox.inbox.filter(
+        (v) => v.subject.indexOf('Progress report') === -1,
+      );
+      if (inbox.inbox.length === 0) {
+        await sleep(10 * 1000);
+        continue;
+      }
+      for (const v of inbox.inbox) {
+        const msg: { data: string } = await this.readMessage(
+          this.mailName,
+          v.id,
+          'html',
+        );
+        msgs.push({ content: msg.data });
+      }
+      return msgs;
+    }
+    throw new Error('wait mail failed');
+  }
+
+  async getMailSuffix(): Promise<string[]> {
+    const res = await this.client.get('/zh/domain?d=list');
+    const regex = /<option>@(.+?)<\/option>/g;
+    return [...res.data.matchAll(regex)]
+      .map((m) => m[1])
+      .filter((v) => typeof v === 'string')
+      .filter((v: string) => v.toLowerCase().indexOf('yopmail') === -1);
+  }
+
+  async getMail() {
+    const response = await this.client.get('/es/email-generator');
+    const $ = cheerio.load(response.data);
+    const genEmail = $('#geny').text();
+    return genEmail.split(';')[1] || genEmail;
+  }
+
+  async getInbox(
+    mailAddress: string,
+    search: any = {},
+    settings: any = {},
+  ): Promise<any> {
+    const mail = (mailAddress.split('@')[0] || '').toLowerCase() || mailAddress;
+    const { cookie: cookie, yp: yp } = await this.getCookiesAndYP();
+    const yj = await this.getYJ(cookie);
+    return await this.detailInbox(mail, yp, yj, cookie, search, settings);
+  }
+
+  async getCookiesAndYP() {
+    const response = await this.client.get('/');
+    const $ = cheerio.load(response.data);
+    const yp = $('input#yp').val();
+    const cookie = response.headers['set-cookie']
+      ?.map((x) => x.split(';')[0])
+      .join('; ');
+    if (!cookie) {
+      throw new Error('cookie is null');
+    }
+    const location = response.data.match(/lang=\"(.*?)\"/)[1];
+    return { cookie: cookie, yp: yp };
+  }
+
+  async getYJ(cookie: string) {
+    const response = await this.client.get('/ver/8.4/webmail.js', {
+      headers: { Cookie: cookie },
+    });
+    const match = response.data.match(/&yj=([^&]+)&v=/s);
+    return match ? match[1] : null;
+  }
+  shouldIncludeEmail(email: any, filteredSearch: string) {
+    return Object.entries(filteredSearch).every(([key, value]) => {
+      switch (key) {
+        case 'id':
+          return email.id === value;
+        case 'from':
+          return email.from === value;
+        case 'subject':
+          return email.subject === value;
+        case 'timestamp':
+          return email.timestamp === value;
+        default:
+          return false;
+      }
+    });
+  }
+
+  getDetailInboxFromPage(html: string, filteredSearch: any) {
+    const $ = cheerio.load(html);
+    const elements = $('.m');
+    return elements
+      .map((index, element) => this.parseEmail(element))
+      .toArray()
+      .filter((email) => this.shouldIncludeEmail(email, filteredSearch));
+  }
+
+  async fetchInboxPage(
+    mail: string,
+    yp: string,
+    yj: string,
+    pageNumber: number,
+    cookie: string,
+  ) {
+    return await this.client.get(
+      `/es/inbox?login=${mail}&p=${pageNumber}&d=&ctrl=&yp=${yp}&yj=${yj}&v=8.4&r_c=&id=`,
+      {
+        headers: {
+          accept:
+            'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+          cookie: `${cookie}; compte=${mail}; ywm=${mail}; _ga=GA1.2.490358059.1683208319; _gid=GA1.2.1148489241.1683208319; __gads=ID=8e03875306c449c6-22790dab88df0074:T=1683208320:RT=1683208320:S=ALNI_MasidzVb7xQcb0qS7Hrb-gTpCYFkQ; __gpi=UID=0000057b04df1c7f:T=1683208320:RT=1696576052:S=ALNI_MYMeBMqh92Qfh-oIx02VDmWeqsdAA; compte=${mail}; ywm=${mail}; ytime=15:7;`,
+          'accept-encoding': 'gzip, deflate, br',
+          'accept-language': 'es-ES,es;q=0.9',
+          connection: 'keep-alive',
+          host: 'yopmail.com',
+          referer: 'https://yopmail.com/es/wm',
+          'sec-ch-ua':
+            '"Chromium";v="112", "Google Chrome";v="112", "Not:A-Brand";v="99"',
+          'sec-ch-ua-mobile': '?0',
+          'sec-ch-ua-platform': 'Windows',
+          'sec-fetch-dest': 'iframe',
+          'sec-fetch-mode': 'navigate',
+          'sec-fetch-site': 'same-origin',
+          'upgrade-insecure-requests': '1',
+          'user-agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36',
+        },
+      },
+    );
+  }
+
+  async getTotalMails(html: string) {
+    const match = html.match(/w\.finrmail\((.*?)\)/);
+    let totalMails = 0;
+    if (match) {
+      totalMails = Number(match[1].split(',')[0]);
+    }
+    return totalMails;
+  }
+
+  private possibleKeys = ['id', 'from', 'subject', 'timestamp'];
+
+  async validateSearch(search: any) {
+    const result = this.possibleKeys.some(
+      (key) => Object.keys(search).includes(key) || null,
+    );
+    if (!result) {
+      throw new Error('Invalid search');
+    }
+    return Object.keys(search).reduce((acc: any, key) => {
+      if (this.possibleKeys.includes(key)) {
+        acc[key] = search[key];
+      }
+      return acc;
+    }, {});
+  }
+
+  parseEmail(element: any) {
+    const $ = cheerio.load(element);
+    const id = $(element).attr('id');
+    const timestamp = $(element).find('.lmh').text();
+    const from = $(element).find('.lmf').text();
+    const subject = $(element).find('.lms').text();
+    return { id: id, from: from, subject: subject, timestamp: timestamp };
+  }
+
+  async detailInbox(
+    mail: string,
+    yp: any,
+    yj: string,
+    cookie: string,
+    search = {},
+    settings: { GET_ALL_MAILS?: boolean } = {},
+  ) {
+    const pageNumber = 1;
+    const response = await this.fetchInboxPage(
+      mail,
+      yp,
+      yj,
+      pageNumber,
+      cookie,
+    );
+    const inboxHtml = response.data;
+    const totalMails = await this.getTotalMails(inboxHtml);
+    let filteredSearch = {};
+    if (search && Object.keys(search).length > 0) {
+      filteredSearch = await this.validateSearch(search);
+    }
+    let currentPage = 1;
+    let hasNextPage = true;
+    let mailFromPage: any = {};
+    const mailsPerPage = 15;
+    const emails = [];
+    while (
+      hasNextPage &&
+      (settings.GET_ALL_MAILS === true || currentPage === 1)
+    ) {
+      const currentPageHtml =
+        currentPage === 1
+          ? inboxHtml
+          : (await this.fetchInboxPage(mail, yp, yj, currentPage, cookie)).data;
+      const currentPageEmails = this.getDetailInboxFromPage(
+        currentPageHtml,
+        filteredSearch,
+      );
+      mailFromPage[`page_${currentPage}`] = currentPageEmails.length;
+      emails.push(...currentPageEmails);
+      if (currentPage * mailsPerPage >= totalMails) {
+        hasNextPage = false;
+      } else {
+        currentPage += 1;
+      }
+    }
+    return {
+      settings: settings,
+      search: filteredSearch,
+      totalInbox: totalMails,
+      totalPages: Math.ceil(totalMails / mailsPerPage),
+      mailFromPage: mailFromPage,
+      totalGetMails: emails.length,
+      inbox: emails,
+    };
+  }
+  async readMessage(
+    mail: string,
+    id: string,
+    format: string,
+    selector = '',
+  ): Promise<any> {
+    try {
+      const { cookie: cookie } = await this.getCookiesAndYP();
+      const response = await this.client.get(`/es/mail?b=${mail}&id=m${id}`, {
+        headers: {
+          accept:
+            'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+          cookie: `${cookie}; compte=${mail}; ywm=${mail}; _ga=GA1.2.490358059.1683208319; _gid=GA1.2.1148489241.1683208319; __gads=ID=8e03875306c449c6-22790dab88df0074:T=1683208320:RT=1683208320:S=ALNI_MasidzVb7xQcb0qS7Hrb-gTpCYFkQ; __gpi=UID=0000057b04df1c7f:T=1683208320:RT=1696576052:S=ALNI_MYMeBMqh92Qfh-oIx02VDmWeqsdAA; compte=${mail}; ywm=${mail}; ytime=15:7;`,
+          'accept-encoding': 'gzip, deflate, br',
+          'accept-language': 'es-ES,es;q=0.9',
+          connection: 'keep-alive',
+          host: 'yopmail.com',
+          referer: 'https://yopmail.com/es/wm',
+          'sec-ch-ua':
+            '"Chromium";v="112", "Google Chrome";v="112", "Not:A-Brand";v="99"',
+          'sec-ch-ua-mobile': '?0',
+          'sec-ch-ua-platform': 'Windows',
+          'sec-fetch-dest': 'iframe',
+          'sec-fetch-mode': 'navigate',
+          'sec-fetch-site': 'same-origin',
+          'upgrade-insecure-requests': '1',
+          'user-agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36',
+        },
+      });
+      const $ = cheerio.load(response.data);
+      const submit = $('div.fl\x20>\x20div.ellipsis.nw.b.f18').text();
+      const fromSelector = $(
+        'div.fl > div.md.text.zoom.nw.f24 > span.ellipsis.b\n',
+      );
+      const dateSelector = $(
+        'div.fl > div.md.text.zoom.nw.f24 > span.ellipsis:last-child',
+      );
+      const from = fromSelector.length
+        ? fromSelector.text()
+        : $('div.fl > div.md.text.zoom.nw.f18 > span.ellipsis.b').text();
+      const date = dateSelector.length
+        ? dateSelector.text().replace(from, '')
+        : $(
+            'div.fl\x20>\x20div.md.text.zoom.nw.f18\x20>\x20span.ellipsis:last-child',
+          ).text();
+      let message;
+      if (selector) {
+        selector = `${'#mail'} ${selector}`;
+        message =
+          format.toLowerCase() === 'html'
+            ? $(selector).html()
+            : $(selector).text().trim();
+      } else {
+        selector = '#mail';
+        message =
+          format.toLowerCase() === 'html'
+            ? $(selector).html()
+            : $(selector).text().trim();
+      }
+      return {
+        id: id,
+        submit: submit,
+        from: from,
+        date: date,
+        selector: selector,
+        format: format,
+        data: message,
+      };
+    } catch (e) {
+      console.error(e);
+    }
   }
 }

@@ -83,7 +83,7 @@ class Child extends ComChild<Account> {
 
         await page.keyboard.press('Enter');
         for (const v of await mailbox.waitMails()) {
-          let verifyUrl = v.content.match(/href='([^']*)/i)?.[1] || '';
+          let verifyUrl = v.content.match(/href=["'](.*?)["']/i)?.[1] || '';
           if (!verifyUrl) {
             throw new Error('verifyUrl not found');
           }
