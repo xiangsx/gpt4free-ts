@@ -228,9 +228,10 @@ export class Pool<U extends Info, T extends PoolChild<U>> {
     if (this.options?.preHandleAllInfos) {
       this.allInfos = await this.options.preHandleAllInfos(this.allInfos);
     }
-    this.allInfos = this.allInfos.filter((info) => this.isInfoValid(info));
-    this.save();
-    this.logger.info('read old info ok, total: ' + this.allInfos.length);
+    this.logger.info(
+      'read old info ok, total: ' +
+        this.allInfos.filter((info) => this.isInfoValid(info)).length,
+    );
 
     setInterval(async () => {
       if (this.options?.preHandleAllInfos) {

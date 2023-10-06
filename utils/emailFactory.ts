@@ -5,7 +5,6 @@ import { Page } from 'puppeteer';
 import Mailjs from '@cemalgnlts/mailjs';
 // @ts-ignore
 import * as cheerio from 'cheerio';
-import { type } from 'os';
 
 export enum TempEmailType {
   // need credit card https://rapidapi.com/Privatix/api/temp-mail
@@ -416,7 +415,7 @@ class Internal extends BaseEmail {
 }
 
 export class SmailPro extends BaseEmail {
-  private page?: Page;
+  private page!: Page;
   private lock: Lock;
   private mail: string;
   constructor(options: SmailProOptions) {

@@ -145,6 +145,32 @@ export async function CreateNewPage(
   return page;
 }
 
+export async function CreateNewPageWithWS(
+  ws: string,
+  options?: {
+    allowExtensions?: boolean;
+    proxy?: string;
+    args?: string[];
+    simplify?: boolean;
+  },
+) {
+  const {
+    allowExtensions = false,
+    proxy = getProxy(),
+    args = [],
+    simplify = true,
+  } = options || {};
+  const newB = await puppeteer.connect({ browserWSEndpoint: ws });
+  const page = (await newB.pages()).find(
+    (v) => v.url().indexOf('blank') === -1,
+  ) as Page;
+  if (simplify) {
+    await simplifyPage(page);
+  }
+  await page.setViewport({ width: 1920, height: 1080 });
+  return page;
+}
+
 export async function CreateNewBrowser() {
   const options: PuppeteerLaunchOptions = {
     headless: 'new',
