@@ -106,10 +106,9 @@ class Child extends ComChild<Account> {
         throw new Error(`left size:${loginStatus.left} < 10`);
       }
       this.logger.info('get session ...');
-      const token = await this.getSession(loginStatus.token);
+      await this.getSession(loginStatus.token);
       this.update({
         left: loginStatus.left,
-        ...token,
         tokenGotTime: moment().unix(),
       });
       page.browser().close();
@@ -165,7 +164,13 @@ class Child extends ComChild<Account> {
     const res = await this.client.post('/session/get', { token });
     const session: { accessToken: string; refreshToken: string } =
       res.data.data;
-    return session;
+    if (!session.accessToken || !session.refreshToken) {
+      throw new Error('get session failed');
+    }
+    this.update({
+      accessToken: session.accessToken,
+      refreshToken: session.refreshToken,
+    });
   }
 
   async refreshToken(refreshToken: string) {
