@@ -92,12 +92,6 @@ class Child extends ComChild<Account> {
       }
       this.update({ flow_id });
       await this.getToken(page);
-      if (this.info.expire_time > moment().unix()) {
-        setTimeout(
-          () => this.destroy({ delMem: true, delFile: false }),
-          (this.info.expire_time - moment().unix()) * 1000,
-        );
-      }
       page.browser().close();
     } catch (e) {
       this.page?.browser().close();
@@ -207,6 +201,10 @@ export class Stack extends Chat {
       return;
     }
     try {
+      if (child.info.expire_time < moment().unix()) {
+        child.destroy({ delFile: true, delMem: true });
+        throw new Error('token expired');
+      }
       const res = await child.client.post(
         `https://www.stack-inference.com/run_flow?flow_id=${child.info.flow_id}`,
         {
