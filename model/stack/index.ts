@@ -92,6 +92,12 @@ class Child extends ComChild<Account> {
       }
       this.update({ flow_id });
       await this.getToken(page);
+      if (this.info.expire_time > moment().unix()) {
+        setTimeout(
+          () => this.destroy({ delMem: true, delFile: false }),
+          (this.info.expire_time - moment().unix()) * 1000,
+        );
+      }
       page.browser().close();
     } catch (e) {
       this.page?.browser().close();
