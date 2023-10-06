@@ -213,7 +213,11 @@ export class Merlin extends Chat {
       }
       return true;
     },
-    { delay: 1000, serial: () => Config.config.merlin.serial || 1 },
+    {
+      delay: 1000,
+      serial: () => Config.config.merlin.serial || 1,
+      needDel: (v) => !v.accessToken,
+    },
   );
   constructor(options?: ChatOptions) {
     super(options);

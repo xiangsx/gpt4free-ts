@@ -102,6 +102,7 @@ interface PoolOptions<T extends Info> {
   // 串行
   serial?: number | (() => number);
   preHandleAllInfos?: (allInfos: T[]) => Promise<T[]>;
+  needDel?: (info: T) => boolean;
 }
 
 // 根据maxsize控制创建的数量
@@ -228,10 +229,13 @@ export class Pool<U extends Info, T extends PoolChild<U>> {
     if (this.options?.preHandleAllInfos) {
       this.allInfos = await this.options.preHandleAllInfos(this.allInfos);
     }
-    this.logger.info(
-      'read old info ok, total: ' +
-        this.allInfos.filter((info) => this.isInfoValid(info)).length,
-    );
+    if (this.options?.needDel) {
+      this.allInfos = this.allInfos.filter(
+        (info) => !this.options!.needDel!(info),
+      );
+      this.save();
+    }
+    this.logger.info('read old info ok, total: ' + this.allInfos.length);
 
     setInterval(async () => {
       if (this.options?.preHandleAllInfos) {
