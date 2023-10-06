@@ -23,6 +23,7 @@ import { AxiosInstance } from 'axios';
 import es from 'event-stream';
 import { handleCF } from '../../utils/captcha';
 import { loginGoogle } from '../../utils/puppeteer';
+import { CreateEmail } from '../../utils/emailFactory';
 
 const ModelMap: Partial<Record<ModelType, string>> = {
   [ModelType.GPT4]: 'GPT 4',
@@ -119,47 +120,78 @@ class Child extends ComChild<Account> {
 
   async init(): Promise<void> {
     try {
-      let page = await CreateNewPage('https://platform.langdock.com/sign-up', {
-        simplify: false,
-      });
+      let page;
+      if (this.info.accessToken) {
+        this.logger.info('login with token ...');
+        page = await CreateNewPage(
+          'https://platform.langdock.com/login?password=true',
+        );
+        page = await handleCF(page);
+        this.page = page;
+        await page.waitForSelector('#email');
+        await page.click('#email');
+        await page.keyboard.type(this.info.email);
 
-      page = await handleCF(page);
-      this.page = page;
-      await this.acceptCK(page);
-      await page.waitForSelector(
-        '.login-sec > .max-500-center > .w-form > .form-360-width > .button:nth-child(5)',
-      );
-      await page.click(
-        '.login-sec > .max-500-center > .w-form > .form-360-width > .button:nth-child(5)',
-      );
-      if (!this.info.email) {
-        const mail = getRandomOne(Config.config.gmail_list);
-        const { email, password, recovery_email } = mail;
-        this.update({ email, password, recovery_email });
-      }
+        await page.waitForSelector('#password');
+        await page.click('#password');
+        await page.keyboard.type(this.info.password);
+        await page.keyboard.press('Enter');
+        await page.waitForSelector(
+          '#app > div.login-sec > div > div.w-form > form > div.button.big.blue.w-button',
+        );
+        await page.click(
+          '#app > div.login-sec > div > div.w-form > form > div.button.big.blue.w-button',
+        );
+        await this.acceptCK(page);
+      } else {
+        this.logger.info('register new account ...');
+        page = await CreateNewPage(
+          'https://platform.langdock.com/sign-up?email=&password=true',
+        );
+        page = await handleCF(page);
+        this.page = page;
+        await this.acceptCK(page);
 
-      await loginGoogle(
-        page,
-        this.info.email,
-        this.info.password,
-        this.info.recovery_email,
-      );
-      await sleep(10000);
-      await page.reload();
-      if (!(await this.readyChat(page))) {
+        await page.waitForSelector('#email');
+        await page.click('#email');
+        const mailbox = CreateEmail(Config.config.langdock.mail_type);
+        const email = await mailbox.getMailAddress();
+        await page.keyboard.type(email);
+        this.update({ email });
+
+        await page.waitForSelector('#password');
+        await page.click('#password');
+        const password = randomStr(20);
+        await page.keyboard.type(password);
+        this.update({ password });
+
+        await page.waitForSelector(
+          '.login-sec > .max-500-center > .w-form > .form-360-width > .blue',
+        );
+        await page.click(
+          '.login-sec > .max-500-center > .w-form > .form-360-width > .blue',
+        );
+
+        for (const v of await mailbox.waitMails()) {
+          let verifyUrl = v.content.match(/href="([^"]*)/i)?.[1] || '';
+          if (!verifyUrl) {
+            throw new Error('verifyUrl not found');
+          }
+          verifyUrl = verifyUrl.replace(/&amp;/g, '&');
+          await page.goto(verifyUrl);
+          this.logger.info('verify email ok');
+        }
         await this.newWorkspace(page);
-        await sleep(2000);
         await this.selectAllModel(page);
-        await sleep(2000);
+        await sleep(1000);
         await page.waitForSelector(
           '.login-sec > .w-form > .form-360-width > .full > .button',
         );
         await page.click(
           '.login-sec > .w-form > .form-360-width > .full > .button',
         );
-        await sleep(5000);
       }
-      await page.reload();
+
       await sleep(3000);
       await this.getTK(page);
       await this.getID();
