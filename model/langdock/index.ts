@@ -193,6 +193,8 @@ class Child extends ComChild<Account> {
       }
 
       await sleep(3000);
+      await page.reload();
+      await sleep(3000);
       await this.getTK(page);
       await this.getID();
       await this.selectModel();
