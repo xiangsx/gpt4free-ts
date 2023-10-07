@@ -117,7 +117,7 @@ class Child extends ComChild<Account> {
     try {
       const delay = setTimeout(async () => {
         this.events?.onError(new Error('timeout'));
-      }, 10 * 1000);
+      }, 5 * 1000);
       this.events = {
         onEnd: async () => {
           delete this.events;
@@ -308,6 +308,7 @@ export class SinCode extends Chat {
         stream.write(Event.done, { content: '' });
         stream.end();
         child.release();
+        this.logger.info('Recv msg ok');
       },
       onMsg: (msg) => {
         stream.write(Event.message, { content: msg });
