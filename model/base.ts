@@ -53,6 +53,8 @@ export enum ModelType {
   URL = 'url',
   ErnieBotTurbo = 'ernie-bot-turbo',
   ErnieBot = 'ernie-bot',
+  Bard = 'bard',
+  MetaLlama = 'meta-llama',
 }
 
 export enum Site {

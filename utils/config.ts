@@ -26,6 +26,12 @@ interface ConfigData {
     system: string;
     model: string;
   };
+  sincode: {
+    size: number;
+    serial: number;
+    concurrency: number;
+    accounts: { email: string; password: string }[];
+  };
   site_map: Partial<Record<ModelType, SiteCfg[]>>;
   one_api: {
     base_url: string;
@@ -116,6 +122,12 @@ class BaseConfig {
       size: 0,
       mail_type: TempEmailType.TempMailLOL,
       serial: 0,
+    },
+    sincode: {
+      size: 0,
+      serial: 0,
+      concurrency: 1,
+      accounts: [],
     },
     perplexity: {
       size: 0,
