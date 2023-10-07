@@ -91,6 +91,7 @@ class Child extends ComChild<Account> {
         this.logger.warn('parse failed, ', e);
       }
     });
+    this.logger.info('start listener ok');
     return client;
   }
 
@@ -109,6 +110,7 @@ class Child extends ComChild<Account> {
     }
     await page.waitForSelector('#scrollbar1 > div');
     await page.click('#scrollbar1 > div');
+    this.logger.info('new chat ok');
   }
 
   async sendMsg(model: ModelType, prompt: string, events?: Events) {
@@ -164,6 +166,7 @@ class Child extends ComChild<Account> {
     await page.keyboard.press('Enter');
 
     await page.waitForNavigation();
+    this.logger.info('login ok');
 
     await page.goto('https://www.sincode.ai/app/marve');
 
@@ -196,6 +199,7 @@ class Child extends ComChild<Account> {
           // @ts-ignore
           ?.click?.();
       });
+      this.logger.info('clear chat ok');
     } catch (e) {
       this.logger.info('not need clear chat');
     }
