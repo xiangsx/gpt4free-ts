@@ -133,8 +133,8 @@ export class Auto extends Chat {
       const searchStr = req.messages[req.messages.length - 1].content;
       const searchRes = await this.ask({
         model: ModelType.Search,
-        messages: [{ role: 'user', content: req.prompt }],
-        prompt: req.prompt,
+        messages: [{ role: 'user', content: searchStr }],
+        prompt: searchStr,
       });
       if (!searchRes.content) {
         return req;
@@ -168,7 +168,7 @@ export class Auto extends Chat {
         ...req.messages.slice(0, -1),
         {
           role: 'user',
-          content: `我的问题是:${searchStr}\n 搜索结果是:${searchResStr}\n${urlContent}\n 我需要你作为一个智能助手，参考搜索结果并且忽略一些不想干的网页内容，总结一下，回答我的问题, 答案如下: `,
+          content: `我的问题是:${searchStr}\n\n 搜索结果是:${searchResStr}\n${urlContent} \n\n我需要你作为一个智能助手, 我知道你无法获取实时数据或信息，但是你可以参考我给的搜索结果并且忽略一些不想干的网页内容，总结一下，回答我的问题, 答案如下: `,
         },
       ];
     }
