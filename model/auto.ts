@@ -6,10 +6,12 @@ import {
   matchPattern,
   parseJSON,
   ThroughEventStream,
+  TimeFormat,
 } from '../utils';
 import { Config, SiteCfg } from '../utils/config';
 import { OpenAI } from './openai';
 import { ClaudeAPI } from './claudeapi';
+import moment from 'moment';
 
 interface AutoOptions extends ChatOptions {
   ModelMap: Map<Site, Chat>;
@@ -168,7 +170,9 @@ export class Auto extends Chat {
         ...req.messages.slice(0, -1),
         {
           role: 'user',
-          content: `我的问题是:${searchStr}\n\n 搜索结果是:${searchResStr}\n${urlContent} \n\n我需要你作为一个智能助手, 我知道你无法获取实时数据或信息，但是你可以参考我给的搜索结果并且忽略一些不想干的网页内容，总结一下，回答我的问题, 答案如下: `,
+          content: `我需要你作为一个智能助手，参考我给的搜索结果并且忽略一些和我问题不想干的搜索内容，总结一下，详细地回答我的问题\n\nCurrent Date:${moment().format(
+            TimeFormat,
+          )}\n\n我的问题是:${searchStr}\n\n 搜索结果是:${searchResStr}\n${urlContent} \n\n 回答如下：`,
         },
       ];
     }
