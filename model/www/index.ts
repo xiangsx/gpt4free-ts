@@ -49,6 +49,9 @@ export class WWW extends Chat {
       await this.init();
       this.logger.info('init ok');
     }
+    if (Math.random() * 10 > 8) {
+      this.logger.info(`page count:${(await this.browser?.pages())?.length}`);
+    }
     const page = await this.newPage();
     try {
       await page

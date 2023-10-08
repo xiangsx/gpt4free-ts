@@ -55,6 +55,9 @@ export class DDG extends Chat {
     if (!this.browser) {
       await this.init();
     }
+    if (Math.random() * 10 > 8) {
+      this.logger.info(`page count:${(await this.browser?.pages())?.length}`);
+    }
     const page = await this.newPage();
     try {
       await page.goto(
