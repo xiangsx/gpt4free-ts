@@ -36,14 +36,11 @@ class Child extends ComChild<Account> {
   }
   async init(): Promise<void> {
     try {
-      if (
-        this.info.token &&
-        this.info.expire_time &&
-        this.info.expire_time > moment().unix()
-      ) {
+      if (this.info.token) {
         return;
       }
       const page = await CreateNewPage('https://www.stack-ai.com/');
+      this.page = page;
       await page.waitForSelector('nav > div:nth-child(5) > button');
       await page.click('nav > div:nth-child(5) > button');
 
@@ -201,10 +198,6 @@ export class Stack extends Chat {
       return;
     }
     try {
-      if (child.info.expire_time < moment().unix()) {
-        child.destroy({ delFile: true, delMem: true });
-        throw new Error('token expired');
-      }
       const res = await child.client.post(
         `https://www.stack-inference.com/run_flow?flow_id=${child.info.flow_id}`,
         {
@@ -439,10 +432,15 @@ export class Stack extends Chat {
         stream.end();
       });
     } catch (e: any) {
-      this.logger.error('ask failed, ', e);
+      this.logger.error('ask failed, ', e.message);
       stream.write(Event.error, e);
       stream.write(Event.done, { content: '' });
       stream.end();
+      if (e.response.status === 401) {
+        this.logger.warn('token expired');
+        child.destroy({ delFile: true, delMem: true });
+        return;
+      }
     }
   }
 }
