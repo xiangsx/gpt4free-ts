@@ -29,10 +29,26 @@ export class DDG extends Chat {
   support(model: ModelType): number {
     switch (model) {
       case ModelType.Search:
-        return 2000;
+        return 10000;
       default:
         return 0;
     }
+  }
+
+  async preHandle(
+    req: ChatRequest,
+    options?: {
+      token?: boolean;
+      countPrompt?: boolean;
+      forceRemove?: boolean;
+      stream?: EventStream;
+    },
+  ): Promise<ChatRequest> {
+    return super.preHandle(req, {
+      token: false,
+      countPrompt: true,
+      forceRemove: true,
+    });
   }
 
   async askStream(req: ChatRequest, stream: EventStream): Promise<void> {
