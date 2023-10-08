@@ -41,6 +41,11 @@ interface ConfigData {
   cursor: {
     primary_model: ModelType;
   };
+  openchat3: {
+    size: number;
+    serial: number;
+    accounts: { email: string; password: string }[];
+  };
   stack: {
     size: number;
     serial: number;
@@ -142,6 +147,11 @@ class BaseConfig {
       mail_type: TempEmailType.TempMailLOL,
     },
     gmail_list: [],
+    openchat3: {
+      size: 0,
+      serial: 0,
+      accounts: [],
+    },
   };
   public config: ConfigData;
 

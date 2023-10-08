@@ -94,6 +94,7 @@ export enum Site {
   OneAPI = 'oneapi',
   Jasper = 'jasper',
   OpenChat = 'openchat',
+  OpenChat3 = 'openchat3',
   Pap = 'pap',
   MyShell = 'myshell',
   AcyToo = 'acytoo',

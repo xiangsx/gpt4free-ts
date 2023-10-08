@@ -312,6 +312,126 @@ export class WSS {
 //   return fetch(url, { ...initOptions, ...options });
 // }
 
+export class WebFetchWithPage {
+  private streamMap: Record<string, PassThrough> = {};
+  private useCount = 0;
+
+  constructor(private page: Page) {
+    this.init().then(() => console.log(`web fetch with page init ok`));
+  }
+  public isUsing() {
+    return this.useCount > 0;
+  }
+
+  public useEnd() {
+    this.useCount -= 1;
+  }
+
+  getPage() {
+    return this.page;
+  }
+
+  async close() {
+    for (let i = 0; i <= 10; i++) {
+      if (this.isUsing()) {
+        console.log(
+          `web fetch proxy is using,usecount:${this.useCount}, wait 5s`,
+        );
+        await sleep(5000);
+        continue;
+      }
+      console.log(`web fetch proxy closed ok, usecount:${this.useCount}`);
+      this.page?.browser().close();
+      break;
+    }
+  }
+
+  async init() {
+    try {
+      await this.page.exposeFunction('onChunk', (id: string, text: string) => {
+        const stream = this.streamMap[id];
+        if (stream) {
+          stream.write(text);
+        }
+      });
+      await this.page.exposeFunction('onChunkEnd', (id: string) => {
+        const stream = this.streamMap[id];
+        if (stream) {
+          stream.end();
+          delete this.streamMap[id];
+        }
+      });
+      await this.page.exposeFunction(
+        'onChunkError',
+        (id: string, err: string) => {
+          const stream = this.streamMap[id];
+          if (stream) {
+            stream.emit('error', err);
+            delete this.streamMap[id];
+          }
+        },
+      );
+    } catch (e) {
+      console.error('WebFetchProxy init failed, ', e);
+    }
+  }
+
+  async fetch(url: string, init?: RequestInit) {
+    if (!this.page) {
+      throw new Error('please retry wait init');
+    }
+    const id = v4();
+    const stream = new PassThrough();
+    this.streamMap[id] = stream;
+    this.useCount += 1;
+    this.page.evaluate(
+      (id, url, init) => {
+        return new Promise((resolve, reject) => {
+          fetch(url, init)
+            .then((response) => {
+              if (!response.body) {
+                resolve(null);
+                return null;
+              }
+              const reader = response.body.getReader();
+              function readNextChunk() {
+                reader
+                  .read()
+                  .then(({ done, value }) => {
+                    const textChunk = new TextDecoder('utf-8').decode(value);
+                    if (done) {
+                      // @ts-ignore
+                      window.onChunkEnd(id);
+                      // @ts-ignore
+                      resolve(textChunk);
+                      return;
+                    }
+                    // @ts-ignore
+                    window.onChunk(id, textChunk);
+                    readNextChunk();
+                  })
+                  .catch((err) => {
+                    // @ts-ignore
+                    window.onChunkError(id, err);
+                    reject(err);
+                  });
+              }
+              readNextChunk();
+            })
+            .catch((err) => {
+              console.error(err);
+              reject(err);
+            });
+        });
+      },
+      id,
+      url,
+      init,
+    );
+    return stream;
+  }
+}
+
 export class WebFetchProxy {
   private page?: Page;
   private streamMap: Record<string, PassThrough> = {};
