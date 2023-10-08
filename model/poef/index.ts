@@ -381,67 +381,40 @@ export class Poef extends Chat implements BrowserUser<Account> {
       await page.goto('https://poe.com');
 
       // await page.setUserAgent('Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101 Firefox/102.0');
-      await page.waitForSelector(
-        '.LoggedOutSection_main__QtksL > .LoggedOutSection_appSpecificSection__C5YEM > .MainSignupLoginSection_inputAndMetaTextGroup__5ITsJ > .EmailInput_wrapper__D9Dss > .EmailInput_emailInput__4v_bn',
-        { timeout: 60 * 1000 },
-      );
+      await page.waitForSelector(`input[type="email"]`, { timeout: 60 * 1000 });
       const emailBox = CreateEmail(
         (process.env.POEF_MAIL_TYPE as TempEmailType) || TempEmailType.Gmail,
       );
       const emailAddress = await emailBox.getMailAddress();
       // const emailAddress = 'backs-walkout-0o@icloud.com';
       // 输入邮箱
-      await page.waitForSelector(
-        '.LoggedOutSection_main__QtksL > .LoggedOutSection_appSpecificSection__C5YEM > .MainSignupLoginSection_inputAndMetaTextGroup__5ITsJ > .EmailInput_wrapper__D9Dss > .EmailInput_emailInput__4v_bn',
-      );
-      await page.focus(
-        '.LoggedOutSection_main__QtksL > .LoggedOutSection_appSpecificSection__C5YEM > .MainSignupLoginSection_inputAndMetaTextGroup__5ITsJ > .EmailInput_wrapper__D9Dss > .EmailInput_emailInput__4v_bn',
-      );
+      await page.waitForSelector(`input[type="email"]`);
+      await page.focus(`input[type="email"]`);
       // 将文本键入焦点元素
       await page.keyboard.type(emailAddress, { delay: 50 });
       await page.keyboard.press('Enter');
       // 发送code
-      await page.waitForSelector(
-        'body > #__next > .LoggedOutSection_main__QtksL > .LoggedOutSection_appSpecificSection__C5YEM > .Button_primary__pIDjn',
-      );
-      await page.click(
-        'body > #__next > .LoggedOutSection_main__QtksL > .LoggedOutSection_appSpecificSection__C5YEM > .Button_primary__pIDjn',
-      );
 
       const msgs = (await emailBox.waitMails()) as TempMailMessage[];
-      let validateURL: string | undefined;
+      let validateCode: string | undefined;
       for (const msg of msgs) {
-        validateURL = msg.content.match(/>(\d{6})</i)?.[1];
-        if (validateURL) {
+        validateCode = msg.content.match(/>(\d{6})</i)?.[1];
+        if (validateCode) {
           break;
         }
       }
-      if (!validateURL) {
+      if (!validateCode) {
         throw new Error('Error while obtaining verfication URL!');
       }
       // 输入code
-      await page.waitForSelector(
-        '.LoggedOutSection_main__QtksL > .LoggedOutSection_appSpecificSection__C5YEM > .SignupOrLoginWithCodeSection_inputAndMetaTextGroup__ubLLI > .VerificationCodeInput_wrapper__ayRfN > .VerificationCodeInput_verificationCodeInput__YD3KV',
-      );
-      await page.click(
-        '.LoggedOutSection_main__QtksL > .LoggedOutSection_appSpecificSection__C5YEM > .SignupOrLoginWithCodeSection_inputAndMetaTextGroup__ubLLI > .VerificationCodeInput_wrapper__ayRfN > .VerificationCodeInput_verificationCodeInput__YD3KV',
-      );
-      await page.type(
-        '.LoggedOutSection_main__QtksL > .LoggedOutSection_appSpecificSection__C5YEM > .SignupOrLoginWithCodeSection_inputAndMetaTextGroup__ubLLI > .VerificationCodeInput_wrapper__ayRfN > .VerificationCodeInput_verificationCodeInput__YD3KV',
-        validateURL,
-      );
+      await page.waitForSelector(`input[placeholder="Code"]`);
+      await page.click(`input[placeholder="Code"]`);
+      await page.keyboard.type(validateCode);
 
-      // 提交code
-      await page.waitForSelector(
-        'body > #__next > .LoggedOutSection_main__QtksL > .LoggedOutSection_appSpecificSection__C5YEM > .Button_primary__pIDjn',
-      );
-      await page.click(
-        'body > #__next > .LoggedOutSection_main__QtksL > .LoggedOutSection_appSpecificSection__C5YEM > .Button_primary__pIDjn',
-      );
-      await page.waitForSelector(
-        '.ChatHomeMain_container__z8q7_ > .ChatHomeMain_inputContainer__0_S1K > .ChatMessageInputContainer_inputContainer__SQvPA > .GrowingTextArea_growWrap___1PZM > .GrowingTextArea_textArea__eadlu',
-        { timeout: 30 * 1000 },
-      );
+      await page.keyboard.press('Enter');
+      await page.waitForSelector(`textarea[placeholder='Start a new chat']`, {
+        timeout: 30 * 1000,
+      });
 
       account.use_left = await this.getUseLeft(page);
       account.pb =
