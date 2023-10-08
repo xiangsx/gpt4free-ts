@@ -172,7 +172,7 @@ export class Stack extends Chat {
   support(model: ModelType): number {
     switch (model) {
       case ModelType.GPT4:
-        return 5800;
+        return 5000;
       case ModelType.GPT3p5Turbo:
         return 2500;
       case ModelType.GPT4_32k:
