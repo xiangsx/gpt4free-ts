@@ -29,7 +29,7 @@ export type Message = {
 
 export enum ModelType {
   GPT3p5Turbo = 'gpt-3.5-turbo',
-  GPT3p5TurboHaining = 'gpt-3.5-turbo-haining',
+  GPT3p5TurboInstruct = 'gpt-3.5-turbo-instruct',
   GPT3p5_16k = 'gpt-3.5-turbo-16k',
   GPT4 = 'gpt-4',
   GPT4_32k = 'gpt-4-32k',
