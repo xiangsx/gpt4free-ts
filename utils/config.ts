@@ -38,6 +38,12 @@ interface ConfigData {
     api_key: string;
     proxy: boolean;
   };
+  poeauto: {
+    size: number;
+    serial: number;
+    pb_list: string[];
+    mail_type: TempEmailType;
+  };
   cursor: {
     primary_model: ModelType;
   };
@@ -151,6 +157,12 @@ class BaseConfig {
       size: 0,
       serial: 0,
       accounts: [],
+    },
+    poeauto: {
+      size: 0,
+      serial: 0,
+      pb_list: [],
+      mail_type: TempEmailType.SmailPro,
     },
   };
   public config: ConfigData;

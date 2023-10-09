@@ -51,6 +51,7 @@ import { Navit } from './navit';
 import { ClaudeAPI } from './claudeapi';
 import { Stack } from './stack';
 import { OpenChat3 } from './openchat3';
+import { PoeAuto } from './poeauto';
 
 export class ChatModelFactory {
   private readonly modelMap: Map<Site, Chat>;
@@ -92,6 +93,7 @@ export class ChatModelFactory {
     this.modelMap.set(Site.Xun, new Xun({ name: Site.Xun }));
     this.modelMap.set(Site.VVM, new VVM({ name: Site.VVM }));
     this.modelMap.set(Site.Poef, new Poef({ name: Site.Poef }));
+    this.modelMap.set(Site.PoeAuto, new PoeAuto({ name: Site.PoeAuto }));
     this.modelMap.set(Site.Claude, new Claude({ name: Site.Claude }));
     this.modelMap.set(Site.Cursor, new Cursor({ name: Site.Cursor }));
     this.modelMap.set(Site.OneAPI, new OneAPI({ name: Site.OneAPI }));

@@ -82,6 +82,7 @@ export enum Site {
   Xun = 'xun',
   VVM = 'vvm',
   Poef = 'poef',
+  PoeAuto = 'poeauto',
   Claude = 'claude',
   Cursor = 'cursor',
   Auto = 'auto',
