@@ -29,12 +29,12 @@ const ModelMap: Partial<Record<ModelType, any>> = {
   [ModelType.Sage]: 'Sage',
   [ModelType.Claude]: 'Claude+',
   [ModelType.Claude100k]: 'Claude-instant-100k',
-  [ModelType.ClaudeInstance]: 'Claude-instant',
+  [ModelType.ClaudeInstant]: 'Claude-instant',
   [ModelType.GPT3p5Turbo]: 'ChatGPT',
   [ModelType.GPT3p5_16k]: 'ChatGPT-16k',
   [ModelType.Gpt4free]: '1GPT4Free',
   [ModelType.GooglePalm]: 'Google-PaLM',
-  [ModelType.Claude2_100k]: 'Claude-2-100k',
+  [ModelType.Claude2]: 'Claude-2-100k',
   [ModelType.GPT4_32k]: 'GPT-4-32K',
   [ModelType.Llama_2_70b]: 'Llama-2-70b',
   [ModelType.Llama_2_13b]: 'Llama-2-13b',
@@ -218,7 +218,7 @@ export class Poe extends Chat implements BrowserUser<Account> {
 
   support(model: ModelType): number {
     switch (model) {
-      case ModelType.ClaudeInstance:
+      case ModelType.ClaudeInstant:
         return 4000;
       case ModelType.Claude100k:
         return 50000;
@@ -244,7 +244,7 @@ export class Poe extends Chat implements BrowserUser<Account> {
         return 4000;
       case ModelType.GPT4_32k:
         return 20000;
-      case ModelType.Claude2_100k:
+      case ModelType.Claude2:
         return 50000;
       case ModelType.Code_Llama_34b:
         return 16000;
@@ -423,10 +423,10 @@ export class Poe extends Chat implements BrowserUser<Account> {
     req.prompt = req.prompt.replace(/assistant/g, 'result');
     req.prompt = maskLinks(req.prompt);
     if (
-      req.model === ModelType.Claude2_100k ||
+      req.model === ModelType.Claude2 ||
       req.model === ModelType.Claude100k ||
       req.model === ModelType.Claude ||
-      req.model === ModelType.ClaudeInstance
+      req.model === ModelType.ClaudeInstant
     ) {
       const question = req.messages?.[req.messages.length - 1]?.content || '';
 

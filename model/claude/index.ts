@@ -152,7 +152,7 @@ export class Claude extends Chat implements BrowserUser<Account> {
 
   support(model: ModelType): number {
     switch (model) {
-      case ModelType.Claude2_100k:
+      case ModelType.Claude2:
         return 75000;
       default:
         return 0;

@@ -35,11 +35,11 @@ const ModelMap: Partial<Record<ModelType, any>> = {
   [ModelType.GPT4]: 'GPT-4',
   [ModelType.Sage]: 'Assistant',
   [ModelType.Claude100k]: 'Claude-instant-100k',
-  [ModelType.ClaudeInstance]: 'Claude-instant',
+  [ModelType.ClaudeInstant]: 'Claude-instant',
   [ModelType.GPT3p5Turbo]: 'ChatGPT',
   [ModelType.GPT3p5_16k]: 'ChatGPT',
   [ModelType.GooglePalm]: 'Google-PaLM',
-  [ModelType.Claude2_100k]: 'Claude-2-100k',
+  [ModelType.Claude2]: 'Claude-2-100k',
   [ModelType.Llama_2_70b]: 'Llama-2-70b',
   [ModelType.Llama_2_13b]: 'Llama-2-13b',
   [ModelType.Llama_2_7b]: 'Llama-2-7b',
@@ -232,7 +232,7 @@ export class Poef extends Chat implements BrowserUser<Account> {
     switch (model) {
       case ModelType.Claude100k:
         return 50000;
-      case ModelType.ClaudeInstance:
+      case ModelType.ClaudeInstant:
         return 4000;
       case ModelType.GPT4:
         return 2420;
@@ -250,7 +250,7 @@ export class Poef extends Chat implements BrowserUser<Account> {
         return 4000;
       case ModelType.GooglePalm:
         return 4000;
-      case ModelType.Claude2_100k:
+      case ModelType.Claude2:
         return 80000;
       case ModelType.Code_Llama_34b:
         return 16000;
@@ -457,10 +457,10 @@ export class Poef extends Chat implements BrowserUser<Account> {
     req.prompt = req.prompt.replace(/assistant/g, 'result');
     req.prompt = maskLinks(req.prompt);
     if (
-      req.model === ModelType.Claude2_100k ||
+      req.model === ModelType.Claude2 ||
       req.model === ModelType.Claude100k ||
       req.model === ModelType.Claude ||
-      req.model === ModelType.ClaudeInstance
+      req.model === ModelType.ClaudeInstant
     ) {
       const question = req.messages?.[req.messages.length - 1]?.content || '';
 

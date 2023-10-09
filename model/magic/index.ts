@@ -56,7 +56,7 @@ interface ModelInfo {
 }
 
 const modelMap = {
-  [ModelType.ClaudeInstance]: {
+  [ModelType.ClaudeInstant]: {
     id: 'claude-instant',
     name: 'CLAUDE-INSTANT',
   },
@@ -181,7 +181,7 @@ export class Magic extends Chat implements BrowserUser<Account> {
 
   support(model: ModelType): number {
     switch (model) {
-      case ModelType.ClaudeInstance:
+      case ModelType.ClaudeInstant:
         return 4000;
       case ModelType.Claude100k:
         return 50000;

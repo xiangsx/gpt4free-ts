@@ -36,10 +36,11 @@ export enum ModelType {
   NetGPT4 = 'net-gpt-4',
   Sage = 'sage',
   NetGpt3p5 = 'net-gpt-3.5-turbo',
-  ClaudeInstance = 'claude-instance',
+  ClaudeInstant = 'claude-instant',
   Claude = 'claude',
+  ClaudeInstant_100k = 'claude-instant-100k',
   Claude100k = 'claude-100k',
-  Claude2_100k = 'claude-2-100k',
+  Claude2 = 'claude-2',
   Gpt4free = 'gpt-4-free',
   GooglePalm = 'google-palm',
   Llama_2_70b = 'llama-2-70b',
@@ -55,6 +56,8 @@ export enum ModelType {
   ErnieBot = 'ernie-bot',
   Bard = 'bard',
   MetaLlama = 'meta-llama',
+  Solar_0_70b = 'solar-0-70b',
+  Fw_mistral_7b = 'fw-mistral-7b',
 }
 
 export enum Site {
