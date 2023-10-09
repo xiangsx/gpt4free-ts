@@ -83,6 +83,7 @@ export class Auto extends Chat {
         base_url: v.base_url,
         name: v.label || v.site,
         proxy: v.proxy,
+        model_map: v.model_map,
       });
     }
     return this.modelMap.get(v.site) as Chat;
