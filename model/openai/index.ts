@@ -3,6 +3,7 @@ import { AxiosInstance, AxiosRequestConfig, CreateAxiosDefaults } from 'axios';
 import { CreateAxiosProxy } from '../../utils/proxyAgent';
 import es from 'event-stream';
 import { Event, EventStream, parseJSON } from '../../utils';
+import { open } from 'fs';
 
 interface Message {
   role: string;
@@ -34,6 +35,7 @@ interface OpenAIChatOptions extends ChatOptions {
   base_url?: string;
   api_key?: string;
   proxy?: boolean;
+  model_map?: { [key: string]: ModelType };
 }
 
 const ParamsList = [
@@ -54,6 +56,7 @@ const ParamsList = [
 ];
 export class OpenAI extends Chat {
   private client: AxiosInstance;
+  protected options?: OpenAIChatOptions;
 
   constructor(options?: OpenAIChatOptions) {
     super(options);
@@ -75,6 +78,22 @@ export class OpenAI extends Chat {
 
   support(model: ModelType): number {
     return Number.MAX_SAFE_INTEGER;
+  }
+
+  async preHandle(
+    req: ChatRequest,
+    options?: {
+      token?: boolean;
+      countPrompt?: boolean;
+      forceRemove?: boolean;
+      stream?: EventStream;
+    },
+  ): Promise<ChatRequest> {
+    const reqH = await super.preHandle(req, options);
+    if (this.options?.model_map && this.options.model_map[req.model]) {
+      reqH.model = this.options.model_map[req.model];
+    }
+    return reqH;
   }
 
   public async askStream(req: ChatRequest, stream: EventStream) {

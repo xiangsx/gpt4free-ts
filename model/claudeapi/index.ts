@@ -21,10 +21,11 @@ interface RealReq {
   stream?: boolean;
 }
 
-interface OpenAIChatOptions extends ChatOptions {
+interface ClaudeChatOptions extends ChatOptions {
   base_url?: string;
   api_key?: string;
   proxy?: boolean;
+  model_map?: { [key: string]: ModelType };
 }
 
 const ParamsList = [
@@ -41,8 +42,8 @@ const ParamsList = [
 
 export class ClaudeAPI extends Chat {
   private client: AxiosInstance;
-
-  constructor(options?: OpenAIChatOptions) {
+  protected options?: ClaudeChatOptions;
+  constructor(options?: ClaudeChatOptions) {
     super(options);
     this.client = CreateAxiosProxy(
       {
@@ -78,6 +79,9 @@ export class ClaudeAPI extends Chat {
       countPrompt: false,
       forceRemove: false,
     });
+    if (this.options?.model_map && this.options.model_map[req.model]) {
+      reqH.model = this.options.model_map[req.model];
+    }
     reqH.prompt =
       reqH.messages
         .map(
@@ -127,14 +131,14 @@ export class ClaudeAPI extends Chat {
     } catch (e: any) {
       this.logger.error(
         `ask stream failed, apikey:${
-          (this.options as OpenAIChatOptions).api_key
+          (this.options as ClaudeChatOptions).api_key
         }`,
         e.message,
       );
       e.response?.data.on('data', (chunk: any) =>
         console.log(
           `ask stream failed, apikey:${
-            (this.options as OpenAIChatOptions).api_key
+            (this.options as ClaudeChatOptions).api_key
           }`,
           chunk.toString(),
         ),

@@ -9,6 +9,7 @@ export type SiteCfg = {
   api_key?: string;
   label?: string;
   proxy?: boolean;
+  model_map?: { [key: string]: ModelType };
 };
 // 首先定义配置的数据类型
 interface ConfigData {

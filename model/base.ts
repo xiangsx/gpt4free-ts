@@ -201,7 +201,7 @@ export function sliceMessagesByLength(
 }
 
 export class Chat {
-  protected options: ChatOptions | undefined;
+  protected options?: ChatOptions;
   protected logger: winston.Logger;
 
   protected constructor(options?: ChatOptions) {
