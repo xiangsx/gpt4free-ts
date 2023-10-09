@@ -26,6 +26,7 @@ export class WWW extends Chat {
 
   async init() {
     this.browser = await CreateNewBrowser();
+    this.logger.info('init ok');
   }
 
   async newPage() {
@@ -47,7 +48,6 @@ export class WWW extends Chat {
   async askStream(req: WWWChatRequest, stream: EventStream): Promise<void> {
     if (!this.browser) {
       await this.init();
-      this.logger.info('init ok');
     }
     if (Math.random() * 10 > 8) {
       this.logger.info(`page count:${(await this.browser?.pages())?.length}`);
@@ -57,7 +57,7 @@ export class WWW extends Chat {
       await page
         .goto(req.prompt, {
           waitUntil: 'networkidle0',
-          timeout: 5000,
+          timeout: 10000,
         })
         .catch((err) => this.logger.error(`page load failed, `, err));
       // @ts-ignore
@@ -118,6 +118,8 @@ export class WWW extends Chat {
     } catch (e: any) {
       this.logger.error('ask stream failed', e);
       stream.write(Event.error, { error: e.message });
+      await this.browser?.close();
+      await this.init();
     } finally {
       stream.write(Event.done, { content: '' });
       stream.end();
