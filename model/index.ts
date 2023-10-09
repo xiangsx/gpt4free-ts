@@ -32,7 +32,6 @@ import { SinCode } from './sincode';
 import { OpenAI } from './openai';
 import { OneAPI } from './oneapi';
 import { Jasper } from './jasper';
-import { OpenChat } from './openchat';
 import { Pap } from './pap';
 import { MyShell } from './myshell';
 import { AcyToo } from './acytoo';
@@ -110,7 +109,6 @@ export class ChatModelFactory {
     this.modelMap.set(Site.SinCode, new SinCode({ name: Site.SinCode }));
     this.modelMap.set(Site.OpenAI, new OpenAI({ name: Site.OpenAI }));
     this.modelMap.set(Site.Jasper, new Jasper({ name: Site.Jasper }));
-    this.modelMap.set(Site.OpenChat, new OpenChat({ name: Site.OpenChat }));
     this.modelMap.set(Site.Pap, new Pap({ name: Site.Pap }));
     this.modelMap.set(Site.MyShell, new MyShell({ name: Site.MyShell }));
     this.modelMap.set(Site.AcyToo, new AcyToo({ name: Site.AcyToo }));
