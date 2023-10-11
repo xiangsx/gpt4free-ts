@@ -1,7 +1,7 @@
 import { v4 } from 'uuid';
 import winston from 'winston';
 import moment from 'moment';
-import { parseJSON, shuffleArray } from './index';
+import { ComError, parseJSON, shuffleArray } from './index';
 import fs from 'fs';
 import { fileDebouncer } from './file';
 import path from 'path';
@@ -280,7 +280,7 @@ export class Pool<U extends Info, T extends PoolChild<U>> {
   // 如果没有空闲的child，则等待
   // 如果有空闲的child，则返回
   // 如果有空闲的child，但是child的数量小于maxsize，则创建一个新的child
-  async pop(): Promise<T | undefined> {
+  async pop(): Promise<T> {
     const children = shuffleArray(this.children);
     for (let i = 0; i < children.length; i++) {
       if (!this.using.has(children[i].info.id) && children[i].info.ready) {
@@ -288,5 +288,6 @@ export class Pool<U extends Info, T extends PoolChild<U>> {
         return children[i];
       }
     }
+    throw new ComError('No valid connect', ComError.Status.RequestTooMany);
   }
 }

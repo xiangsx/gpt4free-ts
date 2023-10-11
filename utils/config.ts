@@ -61,6 +61,7 @@ interface ConfigData {
   mixer: { size: number; mailType: TempEmailType; serial: number };
   merlin: { size: number; mailType: TempEmailType; serial: number };
   takeoff: { size: number; mailType: TempEmailType; serial: number };
+  td: { size: number; mail_type: TempEmailType; serial: number };
   navit: {
     size: number;
     mailType: TempEmailType;
@@ -99,6 +100,11 @@ class BaseConfig {
     }, // Add new fields here, with their default values
     cursor: {
       primary_model: ModelType.GPT4,
+    },
+    td: {
+      size: 0,
+      serial: 0,
+      mail_type: TempEmailType.TempMailLOL,
     },
     mixer: {
       size: 0,
