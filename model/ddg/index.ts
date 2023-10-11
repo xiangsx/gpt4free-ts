@@ -61,7 +61,7 @@ export class DDG extends Chat {
     const page = await this.newPage();
     try {
       await page.goto(
-        `https://duckduckgo.com/?kad=zh_CN&kk=-1&k1=-1&kau=-1&kao=-1&kap=-1&kaq=-1&kax=-1&kak=-1&kv=-1&kp=1&kah=cn-zh&kl=cn-zh&q=${req.prompt.slice(
+        `https://duckduckgo.com/?kk=-1&k1=-1&kau=-1&kao=-1&kap=-1&kaq=-1&kax=-1&kak=-1&kv=-1&kp=1&q=${req.prompt.slice(
           0,
           150,
         )}`,

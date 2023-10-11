@@ -172,9 +172,9 @@ export class Auto extends Chat {
         ...req.messages.slice(0, -1),
         {
           role: 'user',
-          content: `我需要你作为一个智能助手，参考我给的搜索结果并且忽略一些和我问题不想干的搜索内容，总结一下，详细地回答我的问题\n\nCurrent Date:${moment().format(
+          content: `I need you to act as an intelligent assistant, refer to the search results I provided, and ignore some search content that does not relate to my question, then summarize, and answer my question in detail. \n\nCurrent Date:${moment().format(
             TimeFormat,
-          )}\n\n我的问题是:${searchStr}\n\n 搜索结果是:${searchResStr}\n${urlContent} \n\n 回答如下：`,
+          )}\n\nMy question is:${searchStr}\n\n The search results are:${searchResStr}\n${urlContent} \n\n The answer is as follows(The most important, the language of the answer must be the same of my question's language.):`,
         },
       ];
     }
