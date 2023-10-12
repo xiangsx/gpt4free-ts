@@ -1,5 +1,12 @@
 import { Chat, ChatOptions, ChatRequest, ModelType } from '../base';
-import { Event, EventStream, parseJSON, randomStr, sleep } from '../../utils';
+import {
+  Event,
+  EventStream,
+  getRandomOne,
+  parseJSON,
+  randomStr,
+  sleep,
+} from '../../utils';
 import {
   ChildOptions,
   ComChild,
@@ -21,6 +28,7 @@ interface Account extends ComInfo {
   token: string;
   expire_time: number;
   flow_id: string;
+  left: number;
 }
 class Child extends ComChild<Account> {
   public client: AxiosInstance;
@@ -41,41 +49,39 @@ class Child extends ComChild<Account> {
       }
       const page = await CreateNewPage('https://www.stack-ai.com/');
       this.page = page;
-      await page.waitForSelector('nav > div:nth-child(5) > button');
-      await page.click('nav > div:nth-child(5) > button');
 
       await page.waitForSelector(
-        '#auth-sign-in > .supabase-ui-auth_ui-container > .supabase-ui-auth_ui-container > div > .c-cpTgHx-bBzSYw-type-default',
+        'nav > div:nth-child(5) > button:nth-child(2)',
       );
-      await page.click(
-        '#auth-sign-in > .supabase-ui-auth_ui-container > .supabase-ui-auth_ui-container > div > .c-cpTgHx-bBzSYw-type-default',
-      );
-      await page.keyboard.type(this.info.email);
+      await page.click('nav > div:nth-child(5) > button:nth-child(2)');
 
-      await page.waitForSelector(
-        '#auth-sign-in > .supabase-ui-auth_ui-container > .supabase-ui-auth_ui-container > div > .c-cpTgHx-kowJZS-type-password',
-      );
-      await page.click(
-        '#auth-sign-in > .supabase-ui-auth_ui-container > .supabase-ui-auth_ui-container > div > .c-cpTgHx-kowJZS-type-password',
-      );
-      await page.keyboard.type(this.info.password);
+      await page.waitForSelector(`input[type="email"]`);
+      await page.click(`input[type="email"]`);
+      const email =
+        randomStr(10 + Math.floor(Math.random() * 10)) +
+        `@${getRandomOne(['gmail', 'qq', 'googlemail', 'outlook'])}.com`;
+      await page.keyboard.type(email);
 
-      await page.waitForSelector(
-        '.container > div > #auth-sign-in > .supabase-ui-auth_ui-container > .supabase-ui-auth_ui-button',
-      );
-      await page.click(
-        '.container > div > #auth-sign-in > .supabase-ui-auth_ui-container > .supabase-ui-auth_ui-button',
-      );
-      await sleep(3000);
-      await page.goto('https://www.stack-ai.com/dashboard');
+      await page.waitForSelector(`input[type="password"]`);
+      await page.click(`input[type="password"]`);
+      const password = randomStr(20);
+      await page.keyboard.type(password);
+
+      this.update({ email, password });
+
+      await page.waitForSelector(`button[type="submit"]`);
+      await page.click(`button[type="submit"]`);
+      await page.waitForNavigation();
       await sleep(1000);
+      await page.goto('https://www.stack-ai.com/dashboard');
+      await sleep(2000);
+      await this.closeWelcome(page);
       await page.waitForSelector(
         '.fixed > .no-scrollbar > .container > .flex > .rounded-md',
       );
       await page.click(
         '.fixed > .no-scrollbar > .container > .flex > .rounded-md',
       );
-      await page.keyboard.press('Enter');
       await page.waitForSelector(
         'div:nth-child(2) > .relative > .min-w-\\[8rem\\] > .group > .relative',
       );
@@ -89,10 +95,21 @@ class Child extends ComChild<Account> {
       }
       this.update({ flow_id });
       await this.getToken(page);
+      this.update({ left: 100 });
       page.browser().close();
     } catch (e) {
       this.page?.browser().close();
       throw e;
+    }
+  }
+
+  async closeWelcome(page: Page) {
+    try {
+      await page.waitForSelector('button[data-highlight="Dismiss"]');
+      await page.click('button[data-highlight="Dismiss"]');
+      this.logger.info('close welcome ok');
+    } catch (e) {
+      this.logger.error('close welcome failed', e);
     }
   }
 
@@ -140,6 +157,12 @@ export class Stack extends Chat {
       return new Child(this.options?.name || '', info, options);
     },
     (v) => {
+      if (!v.token) {
+        return false;
+      }
+      if (!v.left) {
+        return false;
+      }
       if (!v.email || !v.password) {
         return false;
       }
@@ -148,21 +171,6 @@ export class Stack extends Chat {
     {
       delay: 1000,
       serial: () => Config.config.stack.serial || 1,
-      preHandleAllInfos: async (infos) => {
-        const emailSet = new Set(infos.map((v) => v.email));
-        for (const v of Config.config.stack.accounts) {
-          if (emailSet.has(v.email)) {
-            continue;
-          }
-          emailSet.add(v.email);
-          infos.push({
-            id: v4(),
-            email: v.email,
-            password: v.password,
-          } as Account);
-        }
-        return infos;
-      },
     },
   );
   constructor(options?: ChatOptions) {
@@ -440,6 +448,11 @@ export class Stack extends Chat {
         this.logger.warn('token expired');
         child.destroy({ delFile: true, delMem: true });
         return;
+      }
+    } finally {
+      child.update({ left: child.info.left - 1 });
+      if (child.info.left <= 0) {
+        child.destroy({ delFile: true, delMem: true });
       }
     }
   }
