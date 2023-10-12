@@ -21,6 +21,8 @@ import { v4 } from 'uuid';
 import { Page } from 'puppeteer';
 import { AxiosInstance } from 'axios';
 import es from 'event-stream';
+import { CreateEmail } from '../../utils/emailFactory';
+import { verify } from 'crypto';
 
 interface Account extends ComInfo {
   email: string;
@@ -54,23 +56,32 @@ class Child extends ComChild<Account> {
         'nav > div:nth-child(5) > button:nth-child(2)',
       );
       await page.click('nav > div:nth-child(5) > button:nth-child(2)');
-
+      const mailbox = CreateEmail(Config.config.stack.mail_type);
       await page.waitForSelector(`input[type="email"]`);
       await page.click(`input[type="email"]`);
-      const email =
-        randomStr(10 + Math.floor(Math.random() * 10)) +
-        `@${getRandomOne(['gmail', 'qq', 'googlemail', 'outlook'])}.com`;
+      const email = await mailbox.getMailAddress();
       await page.keyboard.type(email);
 
       await page.waitForSelector(`input[type="password"]`);
       await page.click(`input[type="password"]`);
       const password = randomStr(20);
       await page.keyboard.type(password);
-
-      this.update({ email, password });
-
       await page.waitForSelector(`button[type="submit"]`);
       await page.click(`button[type="submit"]`);
+      let verify;
+      for (const v of await mailbox.waitMails()) {
+        verify = v.content.match(/href="([^"]*)/i)?.[1] || '';
+        if (verify) {
+          break;
+        }
+      }
+      if (!verify) {
+        throw new Error('verify code not found');
+      }
+      verify = verify.replace(/&amp;/g, '&');
+      await page.goto(verify);
+      this.update({ email, password });
+
       await page.waitForNavigation();
       await sleep(1000);
       await page.goto('https://www.stack-ai.com/dashboard');

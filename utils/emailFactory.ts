@@ -804,11 +804,12 @@ export class MailTM extends BaseEmail {
     for (let i = 0; i < 3; i++) {
       const messages = await this.mailjs.getMessages(1);
       if (messages.data.length === 0) {
+        await sleep(3000);
         continue;
       }
       const one = messages.data[0];
       const message = await this.mailjs.getMessage(one.id);
-      return [{ content: message.data.text }];
+      return [{ content: message.data.html.join('\n') }];
     }
     return [];
   }

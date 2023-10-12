@@ -61,6 +61,7 @@ interface ConfigData {
   stack: {
     size: number;
     serial: number;
+    mail_type: TempEmailType;
     accounts: { email: string; password: string }[];
   };
   mixer: { size: number; mailType: TempEmailType; serial: number };
@@ -125,6 +126,7 @@ class BaseConfig {
     stack: {
       size: 0,
       serial: 0,
+      mail_type: TempEmailType.TempMailLOL,
       accounts: [],
     },
     takeoff: {
