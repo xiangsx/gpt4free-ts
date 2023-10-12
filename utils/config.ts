@@ -53,6 +53,11 @@ interface ConfigData {
     serial: number;
     accounts: { email: string; password: string }[];
   };
+  openchat4: {
+    size: number;
+    serial: number;
+    accounts: { email: string; password: string }[];
+  };
   stack: {
     size: number;
     serial: number;
@@ -61,7 +66,12 @@ interface ConfigData {
   mixer: { size: number; mailType: TempEmailType; serial: number };
   merlin: { size: number; mailType: TempEmailType; serial: number };
   takeoff: { size: number; mailType: TempEmailType; serial: number };
-  td: { size: number; mail_type: TempEmailType; serial: number };
+  td: {
+    size: number;
+    mail_type: TempEmailType;
+    serial: number;
+    domain: string;
+  };
   navit: {
     size: number;
     mailType: TempEmailType;
@@ -105,6 +115,7 @@ class BaseConfig {
       size: 0,
       serial: 0,
       mail_type: TempEmailType.TempMailLOL,
+      domain: '',
     },
     mixer: {
       size: 0,
@@ -161,6 +172,11 @@ class BaseConfig {
     },
     gmail_list: [],
     openchat3: {
+      size: 0,
+      serial: 0,
+      accounts: [],
+    },
+    openchat4: {
       size: 0,
       serial: 0,
       accounts: [],

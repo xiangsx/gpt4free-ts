@@ -4,6 +4,7 @@ import {
   EventStream,
   getTokenCount,
   randomStr,
+  randomUserAgent,
   sleep,
 } from '../../utils';
 import {
@@ -38,7 +39,7 @@ class Child extends ComChild<Account> {
     super(label, info, options);
     this.client = CreateAxiosProxy(
       {
-        baseURL: 'https://thedifferenceai.com/api',
+        baseURL: `https://${Config.config.td.domain}/api`,
       },
       false,
     );
@@ -49,7 +50,7 @@ class Child extends ComChild<Account> {
       let page;
       if (this.info.refresh_token) {
         this.logger.info('login...');
-        page = await CreateNewPage('https://thedifferenceai.com/register');
+        page = await CreateNewPage(`https://${Config.config.td.domain}/login`);
         this.page = page;
         await page.waitForSelector('#email');
         await page.click('#email');
@@ -63,7 +64,9 @@ class Child extends ComChild<Account> {
         await page.click(`button[type="submit"]`);
       } else {
         this.logger.info('register new account ...');
-        page = await CreateNewPage('https://thedifferenceai.com/register');
+        page = await CreateNewPage(
+          `https://${Config.config.td.domain}/register`,
+        );
         this.page = page;
 
         await page.waitForSelector('#name');
@@ -112,7 +115,7 @@ class Child extends ComChild<Account> {
     if (!this.refreshTokenItl) {
       this.refreshTokenItl = setInterval(() => {
         this.refreshAuth();
-      });
+      }, 5 * 60 * 1000);
     }
   }
 
@@ -148,7 +151,7 @@ class Child extends ComChild<Account> {
 
 export class TD extends Chat {
   private pool: Pool<Account, Child> = new Pool(
-    this.options?.name || '',
+    `${this.options?.name}_${Config.config.td.domain}` || '',
     () => Config.config.td.size,
     (info, options) => {
       return new Child(this.options?.name || '', info, options);
@@ -233,9 +236,10 @@ export class TD extends Chat {
             'sec-fetch-dest': 'empty',
             'sec-fetch-mode': 'cors',
             'sec-fetch-site': 'same-origin',
-            referrer: 'https://thedifferenceai.com/chat/new',
-            Origin: 'https://thedifferenceai.com',
-            host: 'thedifferenceai.com',
+            'User-Agent': randomUserAgent(),
+            referrer: `https://${Config.config.td.domain}/chat/new`,
+            Origin: `https://${Config.config.td.domain}`,
+            host: `${Config.config.td.domain}`,
           },
           responseType: 'stream',
         },
@@ -253,6 +257,7 @@ export class TD extends Chat {
         stream.end();
       });
     } catch (e: any) {
+      e.response.on('data', console.log);
       this.logger.error('ask failed, ', e);
       stream.write(Event.error, {
         error: 'Something error, please retry later',

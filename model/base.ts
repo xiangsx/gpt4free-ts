@@ -116,6 +116,7 @@ export enum Site {
   Navit = 'navit',
   Stack = 'stack',
   TD = 'td',
+  OpenChat4 = 'openchat4',
 }
 
 export interface ChatRequest {
