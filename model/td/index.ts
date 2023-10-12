@@ -3,6 +3,7 @@ import {
   Event,
   EventStream,
   getTokenCount,
+  parseJSON,
   randomStr,
   randomUserAgent,
   sleep,
@@ -97,6 +98,7 @@ class Child extends ComChild<Account> {
       }
 
       await page.waitForNavigation();
+      await sleep(5000);
       await this.saveRefreshToken(page);
       await this.refreshAuth();
 
@@ -109,7 +111,16 @@ class Child extends ComChild<Account> {
   async refreshAuth() {
     const res: { data: { token: string } } = await this.client.post(
       '/auth/refresh',
+      {},
+      {
+        headers: {
+          Cookie: `refreshToken=${this.info.refresh_token}`,
+        },
+      },
     );
+    if (!res.data.token) {
+      throw new Error('refresh auth failed');
+    }
     this.update({ token: res.data.token });
     this.logger.info('refresh auth ok');
     if (!this.refreshTokenItl) {
@@ -236,7 +247,8 @@ export class TD extends Chat {
             'sec-fetch-dest': 'empty',
             'sec-fetch-mode': 'cors',
             'sec-fetch-site': 'same-origin',
-            'User-Agent': randomUserAgent(),
+            'User-Agent':
+              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36',
             referrer: `https://${Config.config.td.domain}/chat/new`,
             Origin: `https://${Config.config.td.domain}`,
             host: `${Config.config.td.domain}`,
@@ -244,11 +256,25 @@ export class TD extends Chat {
           responseType: 'stream',
         },
       );
-      res.data.pipe(
-        es.map((chunk: any) => {
-          const content = chunk.toString();
-          output += content;
-          stream.write(Event.message, { content });
+      let old = '';
+      res.data.pipe(es.split(/\r?\n\r?\n/)).pipe(
+        es.map(async (chunk: any) => {
+          const content = chunk
+            .toString()
+            .replace(`event: message\ndata: `, '');
+          const data = parseJSON<{ text: string; message: boolean }>(
+            content,
+            {} as any,
+          );
+          if (!data.text || !data.message) {
+            return;
+          }
+          if (data.text.length > old.length) {
+            stream.write(Event.message, {
+              content: data.text.substring(old.length),
+            });
+            old = data.text;
+          }
         }),
       );
       res.data.on('close', () => {
@@ -257,7 +283,7 @@ export class TD extends Chat {
         stream.end();
       });
     } catch (e: any) {
-      e.response.on('data', console.log);
+      e.response.data.on('data', console.log);
       this.logger.error('ask failed, ', e);
       stream.write(Event.error, {
         error: 'Something error, please retry later',
