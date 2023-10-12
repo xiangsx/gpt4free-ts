@@ -127,11 +127,14 @@ export class OpenAI extends Chat {
             stream.end();
             return;
           }
-          const [{ delta, finish_reason }] = data.choices;
+          const choices = data.choices || [];
+          const { delta, finish_reason } = choices[0] || {};
           if (finish_reason === 'stop') {
             return;
           }
-          stream.write(Event.message, delta);
+          if (delta) {
+            stream.write(Event.message, delta);
+          }
         }),
       );
       res.data.on('close', () => {
