@@ -33,7 +33,7 @@ interface Account extends ComInfo {
 class Child extends ComChild<Account> {
   public client: AxiosInstance;
   public page?: Page;
-  refreshTokenItl!: NodeJS.Timer;
+  refreshTokenItl!: any;
 
   constructor(label: string, info: any, options?: ChildOptions) {
     super(label, info, options);
