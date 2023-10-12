@@ -457,13 +457,13 @@ export class Stack extends Chat {
       stream.end();
       if (e.response.status === 401) {
         this.logger.warn('token expired');
-        child.destroy({ delFile: true, delMem: true });
+        child.destroy({ delFile: false, delMem: true });
         return;
       }
     } finally {
       child.update({ left: child.info.left - 1 });
       if (child.info.left <= 0) {
-        child.destroy({ delFile: true, delMem: true });
+        child.destroy({ delFile: false, delMem: true });
       }
     }
   }
