@@ -156,11 +156,9 @@ export class Pool<U extends Info, T extends PoolChild<U>> {
 
   private getOneOldInfo() {
     for (let i = 0; i < this.allInfos.length; i++) {
-      if (
-        !this.childMap.has(this.allInfos[i].id) &&
-        this.isInfoValid(this.allInfos[i])
-      ) {
-        return this.allInfos[i];
+      const info = this.allInfos[i];
+      if (!this.childMap.has(info.id) && this.isInfoValid(info)) {
+        return info;
       }
     }
   }
