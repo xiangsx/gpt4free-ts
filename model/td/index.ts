@@ -125,7 +125,7 @@ class Child extends ComChild<Account> {
     this.logger.info('refresh auth ok');
     if (!this.refreshTokenItl) {
       this.refreshTokenItl = setInterval(() => {
-        this.refreshAuth();
+        this.refreshAuth().catch(this.logger.error);
       }, 5 * 60 * 1000);
     }
   }
