@@ -82,16 +82,12 @@ export class OpenAI extends Chat {
     );
   }
 
-  async preHandle(
-    req: ChatRequest,
-    options?: {
-      token?: boolean;
-      countPrompt?: boolean;
-      forceRemove?: boolean;
-      stream?: EventStream;
-    },
-  ): Promise<ChatRequest> {
-    const reqH = await super.preHandle(req, options);
+  async preHandle(req: ChatRequest): Promise<ChatRequest> {
+    const reqH = await super.preHandle(req, {
+      token: true,
+      countPrompt: false,
+      forceRemove: true,
+    });
     if (this.options?.model_map && this.options.model_map[req.model]) {
       reqH.model = this.options.model_map[req.model];
     }
