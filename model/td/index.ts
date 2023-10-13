@@ -285,7 +285,6 @@ export class TD extends Chat {
       });
       stream.write(Event.done, { content: '' });
       stream.end();
-      child.release();
       // child.destroy({ delFile: false, delMem: true });
     }
   }
