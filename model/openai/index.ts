@@ -143,7 +143,9 @@ export class OpenAI extends Chat {
       });
     } catch (e: any) {
       this.logger.error(e.message);
-      e.response.data.on('data', (chunk: any) => console.log(chunk.toString()));
+      e.response.data.on('data', (chunk: any) =>
+        this.logger.error(chunk.toString()),
+      );
       stream.write(Event.error, { error: e.message });
       stream.end();
     }
