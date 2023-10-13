@@ -151,13 +151,6 @@ class Child extends ComChild<Account> {
     this.page?.browser()?.close();
     clearInterval(this.refreshTokenItl);
   }
-
-  use(): void {
-    this.update({
-      lastUseTime: moment().unix(),
-      useCount: (this.info.useCount || 0) + 1,
-    });
-  }
 }
 
 export class TD extends Chat {
