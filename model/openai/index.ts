@@ -3,7 +3,7 @@ import { AxiosInstance, AxiosRequestConfig, CreateAxiosDefaults } from 'axios';
 import { CreateAxiosProxy } from '../../utils/proxyAgent';
 import es from 'event-stream';
 import { Event, EventStream, parseJSON } from '../../utils';
-import { open } from 'fs';
+import { Config } from '../../utils/config';
 
 interface Message {
   role: string;
@@ -77,7 +77,9 @@ export class OpenAI extends Chat {
   }
 
   support(model: ModelType): number {
-    return Number.MAX_SAFE_INTEGER;
+    return (
+      Config.config.openai?.token_limit?.[model] || Number.MAX_SAFE_INTEGER
+    );
   }
 
   async preHandle(

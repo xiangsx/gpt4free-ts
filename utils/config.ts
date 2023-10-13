@@ -19,6 +19,9 @@ interface ConfigData {
     proxy_list: string[];
   };
   gmail_list: { email: string; password: string; recovery_email: string }[];
+  openai: {
+    token_limit: { [key: string]: number };
+  };
   perplexity: {
     size: number;
     tokens: string[];
@@ -104,6 +107,9 @@ class BaseConfig {
       proxy_list: [],
     },
     site_map: {},
+    openai: {
+      token_limit: {},
+    },
     one_api: {
       base_url: '',
       api_key: '',
