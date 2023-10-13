@@ -150,6 +150,7 @@ const AskStreamHandle: (ESType: new () => EventStream) => Middleware =
       req.messages = [{ role: 'user', content: prompt }];
     }
     let stream = new ESType();
+    stream.setModel(req.model);
     req = await chat.preHandle(req, { stream });
     let ok = true;
     const timeout = setTimeout(() => {
@@ -273,7 +274,7 @@ const openAIHandle: Middleware = async (ctx, next) => {
     messages.reduce((prev, cur) => prev + cur.content, ''),
   );
   ctx.body = {
-    id: `chatcmpl-${randomStr()}`,
+    id: 'chatcmpl-' + '89D' + randomStr(26),
     object: 'chat.completion',
     created: moment().unix(),
     model,

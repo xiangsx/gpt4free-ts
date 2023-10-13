@@ -196,7 +196,7 @@ export class ThroughEventStream extends EventStream {
 }
 
 export class OpenaiEventStream extends EventStream {
-  private id: string = 'chatcmpl-' + '89c' + randomStr(26);
+  private id: string = 'chatcmpl-' + '89C' + randomStr(26);
   private start: boolean = false;
 
   write<T extends Event>(event: T, data: Data<T>) {
@@ -253,6 +253,7 @@ export class OpenaiEventStream extends EventStream {
           `data: ${JSON.stringify({
             id: this.id,
             object: 'chat.completion.chunk',
+            model: this.model,
             choices: [{ index: 0, delta: data, finish_reason: null }],
           })}\n\n`,
           'utf-8',
