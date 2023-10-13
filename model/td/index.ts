@@ -274,6 +274,7 @@ export class TD extends Chat {
         this.logger.info('Msg recv ok');
         stream.write(Event.done, { content: '' });
         stream.end();
+        child.release();
       });
     } catch (e: any) {
       e.response.data.on('data', console.log);
@@ -284,6 +285,7 @@ export class TD extends Chat {
       });
       stream.write(Event.done, { content: '' });
       stream.end();
+      child.release();
       // child.destroy({ delFile: false, delMem: true });
     }
   }
