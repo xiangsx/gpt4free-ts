@@ -88,6 +88,7 @@ export class OpenAI extends Chat {
       countPrompt: false,
       forceRemove: true,
     });
+    reqH.messages = reqH.messages.filter((v) => !!v.content);
     if (this.options?.model_map && this.options.model_map[req.model]) {
       reqH.model = this.options.model_map[req.model];
     }
