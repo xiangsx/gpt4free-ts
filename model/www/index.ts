@@ -117,7 +117,7 @@ export class WWW extends Chat {
       stream.write(Event.message, { content });
     } catch (e: any) {
       this.logger.error('ask stream failed', e);
-      stream.write(Event.error, { error: e.message });
+      stream.write(Event.message, { content: '' });
       await this.browser?.close();
       await this.init();
     } finally {
