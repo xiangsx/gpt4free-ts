@@ -70,7 +70,7 @@ class Child extends ComChild<Account> {
       await page.click(`button[type="submit"]`);
       let verify;
       for (const v of await mailbox.waitMails()) {
-        verify = v.content.match(/Sign Up: ([^<]*)/i)?.[1] || '';
+        verify = v.content.match(/href="([^“]*)/i)?.[1] || '';
         if (verify) {
           break;
         }
