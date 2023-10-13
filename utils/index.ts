@@ -119,7 +119,11 @@ export type DataCB<T extends Event> = (event: T, data: Data<T>) => void;
 
 export class EventStream {
   protected readonly pt: PassThrough = new PassThrough();
+  protected model: ModelType = ModelType.GPT3p5Turbo;
 
+  setModel(model: ModelType) {
+    this.model = model;
+  }
   constructor() {
     this.pt.setEncoding('utf-8');
   }
@@ -192,7 +196,7 @@ export class ThroughEventStream extends EventStream {
 }
 
 export class OpenaiEventStream extends EventStream {
-  private id: string = 'chatcmpl-' + randomStr() + randomStr();
+  private id: string = 'chatcmpl-' + '89c' + randomStr(26);
   private start: boolean = false;
 
   write<T extends Event>(event: T, data: Data<T>) {
@@ -201,8 +205,14 @@ export class OpenaiEventStream extends EventStream {
         `data: ${JSON.stringify({
           id: this.id,
           object: 'chat.completion.chunk',
-          choices: [{ index: 0, delta: { role: 'assistant', content: '' } }],
-          finish_reason: null,
+          model: this.model,
+          choices: [
+            {
+              index: 0,
+              delta: { role: 'assistant', content: '' },
+              finish_reason: null,
+            },
+          ],
         })}\n\n`,
         'utf-8',
       );
@@ -214,8 +224,8 @@ export class OpenaiEventStream extends EventStream {
           `data: ${JSON.stringify({
             id: this.id,
             object: 'chat.completion.chunk',
+            model: this.model,
             choices: [{ index: 0, delta: {}, finish_reason: 'stop' }],
-            finish_reason: 'stop',
           })}\n\n`,
           'utf-8',
         );
@@ -226,8 +236,14 @@ export class OpenaiEventStream extends EventStream {
           `data: ${JSON.stringify({
             id: this.id,
             object: 'chat.completion.chunk',
-            choices: [{ index: 0, delta: { content: '', ...data } }],
-            finish_reason: null,
+            model: this.model,
+            choices: [
+              {
+                index: 0,
+                delta: { content: '', ...data },
+                finish_reason: null,
+              },
+            ],
           })}\n\n`,
           'utf-8',
         );
@@ -237,8 +253,7 @@ export class OpenaiEventStream extends EventStream {
           `data: ${JSON.stringify({
             id: this.id,
             object: 'chat.completion.chunk',
-            choices: [{ index: 0, delta: data }],
-            finish_reason: null,
+            choices: [{ index: 0, delta: data, finish_reason: null }],
           })}\n\n`,
           'utf-8',
         );
