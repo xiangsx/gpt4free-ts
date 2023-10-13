@@ -269,10 +269,9 @@ const openAIHandle: Middleware = async (ctx, next) => {
     return;
   }
   await AskHandle(ctx, next);
-  let reqLen = getTokenCount(messages.reduce((prev, cur) => prev + cur, ''));
-  for (const v of messages) {
-    reqLen += getTokenCount(v.content);
-  }
+  let reqLen = getTokenCount(
+    messages.reduce((prev, cur) => prev + cur.content, ''),
+  );
   ctx.body = {
     id: `chatcmpl-${randomStr()}`,
     object: 'chat.completion',
