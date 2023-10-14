@@ -45,8 +45,12 @@ interface ConfigData {
   poeauto: {
     size: number;
     serial: number;
-    pb_list: string[];
     mail_type: TempEmailType;
+  };
+  poevip: {
+    size: number;
+    serial: number;
+    pb_list: string[];
   };
   cursor: {
     primary_model: ModelType;
@@ -192,8 +196,12 @@ class BaseConfig {
     poeauto: {
       size: 0,
       serial: 0,
-      pb_list: [],
       mail_type: TempEmailType.SmailPro,
+    },
+    poevip: {
+      size: 0,
+      serial: 0,
+      pb_list: [],
     },
   };
   public config: ConfigData;

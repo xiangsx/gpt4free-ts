@@ -53,6 +53,7 @@ import { OpenChat3 } from './openchat3';
 import { PoeAuto } from './poeauto';
 import { TD } from './td';
 import { OpenChat4 } from './openchat4';
+import { PoeVIP } from './poevip';
 
 export class ChatModelFactory {
   private readonly modelMap: Map<Site, Chat>;
@@ -95,6 +96,7 @@ export class ChatModelFactory {
     this.modelMap.set(Site.VVM, new VVM({ name: Site.VVM }));
     this.modelMap.set(Site.Poef, new Poef({ name: Site.Poef }));
     this.modelMap.set(Site.PoeAuto, new PoeAuto({ name: Site.PoeAuto }));
+    this.modelMap.set(Site.PoeVIP, new PoeVIP({ name: Site.PoeVIP }));
     this.modelMap.set(Site.Claude, new Claude({ name: Site.Claude }));
     this.modelMap.set(Site.Cursor, new Cursor({ name: Site.Cursor }));
     this.modelMap.set(Site.OneAPI, new OneAPI({ name: Site.OneAPI }));
