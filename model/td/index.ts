@@ -142,7 +142,7 @@ class Child extends ComChild<Account> {
 
   initFailed() {
     this.page?.browser().close();
-    this.destroy({ delFile: false, delMem: true });
+    this.destroy({ delFile: true, delMem: true });
     clearInterval(this.refreshTokenItl);
   }
 
