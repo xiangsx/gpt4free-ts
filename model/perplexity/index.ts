@@ -80,12 +80,6 @@ class Child extends ComChild<Account> {
   }
 
   async listenTokenChange() {
-    //https://www.perplexity.ai/
-    // 请求方法:GET
-    /**
-     * Set-Cookie:
-     * __Secure-next-auth.session-token=eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..NUnOLHCwBFmSkB2T.FZ6Px37m5eP4sZ7hwIDsa1YNgOXL5aqhYkktv9zHMLHbZuB8JrZsyd3FgjUns9bDvxHnk2P0TfbpfboN-FeYN4SS_MlBPvdvovxquOycFgvZ5YnXYmeM48JVjOJfOSQ1FA--wZJo-W7oeWDEPynw7WGdOdpgA_0f1G4VClGkC0-I6CcDPJmipI4_hrbR4e5wBLFiczTasYkc5YOCzMZ5gz8lcHVXIAzLX12l-3xyahfifP7zKNjZeRYLPEyvxaj_YS6Onra3UywOZb5VDdmPZ8NdoQOCL3slBUdbe85S2A2LwpSTO6al9hpm80PI6dC6FzU8Qz3xh8l29H8XpyV9cUcIAaE83SDUAbNXrHoRqmA1MvUwPMUeIAsdoLM.fydnMyR8RBVqwQojwdROWg; Path=/; Expires=Tue, 14 Nov 2023 14:29:24 GMT; HttpOnly; Secure; SameSite=Lax
-     */
     const page = this.page;
     const res = await page.waitForResponse(
       (res) => {
