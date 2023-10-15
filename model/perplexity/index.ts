@@ -94,22 +94,18 @@ class Child extends ComChild<Account> {
       },
       { timeout: 24 * 60 * 60 * 1000 },
     );
-    this.logger.info(res.url());
-    await this.updateToken();
-    await this.listenTokenChange();
-  }
-
-  async updateToken() {
-    // __Secure-next-auth.session-token
-    const cookies = await this.page.cookies();
-    const cookie = cookies.find(
-      (v) => v.name.indexOf('__Secure-next-auth.session-token') > -1,
+    const headers = res.headers();
+    const cookies = headers['set-cookie'].split(';');
+    const token = cookies.find(
+      (v) => v.indexOf('__Secure-next-auth.session-token') > -1,
     );
-    if (!cookie) {
+    if (!token) {
       throw new Error('get cookie failed');
     }
-    this.update({ token: cookie.value });
+    const tokenValue = token.split('=')[1];
+    this.update({ token: tokenValue });
     this.logger.info('update token ok');
+    await this.listenTokenChange();
   }
 
   public async goHome() {
