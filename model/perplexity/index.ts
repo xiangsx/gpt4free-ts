@@ -52,8 +52,7 @@ class Child extends ComChild<Account> {
 
   private InputSelector =
     '.grow > div > .rounded-md > .relative > .outline-none';
-  private UserName =
-    '#__next > main > div > div > div > div > div > div > div.flex.flex-col > a > div > div';
+  private UserName = `img[alt="User avatar"]`;
 
   private async closeCopilot(page: Page) {
     try {
