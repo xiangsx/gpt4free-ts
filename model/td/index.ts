@@ -119,7 +119,8 @@ class Child extends ComChild<Account> {
       },
     );
     if (!res.data.token) {
-      throw new Error('refresh auth failed');
+      this.destroy({ delFile: false, delMem: true });
+      throw new Error('refresh auth failed');、
     }
     this.update({ token: res.data.token });
     this.logger.info('refresh auth ok');
@@ -277,7 +278,9 @@ export class TD extends Chat {
         child.release();
       });
     } catch (e: any) {
-      e.response.data.on('data', console.log);
+      e.response.data.on('data', (chunk: any) =>
+        this.logger.info(chunk.toString()),
+      );
       this.logger.error('ask failed, ', e);
       stream.write(Event.error, {
         error: 'Something error, please retry later',
