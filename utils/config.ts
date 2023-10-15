@@ -30,6 +30,11 @@ interface ConfigData {
     system: string;
     model: string;
   };
+  izea: {
+    size: number;
+    serial: number;
+    mail_type: TempEmailType;
+  };
   sincode: {
     size: number;
     serial: number;
@@ -169,6 +174,11 @@ class BaseConfig {
       serial: 0,
       concurrency: 1,
       accounts: [],
+    },
+    izea: {
+      size: 0,
+      serial: 0,
+      mail_type: TempEmailType.TempMailLOL,
     },
     perplexity: {
       size: 0,

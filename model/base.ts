@@ -118,6 +118,7 @@ export enum Site {
   Stack = 'stack',
   TD = 'td',
   OpenChat4 = 'openchat4',
+  Izea = 'izea',
 }
 
 export interface ChatRequest {
