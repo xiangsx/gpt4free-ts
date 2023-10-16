@@ -79,6 +79,7 @@ interface ConfigData {
   mixer: { size: number; mailType: TempEmailType; serial: number };
   merlin: { size: number; mailType: TempEmailType; serial: number };
   takeoff: { size: number; mailType: TempEmailType; serial: number };
+  askx: { size: number; mailType: TempEmailType; serial: number };
   td: {
     size: number;
     mail_type: TempEmailType;
@@ -111,6 +112,11 @@ class BaseConfig {
   private filePath: string = './run/config.json';
   private defaultConfig: ConfigData = {
     exit: true,
+    askx: {
+      size: 0,
+      serial: 0,
+      mailType: TempEmailType.TempMailLOL,
+    },
     proxy_pool: {
       enable: false,
       proxy_list: [],
