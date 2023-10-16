@@ -1,6 +1,6 @@
 import { Chat, ChatOptions, ChatRequest, ModelType } from '../base';
 import { CDPSession, Page } from 'puppeteer';
-import { ComError, Event, EventStream, parseJSON } from '../../utils';
+import { ComError, Event, EventStream, parseJSON, sleep } from '../../utils';
 import { Config } from '../../utils/config';
 import { ComChild, ComInfo, DestroyOptions, Pool } from '../../utils/pool';
 import { CreateNewPage } from '../../utils/proxyAgent';
@@ -52,7 +52,7 @@ class Child extends ComChild<Account> {
 
   private InputSelector =
     '.grow > div > .rounded-md > .relative > .outline-none';
-  private UserName = `img[alt="User avatar"]`;
+  private UserName = `a[href="/settings"]`;
 
   private async closeCopilot(page: Page) {
     try {
