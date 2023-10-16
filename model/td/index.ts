@@ -34,7 +34,6 @@ interface Account extends ComInfo {
 class Child extends ComChild<Account> {
   public client: AxiosInstance;
   public page?: Page;
-  refreshTokenItl!: any;
 
   constructor(label: string, info: any, options?: ChildOptions) {
     super(label, info, options);
@@ -139,13 +138,11 @@ class Child extends ComChild<Account> {
   initFailed() {
     this.page?.browser().close();
     this.destroy({ delFile: true, delMem: true });
-    clearInterval(this.refreshTokenItl);
   }
 
   destroy(options?: DestroyOptions) {
     super.destroy(options);
     this.page?.browser()?.close();
-    clearInterval(this.refreshTokenItl);
   }
 }
 
