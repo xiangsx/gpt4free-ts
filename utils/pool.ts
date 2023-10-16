@@ -155,8 +155,9 @@ export class Pool<U extends Info, T extends PoolChild<U>> {
   }
 
   private getOneOldInfo() {
+    const infos = shuffleArray(this.allInfos);
     for (let i = 0; i < this.allInfos.length; i++) {
-      const info = this.allInfos[i];
+      const info = infos[i];
       if (!this.childMap.has(info.id) && this.isInfoValid(info)) {
         return info;
       }
