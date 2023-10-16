@@ -91,7 +91,7 @@ class Child extends ComChild<Account> {
       }
 
       await page.waitForSelector(`a[href="https://askx.ai/dashboard/chat"]`);
-      await sleep(1000);
+      await sleep(3000);
       await this.updateToken(page);
       page.browser().close();
     } catch (e) {
