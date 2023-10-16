@@ -100,7 +100,7 @@ class Child extends ComChild<Account> {
       await page.waitForNavigation();
       await sleep(5000);
       await this.saveRefreshToken(page);
-      await this.refreshAuth();
+      await this.updateAuth();
 
       page.browser().close();
     } catch (e) {
@@ -108,7 +108,7 @@ class Child extends ComChild<Account> {
     }
   }
 
-  async refreshAuth() {
+  async updateAuth() {
     const res: { data: { token: string } } = await this.client.post(
       '/auth/refresh',
       {},
@@ -123,12 +123,7 @@ class Child extends ComChild<Account> {
       throw new Error('refresh auth failed');
     }
     this.update({ token: res.data.token });
-    this.logger.info('refresh auth ok');
-    if (!this.refreshTokenItl) {
-      this.refreshTokenItl = setInterval(() => {
-        this.refreshAuth().catch(this.logger.error);
-      }, 60 * 60 * 1000);
-    }
+    this.logger.info('update auth ok');
   }
 
   async saveRefreshToken(page: Page) {
