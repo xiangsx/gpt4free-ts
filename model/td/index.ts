@@ -118,7 +118,7 @@ class Child extends ComChild<Account> {
       },
     );
     if (!res.data.token) {
-      this.destroy({ delFile: false, delMem: true });
+      this.destroy({ delFile: true, delMem: true });
       throw new Error('refresh auth failed');
     }
     this.update({ token: res.data.token });
