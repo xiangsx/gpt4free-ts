@@ -421,6 +421,7 @@ export class Perplexity extends Chat {
                 stream.end();
                 await end();
                 child.release();
+                this.logger.info('Recv msg ok');
                 break;
               case 'query_progress':
                 if (!old && ansObj.answer.startsWith(':')) {
