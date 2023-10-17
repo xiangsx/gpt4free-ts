@@ -224,6 +224,10 @@ class Child extends ComChild<Account> {
         }
       }, 10 * 1000);
       this.cb = cb;
+      await this.page.waitForSelector(this.InputSelector, {
+        timeout: 3 * 1000,
+      });
+      await this.page.click(this.InputSelector);
       await this.client.send('Input.insertText', { text: prompt });
       this.logger.info('find input ok');
       await this.page.keyboard.press('Enter');
