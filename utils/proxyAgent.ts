@@ -384,15 +384,20 @@ export class WebFetchWithPage {
     const stream = new PassThrough();
     this.streamMap[id] = stream;
     this.useCount += 1;
-    this.page.evaluate(
+    await this.page.evaluate(
       (id, url, init) => {
         return new Promise((resolve, reject) => {
           fetch(url, init)
             .then((response) => {
               if (!response.body) {
-                resolve(null);
+                reject('no body');
                 return null;
               }
+              if (response.status !== 200) {
+                reject(`status code: ${response.status}`);
+                return null;
+              }
+              resolve(null);
               const reader = response.body.getReader();
               function readNextChunk() {
                 reader
@@ -403,7 +408,6 @@ export class WebFetchWithPage {
                       // @ts-ignore
                       window.onChunkEnd(id);
                       // @ts-ignore
-                      resolve(textChunk);
                       return;
                     }
                     // @ts-ignore
@@ -413,7 +417,6 @@ export class WebFetchWithPage {
                   .catch((err) => {
                     // @ts-ignore
                     window.onChunkError(id, err);
-                    reject(err);
                   });
               }
               readNextChunk();

@@ -1,5 +1,12 @@
 import { Chat, ChatOptions, ChatRequest, ModelType } from '../base';
-import { Event, EventStream, parseJSON, randomStr, sleep } from '../../utils';
+import {
+  Event,
+  EventStream,
+  parseJSON,
+  randomStr,
+  randomUserAgent,
+  sleep,
+} from '../../utils';
 import {
   ChildOptions,
   ComChild,
@@ -50,6 +57,7 @@ class Child extends ComChild<Account> {
         this.logger.info('login with token ...');
         page = await CreateNewPage('https://app.getmerlin.in/login');
         this.page = page;
+        await page.setUserAgent(randomUserAgent());
         await page.waitForSelector('#email');
         await page.click('#email');
         await page.keyboard.type(this.info.email);
