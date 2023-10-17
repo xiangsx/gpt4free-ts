@@ -71,8 +71,6 @@ class Child extends ComChild<Account> {
           return;
         }
 
-        this.logger.info(message);
-
         let content = cheerio.load(message)('span').html();
         if (!content) {
           return;
