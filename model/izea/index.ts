@@ -103,7 +103,7 @@ class Child extends ComChild<Account> {
     try {
       const delay = setTimeout(async () => {
         this.events?.onError(new Error('timeout'));
-      }, 15 * 1000);
+      }, 20 * 1000);
       this.events = {
         onEnd: async (msg: string) => {
           delete this.events;
