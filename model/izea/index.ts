@@ -82,7 +82,6 @@ class Child extends ComChild<Account> {
           this.events?.onEnd(content);
           return;
         }
-        this.events?.onMsg(content);
         this.refresh?.();
       } catch (e) {
         this.logger.warn('parse failed, ', e);
@@ -106,7 +105,7 @@ class Child extends ComChild<Account> {
     try {
       const delay = setTimeout(async () => {
         this.events?.onError(new Error('timeout'));
-      }, 10 * 1000);
+      }, 15 * 1000);
       this.events = {
         onEnd: async (msg: string) => {
           delete this.events;
@@ -264,7 +263,7 @@ class Child extends ComChild<Account> {
   }
 
   initFailed() {
-    this.options?.onInitFailed({ delFile: false, delMem: true });
+    this.options?.onInitFailed({ delFile: true, delMem: true });
     this.page?.browser?.().close?.();
   }
 
