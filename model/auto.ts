@@ -116,6 +116,13 @@ export class Auto extends Chat {
       },
     );
     const chat = this.getRandomModel(req.model);
+    if (!chat) {
+      es.destroy();
+      throw new ComError(
+        `not support model: ${req.model}`,
+        ComError.Status.NotFound,
+      );
+    }
     await chat.preHandle(req, { stream });
     return await chat.askStream(req, es).catch((err) => {
       es.destroy();
