@@ -414,6 +414,17 @@ export class Stack extends Chat {
         {
           headers: {
             Authorization: `Bearer ${child.info.token}`,
+            accept: '*/*',
+            'accept-language': 'zh-CN,zh;q=0.9',
+            'cache-control': 'no-cache',
+            pragma: 'no-cache',
+            'sec-fetch-dest': 'empty',
+            'sec-fetch-mode': 'cors',
+            'sec-fetch-site': 'cross-site',
+            Referer: 'https://www.stack-ai.com/',
+            'Referrer-Policy': 'strict-origin-when-cross-origin',
+            'User-Agent': `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36 Edg/118.0.2088.46`,
+            Origin: 'https://www.stack-ai.com',
           },
           responseType: 'stream',
         },
