@@ -174,9 +174,6 @@ export class Stack extends Chat {
       if (!v.left) {
         return false;
       }
-      if (!v.email || !v.password) {
-        return false;
-      }
       return true;
     },
     {
