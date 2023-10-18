@@ -532,13 +532,8 @@ export class ComError extends Error {
 }
 
 export function removeRandomChars(str: string, percentage: number): string {
-  let result = '';
-  for (let i = 0; i < str.length; i++) {
-    if (Math.random() > percentage) {
-      result += str[i];
-    }
-  }
-  return result;
+  const charsToRemove = Math.floor(str.length * percentage);
+  return str.slice(0, str.length - charsToRemove - 2);
 }
 
 const converter = OpenCC.Converter({ from: 'tw', to: 'cn' });
