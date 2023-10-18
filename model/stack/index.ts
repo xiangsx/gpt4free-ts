@@ -452,7 +452,7 @@ export class Stack extends Chat {
               }
             }
           } catch (e) {
-            this.logger.error('parse data failed, ', e);
+            this.logger.error(`parse data[${v.nodes}] failed, `, e);
           }
         }),
       );
