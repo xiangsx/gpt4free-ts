@@ -68,11 +68,12 @@ async function checkApiKey(ctx: Context, next: Next) {
     await next();
     return;
   }
-  const authorStr = ctx.request.headers.authorization;
+  const authorStr =
+    ctx.request.headers.authorization || ctx.request.headers['x-api-key'];
   if (!authorStr) {
     throw new ComError('invalid api key', 401);
   }
-  const secret = authorStr.replace(/Bearer /, '');
+  const secret = (authorStr as string).replace(/Bearer /, '');
   if (secret !== process.env.API_KEY) {
     throw new ComError('invalid api key', 401);
   }
