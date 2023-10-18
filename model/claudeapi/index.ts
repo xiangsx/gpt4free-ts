@@ -2,7 +2,7 @@ import { Chat, ChatOptions, ChatRequest, ModelType } from '../base';
 import { AxiosInstance, AxiosRequestConfig, CreateAxiosDefaults } from 'axios';
 import { CreateAxiosProxy } from '../../utils/proxyAgent';
 import es from 'event-stream';
-import { Event, EventStream, parseJSON } from '../../utils';
+import { ComError, Event, EventStream, parseJSON } from '../../utils';
 
 interface Message {
   role: string;
@@ -143,8 +143,7 @@ export class ClaudeAPI extends Chat {
           chunk.toString(),
         ),
       );
-      stream.write(Event.error, { error: e.message });
-      stream.end();
+      throw new ComError(e.message, e.response.status);
     }
   }
 }

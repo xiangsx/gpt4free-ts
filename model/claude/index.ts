@@ -14,6 +14,7 @@ import {
 } from '../../utils/emailFactory';
 import * as fs from 'fs';
 import {
+  ComError,
   DoneData,
   ErrorData,
   Event,

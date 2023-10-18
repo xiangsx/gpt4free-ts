@@ -292,6 +292,68 @@ export class OpenaiEventStream extends EventStream {
   }
 }
 
+export class ClaudeEventStream extends EventStream {
+  private log_id: string = randomStr(64).toLowerCase();
+
+  write<T extends Event>(event: T, data: Data<T>) {
+    switch (event) {
+      case Event.done:
+        this.pt.write(
+          `event: completion\ndata: ${JSON.stringify({
+            completion: '',
+            stop_reason: 'stop_sequence',
+            model: this.model,
+            stop: '\n\nHuman:',
+            log_id: this.log_id,
+          })}\n\n`,
+          'utf-8',
+        );
+        break;
+      case Event.message:
+        this.pt.write(
+          `event: completion\ndata: ${JSON.stringify({
+            completion: (data as MessageData).content,
+            stop_reason: null,
+            model: this.model,
+            stop: null,
+            log_id: this.log_id,
+          })}\n\n`,
+          'utf-8',
+        );
+        break;
+      default:
+        break;
+    }
+  }
+
+  read(dataCB: DataCB<Event>, closeCB: () => void) {
+    this.pt.setEncoding('utf-8');
+    this.pt.pipe(es.split(/\r?\n\r?\n/)).pipe(
+      es.map(async (chunk: any, cb: any) => {
+        if (chunk.indexOf('event: ping') > -1) {
+          return;
+        }
+        const dataStr = chunk.replace('event: completion\ndata: ', '');
+        if (!dataStr) {
+          return;
+        }
+        const data = parseJSON<{ completion: string; stop: string }>(
+          dataStr,
+          {} as any,
+        );
+        if (!data.completion) {
+          return;
+        }
+        dataCB(Event.message, { content: data.completion });
+      }),
+    );
+    this.pt.on('close', () => {
+      dataCB(Event.done, { content: '' });
+      closeCB();
+    });
+  }
+}
+
 export const htmlToMarkdown = (html: string): string => {
   return turndownService.turndown(html);
 };

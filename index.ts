@@ -12,6 +12,7 @@ import {
   Site,
 } from './model/base';
 import {
+  ClaudeEventStream,
   ComError,
   Event,
   EventStream,
@@ -227,6 +228,13 @@ interface OpenAIReq {
   messages: Message[];
 }
 
+interface ClaudeReq {
+  site: Site;
+  stream: boolean;
+  model: ModelType;
+  prompt: string;
+}
+
 interface Support {
   site: string;
   models: string[];
@@ -252,10 +260,7 @@ router.get('/supports', (ctx) => {
   }
   ctx.body = result;
 });
-router.get('/ask', AskHandle);
-router.post('/ask', AskHandle);
-router.get('/ask/stream', AskStreamHandle(EventStream));
-router.post('/ask/stream', AskStreamHandle(EventStream));
+
 const openAIHandle: Middleware = async (ctx, next) => {
   const { stream, messages, model } = {
     ...(ctx.query as any),
@@ -295,9 +300,34 @@ const openAIHandle: Middleware = async (ctx, next) => {
     },
   };
 };
+const claudeHandle: Middleware = async (ctx, next) => {
+  const { stream, model } = {
+    ...(ctx.query as any),
+    ...(ctx.request.body as any),
+    ...(ctx.params as any),
+  } as ClaudeReq;
+  if (stream) {
+    await AskStreamHandle(ClaudeEventStream)(ctx, next);
+    return;
+  }
+  await AskHandle(ctx, next);
+  ctx.body = {
+    completion: ctx.body.content,
+    stop_reason: 'stop_sequence',
+    model: model,
+    stop: '\n\nHuman:',
+    log_id: randomStr(64).toLowerCase(),
+  };
+};
 
+router.get('/ask', AskHandle);
+router.post('/ask', AskHandle);
+router.get('/ask/stream', AskStreamHandle(EventStream));
+router.post('/ask/stream', AskStreamHandle(EventStream));
 router.post('/v1/chat/completions', openAIHandle);
 router.post('/:site/v1/chat/completions', openAIHandle);
+router.post('/v1/complete', claudeHandle);
+router.post('/:site/v1/complete', claudeHandle);
 
 app.use(router.routes());
 
