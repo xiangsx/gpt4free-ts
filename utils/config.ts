@@ -74,7 +74,12 @@ interface ConfigData {
     size: number;
     serial: number;
     mail_type: TempEmailType;
-    accounts: { email: string; password: string }[];
+    accounts: {
+      email: string;
+      password: string;
+      flow_id: string;
+      token: string;
+    }[];
   };
   mixer: { size: number; mailType: TempEmailType; serial: number };
   merlin: { size: number; mailType: TempEmailType; serial: number };

@@ -31,6 +31,7 @@ interface Account extends ComInfo {
   expire_time: number;
   flow_id: string;
   left: number;
+  use_out_time: number;
 }
 class Child extends ComChild<Account> {
   public client: AxiosInstance;
@@ -47,7 +48,12 @@ class Child extends ComChild<Account> {
   async init(): Promise<void> {
     try {
       if (this.info.token) {
+        if (this.info.left <= 0) {
+          this.update({ left: 1000 });
+        }
         return;
+      } else {
+        throw new Error('token is empty');
       }
       const page = await CreateNewPage('https://www.stack-ai.com/');
       this.page = page;
@@ -171,14 +177,40 @@ export class Stack extends Chat {
       if (!v.token) {
         return false;
       }
-      if (!v.left) {
+      if (!v.left && moment.unix(v.use_out_time).isSame(moment(), 'day')) {
         return false;
       }
       return true;
     },
     {
-      delay: 1000,
+      delay: 3000,
       serial: () => Config.config.stack.serial || 1,
+      preHandleAllInfos: async (allInfos) => {
+        const oldMap: Record<string, Account> = {};
+        for (const v of allInfos) {
+          oldMap[v.email] = v;
+        }
+        const result: Account[] = [];
+        for (const v of Config.config.stack.accounts) {
+          if (oldMap[v.email]) {
+            Object.assign(oldMap[v.email], v);
+            result.push(oldMap[v.email]);
+            continue;
+          }
+          result.push({
+            id: v4(),
+            ready: false,
+            ...v,
+            left: 1000,
+          } as Account);
+        }
+        return result;
+      },
+      needDel: (account) => {
+        return !Config.config.stack.accounts.find(
+          (v) => v.email === account.email,
+        );
+      },
     },
   );
   constructor(options?: ChatOptions) {
@@ -214,6 +246,7 @@ export class Stack extends Chat {
       return;
     }
     try {
+      child.update({ left: child.info.left - 1 });
       const res = await child.client.post(
         `https://www.stack-inference.com/run_flow?flow_id=${child.info.flow_id}`,
         {
@@ -457,20 +490,24 @@ export class Stack extends Chat {
         this.logger.info('Msg recv ok');
         stream.write(Event.done, { content: '' });
         stream.end();
+        if (child.info.left <= 0) {
+          child.update({ use_out_time: moment().unix() });
+          child.destroy({ delFile: false, delMem: true });
+        }
       });
     } catch (e: any) {
-      this.logger.error('ask failed, ', e.message);
+      this.logger.error(`${child.info.email}ask failed, `, e.message);
       stream.write(Event.error, e);
       stream.write(Event.done, { content: '' });
       stream.end();
       if (e.response.status === 401) {
         this.logger.warn('token expired');
+        child.update({ use_out_time: moment().unix(), left: 0 });
         child.destroy({ delFile: false, delMem: true });
         return;
       }
-    } finally {
-      child.update({ left: child.info.left - 1 });
       if (child.info.left <= 0) {
+        child.update({ use_out_time: moment().unix() });
         child.destroy({ delFile: false, delMem: true });
       }
     }
