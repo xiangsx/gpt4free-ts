@@ -161,7 +161,10 @@ export function sliceMessagesByToken(
   if (size < limitSize) {
     return messages;
   }
-  const newMessage = messages.slice(1, messages.length);
+  const newMessage =
+    size / limitSize > 2
+      ? messages.slice(-20)
+      : messages.slice(1, messages.length);
   if (newMessage.length === 0) {
     if (!forceRemove) {
       throw new ComError('message too long', ComError.Status.RequestTooLarge);
@@ -194,7 +197,10 @@ export function sliceMessagesByLength(
   if (size < limitSize) {
     return messages;
   }
-  const newMessage = messages.slice(1, messages.length);
+  const newMessage =
+    size / limitSize > 2
+      ? messages.slice(-20)
+      : messages.slice(1, messages.length);
   if (newMessage.length === 0) {
     if (!forceRemove) {
       throw new ComError('message too long', ComError.Status.RequestTooLarge);
