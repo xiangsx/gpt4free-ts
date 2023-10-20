@@ -111,6 +111,7 @@ export async function CreateNewPage(
     simplify?: boolean;
     user_agent?: string;
     cookies?: Protocol.Network.CookieParam[];
+    devtools?: boolean;
   },
 ) {
   const {
@@ -120,9 +121,11 @@ export async function CreateNewPage(
     simplify = true,
     cookies = [],
     user_agent = '',
+    devtools = false,
   } = options || {};
   const launchOpt: PuppeteerLaunchOptions = {
     headless: process.env.DEBUG === '1' ? false : 'new',
+    devtools,
     args: [
       '--no-sandbox',
       '--disable-setuid-sandbox',
