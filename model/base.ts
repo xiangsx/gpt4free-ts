@@ -198,7 +198,7 @@ export function sliceMessagesByLength(
     return messages;
   }
   const newMessage =
-    size / limitSize > 2
+    size / limitSize > 2 && messages.length > 21
       ? messages.slice(-20)
       : messages.slice(1, messages.length);
   if (newMessage.length === 0) {
