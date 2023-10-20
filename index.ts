@@ -26,7 +26,7 @@ import moment from 'moment';
 import { Config } from './utils/config';
 import { initLog } from './utils/log';
 
-process.setMaxListeners(100); // 将限制提高到20个
+process.setMaxListeners(1000); // 将限制提高到20个
 
 dotenv.config();
 initLog();
