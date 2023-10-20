@@ -32,7 +32,7 @@ export class Auto extends Chat {
   getOpenAIChat = (v: SiteCfg) => {
     const key = `${v.base_url}_${v.api_key}_${v.proxy}`;
     if (!this.openAIChatMap.has(key)) {
-      this.logger.info('get new');
+      this.logger.info(`create openai chat: ${key}`);
       this.openAIChatMap.set(
         key,
         new OpenAI({
@@ -50,6 +50,7 @@ export class Auto extends Chat {
   getClaudeAIChat = (v: SiteCfg) => {
     const key = `${v.base_url}_${v.api_key}_${v.proxy}`;
     if (!this.claudeAIChatMap.has(key)) {
+      this.logger.info(`create claudeai chat: ${key}`);
       this.claudeAIChatMap.set(
         key,
         new ClaudeAPI({
