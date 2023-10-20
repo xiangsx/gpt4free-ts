@@ -153,7 +153,7 @@ export function sliceMessagesByToken(
       ? messagesToPrompt(messages)
       : messages.reduce((prev, cur) => prev + cur.content, ''),
   );
-  console.log(
+  console.debug(
     `${
       countPrompt ? 'prompt' : 'messages.content'
     } token count ${size} / ${limitSize}`,
@@ -189,7 +189,7 @@ export function sliceMessagesByLength(
       ? messagesToPrompt(messages)
       : messages.reduce((prev, cur) => prev + cur.content, '')
   ).length;
-  console.log(
+  console.debug(
     `${
       countPrompt ? 'prompt' : 'messages.content'
     } length ${size} / ${limitSize}`,
