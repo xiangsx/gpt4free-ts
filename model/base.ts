@@ -128,6 +128,7 @@ export interface ChatRequest {
   messages: Message[];
   search?: boolean;
   max_tokens?: number;
+  secret?: string;
 }
 
 // 结构体message转换为prompt

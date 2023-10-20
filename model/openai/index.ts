@@ -110,6 +110,9 @@ export class OpenAI extends Chat {
     try {
       const res = await this.client.post('/v1/chat/completions', data, {
         responseType: 'stream',
+        headers: {
+          Authorization: `Bearer ${req.secret || this.options?.api_key || ''}`,
+        },
       } as AxiosRequestConfig);
       res.data.pipe(es.split(/\r?\n\r?\n/)).pipe(
         es.map(async (chunk: any, cb: any) => {

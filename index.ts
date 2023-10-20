@@ -64,16 +64,15 @@ interface AskReq extends ChatRequest {
 interface AskRes extends ChatResponse {}
 
 async function checkApiKey(ctx: Context, next: Next) {
+  let secret = '';
+  const authorStr =
+    ctx.request.headers.authorization || ctx.request.headers['x-api-key'];
+  secret = ((authorStr as string) || '').replace(/Bearer /, '');
+  ctx.query = { ...ctx.query, secret };
   if (!process.env.API_KEY) {
     await next();
     return;
   }
-  const authorStr =
-    ctx.request.headers.authorization || ctx.request.headers['x-api-key'];
-  if (!authorStr) {
-    throw new ComError('invalid api key', 401);
-  }
-  const secret = (authorStr as string).replace(/Bearer /, '');
   if (secret !== process.env.API_KEY) {
     throw new ComError('invalid api key', 401);
   }
