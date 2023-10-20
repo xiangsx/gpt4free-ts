@@ -109,6 +109,7 @@ export async function CreateNewPage(
     proxy?: string;
     args?: string[];
     simplify?: boolean;
+    user_agent?: string;
     cookies?: Protocol.Network.CookieParam[];
   },
 ) {
@@ -118,6 +119,7 @@ export async function CreateNewPage(
     args = [],
     simplify = true,
     cookies = [],
+    user_agent = '',
   } = options || {};
   const launchOpt: PuppeteerLaunchOptions = {
     headless: process.env.DEBUG === '1' ? false : 'new',
@@ -135,6 +137,9 @@ export async function CreateNewPage(
   const browser = await puppeteer.launch(launchOpt);
   try {
     const page = await browser.newPage();
+    if (user_agent) {
+      await page.setUserAgent(user_agent);
+    }
     if (simplify) {
       await simplifyPage(page);
     }
