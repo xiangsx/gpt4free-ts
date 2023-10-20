@@ -137,7 +137,7 @@ export async function CreateNewPage(
   if (proxy) {
     launchOpt.args?.push(`--proxy-server=${proxy}`);
   }
-  const browser = await puppeteer.launch(launchOpt);
+  const browser = await puppeteer.use(StealthPlugin()).launch(launchOpt);
   try {
     const page = await browser.newPage();
     if (user_agent) {
