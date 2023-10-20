@@ -21,11 +21,48 @@ const MaxRetryTimes = +(process.env.AUTO_RETRY_TIMES || 0);
 
 export class Auto extends Chat {
   private modelMap: Map<Site, Chat>;
+  private openAIChatMap: Map<string, OpenAI> = new Map();
+  private claudeAIChatMap: Map<string, ClaudeAPI> = new Map();
 
   constructor(options: AutoOptions) {
     super(options);
     this.modelMap = options.ModelMap;
   }
+
+  getOpenAIChat = (v: SiteCfg) => {
+    const key = `${v.base_url}_${v.api_key}_${v.proxy}`;
+    if (!this.openAIChatMap.has(key)) {
+      this.logger.info('get new');
+      this.openAIChatMap.set(
+        key,
+        new OpenAI({
+          api_key: v.api_key,
+          base_url: v.base_url,
+          name: v.label || v.site,
+          proxy: v.proxy,
+          model_map: v.model_map,
+        }),
+      );
+    }
+    return this.openAIChatMap.get(key) as OpenAI;
+  };
+
+  getClaudeAIChat = (v: SiteCfg) => {
+    const key = `${v.base_url}_${v.api_key}_${v.proxy}`;
+    if (!this.claudeAIChatMap.has(key)) {
+      this.claudeAIChatMap.set(
+        key,
+        new ClaudeAPI({
+          api_key: v.api_key,
+          base_url: v.base_url,
+          name: v.label || v.site,
+          proxy: v.proxy,
+          model_map: v.model_map,
+        }),
+      );
+    }
+    return this.claudeAIChatMap.get(key) as ClaudeAPI;
+  };
 
   getRandomModel(model: ModelType): Chat {
     const list: SiteCfg[] = [];
@@ -69,22 +106,10 @@ export class Auto extends Chat {
       label: v.label,
     });
     if (v.site === Site.OpenAI) {
-      return new OpenAI({
-        api_key: v.api_key,
-        base_url: v.base_url,
-        name: v.label || v.site,
-        proxy: v.proxy,
-        model_map: v.model_map,
-      });
+      return this.getOpenAIChat(v);
     }
     if (v.site === Site.Claude) {
-      return new ClaudeAPI({
-        api_key: v.api_key,
-        base_url: v.base_url,
-        name: v.label || v.site,
-        proxy: v.proxy,
-        model_map: v.model_map,
-      });
+      return this.getClaudeAIChat(v);
     }
     return this.modelMap.get(v.site) as Chat;
   }
