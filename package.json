@@ -54,7 +54,7 @@
     "koa-router": "^12.0.0",
     "moment": "^2.29.4",
     "opencc-js": "^1.0.5",
-    "puppeteer": "^21.3.8",
+    "puppeteer": "^20.1.2",
     "puppeteer-extra": "^3.3.6",
     "puppeteer-extra-plugin-stealth": "^2.11.2",
     "string-similarity": "^4.0.4",
