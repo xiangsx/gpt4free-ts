@@ -110,9 +110,6 @@ export class ClaudeAPI extends Chat {
     try {
       const res = await this.client.post('/v1/complete', data, {
         responseType: 'stream',
-        headers: {
-          'x-api-key': `${req.secret || this.options?.api_key || ''}`,
-        },
       } as AxiosRequestConfig);
       res.data.pipe(es.split(/\r?\n\r?\n/)).pipe(
         es.map(async (chunk: any, cb: any) => {
