@@ -404,11 +404,14 @@ export class WebFetchWithPage {
           fetch(url, init)
             .then((response) => {
               if (!response.body) {
-                reject('no body');
+                reject({ status: response.status });
                 return null;
               }
               if (response.status !== 200) {
-                reject(`status code: ${response.status}`);
+                response
+                  .json()
+                  .then((res) => ({ status: response.status, ...res }))
+                  .then(reject);
                 return null;
               }
               resolve(null);
