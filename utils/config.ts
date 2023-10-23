@@ -35,6 +35,11 @@ interface ConfigData {
     serial: number;
     mail_type: TempEmailType;
   };
+  phind: {
+    size: number;
+    serial: number;
+    mail_type: TempEmailType;
+  };
   sincode: {
     size: number;
     serial: number;
@@ -185,6 +190,11 @@ class BaseConfig {
       serial: 0,
       concurrency: 1,
       accounts: [],
+    },
+    phind: {
+      size: 0,
+      serial: 0,
+      mail_type: TempEmailType.TempMailLOL,
     },
     izea: {
       size: 0,

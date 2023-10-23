@@ -70,7 +70,7 @@ export class ChatModelFactory {
   init() {
     // register new model here
     // this.modelMap.set(Site.You, new You({ name: Site.You }));
-    // this.modelMap.set(Site.Phind, new Phind({ name: Site.Phind }));
+    this.modelMap.set(Site.Phind, new Phind({ name: Site.Phind }));
     // this.modelMap.set(
     //   Site.Forefront,
     //   new Forefrontnew({ name: Site.Forefront, net: false }),
