@@ -505,6 +505,7 @@ export function getTokenCount(input: string) {
 
 export class ComError extends Error {
   public status: number;
+  public data?: any;
 
   static Status = {
     BadRequest: 400,
@@ -521,6 +522,7 @@ export class ComError extends Error {
   constructor(
     message?: string,
     code: number = ComError.Status.InternalServerError,
+    data?: any,
   ) {
     super(message); // 调用父类构造函数
 
@@ -528,6 +530,7 @@ export class ComError extends Error {
 
     this.name = this.constructor.name; // 设置错误的名称为当前类名
     this.status = code; // 设置错误代码
+    this.data = data; // 其他数据
   }
 }
 

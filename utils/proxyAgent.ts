@@ -12,7 +12,7 @@ import moment from 'moment';
 import { closeOtherPages, simplifyPage } from './puppeteer';
 import { v4 } from 'uuid';
 import { PassThrough } from 'stream';
-import { getRandomOne, sleep } from './index';
+import { ComError, getRandomOne, sleep } from './index';
 import { Config } from './config';
 
 puppeteer.use(StealthPlugin());
@@ -398,23 +398,25 @@ export class WebFetchWithPage {
     const stream = new PassThrough();
     this.streamMap[id] = stream;
     this.useCount += 1;
-    await this.page.evaluate(
+    const data = (await this.page.evaluate(
       (id, url, init) => {
         return new Promise((resolve, reject) => {
           fetch(url, init)
             .then((response) => {
               if (!response.body) {
-                reject({ status: response.status });
+                resolve({ status: 500 });
                 return null;
               }
               if (response.status !== 200) {
                 response
                   .json()
-                  .then((res) => ({ status: response.status, ...res }))
-                  .then(reject);
+                  .then((res) => {
+                    return { status: response.status, ...res };
+                  })
+                  .then(resolve);
                 return null;
               }
-              resolve(null);
+              resolve({ status: 200 });
               const reader = response.body.getReader();
               function readNextChunk() {
                 reader
@@ -447,7 +449,11 @@ export class WebFetchWithPage {
       id,
       url,
       init,
-    );
+    )) as { status: number; [key: string]: any };
+    if (data.status !== 200) {
+      throw new ComError('fetch failed', data.status, data);
+    }
+
     return stream;
   }
 }

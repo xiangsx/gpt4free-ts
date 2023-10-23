@@ -35,3 +35,46 @@ class SyncFileDebouncer {
 
 // 使用示例
 export const fileDebouncer = SyncFileDebouncer.getInstance(500); // 100ms 的 debounce 时间
+
+export function getImageContentType(ext: string): string {
+  const normalizedExt = ext.startsWith('.')
+    ? ext.slice(1).toLowerCase()
+    : ext.toLowerCase();
+
+  switch (normalizedExt) {
+    case 'jpeg':
+    case 'jpg':
+      return 'image/jpeg';
+    case 'png':
+      return 'image/png';
+    case 'gif':
+      return 'image/gif';
+    case 'bmp':
+      return 'image/bmp';
+    case 'webp':
+      return 'image/webp';
+    // Add other cases as needed
+    default:
+      throw new Error(`Unsupported file extension: ${normalizedExt}`);
+  }
+}
+
+export function getImageExtension(contentType: string): string {
+  switch (contentType) {
+    case 'image/jpeg':
+      return 'jpeg';
+    case 'image/jpg':
+      return 'jpg';
+    case 'image/png':
+      return 'png';
+    case 'image/gif':
+      return 'gif';
+    case 'image/bmp':
+      return 'bmp';
+    case 'image/webp':
+      return 'webp';
+    // Add other cases as needed
+    default:
+      throw new Error(`Unsupported content type: ${contentType}`);
+  }
+}
