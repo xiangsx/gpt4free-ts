@@ -95,7 +95,8 @@ class Child extends ComChild<Account> {
         ],
       });
       this.page = page;
-      await handleCF(page);
+      page = await handleCF(page);
+      this.page = page;
       if (await ifCF(page)) {
         await page.browser().close();
         throw new Error('cf failed');
@@ -103,7 +104,8 @@ class Child extends ComChild<Account> {
     } else {
       page = await CreateNewPage('https://www.phind.com/api/auth/signin');
       this.page = page;
-      await handleCF(page);
+      page = await handleCF(page);
+      this.page = page;
       if (await ifCF(page)) {
         await page.browser().close();
         throw new Error('cf failed');
