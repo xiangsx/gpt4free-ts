@@ -76,6 +76,8 @@ interface ConfigData {
   openchat4: {
     size: number;
     serial: number;
+    allow_3: boolean;
+    arkose_data: string;
     accounts: { email: string; password: string }[];
   };
   stack: {
@@ -228,6 +230,8 @@ class BaseConfig {
     openchat4: {
       size: 0,
       serial: 0,
+      allow_3: false,
+      arkose_data: '',
       accounts: [],
     },
     poeauto: {
