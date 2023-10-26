@@ -30,7 +30,7 @@ export class Auto extends Chat {
   }
 
   getOpenAIChat = (v: SiteCfg) => {
-    const key = `${v.base_url}_${v.api_key}_${v.proxy}`;
+    const key = JSON.stringify(v);
     if (!this.openAIChatMap.has(key)) {
       this.logger.info(`create openai chat: ${key}`);
       this.openAIChatMap.set(
@@ -48,7 +48,7 @@ export class Auto extends Chat {
   };
 
   getClaudeAIChat = (v: SiteCfg) => {
-    const key = `${v.base_url}_${v.api_key}_${v.proxy}`;
+    const key = JSON.stringify(v);
     if (!this.claudeAIChatMap.has(key)) {
       this.logger.info(`create claudeai chat: ${key}`);
       this.claudeAIChatMap.set(
