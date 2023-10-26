@@ -127,7 +127,7 @@ export async function CreateNewPage(
     headless: process.env.DEBUG === '1' ? false : 'new',
     devtools,
     args: [
-      // '--no-sandbox',
+      '--no-sandbox',
       // '--disable-setuid-sandbox',
       '--disable-background-timer-throttling',
       '--disable-backgrounding-occluded-windows',
