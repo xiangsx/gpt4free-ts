@@ -266,9 +266,9 @@ export class Phind extends Chat {
           credentials: 'include',
         },
       );
-      pt.pipe(es.split(/\r?\n/)).pipe(
+      pt.pipe(es.split(/\r?\n\r?\n/)).pipe(
         es.map(async (chunk: any, cb: any) => {
-          const dataStr = chunk.replace('data: ', '');
+          const dataStr = chunk.replace(/data: /g, '');
           if (!dataStr) {
             return;
           }
