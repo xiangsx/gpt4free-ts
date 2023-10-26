@@ -159,13 +159,16 @@ export async function CreateNewPage(
   }
 }
 
-export async function CreateNewPageWithWS(
-  ws: string,
+export async function CreateNewPageWS(
+  url: string,
   options?: {
     allowExtensions?: boolean;
     proxy?: string;
     args?: string[];
     simplify?: boolean;
+    user_agent?: string;
+    cookies?: Protocol.Network.CookieParam[];
+    devtools?: boolean;
   },
 ) {
   const {
@@ -173,16 +176,34 @@ export async function CreateNewPageWithWS(
     proxy = getProxy(),
     args = [],
     simplify = true,
+    cookies = [],
+    user_agent = '',
+    devtools = false,
   } = options || {};
-  const newB = await puppeteer.connect({ browserWSEndpoint: ws });
-  const page = (await newB.pages()).find(
-    (v) => v.url().indexOf('blank') === -1,
-  ) as Page;
-  if (simplify) {
-    await simplifyPage(page);
+  const ws = await launchChromeAndFetchWsUrl();
+  if (!ws) {
+    throw new Error('launch chrome failed');
   }
-  await page.setViewport({ width: 1920, height: 1080 });
-  return page;
+  const browser = await puppeteer.connect({ browserWSEndpoint: ws });
+  try {
+    const page = await browser.newPage();
+    if (user_agent) {
+      await page.setUserAgent(user_agent);
+    }
+    if (simplify) {
+      await simplifyPage(page);
+    }
+    if (cookies.length > 0) {
+      await page.setCookie(...cookies);
+    }
+    await page.setViewport({ width: 1920, height: 1080 });
+    await page.goto(url);
+    return page;
+  } catch (e) {
+    console.error(e);
+    await browser.close();
+    throw e;
+  }
 }
 
 export async function CreateNewBrowser() {
@@ -208,7 +229,7 @@ let pptPort = 19222 + Math.floor(Math.random() * 10000);
 export function launchChromeAndFetchWsUrl(): Promise<string | null> {
   pptPort += 1;
   return new Promise((resolve, reject) => {
-    const command = `${process.env.CHROME_PATH}`;
+    const command = Config.config.global.chrome_path;
     if (!command) {
       reject(new Error('not config CHROME_PATH in env'));
     }

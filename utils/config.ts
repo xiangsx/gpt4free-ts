@@ -14,6 +14,9 @@ export type SiteCfg = {
 // 首先定义配置的数据类型
 interface ConfigData {
   exit: boolean;
+  global: {
+    chrome_path: string;
+  };
   proxy_pool: {
     enable: boolean;
     proxy_list: string[];
@@ -122,6 +125,9 @@ class BaseConfig {
   private filePath: string = './run/config.json';
   private defaultConfig: ConfigData = {
     exit: true,
+    global: {
+      chrome_path: 'google-chrome',
+    },
     askx: {
       size: 0,
       serial: 0,
