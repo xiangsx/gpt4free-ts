@@ -126,7 +126,6 @@ export async function CreateNewPage(
   const launchOpt: PuppeteerLaunchOptions = {
     headless: process.env.DEBUG === '1' ? false : 'new',
     devtools,
-    product: 'firefox',
     args: [
       '--no-sandbox',
       '--disable-setuid-sandbox',
