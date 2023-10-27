@@ -146,7 +146,7 @@ export class ClaudeAPI extends Chat {
           chunk.toString(),
         ),
       );
-      throw new ComError(e.message, e.response.status);
+      throw new ComError(e.message, e.response?.status);
     }
   }
 }
