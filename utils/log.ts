@@ -65,6 +65,7 @@ export const initLog = () => {
     ),
     transports: transports,
   });
+  logger.exitOnError = false;
   replaceConsoleWithWinston();
 };
 
