@@ -52,7 +52,11 @@ export const initLog = () => {
       }),
     );
   }
-  winston.exceptions.handle(...transports);
+  winston.exceptions.handle(
+    new winston.transports.Console({
+      format: winston.format.colorize(),
+    }),
+  );
   winston.exitOnError = false;
   logger = winston.createLogger({
     level: process.env.LOG_LEVEL || 'info', // 从环境变量中读取日志等级，如果没有设置，则默认为 'info'
