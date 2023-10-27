@@ -52,6 +52,8 @@ export const initLog = () => {
       }),
     );
   }
+  winston.rejections.handle(...transports);
+  winston.exitOnError = false;
   logger = winston.createLogger({
     level: process.env.LOG_LEVEL || 'info', // 从环境变量中读取日志等级，如果没有设置，则默认为 'info'
     format: winston.format.combine(
@@ -65,7 +67,6 @@ export const initLog = () => {
     ),
     transports: transports,
   });
-  logger.exitOnError = false;
   replaceConsoleWithWinston();
 };
 
