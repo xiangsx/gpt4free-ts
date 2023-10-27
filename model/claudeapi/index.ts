@@ -114,6 +114,7 @@ export class ClaudeAPI extends Chat {
           'x-api-key': `${this.options?.api_key || req.secret || ''}`,
         },
       } as AxiosRequestConfig);
+      let old = '';
       res.data.pipe(es.split(/\r?\n\r?\n/)).pipe(
         es.map(async (chunk: any, cb: any) => {
           const dataStr = chunk.replace('event: completion\r\ndata: ', '');
@@ -124,10 +125,17 @@ export class ClaudeAPI extends Chat {
           if (!data.completion) {
             return;
           }
+          if (!data.completion) {
+            return;
+          }
+          old += data.completion;
           stream.write(Event.message, { content: data.completion });
         }),
       );
       res.data.on('close', () => {
+        if (old.trim().length === 0) {
+          stream.write(Event.error, { error: 'no response' });
+        }
         stream.write(Event.done, { content: '' });
         stream.end();
       });
