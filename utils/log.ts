@@ -84,7 +84,9 @@ function replaceConsoleWithWinston(): void {
 }
 
 export function newLogger(site?: string) {
-  return logger.child({ site });
+  const log = logger.child({ site });
+  log.exitOnError = false;
+  return log;
 }
 
 interface UDPTransportOptions extends Transport.TransportStreamOptions {
