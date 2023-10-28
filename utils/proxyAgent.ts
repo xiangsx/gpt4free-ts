@@ -149,7 +149,10 @@ export async function CreateNewPage(
     if (cookies.length > 0) {
       await page.setCookie(...cookies);
     }
-    await page.setViewport({ width: 1920, height: 1080 });
+    await page.setViewport({
+      width: 1900 + Math.floor(Math.random() * 1000),
+      height: 1080,
+    });
     await page.goto(url);
     return page;
   } catch (e) {
