@@ -9,6 +9,7 @@ import { getEncoding } from 'js-tiktoken';
 import chalk from 'chalk';
 import * as OpenCC from 'opencc-js';
 import { ModelType } from '../model/base';
+import moment from 'moment';
 
 const turndownService = new TurndownService({ codeBlockStyle: 'fenced' });
 
@@ -198,6 +199,7 @@ export class ThroughEventStream extends EventStream {
 export class OpenaiEventStream extends EventStream {
   private id: string = 'chatcmpl-' + '89C' + randomStr(26);
   private start: boolean = false;
+  private created: number = moment().unix();
 
   write<T extends Event>(event: T, data: Data<T>) {
     if (!this.start) {
@@ -206,6 +208,7 @@ export class OpenaiEventStream extends EventStream {
           id: this.id,
           object: 'chat.completion.chunk',
           model: this.model,
+          created: this.created,
           choices: [
             {
               index: 0,
@@ -225,6 +228,7 @@ export class OpenaiEventStream extends EventStream {
             id: this.id,
             object: 'chat.completion.chunk',
             model: this.model,
+            created: this.created,
             choices: [{ index: 0, delta: {}, finish_reason: 'stop' }],
           })}\n\n`,
           'utf-8',
@@ -237,6 +241,7 @@ export class OpenaiEventStream extends EventStream {
             id: this.id,
             object: 'chat.completion.chunk',
             model: this.model,
+            created: this.created,
             choices: [
               {
                 index: 0,
@@ -254,6 +259,7 @@ export class OpenaiEventStream extends EventStream {
             id: this.id,
             object: 'chat.completion.chunk',
             model: this.model,
+            created: this.created,
             choices: [{ index: 0, delta: data, finish_reason: null }],
           })}\n\n`,
           'utf-8',
