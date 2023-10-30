@@ -266,10 +266,7 @@ class BaseConfig {
 
       // Merge defaultConfig and fileConfig
       this.config = Object.assign(this.config, this.defaultConfig, fileConfig);
-      console.log(
-        'Loaded config from run/config.json successfully!',
-        JSON.stringify(this.config),
-      );
+      console.log('Loaded config from run/config.json successfully!');
     } catch (error) {
       // console.error(`Error reading or parsing the configuration file ${this.filePath}.`, error);
     }
