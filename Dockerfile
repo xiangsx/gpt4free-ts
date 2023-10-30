@@ -1,4 +1,4 @@
-FROM browserless/chrome:1.60.2-puppeteer-1.20.0
+FROM browserless/chrome:1.60.2-puppeteer-20.2.1
 
 USER root
 
