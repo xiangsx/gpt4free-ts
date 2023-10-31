@@ -1,4 +1,4 @@
-FROM browserless/chrome:1.60.2-puppeteer-20.2.1
+FROM xiangsx/chrome:118.0.5993.117
 
 USER root
 
