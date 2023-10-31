@@ -343,7 +343,7 @@ const registerApp = () => {
 
 if (cluster.isPrimary) {
   console.log(`Master ${process.pid} is running`);
-  const workers = +(process.env.WORKERS || 1) - 1;
+  const workers = +(process.env.WORKERS || 1);
 
   // Fork workers.
   for (let i = 0; i < workers; i++) {
@@ -355,7 +355,6 @@ if (cluster.isPrimary) {
     console.log('Forking a new process...');
     cluster.fork(); // Fork a new process if a worker dies
   });
-  registerApp();
 } else {
   registerApp();
 }
