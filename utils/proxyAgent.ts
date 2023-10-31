@@ -14,6 +14,8 @@ import { v4 } from 'uuid';
 import { PassThrough } from 'stream';
 import { ComError, getRandomOne, sleep } from './index';
 import { Config } from './config';
+import { newInjectedPage } from 'fingerprint-injector';
+import { FingerprintGenerator } from 'fingerprint-generator';
 
 puppeteer.use(StealthPlugin());
 
@@ -112,6 +114,7 @@ export async function CreateNewPage(
     user_agent?: string;
     cookies?: Protocol.Network.CookieParam[];
     devtools?: boolean;
+    fingerprint_inject?: boolean;
   },
 ) {
   const {
@@ -122,6 +125,7 @@ export async function CreateNewPage(
     cookies = [],
     user_agent = '',
     devtools = false,
+    fingerprint_inject = false,
   } = options || {};
   const launchOpt: PuppeteerLaunchOptions = {
     headless: process.env.DEBUG === '1' ? false : 'new',
@@ -139,7 +143,17 @@ export async function CreateNewPage(
   }
   const browser = await puppeteer.use(StealthPlugin()).launch(launchOpt);
   try {
-    const page = await browser.newPage();
+    const gen = new FingerprintGenerator();
+    let page: Page;
+    if (fingerprint_inject) {
+      page = await newInjectedPage(browser, {
+        // constraints for the generated fingerprint
+        fingerprint: gen.getFingerprint(),
+        fingerprintOptions: gen.fingerprintGlobalOptions,
+      });
+    } else {
+      page = await browser.newPage();
+    }
     if (user_agent) {
       await page.setUserAgent(user_agent);
     }

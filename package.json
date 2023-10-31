@@ -47,6 +47,8 @@
     "event-stream": "^4.0.1",
     "fake-useragent": "^1.0.1",
     "file-type": "^16.5.4",
+    "fingerprint-generator": "^2.1.42",
+    "fingerprint-injector": "^2.1.42",
     "http-proxy-agent": "^6.0.1",
     "https-proxy-agent": "^5.0.1",
     "image-size": "^1.0.2",
