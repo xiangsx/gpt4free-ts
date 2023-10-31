@@ -96,7 +96,7 @@ class Child extends ComChild<Account> {
       this.logger.info('use left < 2, destroy');
       return;
     }
-    this.release();
+    this.destroy({ delFile: false, delMem: true });
   }
 
   async sendMsg(model: ModelType, prompt: string, events?: Events) {
