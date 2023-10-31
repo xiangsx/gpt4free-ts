@@ -1,4 +1,4 @@
-FROM xiangsx/chrome:118.0.5993.117
+FROM xiangsx/chrome:118.0.5993.88
 
 USER root
 
