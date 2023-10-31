@@ -141,7 +141,7 @@ export async function CreateNewPage(
   if (proxy) {
     launchOpt.args?.push(`--proxy-server=${proxy}`);
   }
-  const browser = await puppeteer.use(StealthPlugin()).launch(launchOpt);
+  const browser = await puppeteer.launch(launchOpt);
   try {
     const gen = new FingerprintGenerator();
     let page: Page;
