@@ -25,6 +25,7 @@ import {
 import moment from 'moment';
 import { Config } from './utils/config';
 import { initLog } from './utils/log';
+import cluster from 'cluster';
 
 process.setMaxListeners(1000); // 将限制提高到20个
 
@@ -33,9 +34,27 @@ initLog();
 Config.load();
 Config.watchFile();
 
-const app = new Koa();
-app.use(cors());
-const router = new Router();
+const supportsHandler = async (ctx: Context) => {
+  const result: Support[] = [];
+  for (const key in Site) {
+    //@ts-ignore
+    const site = Site[key];
+    //@ts-ignore
+    const chat = chatModel.get(site);
+    const support: Support = { site: site, models: [] };
+    for (const mKey in ModelType) {
+      //@ts-ignore
+      const model = ModelType[mKey];
+      //@ts-ignore
+      if (chat?.support(model)) {
+        support.models.push(model);
+      }
+    }
+    result.push(support);
+  }
+  ctx.body = result;
+};
+
 const errorHandler = async (ctx: Context, next: Next) => {
   try {
     await next();
@@ -52,9 +71,7 @@ const errorHandler = async (ctx: Context, next: Next) => {
     ctx.status = err.status || ComError.Status.InternalServerError;
   }
 };
-app.use(errorHandler);
-app.use(bodyParser({ jsonLimit: '10mb' }));
-app.use(checkApiKey);
+
 const chatModel = new ChatModelFactory();
 
 interface AskReq extends ChatRequest {
@@ -240,27 +257,6 @@ interface Support {
   models: string[];
 }
 
-router.get('/supports', (ctx) => {
-  const result: Support[] = [];
-  for (const key in Site) {
-    //@ts-ignore
-    const site = Site[key];
-    //@ts-ignore
-    const chat = chatModel.get(site);
-    const support: Support = { site: site, models: [] };
-    for (const mKey in ModelType) {
-      //@ts-ignore
-      const model = ModelType[mKey];
-      //@ts-ignore
-      if (chat?.support(model)) {
-        support.models.push(model);
-      }
-    }
-    result.push(support);
-  }
-  ctx.body = result;
-});
-
 const openAIHandle: Middleware = async (ctx, next) => {
   const { stream, messages, model } = {
     ...(ctx.query as any),
@@ -320,27 +316,56 @@ const claudeHandle: Middleware = async (ctx, next) => {
   };
 };
 
-router.get('/ask', AskHandle);
-router.post('/ask', AskHandle);
-router.get('/ask/stream', AskStreamHandle(EventStream));
-router.post('/ask/stream', AskStreamHandle(EventStream));
-router.post('/v1/chat/completions', openAIHandle);
-router.post('/:site/v1/chat/completions', openAIHandle);
-router.post('/v1/complete', claudeHandle);
-router.post('/:site/v1/complete', claudeHandle);
+const registerApp = () => {
+  const app = new Koa();
+  app.use(cors());
+  const router = new Router();
+  app.use(errorHandler);
+  app.use(bodyParser({ jsonLimit: '10mb' }));
+  app.use(checkApiKey);
+  router.get('/supports', supportsHandler);
+  router.get('/ask', AskHandle);
+  router.post('/ask', AskHandle);
+  router.get('/ask/stream', AskStreamHandle(EventStream));
+  router.post('/ask/stream', AskStreamHandle(EventStream));
+  router.post('/v1/chat/completions', openAIHandle);
+  router.post('/:site/v1/chat/completions', openAIHandle);
+  router.post('/v1/complete', claudeHandle);
+  router.post('/:site/v1/complete', claudeHandle);
 
-app.use(router.routes());
-
-(async () => {
+  app.use(router.routes());
   const port = +(process.env.PORT || 3000);
-  const server = app.listen(+(process.env.PORT || 3000), () => {
+  const server = app.listen(port, () => {
     console.log(`Now listening: 127.0.0.1:${port}`);
   });
-  process.on('SIGINT', () => {
-    server.close(() => {
-      process.exit(0);
-    });
+  console.log(`Worker ${process.pid} started`);
+};
+
+if (cluster.isPrimary) {
+  console.log(`Master ${process.pid} is running`);
+  const workers = +(process.env.WORKERS || 1) - 1;
+
+  // Fork workers.
+  for (let i = 0; i < workers; i++) {
+    cluster.fork();
+  }
+
+  cluster.on('exit', (worker, code, signal) => {
+    console.log(`worker ${worker.process.pid} died`);
+    console.log('Forking a new process...');
+    cluster.fork(); // Fork a new process if a worker dies
   });
+  registerApp();
+} else {
+  registerApp();
+}
+
+(async () => {
+  // process.on('SIGINT', () => {
+  //   server.close(() => {
+  //     process.exit(0);
+  //   });
+  // });
   process.on('uncaughtException', (e) => {
     console.error('uncaught exception, exit after 5s! err=', e);
     if (Config.config.exit) {
