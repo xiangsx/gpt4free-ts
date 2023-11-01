@@ -55,10 +55,8 @@ if (cluster.isPrimary) {
 (async () => {
   process.on('uncaughtException', (e) => {
     console.error('uncaught exception, exit after 5s! err=', e);
-    if (Config.config.exit) {
-      setTimeout(() => {
-        process.exit(1);
-      }, 5000);
-    }
+    setTimeout(() => {
+      process.exit(1);
+    }, 5000);
   });
 })();
