@@ -77,6 +77,7 @@ interface ConfigData {
     size: number;
     serial: number;
     allow_3: boolean;
+    must_plus: boolean;
     arkose_data?: string[];
     accounts: { email: string; password: string }[];
   };
@@ -231,6 +232,7 @@ class BaseConfig {
       size: 0,
       serial: 0,
       allow_3: false,
+      must_plus: false,
       arkose_data: [],
       accounts: [],
     },
