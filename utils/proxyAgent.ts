@@ -115,6 +115,7 @@ export async function CreateNewPage(
     cookies?: Protocol.Network.CookieParam[];
     devtools?: boolean;
     fingerprint_inject?: boolean;
+    protocolTimeout?: number;
   },
 ) {
   const {
@@ -126,6 +127,7 @@ export async function CreateNewPage(
     user_agent = '',
     devtools = false,
     fingerprint_inject = false,
+    protocolTimeout,
   } = options || {};
   const launchOpt: PuppeteerLaunchOptions = {
     headless: process.env.DEBUG === '1' ? false : 'new',
@@ -138,6 +140,9 @@ export async function CreateNewPage(
       ...args,
     ],
   };
+  if (protocolTimeout) {
+    launchOpt.protocolTimeout = protocolTimeout;
+  }
   if (proxy) {
     launchOpt.args?.push(`--proxy-server=${proxy}`);
   }
