@@ -565,3 +565,23 @@ export function matchPattern(pattern: string, str: string): boolean {
     return false;
   }
 }
+
+export function extractHttpURLs(text: string): string[] {
+  // Regular expression to match http and https URLs in plain text
+  const urlRegex =
+    /\bhttps?:\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|]/gi;
+  const plainUrls = text.match(urlRegex) || [];
+
+  // Regular expression to match http and https URLs in markdown format
+  const markdownUrlRegex =
+    /\]\((https?:\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])\)/gi;
+  let markdownUrls = [];
+  let markdownMatch;
+  while ((markdownMatch = markdownUrlRegex.exec(text)) !== null) {
+    markdownUrls.push(markdownMatch[1]);
+  }
+
+  // Combine and deduplicate the URLs found by both regexes
+  const allUrls = [...new Set([...plainUrls, ...markdownUrls])];
+  return allUrls;
+}
