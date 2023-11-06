@@ -171,7 +171,7 @@ const AskStreamHandle: (ESType: new () => EventStream) => Middleware =
       new Promise<void>(async (resolve, reject) => {
         try {
           const es = new ThroughEventStream(
-            (event, data) => {
+            (event, data: any) => {
               switch (event) {
                 case Event.error:
                   clearTimeout(timeout);
@@ -189,6 +189,9 @@ const AskStreamHandle: (ESType: new () => EventStream) => Middleware =
                   );
                   break;
                 default:
+                  if (!ctx.body && !data.content) {
+                    break;
+                  }
                   clearTimeout(timeout);
                   if (!ok) {
                     break;
