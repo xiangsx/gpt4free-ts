@@ -1,4 +1,4 @@
-FROM apify/actor-node-puppeteer-chrome:18-21.5.0-beta
+FROM xiang/chrome:118.0.5993.70
 
 USER root
 
