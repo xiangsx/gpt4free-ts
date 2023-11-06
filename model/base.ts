@@ -10,6 +10,7 @@ import {
 } from '../utils';
 import winston from 'winston';
 import { newLogger } from '../utils/log';
+import { ClaudeChat } from './claude';
 
 export interface ChatOptions {
   name: string;
@@ -91,6 +92,7 @@ export enum Site {
   PoeAuto = 'poeauto',
   PoeVIP = 'poevip',
   Claude = 'claude',
+  ClaudeChat = 'claudechat',
   Cursor = 'cursor',
   Auto = 'auto',
   ChatBase = 'chatbase',

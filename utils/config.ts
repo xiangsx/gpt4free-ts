@@ -68,6 +68,11 @@ interface ConfigData {
   cursor: {
     primary_model: ModelType;
   };
+  claude: {
+    size: number;
+    serial: number;
+    sessions_keys: string[];
+  };
   openchat3: {
     size: number;
     serial: number;
@@ -223,6 +228,11 @@ class BaseConfig {
       mail_type: TempEmailType.TempMailLOL,
     },
     gmail_list: [],
+    claude: {
+      size: 0,
+      serial: 0,
+      sessions_keys: [],
+    },
     openchat3: {
       size: 0,
       serial: 0,

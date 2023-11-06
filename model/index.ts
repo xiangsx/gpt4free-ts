@@ -20,7 +20,7 @@ import { Chur } from './chur';
 import { Xun } from './xun';
 import { VVM } from './vvm';
 import { Poef } from './poef';
-import { Claude } from './claude';
+import { ClaudeChat } from './claude';
 import { Cursor } from './cursor';
 import { Auto } from './auto';
 import { ChatBase } from './chatbase';
@@ -99,7 +99,10 @@ export class ChatModelFactory {
     // this.modelMap.set(Site.Poef, new Poef({ name: Site.Poef }));
     this.modelMap.set(Site.PoeAuto, new PoeAuto({ name: Site.PoeAuto }));
     this.modelMap.set(Site.PoeVIP, new PoeVIP({ name: Site.PoeVIP }));
-    this.modelMap.set(Site.Claude, new Claude({ name: Site.Claude }));
+    this.modelMap.set(
+      Site.ClaudeChat,
+      new ClaudeChat({ name: Site.ClaudeChat }),
+    );
     // this.modelMap.set(Site.Cursor, new Cursor({ name: Site.Cursor }));
     this.modelMap.set(Site.OneAPI, new OneAPI({ name: Site.OneAPI }));
     this.modelMap.set(
