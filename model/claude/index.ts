@@ -1,5 +1,5 @@
 import { Chat, ChatOptions, ChatRequest, ModelType } from '../base';
-import { Event, EventStream, parseJSON } from '../../utils';
+import { Event, EventStream, parseJSON, randomStr } from '../../utils';
 import {
   ChildOptions,
   ComChild,
@@ -115,6 +115,7 @@ class Child extends ComChild<Account> {
       await this.updateOrg();
       this.client = new WebFetchWithPage(page);
     } catch (e) {
+      await this.page.screenshot({ path: `run/error-${randomStr(20)}.png` });
       this.page?.browser().close();
       this.logger.error(`init failed, email:${this.info.session_key}`);
       throw e;
