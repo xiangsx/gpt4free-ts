@@ -68,7 +68,7 @@ interface ConfigData {
   cursor: {
     primary_model: ModelType;
   };
-  claude: {
+  claudechat: {
     size: number;
     serial: number;
     sessions_keys: string[];
@@ -228,7 +228,7 @@ class BaseConfig {
       mail_type: TempEmailType.TempMailLOL,
     },
     gmail_list: [],
-    claude: {
+    claudechat: {
       size: 0,
       serial: 0,
       sessions_keys: [],

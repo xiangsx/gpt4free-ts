@@ -181,7 +181,7 @@ class Child extends ComChild<Account> {
 export class ClaudeChat extends Chat {
   private pool: Pool<Account, Child> = new Pool(
     this.options?.name || '',
-    () => Config.config.claude.size,
+    () => Config.config.claudechat.size,
     (info, options) => {
       return new Child(this.options?.name || '', info, options);
     },
@@ -193,11 +193,11 @@ export class ClaudeChat extends Chat {
     },
     {
       delay: 1000,
-      serial: () => Config.config.claude.serial || 1,
+      serial: () => Config.config.claudechat.serial || 1,
       needDel: (v) => !v.session_key,
       preHandleAllInfos: async (infos) => {
         const emailSet = new Set(infos.map((v) => v.session_key));
-        for (const v of Config.config.claude.sessions_keys) {
+        for (const v of Config.config.claudechat.sessions_keys) {
           if (emailSet.has(v)) {
             continue;
           }
