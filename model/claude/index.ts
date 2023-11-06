@@ -197,18 +197,13 @@ export class ClaudeChat extends Chat {
       serial: () => Config.config.claudechat.serial || 1,
       needDel: (v) => !v.session_key,
       preHandleAllInfos: async (infos) => {
-        const emailSet = new Set(infos.map((v) => v.session_key));
-        for (const v of Config.config.claudechat.sessions_keys) {
-          if (emailSet.has(v)) {
-            continue;
-          }
-          emailSet.add(v);
-          infos.push({
-            id: v4(),
-            session_key: v,
-          } as Account);
-        }
-        return infos;
+        return Config.config.claudechat.sessions_keys.map(
+          (v) =>
+            ({
+              id: v4(),
+              session_key: v,
+            } as Account),
+        );
       },
     },
   );
