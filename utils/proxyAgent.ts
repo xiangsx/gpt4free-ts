@@ -14,7 +14,7 @@ import { v4 } from 'uuid';
 import { PassThrough } from 'stream';
 import { ComError, getRandomOne, sleep } from './index';
 import { Config } from './config';
-import { newInjectedPage } from 'fingerprint-injector';
+import { newInjectedContext, newInjectedPage } from 'fingerprint-injector';
 import { FingerprintGenerator } from 'fingerprint-generator';
 
 export const getProxy = () => {
@@ -155,11 +155,7 @@ export async function CreateNewPage(
     const gen = new FingerprintGenerator();
     let page: Page;
     if (fingerprint_inject) {
-      page = await newInjectedPage(browser, {
-        // constraints for the generated fingerprint
-        fingerprint: gen.getFingerprint(),
-        fingerprintOptions: gen.fingerprintGlobalOptions,
-      });
+      page = await newInjectedPage(browser);
     } else {
       page = await browser.newPage();
     }
