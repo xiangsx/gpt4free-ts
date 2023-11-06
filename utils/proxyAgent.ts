@@ -17,8 +17,6 @@ import { Config } from './config';
 import { newInjectedPage } from 'fingerprint-injector';
 import { FingerprintGenerator } from 'fingerprint-generator';
 
-puppeteer.use(StealthPlugin());
-
 export const getProxy = () => {
   let proxy = '';
   if (Config.config.proxy_pool?.enable) {
@@ -107,6 +105,7 @@ export function CreateTlsProxy(
 export async function CreateNewPage(
   url: string,
   options?: {
+    stealth?: boolean;
     allowExtensions?: boolean;
     proxy?: string;
     args?: string[];
@@ -128,6 +127,7 @@ export async function CreateNewPage(
     devtools = false,
     fingerprint_inject = false,
     protocolTimeout,
+    stealth = true,
   } = options || {};
   const launchOpt: PuppeteerLaunchOptions = {
     headless: process.env.DEBUG === '1' ? false : 'new',
@@ -146,7 +146,11 @@ export async function CreateNewPage(
   if (proxy) {
     launchOpt.args?.push(`--proxy-server=${proxy}`);
   }
-  const browser = await puppeteer.launch(launchOpt);
+  let p = puppeteer;
+  if (stealth) {
+    p = p.use(StealthPlugin());
+  }
+  const browser = await p.launch(launchOpt);
   try {
     const gen = new FingerprintGenerator();
     let page: Page;
