@@ -6,14 +6,18 @@ import { Logger } from 'winston';
 export let DefaultRedis: Redis;
 
 export function initCache() {
+  if (!Config.config.global.redis) {
+    setTimeout(() => initCache(), 5000);
+    return;
+  }
   DefaultRedis = new Redis(Config.config.global.redis);
   DefaultRedis.on('ready', () => {
-    console.log(
+    console.info(
       `redis[${Config.config.global.redis.host}:${Config.config.global.redis.port}] ready`,
     );
   });
   DefaultRedis.on('error', (e) => {
-    console.log(
+    console.debug(
       `redis[${Config.config.global.redis.host}:${Config.config.global.redis.port}] failed,${e.message}`,
     );
   });
