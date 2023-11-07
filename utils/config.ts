@@ -15,6 +15,12 @@ export type SiteCfg = {
 interface ConfigData {
   exit: boolean;
   global: {
+    redis: {
+      host: string;
+      port: number;
+      password: string;
+      db: number;
+    };
     chrome_path: string;
   };
   proxy_pool: {
@@ -84,6 +90,7 @@ interface ConfigData {
     allow_3: boolean;
     must_plus: boolean;
     arkose_data?: string[];
+    keep_arkose_refresh?: boolean;
     accounts: { email: string; password: string }[];
   };
   stack: {
@@ -134,6 +141,12 @@ class BaseConfig {
   private defaultConfig: ConfigData = {
     exit: true,
     global: {
+      redis: {
+        host: '',
+        port: 0,
+        password: '',
+        db: 0,
+      },
       chrome_path: 'google-chrome',
     },
     askx: {
@@ -245,6 +258,7 @@ class BaseConfig {
       must_plus: false,
       arkose_data: [],
       accounts: [],
+      keep_arkose_refresh: false,
     },
     poeauto: {
       size: 0,

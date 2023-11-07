@@ -1,31 +1,8 @@
-import Koa, { Context, Middleware, Next } from 'koa';
-import Router from 'koa-router';
-import bodyParser from 'koa-bodyparser';
-import cors from '@koa/cors';
-import { ChatModelFactory } from './model';
 import dotenv from 'dotenv';
-import {
-  ChatRequest,
-  ChatResponse,
-  Message,
-  ModelType,
-  Site,
-} from './model/base';
-import {
-  ClaudeEventStream,
-  ComError,
-  Event,
-  EventStream,
-  getTokenCount,
-  OpenaiEventStream,
-  parseJSON,
-  randomStr,
-  ThroughEventStream,
-} from './utils';
-import moment from 'moment';
 import { Config } from './utils/config';
 import { initLog } from './utils/log';
 import cluster from 'cluster';
+import { initCache } from './utils/cache';
 
 process.setMaxListeners(1000); // 将限制提高到20个
 
@@ -33,6 +10,7 @@ dotenv.config();
 initLog();
 Config.load();
 Config.watchFile();
+initCache();
 
 if (cluster.isPrimary) {
   console.log(`Master ${process.pid} is running`);
