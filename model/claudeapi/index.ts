@@ -143,8 +143,7 @@ export class ClaudeAPI extends Chat {
       this.logger.error(
         `ask stream failed, apikey:${
           (this.options as ClaudeChatOptions).api_key
-        }`,
-        e.message,
+        } ${e.message}`,
       );
       e.response?.data.on('data', (chunk: any) =>
         console.log(
