@@ -88,6 +88,7 @@ interface ConfigData {
     size: number;
     serial: number;
     allow_3: boolean;
+    must_all_tools: boolean;
     must_plus: boolean;
     arkose_data?: string[];
     keep_arkose_refresh?: boolean;
@@ -256,6 +257,7 @@ class BaseConfig {
       serial: 0,
       allow_3: false,
       must_plus: false,
+      must_all_tools: false,
       arkose_data: [],
       accounts: [],
       keep_arkose_refresh: false,
