@@ -18,7 +18,10 @@ if (cluster.isPrimary) {
 
   // Fork workers.
   for (let i = 0; i < workers; i++) {
-    cluster.fork();
+    const worker = cluster.fork();
+    worker.on('error', (err) => {
+      console.error(`worker error: ${err.message}`);
+    });
   }
 
   cluster.on('exit', (worker, code, signal) => {
