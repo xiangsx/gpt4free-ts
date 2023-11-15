@@ -32,12 +32,3 @@ if (cluster.isPrimary) {
 } else {
   require('./router').registerApp();
 }
-
-(async () => {
-  process.on('uncaughtException', (e) => {
-    console.error('uncaught exception, exit after 5s! err=', e);
-    setTimeout(() => {
-      process.exit(1);
-    }, 5000);
-  });
-})();
