@@ -14,7 +14,7 @@ import { v4 } from 'uuid';
 import { PassThrough } from 'stream';
 import { ComError, getRandomOne, sleep } from './index';
 import { Config } from './config';
-import { newInjectedContext, newInjectedPage } from 'fingerprint-injector';
+import { newInjectedPage } from 'fingerprint-injector';
 import { FingerprintGenerator } from 'fingerprint-generator';
 
 export const getProxy = () => {
@@ -37,6 +37,21 @@ const reqProxy = (config: any) => {
   config.url = process.env.REQ_PROXY || '';
   return config;
 };
+
+export function CreateNewAxios(
+  config: CreateAxiosDefaults,
+  options?: { proxy: string | boolean },
+) {
+  const { proxy = true } = options || {};
+  const createConfig = { ...config };
+  if (proxy) {
+    const realProxy = proxy === true ? getProxy() : proxy;
+    createConfig.proxy = false;
+    createConfig.httpAgent = HttpsProxyAgent(realProxy);
+    createConfig.httpsAgent = HttpsProxyAgent(realProxy);
+  }
+  return axios.create(createConfig);
+}
 
 export function CreateAxiosProxy(
   config: CreateAxiosDefaults,

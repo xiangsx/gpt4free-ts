@@ -92,6 +92,8 @@ interface ConfigData {
     must_plus: boolean;
     arkose_data?: string[];
     keep_arkose_refresh?: boolean;
+    upload_url: string;
+    download_proxy: string;
     accounts: { email: string; password: string }[];
   };
   stack: {
@@ -261,6 +263,8 @@ class BaseConfig {
       arkose_data: [],
       accounts: [],
       keep_arkose_refresh: false,
+      upload_url: '',
+      download_proxy: '',
     },
     poeauto: {
       size: 0,
