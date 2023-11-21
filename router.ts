@@ -332,10 +332,3 @@ export const registerApp = () => {
   });
   console.log(`Worker ${process.pid} started`);
 };
-
-process.on('uncaughtException', (e) => {
-  console.error('uncaught exception, exit after 5s! err=', e);
-  setTimeout(() => {
-    process.exit(1);
-  }, 5000);
-});
