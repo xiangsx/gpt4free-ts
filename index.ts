@@ -29,3 +29,7 @@ if (cluster.isPrimary) {
 } else {
   require('./router').registerApp();
 }
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught exception:', err);
+  // process.exit(1); // It's up to you whether to exit here or not
+});
