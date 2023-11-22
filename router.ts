@@ -331,19 +331,4 @@ export const registerApp = () => {
     console.log(`Now listening: 127.0.0.1:${port}`);
   });
   console.log(`Worker ${process.pid} started`);
-
-  process.on('unhandledRejection', (reason, promise) => {
-    console.error(
-      'Unhandled promise rejection at:',
-      promise,
-      'reason:',
-      reason,
-    );
-    process.exit(1); // It's up to you whether to exit here or not
-  });
-
-  process.on('uncaughtException', (err) => {
-    console.error('Uncaught exception:', err);
-    process.exit(1); // It's up to you whether to exit here or not
-  });
 };
