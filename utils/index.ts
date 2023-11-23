@@ -515,6 +515,7 @@ export class ComError extends Error {
 
   static Status = {
     BadRequest: 400,
+    ParamsError: 422,
     Unauthorized: 401,
     Forbidden: 403,
     NotFound: 404,
@@ -546,6 +547,7 @@ export function removeRandomChars(str: string, percentage: number): string {
 }
 
 const converter = OpenCC.Converter({ from: 'tw', to: 'cn' });
+
 export function TWToCN(str: string) {
   return converter(str);
 }
