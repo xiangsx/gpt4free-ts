@@ -53,6 +53,7 @@ const ParamsList = [
   'frequency_penalty',
   'logit_bias',
   'user',
+  'gizmo_id',
 ];
 export class OpenAI extends Chat {
   private client: AxiosInstance;
