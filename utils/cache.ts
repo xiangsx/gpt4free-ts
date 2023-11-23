@@ -2,6 +2,7 @@ import Redis from 'ioredis';
 import { Config } from './config';
 import { newLogger } from './log';
 import { Logger } from 'winston';
+import { parseJSON } from './index';
 
 export let DefaultRedis: Redis;
 
@@ -63,5 +64,65 @@ export class StringPool {
   async pop(): Promise<string | null> {
     this.logger.debug(`pop`);
     return this.redis.spop(this.key);
+  }
+}
+
+// string类型的key，传入初始化方法
+// 如果key不存在，会调用init方法初始化
+// key需要有过期时间
+// 防止缓存穿透和缓存雪崩
+export class CommCache<T> {
+  private redis: Redis;
+  private readonly _key: string;
+  private readonly init?: () => Promise<T | null>;
+  private readonly expire: number;
+  private logger!: Logger;
+
+  constructor(
+    redis: Redis,
+    key: string,
+    expire: number,
+    init?: () => Promise<T | null>,
+  ) {
+    this.redis = redis;
+    this._key = key;
+    this.init = init;
+    this.expire = expire;
+    this.logger = newLogger(`${this.key}`);
+  }
+
+  key(subkey: string) {
+    return this._key + ':' + subkey;
+  }
+
+  async get(subkey: string, init?: () => Promise<T | null>): Promise<T | null> {
+    if (!init && !this.init) {
+      throw new Error('init is null');
+    }
+    const initFunc = init || this.init;
+    this.logger.debug(`get`);
+    const v = await this.redis.get(this.key(subkey));
+    if (v) {
+      return parseJSON<T | null>(v, null);
+    }
+    const nv = await initFunc!();
+    const sv = JSON.stringify(nv);
+    await this.redis.set(
+      this.key(subkey),
+      JSON.stringify(sv),
+      'EX',
+      this.expire,
+    );
+    return parseJSON<T | null>(sv, null);
+  }
+
+  async set(subkey: string, value: string): Promise<void> {
+    this.logger.debug(`set ${value}`);
+    await this.redis.set(this.key(subkey), value, 'EX', this.expire);
+  }
+
+  async clear(subkey: string): Promise<void> {
+    this.logger.debug(`clear`);
+    await this.redis.del(this.key(subkey));
   }
 }
