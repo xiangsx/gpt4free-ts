@@ -269,6 +269,10 @@ export class Pool<U extends Info, T extends PoolChild<U>> {
         }
         return;
       }
+      const validInfo = this.allInfos.filter((info) => this.isInfoValid(info));
+      this.logger.info(
+        `read old info ok, total: ${this.allInfos.length}, valid: ${validInfo.length}`,
+      );
       this.creating += 1;
       await this.create();
       this.creating -= 1;
