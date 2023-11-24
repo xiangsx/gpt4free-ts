@@ -107,13 +107,8 @@ export class CommCache<T> {
     }
     const nv = await initFunc!();
     const sv = JSON.stringify(nv);
-    await this.redis.set(
-      this.key(subkey),
-      JSON.stringify(sv),
-      'EX',
-      this.expire,
-    );
-    return parseJSON<T | null>(sv, null);
+    await this.redis.set(this.key(subkey), sv, 'EX', this.expire);
+    return nv;
   }
 
   async set(subkey: string, value: string): Promise<void> {
