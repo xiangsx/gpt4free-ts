@@ -88,7 +88,7 @@ export class CommCache<T> {
     this._key = key;
     this.init = init;
     this.expire = expire;
-    this.logger = newLogger(`${this.key}`);
+    this.logger = newLogger(`${this._key}`);
   }
 
   key(subkey: string) {
