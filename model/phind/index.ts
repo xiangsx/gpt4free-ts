@@ -209,6 +209,16 @@ export class Phind extends Chat {
     });
   }
 
+  async generateChallenge(e: string) {
+    let t = (function (e) {
+      let t = 0;
+      for (let n = 0; n < e.length; n += 1)
+        t = ((t << 5) - t + e.charCodeAt(n)) | 0;
+      return t;
+    })(e);
+    return ((9301 * t + 49297) % 233280) / 233280;
+  }
+
   async askStream(req: ChatRequest, stream: EventStream): Promise<void> {
     const child = await this.pool.pop();
     if (req.model === ModelType.GPT4) {
@@ -230,6 +240,7 @@ export class Phind extends Chat {
           customLinks: [],
         },
         context: '',
+        challenge: 0,
       };
       for (const msg of req.messages.slice(0, req.messages.length - 1)) {
         if (msg.role === 'user') {
@@ -240,6 +251,9 @@ export class Phind extends Chat {
         }
       }
       body.questionHistory.push(req.messages[req.messages.length - 1].content);
+      body.challenge = await this.generateChallenge(
+        body.question + body.context + JSON.stringify(body.options),
+      );
 
       const pt = await child.client.fetch(
         'https://www.phind.com/api/infer/answer',
