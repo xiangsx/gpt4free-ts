@@ -87,12 +87,14 @@ export class DDG extends Chat {
 
           const title = titleNode ? titleNode.innerText : 'N/A';
           const link = linkNode ? linkNode.getAttribute('href') : 'N/A';
+          const favicon =
+            'https:' + node.querySelector('img')?.getAttribute('src');
           const description = descriptionNode
             ? // @ts-ignore
               descriptionNode.innerText
             : 'N/A';
 
-          extractedResults.push({ title, link, description });
+          extractedResults.push({ title, link, description, favicon });
         });
 
         // @ts-ignore
