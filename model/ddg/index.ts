@@ -69,7 +69,10 @@ export class DDG extends Chat {
           waitUntil: 'domcontentloaded',
         },
       );
-      await page.waitForSelector('li[data-layout="organic"]');
+      await page.waitForSelector('li[data-layout="organic"]', {
+        timeout: 5 * 1000,
+      });
+
       // 提取搜索结果的标题和链接
       const results = await page.evaluate(() => {
         const nodes = document.querySelectorAll('li[data-layout="organic"]');
