@@ -130,7 +130,16 @@ export class UDPTransport extends Transport {
     info: any,
     callback: (error: Error | null, bytes?: number | boolean) => void,
   ): void {
-    const buffer: Buffer = Buffer.from(JSON.stringify(info));
+    let buffer: Buffer = Buffer.from(JSON.stringify(info));
+
+    // 设置UDP数据包的最大长度
+    const MAX_UDP_SIZE = 5000; // 这个值根据您的网络环境可能需要调整
+
+    // 如果数据包大小超过最大长度，则截取
+    if (buffer.length > MAX_UDP_SIZE) {
+      buffer = buffer.slice(0, MAX_UDP_SIZE);
+    }
+
     /* eslint-disable @typescript-eslint/no-empty-function */
     this.client.send(
       buffer,

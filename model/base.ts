@@ -37,6 +37,7 @@ export enum ModelType {
   GPT4All = 'gpt-4-all',
   GPT4Dalle = 'gpt-4-dalle',
   GPT4Gizmo = 'gpt-4-gizmo',
+  GPT4AllSource = 'gpt-4-all-source',
   GPT4_32k = 'gpt-4-32k',
   NetGPT4 = 'net-gpt-4',
   DalleE3 = 'dalle-e-3',
