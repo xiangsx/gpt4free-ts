@@ -106,8 +106,7 @@ export class DDG extends Chat {
       stream.write(Event.message, { content: JSON.stringify(results) });
     } catch (e: any) {
       this.logger.error('ask stream failed', e);
-      stream.write(Event.error, { error: e.message });
-      await page.screenshot({ path: `./run/google.png` });
+      stream.write(Event.message, { content: `[]` });
       await this.browser?.close();
       await this.init();
     } finally {
