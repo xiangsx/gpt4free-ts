@@ -10,11 +10,10 @@
 
 
 ## 👍 基于此项目的最强网站 [GPTGOD](http://gptgod.online)
-<details>
-<summary><strong>网站功能(点击展开)</strong></summary>
 
 ### GPTGOD Support
 
+下面所有功能可以直接在网站内使用，也可创建api调用，并且可以直接扫码集成到微信机器人上
 - [x] Midjourney 史上最强AI画图
 - [x] Stable Diffusion 史上最强开源AI画图
 - [x] Claude 仅次于GPT4的AI对话模型
@@ -23,10 +22,10 @@
 - [x] gpt-4-32k 都知道
 - [x] claude-2-100k 无敌的上下文 
 - [x] Chatgpt with internet 联网版本GPT
-- [x] 以上所有功能均可在网站中一键集成到微信机器人中
+- [x] 🔥 GPT-4-All alltools版本，集成识图、画图、联网和code interpreter
+- [x] 🔥 GPTS 可以使用openai的所有的GPTs
 
 在未来的一段时间GPTGOD将开源，进入网站左下角有入群二维码，入群时刻关注最新动态
-</details>
 
 ## 🚩 Reverse target
 
