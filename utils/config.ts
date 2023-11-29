@@ -94,6 +94,7 @@ interface ConfigData {
     keep_arkose_refresh?: boolean;
     upload_url: string;
     download_proxy: string;
+    download_map?: Record<string, string>;
     accounts: { email: string; password: string }[];
   };
   stack: {
@@ -265,6 +266,7 @@ class BaseConfig {
       keep_arkose_refresh: false,
       upload_url: '',
       download_proxy: '',
+      download_map: {},
     },
     poeauto: {
       size: 0,
