@@ -2,6 +2,7 @@ import Koa, { Context, Middleware, Next } from 'koa';
 import {
   ChatRequest,
   ChatResponse,
+  countMessagesToken,
   Message,
   ModelType,
   Site,
@@ -263,9 +264,7 @@ const openAIHandle: Middleware = async (ctx, next) => {
     return;
   }
   await AskHandle(ctx, next);
-  let reqLen = getTokenCount(
-    messages.reduce((prev, cur) => prev + cur.content, ''),
-  );
+  let reqLen = countMessagesToken(messages);
   ctx.body = {
     id: 'chatcmpl-' + '89D' + randomStr(26),
     object: 'chat.completion',

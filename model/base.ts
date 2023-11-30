@@ -207,6 +207,31 @@ export function randomRemoveContentChars(
   });
 }
 
+export function countMessagesToken(messages: Message[]): number {
+  let token = 0;
+  for (const v of messages) {
+    if (typeof v.content === 'string') {
+      token += getTokenCount(v.content);
+      continue;
+    }
+    for (const item of v.content) {
+      if (typeof item === 'string') {
+        token += getTokenCount(item);
+        continue;
+      }
+      if (item.type === 'text') {
+        token += getTokenCount(item.text || '');
+        continue;
+      }
+      if (item.type === 'image_url') {
+        token += 400;
+        continue;
+      }
+    }
+  }
+  return token;
+}
+
 export function sliceMessagesByToken(
   messages: Message[],
   limitSize: number,
