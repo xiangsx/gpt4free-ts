@@ -1,4 +1,10 @@
-import { Chat, ChatOptions, ChatRequest, ModelType } from '../base';
+import {
+  Chat,
+  ChatOptions,
+  ChatRequest,
+  contentToString,
+  ModelType,
+} from '../base';
 import { CDPSession, Page, Protocol } from 'puppeteer';
 import {
   Event,
@@ -314,7 +320,9 @@ export class Izea extends Chat {
       forceRemove: true,
     });
     if (reqH.model === ModelType.StableDiffusion) {
-      reqH.prompt = reqH.messages[req.messages.length - 1].content;
+      reqH.prompt = contentToString(
+        reqH.messages[req.messages.length - 1].content,
+      );
     }
     if (reqH.model.indexOf('claude') > -1) {
       reqH.prompt = reqH.prompt.replace(/user:/g, 'Human:');

@@ -1,4 +1,11 @@
-import { Chat, ChatOptions, ChatRequest, ModelType, Site } from './base';
+import {
+  Chat,
+  ChatOptions,
+  ChatRequest,
+  contentToString,
+  ModelType,
+  Site,
+} from './base';
 import {
   ComError,
   Event,
@@ -167,7 +174,9 @@ export class Auto extends Chat {
 
   async preHandle(req: ChatRequest, options: any): Promise<ChatRequest> {
     if (req.search) {
-      const searchStr = req.messages[req.messages.length - 1].content;
+      const searchStr = contentToString(
+        req.messages[req.messages.length - 1].content,
+      );
       const searchRes = await this.ask({
         model: ModelType.Search,
         messages: [{ role: 'user', content: searchStr }],

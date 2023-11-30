@@ -11,6 +11,7 @@ import {
 import winston from 'winston';
 import { newLogger } from '../utils/log';
 import { ClaudeChat } from './claude';
+import exp from 'constants';
 
 export interface ChatOptions {
   name: string;
@@ -23,9 +24,25 @@ export interface ChatResponse {
   error?: string;
 }
 
+export type MessageContent =
+  | string
+  | (
+      | {
+          type: 'image_url' | 'text';
+          text?: string;
+          image_url?:
+            | string
+            | {
+                url: string;
+                detail?: 'auto' | 'high' | 'low';
+              };
+        }
+      | string
+    )[];
+
 export type Message = {
   role: string;
-  content: string;
+  content: MessageContent;
 };
 
 export enum ModelType {
@@ -38,6 +55,7 @@ export enum ModelType {
   GPT4Dalle = 'gpt-4-dalle',
   GPT4Gizmo = 'gpt-4-gizmo',
   GPT4AllSource = 'gpt-4-all-source',
+  GPT4VisionPreview = 'gpt-4-vision-preview',
   GPT4_32k = 'gpt-4-32k',
   NetGPT4 = 'net-gpt-4',
   DalleE3 = 'dalle-e-3',
@@ -139,16 +157,54 @@ export interface ChatRequest {
   secret?: string;
 }
 
+export function contentToString(content: MessageContent): string {
+  if (typeof content === 'string') {
+    return content;
+  }
+  return content.reduce((prev: string, cur) => {
+    if (typeof cur === 'string') {
+      return prev + cur;
+    }
+    if (cur.type === 'image_url') {
+      return prev;
+    }
+    return prev + (cur?.text || '');
+  }, '');
+}
+
 // 结构体message转换为prompt
 export function messagesToPrompt(messages: Message[]): string {
   if (messages.length === 1) {
-    return messages[0].content;
+    return contentToString(messages[0].content);
   }
   return (
-    messages.map((item) => `${item.role}: ${item.content}`).join('\n') +
+    messages
+      .map((item) => `${item.role}: ${contentToString(item.content)}`)
+      .join('\n') +
     '\n' +
     'assistant: '
   );
+}
+
+export function randomRemoveContentChars(
+  content: MessageContent,
+  percentage: number,
+) {
+  if (typeof content === 'string') {
+    return removeRandomChars(content, percentage);
+  }
+  return content.map((item) => {
+    if (typeof item === 'string') {
+      return removeRandomChars(item, percentage);
+    }
+    if (item.type === 'image_url') {
+      return item;
+    }
+    return {
+      ...item,
+      text: removeRandomChars(item.text || '', percentage),
+    };
+  });
 }
 
 export function sliceMessagesByToken(
@@ -178,7 +234,7 @@ export function sliceMessagesByToken(
     if (!forceRemove) {
       throw new ComError('message too long', ComError.Status.RequestTooLarge);
     }
-    messages[0].content = removeRandomChars(
+    messages[0].content = randomRemoveContentChars(
       messages[0].content,
       (size - limitSize || 1) / size,
     );
@@ -214,7 +270,7 @@ export function sliceMessagesByLength(
     if (!forceRemove) {
       throw new ComError('message too long', ComError.Status.RequestTooLarge);
     }
-    messages[0].content = removeRandomChars(
+    messages[0].content = randomRemoveContentChars(
       messages[0].content,
       (size - limitSize || 1) / size,
     );

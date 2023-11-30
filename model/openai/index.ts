@@ -5,14 +5,7 @@ import es from 'event-stream';
 import { Event, EventStream, parseJSON } from '../../utils';
 import { Config } from '../../utils/config';
 
-interface Message {
-  role: string;
-  content: string;
-}
-
-interface RealReq {
-  model: string;
-  messages: Message[];
+interface RealReq extends ChatRequest {
   functions?: {
     name: string;
     description?: string;

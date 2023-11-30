@@ -1,4 +1,10 @@
-import { Chat, ChatOptions, ChatRequest, ModelType } from '../base';
+import {
+  Chat,
+  ChatOptions,
+  ChatRequest,
+  contentToString,
+  ModelType,
+} from '../base';
 import { Event, EventStream } from '../../utils';
 import {
   ChildOptions,
@@ -244,13 +250,15 @@ export class Phind extends Chat {
       };
       for (const msg of req.messages.slice(0, req.messages.length - 1)) {
         if (msg.role === 'user') {
-          body.questionHistory.push(msg.content);
+          body.questionHistory.push(contentToString(msg.content));
         }
         if (msg.role === 'assistant') {
-          body.answerHistory.push(msg.content);
+          body.answerHistory.push(contentToString(msg.content));
         }
       }
-      body.questionHistory.push(req.messages[req.messages.length - 1].content);
+      body.questionHistory.push(
+        contentToString(req.messages[req.messages.length - 1].content),
+      );
       body.challenge = await this.generateChallenge(
         body.question + body.context + JSON.stringify(body.options),
       );
