@@ -3,6 +3,7 @@ import {
   ChatOptions,
   ChatRequest,
   ChatResponse,
+  contentToString,
   ModelType,
 } from '../base';
 import { Browser, Page } from 'puppeteer';
@@ -426,7 +427,7 @@ export class Cursor extends Chat implements BrowserUser<Account> {
           }模型，请回答我的问题. 请保持temperature=5.0`,
         },
         ...req.messages.map((v) => ({
-          text: v.content,
+          text: contentToString(v.content),
           type: v.role === 'user' ? 'MESSAGE_TYPE_HUMAN' : 'MESSAGE_TYPE_AI',
         })),
         { type: 'MESSAGE_TYPE_AI' },

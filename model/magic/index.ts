@@ -1,22 +1,8 @@
-import {
-  Chat,
-  ChatOptions,
-  ChatRequest,
-  ChatResponse,
-  ModelType,
-} from '../base';
+import { Chat, ChatOptions, ChatRequest, Message, ModelType } from '../base';
 import { Browser, Page } from 'puppeteer';
 import { BrowserPool, BrowserUser } from '../../utils/puppeteer';
 import * as fs from 'fs';
-import {
-  DoneData,
-  ErrorData,
-  Event,
-  EventStream,
-  MessageData,
-  parseJSON,
-  sleep,
-} from '../../utils';
+import { Event, EventStream, parseJSON } from '../../utils';
 import { v4 } from 'uuid';
 import moment from 'moment';
 import { CreateAxiosProxy } from '../../utils/proxyAgent';
@@ -30,11 +16,6 @@ const MaxGptTimes = 20;
 
 const TimeFormat = 'YYYY-MM-DD HH:mm:ss';
 
-interface Message {
-  role: string;
-  content: string;
-}
-
 type Account = {
   id: string;
   email?: string;
@@ -44,11 +25,6 @@ type Account = {
   gpt4times: number;
   cookies?: string;
 };
-
-interface Message {
-  role: string;
-  content: string;
-}
 
 interface ModelInfo {
   id: string;
@@ -77,11 +53,6 @@ const modelMap = {
     name: 'GPT-3.5-TURBO',
   },
 } as Record<ModelType, ModelInfo>;
-
-interface Message {
-  role: string;
-  content: string;
-}
 
 interface RealReq {
   model: ModelInfo;

@@ -1,4 +1,10 @@
-import { Chat, ChatOptions, ChatRequest, ModelType } from '../base';
+import {
+  Chat,
+  ChatOptions,
+  ChatRequest,
+  contentToString,
+  ModelType,
+} from '../base';
 import { AxiosInstance, AxiosRequestConfig, CreateAxiosDefaults } from 'axios';
 import { CreateAxiosProxy } from '../../utils/proxyAgent';
 import es from 'event-stream';
@@ -58,7 +64,8 @@ export class AcyToo extends Chat {
       model: req.model,
       key: '',
       messages: req.messages.map((v) => ({
-        ...v,
+        role: v.role,
+        content: contentToString(v.content),
         createdAt: moment().valueOf() + i++ * 100,
       })),
       password: '',

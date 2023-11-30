@@ -3,6 +3,7 @@ import {
   ChatOptions,
   ChatRequest,
   ChatResponse,
+  Message,
   ModelType,
 } from '../base';
 import { AxiosInstance, AxiosRequestConfig, CreateAxiosDefaults } from 'axios';
@@ -16,11 +17,6 @@ import {
   parseJSON,
   randomUserAgent,
 } from '../../utils';
-
-interface Message {
-  role: string;
-  content: string;
-}
 
 interface RealReq {
   messages: Message[];
