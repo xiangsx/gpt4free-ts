@@ -569,21 +569,7 @@ export function matchPattern(pattern: string, str: string): boolean {
 }
 
 export function extractHttpURLs(text: string): string[] {
-  // Regular expression to match http and https URLs in plain text
-  const urlRegex =
-    /\bhttps?:\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|]/gi;
-  const plainUrls = text.match(urlRegex) || [];
-
-  // Regular expression to match http and https URLs in markdown format
-  const markdownUrlRegex =
-    /\]\((https?:\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])\)/gi;
-  let markdownUrls = [];
-  let markdownMatch;
-  while ((markdownMatch = markdownUrlRegex.exec(text)) !== null) {
-    markdownUrls.push(markdownMatch[1]);
-  }
-
-  // Combine and deduplicate the URLs found by both regexes
-  const allUrls = [...new Set([...plainUrls, ...markdownUrls])];
-  return allUrls;
+  // 正则表达式匹配以 "https" 开头，并在空格、"]"、或 ")" 之前结束的 URL
+  const urlRegex = /https:[^\s\]\)]+/g;
+  return text.match(urlRegex) || [];
 }
