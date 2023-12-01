@@ -451,12 +451,8 @@ export class SmailPro extends BaseEmail {
       }
       const page = this.page;
       await sleep(5000);
-      await page.waitForSelector(
-        '.grid > .md\\:rounded-md > .absolute:nth-child(2) > .w-6 > path',
-      );
-      await page.click(
-        '.grid > .md\\:rounded-md > .absolute:nth-child(2) > .w-6 > path',
-      );
+      await page.waitForSelector('.grid > div > div > button:nth-child(2)');
+      await page.click('.grid > div > div > button:nth-child(2)');
 
       await page.waitForSelector(
         '.relative > .absolute > .text-gray-500 > .h-6 > path',
