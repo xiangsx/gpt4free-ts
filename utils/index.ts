@@ -570,6 +570,6 @@ export function matchPattern(pattern: string, str: string): boolean {
 
 export function extractHttpURLs(text: string): string[] {
   // 正则表达式匹配以 "https" 开头，并在空格、"]"、或 ")" 之前结束的 URL
-  const urlRegex = /https:[^\s\]\)]+/g;
+  const urlRegex = /https:[^\s\])]*(?=\s|]|\)|$)/g;
   return text.match(urlRegex) || [];
 }
