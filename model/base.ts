@@ -12,6 +12,7 @@ import winston from 'winston';
 import { newLogger } from '../utils/log';
 import { ClaudeChat } from './claude';
 import exp from 'constants';
+import { OpenSess } from './opensess';
 
 export interface ChatOptions {
   name: string;
@@ -146,6 +147,7 @@ export enum Site {
   OpenChat4 = 'openchat4',
   Izea = 'izea',
   Askx = 'askx',
+  OpenSess = 'opensess',
 }
 
 export interface ChatRequest {

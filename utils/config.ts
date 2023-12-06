@@ -28,6 +28,11 @@ interface ConfigData {
     proxy_list: string[];
   };
   gmail_list: { email: string; password: string; recovery_email: string }[];
+  opensess: {
+    size: number;
+    serial: number;
+    mail_type: TempEmailType;
+  };
   openai: {
     token_limit: { [key: string]: number };
   };
@@ -153,6 +158,11 @@ class BaseConfig {
         db: 0,
       },
       chrome_path: 'google-chrome',
+    },
+    opensess: {
+      size: 0,
+      serial: 1,
+      mail_type: TempEmailType.TempMailLOL,
     },
     askx: {
       size: 0,

@@ -56,6 +56,7 @@ import { OpenChat4 } from './openchat4';
 import { PoeVIP } from './poevip';
 import { Izea } from './izea';
 import { Askx } from './askx';
+import { OpenSess } from './opensess';
 
 export class ChatModelFactory {
   private readonly modelMap: Map<Site, Chat>;
@@ -140,6 +141,7 @@ export class ChatModelFactory {
     this.modelMap.set(Site.OpenChat4, new OpenChat4({ name: Site.OpenChat4 }));
     this.modelMap.set(Site.Izea, new Izea({ name: Site.Izea }));
     this.modelMap.set(Site.Askx, new Askx({ name: Site.Askx }));
+    this.modelMap.set(Site.OpenSess, new OpenSess({ name: Site.OpenSess }));
     this.modelMap.set(
       Site.Perplexity,
       new Perplexity({ name: Site.Perplexity }),
