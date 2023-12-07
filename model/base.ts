@@ -84,6 +84,7 @@ export enum ModelType {
   MetaLlama = 'meta-llama',
   Solar_0_70b = 'solar-0-70b',
   Fw_mistral_7b = 'fw-mistral-7b',
+  PlaygroundV2 = 'playground-v2',
 }
 
 export enum Site {
