@@ -191,15 +191,21 @@ export class Askx extends Chat {
         },
         responseType: 'stream',
       });
-      res.data.pipe(
-        es.map((chunk: any) => {
-          const content = chunk
-            .toString()
-            .replace('data: ', '')
-            .replace('finishReasonstop', '');
-          stream.write(Event.message, { content: parseJSON(content, '') });
-        }),
-      );
+      res.data
+        .pipe(
+          es.map((chunk: any, cb: any) => {
+            const content = chunk
+              .toString()
+              .replace('data: ', '')
+              .replace('finishReasonstop', '');
+            cb(null, parseJSON(content, ''));
+          }),
+        )
+        .on('data', (chunk: string) => {
+          res.data.pause();
+          stream.write(Event.message, { content: chunk });
+          res.data.resume();
+        });
       res.data.on('close', () => {
         this.logger.info('Msg recv ok');
         stream.write(Event.done, { content: '' });
