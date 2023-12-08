@@ -5,7 +5,7 @@ import {
   contentToString,
   ModelType,
 } from '../base';
-import { Event, EventStream } from '../../utils';
+import { Event, EventStream, parseJSON } from '../../utils';
 import {
   ChildOptions,
   ComChild,
@@ -215,14 +215,14 @@ export class Phind extends Chat {
     });
   }
 
-  async generateChallenge(e: string) {
-    let t = (function (e) {
-      let t = 0;
-      for (let n = 0; n < e.length; n += 1)
-        t = ((t << 5) - t + e.charCodeAt(n)) | 0;
-      return t;
-    })(e);
-    return ((9301 * t + 49297) % 233280) / 233280;
+  async generateChallenge(l: string) {
+    let I = (function (l) {
+      let I = 0;
+      for (let d = 0; d < l.length; d += 1)
+        I = ((I << 5) - I + l.charCodeAt(d)) | 0;
+      return I;
+    })(l);
+    return ((9301 * I + 49297) % 233280) / 233280;
   }
 
   async askStream(req: ChatRequest, stream: EventStream): Promise<void> {
@@ -231,75 +231,64 @@ export class Phind extends Chat {
       child.update({ left: child.info.left - 1 });
     }
     try {
-      const body = {
-        question: req.prompt,
-        webResults: [],
-        questionHistory: [] as string[],
-        answerHistory: [] as string[],
-        options: {
-          date: '2023/10/23',
-          language: 'en-US',
-          detailed: true,
-          anonUserId: '',
-          answerModel: modelMap[req.model],
-          creativeMode: true,
-          customLinks: [],
-        },
-        context: '',
-        challenge: 0,
+      const body: any = {
+        userInput: req.prompt,
+        messages: [],
+        model: modelMap[req.model],
+        pinnedMessages: [],
+        anonUserID: '',
+        // challenge: 0.7224322702331961,
       };
-      for (const msg of req.messages.slice(0, req.messages.length - 1)) {
-        if (msg.role === 'user') {
-          body.questionHistory.push(contentToString(msg.content));
-        }
-        if (msg.role === 'assistant') {
-          body.answerHistory.push(contentToString(msg.content));
-        }
-      }
-      body.questionHistory.push(
-        contentToString(req.messages[req.messages.length - 1].content),
-      );
-      body.challenge = await this.generateChallenge(
-        body.question + body.context + JSON.stringify(body.options),
-      );
-
-      const pt = await child.client.fetch(
-        'https://www.phind.com/api/infer/answer',
-        {
-          headers: {
-            accept: '*/*',
-            'accept-language': 'en-US,en;q=0.9',
-            'content-type': 'application/json',
-            'sec-ch-ua':
-              '" Not;A Brand";v="99", "Google Chrome";v="115", "Chromium";v="115"',
-            'sec-ch-ua-mobile': '?0',
-            'sec-ch-ua-platform': '"Windows"',
-            'sec-fetch-dest': 'empty',
-            'sec-fetch-mode': 'cors',
-            'sec-fetch-site': 'same-origin',
-          },
-          referrer: `https://www.phind.com/search?q=${encodeURIComponent(
-            req.prompt,
-          )}&source=searchbox`,
-          referrerPolicy: 'strict-origin-when-cross-origin',
-          body: JSON.stringify(body),
-          method: 'POST',
-          mode: 'cors',
-          credentials: 'include',
+      body.challenge = await this.generateChallenge(JSON.stringify(body));
+      const pt = await child.client.fetch('https://www.phind.com/api/agent', {
+        headers: {
+          accept: '*/*',
+          'accept-language': 'en-US,en;q=0.9',
+          baggage:
+            'sentry-environment=production,sentry-release=fed7ba6b4dc849d233108b52810135007a1b92cb,sentry-public_key=ea29c13458134fd3bc88a8bb4ba668cb,sentry-trace_id=94061840ed28456d90da1879e13d1d63',
+          'content-type': 'application/json',
+          'sec-ch-ua':
+            '" Not;A Brand";v="99", "Google Chrome";v="115", "Chromium";v="115"',
+          'sec-ch-ua-mobile': '?0',
+          'sec-ch-ua-platform': '"Mac OS X"',
+          'sec-fetch-dest': 'empty',
+          'sec-fetch-mode': 'cors',
+          'sec-fetch-site': 'same-origin',
+          'sentry-trace': '94061840ed28456d90da1879e13d1d63-81f6ef29541d5abd-0',
         },
-      );
+        referrer: `https://www.phind.com/agent?home=true`,
+        referrerPolicy: 'strict-origin-when-cross-origin',
+        body: JSON.stringify(body),
+        method: 'POST',
+        mode: 'cors',
+        credentials: 'include',
+      });
       pt.pipe(es.split(/\r?\n\r?\n/)).pipe(
         es.map(async (chunk: any, cb: any) => {
-          const dataStr = chunk.replace(/data: /g, '');
+          const dataStr = chunk.replace('data: ', '');
           if (!dataStr) {
             return;
           }
-          if (dataStr.indexOf('<PHIND_METADATA>') > -1) {
+          if (dataStr === '[DONE]') {
             return;
           }
-          stream.write(Event.message, {
-            content: dataStr,
-          });
+          const data = parseJSON(dataStr, {} as any);
+          if (data.type === 'metadata') {
+            return;
+          }
+          if (!data?.choices) {
+            stream.write(Event.error, { error: 'not found data.choices' });
+            stream.end();
+            return;
+          }
+          const choices = data.choices || [];
+          const { delta, finish_reason } = choices[0] || {};
+          if (finish_reason === 'stop') {
+            return;
+          }
+          if (delta) {
+            stream.write(Event.message, delta);
+          }
         }),
       );
       pt.on('close', () => {
