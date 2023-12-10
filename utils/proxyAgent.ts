@@ -438,7 +438,8 @@ export class WebFetchWithPage {
         (id: string, err: string) => {
           const stream = this.streamMap[id];
           if (stream) {
-            stream.emit('error', err);
+            stream.emit('close');
+            stream.end();
             delete this.streamMap[id];
           }
         },
@@ -476,10 +477,21 @@ export class WebFetchWithPage {
               }
               resolve({ status: 200 });
               const reader = response.body.getReader();
+              const newDelay = () =>
+                setTimeout(() => {
+                  // @ts-ignore
+                  window.onChunkError(id, 'timeout');
+                }, 30 * 1000);
+              let delay = newDelay();
+              const refresh = () => {
+                clearTimeout(delay);
+                delay = newDelay();
+              };
               function readNextChunk() {
                 reader
                   .read()
                   .then(({ done, value }) => {
+                    refresh();
                     const textChunk = new TextDecoder('utf-8').decode(value);
                     if (done) {
                       // @ts-ignore
