@@ -227,7 +227,7 @@ export function countMessagesToken(messages: Message[]): number {
         continue;
       }
       if (item.type === 'image_url') {
-        token += 400;
+        token += 85;
         continue;
       }
     }
