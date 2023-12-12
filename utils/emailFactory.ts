@@ -20,6 +20,7 @@ export enum TempEmailType {
   SmailProGoogleMail = 'smail-pro-googlemail',
   SmailProOutlook = 'smail-pro-outlook',
   SmailProRandom = 'smail-pro-random',
+  SmailProStoreGmail = 'smail-pro-storegmail',
   Gmail = 'gmail',
   EmailNator = 'emailnator',
   MailTM = 'mailtm',
@@ -73,6 +74,12 @@ export function CreateEmail(
         ...options,
         lock: smailProLock,
         mail: 'random',
+      });
+    case TempEmailType.SmailProStoreGmail:
+      return new SmailPro({
+        ...options,
+        lock: smailProLock,
+        mail: 'storegmail.net',
       });
     case TempEmailType.Gmail:
       return new Gmail({ ...options, lock: gmailLock });
@@ -433,11 +440,13 @@ export class SmailPro extends BaseEmail {
   private page!: Page;
   private lock: Lock;
   private mail: string;
+
   constructor(options: SmailProOptions) {
     super(options);
     this.lock = options.lock;
     this.mail = options.mail || 'gmail';
   }
+
   async getMailAddress() {
     try {
       await this.lock.lock(120 * 1000);
@@ -898,6 +907,7 @@ export class YopMail extends BaseEmail {
     const match = response.data.match(/&yj=([^&]+)&v=/s);
     return match ? match[1] : null;
   }
+
   shouldIncludeEmail(email: any, filteredSearch: string) {
     return Object.entries(filteredSearch).every(([key, value]) => {
       switch (key) {
@@ -1050,6 +1060,7 @@ export class YopMail extends BaseEmail {
       inbox: emails,
     };
   }
+
   async readMessage(
     mail: string,
     id: string,

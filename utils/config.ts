@@ -11,6 +11,16 @@ export type SiteCfg = {
   proxy?: boolean;
   model_map?: { [key: string]: ModelType };
 };
+
+type SizeCfg = {
+  size: number;
+  serial: number;
+};
+
+type MailCfg = {
+  mail_type: TempEmailType;
+};
+
 // 首先定义配置的数据类型
 interface ConfigData {
   exit: boolean;
@@ -28,6 +38,7 @@ interface ConfigData {
     proxy_list: string[];
   };
   gmail_list: { email: string; password: string; recovery_email: string }[];
+  hypotenuse: MailCfg & SizeCfg;
   opensess: {
     size: number;
     serial: number;
@@ -158,6 +169,11 @@ class BaseConfig {
         db: 0,
       },
       chrome_path: 'google-chrome',
+    },
+    hypotenuse: {
+      size: 0,
+      serial: 0,
+      mail_type: TempEmailType.TempMailLOL,
     },
     opensess: {
       size: 0,

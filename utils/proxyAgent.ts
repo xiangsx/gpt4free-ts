@@ -184,7 +184,7 @@ export async function CreateNewPage(
       await page.setCookie(...cookies);
     }
     await page.setViewport({
-      width: 1900 + Math.floor(Math.random() * 1000),
+      width: 1000 + Math.floor(Math.random() * 1000),
       height: 1080,
     });
     await page.goto(url);

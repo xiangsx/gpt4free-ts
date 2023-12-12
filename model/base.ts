@@ -13,6 +13,7 @@ import { newLogger } from '../utils/log';
 import { ClaudeChat } from './claude';
 import exp from 'constants';
 import { OpenSess } from './opensess';
+import { Hypotenuse } from './hypotenuse';
 
 export interface ChatOptions {
   name: string;
@@ -149,6 +150,7 @@ export enum Site {
   Izea = 'izea',
   Askx = 'askx',
   OpenSess = 'opensess',
+  Hypotenuse = 'hypotenuse',
 }
 
 export interface ChatRequest {
