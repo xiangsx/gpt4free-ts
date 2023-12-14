@@ -12,6 +12,7 @@ import {
   ComError,
   Event,
   EventStream,
+  extractHttpURLs,
   getRandomOne,
   grepStr,
   parseJSON,
@@ -29,6 +30,7 @@ import { Config } from '../../utils/config';
 import { v4 } from 'uuid';
 import es from 'event-stream';
 import moment from 'moment';
+import { IsImageMineType } from '../../utils/file';
 
 interface Account extends ComInfo {
   apikey: string;
@@ -69,28 +71,33 @@ class Child extends ComChild<Account> {
     const content = { parts: [] as Part[] } as Content;
     const imageUrls = [];
     if (typeof v.content === 'string') {
-      content.parts = [{ text: v.content }];
-      return content;
-    }
-    for (const c of v.content) {
-      if (typeof c === 'string') {
-        content.parts.push({ text: c });
-        continue;
+      const urls = extractHttpURLs(v.content);
+      imageUrls.push(...urls);
+      for (const url of urls) {
+        v.content = v.content.replace(url, '');
       }
-      if (c.type !== 'image_url') {
-        continue;
-      }
-      if (typeof c.image_url === 'string') {
-        if (!c.image_url) {
+      content.parts.push({ text: v.content });
+    } else {
+      for (const c of v.content) {
+        if (typeof c === 'string') {
+          content.parts.push({ text: c });
           continue;
         }
-        imageUrls.push(c.image_url);
-        continue;
+        if (c.type !== 'image_url') {
+          continue;
+        }
+        if (typeof c.image_url === 'string') {
+          if (!c.image_url) {
+            continue;
+          }
+          imageUrls.push(c.image_url);
+          continue;
+        }
+        if (!c.image_url?.url) {
+          continue;
+        }
+        imageUrls.push(c.image_url.url);
       }
-      if (!c.image_url?.url) {
-        continue;
-      }
-      imageUrls.push(c.image_url.url);
     }
     // downloadImageToBase64()
     const base64List = await Promise.all(imageUrls.map(downloadImageToBase64));

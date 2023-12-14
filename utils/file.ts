@@ -55,3 +55,14 @@ export function getImageExtension(contentType: string): string {
       throw new Error(`Unsupported content type: ${contentType}`);
   }
 }
+
+export function IsImageMineType(mimeType: string): boolean {
+  return (
+    mimeType === 'image/jpeg' ||
+    mimeType === 'image/jpg' ||
+    mimeType === 'image/png' ||
+    mimeType === 'image/gif' ||
+    mimeType === 'image/bmp' ||
+    mimeType === 'image/webp'
+  );
+}
