@@ -66,7 +66,7 @@ class Child extends ComChild<Account> {
       };
     }
 
-    const content = {} as Content;
+    const content = { parts: [] as Part[] } as Content;
     const imageUrls = [];
     if (typeof v.content === 'string') {
       content.parts = [{ text: v.content }];
@@ -74,6 +74,7 @@ class Child extends ComChild<Account> {
     }
     for (const c of v.content) {
       if (typeof c === 'string') {
+        content.parts.push({ text: c });
         continue;
       }
       if (c.type !== 'image_url') {
@@ -95,46 +96,47 @@ class Child extends ComChild<Account> {
     const base64List = await Promise.all(imageUrls.map(downloadImageToBase64));
     content.parts.push(
       ...base64List.map((v) => ({
-        inlineData: { data: v, mimeType: this.getMimeTypeFromBase64(v) },
+        inlineData: { data: v.base64Data, mimeType: v.mimeType },
       })),
     );
     return content;
   }
 
-  async generateContentStream(messages: Message[]) {
-    return this.client.post(
-      `/v1beta/models/gemini-pro:streamGenerateContent?key=${this.info.apikey}&alt=sse`,
-      {
-        safetySettings: [
-          {
-            category: HarmCategory.HARM_CATEGORY_HARASSMENT,
-            threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
-          },
-          {
-            category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
-            threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
-          },
-          {
-            category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
-            threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
-          },
-          {
-            category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
-            threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
-          },
-        ],
-        generationConfig: {
-          // candidateCount:
-          // stopSequences
-          maxOutputTokens: 32000,
-          temperature: 1,
-          // topP: 1,
-          // topK: 1,
+  async generateContentStream(model: ModelType, messages: Message[]) {
+    const data = {
+      safetySettings: [
+        {
+          category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+          threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
         },
-        contents: await Promise.all(
-          messages.map((v) => this.messageToContent(v)),
-        ),
-      } as GenerateContentRequest,
+        {
+          category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+          threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+        },
+        {
+          category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+          threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+        },
+        {
+          category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+          threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+        },
+      ],
+      generationConfig: {
+        // candidateCount:
+        // stopSequences
+        maxOutputTokens: 32000,
+        temperature: 1,
+        // topP: 1,
+        // topK: 1,
+      },
+      contents: await Promise.all(
+        messages.map((v) => this.messageToContent(v)),
+      ),
+    } as GenerateContentRequest;
+    return this.client.post(
+      `/v1beta/models/${model}:streamGenerateContent?key=${this.info.apikey}&alt=sse`,
+      data,
       {
         responseType: 'stream',
       },
@@ -209,7 +211,7 @@ export class Gemini extends Chat {
   public async askStream(req: ChatRequest, stream: EventStream) {
     const child = await this.pool.pop();
     try {
-      const res = await child.generateContentStream(req.messages);
+      const res = await child.generateContentStream(req.model, req.messages);
       const response = res.data.pipe(es.split(/\r?\n\r?\n/)).pipe(
         es.map((chunk: any, cb: any) => {
           if (!chunk) {
@@ -233,6 +235,9 @@ export class Gemini extends Chat {
         stream.write(Event.message, { content: content });
       });
     } catch (e: any) {
+      e.response.data.on('data', (chunk: any) =>
+        this.logger.error(chunk.toString()),
+      );
       console.error(e.message);
       throw new ComError(e.message, ComError.Status.InternalServerError);
     }

@@ -274,6 +274,7 @@ export async function CreateNewBrowser() {
 }
 
 let pptPort = 19222 + Math.floor(Math.random() * 10000);
+
 export function launchChromeAndFetchWsUrl(): Promise<string | null> {
   pptPort += 1;
   return new Promise((resolve, reject) => {
@@ -402,6 +403,7 @@ export class WebFetchWithPage {
   constructor(private page: Page) {
     this.init().then(() => console.log(`web fetch with page init ok`));
   }
+
   public isUsing() {
     return this.useCount > 0;
   }
@@ -498,6 +500,7 @@ export class WebFetchWithPage {
                 clearTimeout(delay);
                 delay = newDelay();
               };
+
               function readNextChunk() {
                 reader
                   .read()
@@ -519,6 +522,7 @@ export class WebFetchWithPage {
                     window.onChunkError(id, err);
                   });
               }
+
               readNextChunk();
             })
             .catch((err) => {
@@ -545,6 +549,7 @@ export class WebFetchProxy {
   private readonly homeURL: string;
   private options: { cookie: Protocol.Network.CookieParam[] } | undefined;
   private useCount = 0;
+
   constructor(
     homeURL: string,
     options?: { cookie: Protocol.Network.CookieParam[] },
@@ -648,6 +653,7 @@ export class WebFetchProxy {
                 return null;
               }
               const reader = response.body.getReader();
+
               function readNextChunk() {
                 reader
                   .read()
@@ -670,6 +676,7 @@ export class WebFetchProxy {
                     reject(err);
                   });
               }
+
               readNextChunk();
             })
             .catch((err) => {
@@ -685,9 +692,13 @@ export class WebFetchProxy {
     return stream;
   }
 }
+
 const pipelinePromisified = promisify(pipeline);
 
-export async function downloadImageToBase64(fileUrl: string): Promise<string> {
+export async function downloadImageToBase64(fileUrl: string): Promise<{
+  base64Data: string;
+  mimeType: string;
+}> {
   if (Config.config.global.download_map) {
     for (const old in Config.config.global.download_map) {
       fileUrl = fileUrl.replace(old, Config.config.global.download_map[old]);
@@ -718,9 +729,10 @@ export async function downloadImageToBase64(fileUrl: string): Promise<string> {
       throw new ComError(`download failed`, ComError.Status.BadRequest);
     }
     const base64Data = fs.readFileSync(tempFilePath).toString('base64');
-    return `data:${
-      (await fileType.fromFile(tempFilePath))?.mime
-    };base64,${base64Data}`;
+    return {
+      base64Data,
+      mimeType: (await fileType.fromFile(tempFilePath))?.mime || 'image/jpeg',
+    };
   } catch (e: any) {
     console.error(e.message);
     throw e;
