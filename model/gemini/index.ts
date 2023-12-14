@@ -68,7 +68,7 @@ class Child extends ComChild<Account> {
       };
     }
 
-    const content = { parts: [] as Part[] } as Content;
+    const content = { role: 'user', parts: [] as Part[] } as Content;
     const imageUrls = [];
     if (typeof v.content === 'string') {
       const urls = extractHttpURLs(v.content);
@@ -236,7 +236,7 @@ export class Gemini extends Chat {
       const delay = setTimeout(() => {
         stream.write(Event.done, { content: '' });
         stream.end();
-      }, 5000);
+      }, 3000);
       response.on('data', (content: string) => {
         delay.refresh();
         stream.write(Event.message, { content: content });
