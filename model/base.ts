@@ -86,6 +86,8 @@ export enum ModelType {
   Solar_0_70b = 'solar-0-70b',
   Fw_mistral_7b = 'fw-mistral-7b',
   PlaygroundV2 = 'playground-v2',
+  GeminiPro = 'gemini-pro',
+  GeminiProVision = 'gemini-pro-vision',
 }
 
 export enum Site {
@@ -151,6 +153,7 @@ export enum Site {
   Askx = 'askx',
   OpenSess = 'opensess',
   Hypotenuse = 'hypotenuse',
+  Gemini = 'gemini',
 }
 
 export interface ChatRequest {

@@ -32,9 +32,11 @@ interface ConfigData {
       db: number;
     };
     chrome_path: string;
+    download_map?: Record<string, string>;
   };
   proxy_pool: {
     enable: boolean;
+    stable_proxy_list: string[];
     proxy_list: string[];
   };
   gmail_list: { email: string; password: string; recovery_email: string }[];
@@ -76,6 +78,9 @@ interface ConfigData {
     base_url: string;
     api_key: string;
     proxy: boolean;
+  };
+  gemini: SizeCfg & {
+    apikeys: string[];
   };
   poeauto: {
     size: number;
@@ -169,6 +174,7 @@ class BaseConfig {
         db: 0,
       },
       chrome_path: 'google-chrome',
+      download_map: {},
     },
     hypotenuse: {
       size: 0,
@@ -187,6 +193,7 @@ class BaseConfig {
     },
     proxy_pool: {
       enable: false,
+      stable_proxy_list: [],
       proxy_list: [],
     },
     site_map: {},
@@ -242,6 +249,11 @@ class BaseConfig {
       size: 0,
       mail_type: TempEmailType.TempMailLOL,
       serial: 0,
+    },
+    gemini: {
+      size: 0,
+      serial: 0,
+      apikeys: [],
     },
     sincode: {
       size: 0,

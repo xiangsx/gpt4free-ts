@@ -58,6 +58,7 @@ import { Izea } from './izea';
 import { Askx } from './askx';
 import { OpenSess } from './opensess';
 import { Hypotenuse } from './hypotenuse';
+import { Gemini } from './gemini';
 
 export class ChatModelFactory {
   private readonly modelMap: Map<Site, Chat>;
@@ -143,6 +144,7 @@ export class ChatModelFactory {
     this.modelMap.set(Site.Izea, new Izea({ name: Site.Izea }));
     this.modelMap.set(Site.Askx, new Askx({ name: Site.Askx }));
     this.modelMap.set(Site.OpenSess, new OpenSess({ name: Site.OpenSess }));
+    this.modelMap.set(Site.Gemini, new Gemini({ name: Site.Gemini }));
     this.modelMap.set(
       Site.Hypotenuse,
       new Hypotenuse({ name: Site.Hypotenuse }),

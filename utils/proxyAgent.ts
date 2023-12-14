@@ -11,11 +11,22 @@ import WebSocket from 'ws';
 import moment from 'moment';
 import { closeOtherPages, simplifyPage } from './puppeteer';
 import { v4 } from 'uuid';
-import { PassThrough } from 'stream';
-import { ComError, getRandomOne, sleep } from './index';
+import { PassThrough, pipeline } from 'stream';
+import {
+  ComError,
+  getRandomOne,
+  randomStr,
+  randomUserAgent,
+  sleep,
+} from './index';
 import { Config } from './config';
 import { newInjectedPage } from 'fingerprint-injector';
 import { FingerprintGenerator } from 'fingerprint-generator';
+import path from 'path';
+import fs, { createWriteStream } from 'fs';
+import fileType from 'file-type';
+import sizeOf from 'image-size';
+import { promisify } from 'util';
 
 export const getProxy = () => {
   let proxy = '';
@@ -672,5 +683,46 @@ export class WebFetchProxy {
       init,
     );
     return stream;
+  }
+}
+const pipelinePromisified = promisify(pipeline);
+
+export async function downloadImageToBase64(fileUrl: string): Promise<string> {
+  if (Config.config.global.download_map) {
+    for (const old in Config.config.global.download_map) {
+      fileUrl = fileUrl.replace(old, Config.config.global.download_map[old]);
+    }
+  }
+  try {
+    let tempFilePath = path.join('run/file', v4());
+    let ok = false;
+    for (let i = 0; i < 3; i++) {
+      try {
+        const response = await CreateNewAxios(
+          {},
+          { proxy: getRandomOne(Config.config.proxy_pool.stable_proxy_list) },
+        ).get(fileUrl, {
+          responseType: 'stream',
+          headers: {
+            'User-Agent': randomUserAgent(),
+          },
+        });
+        let writer = createWriteStream(tempFilePath);
+        await pipelinePromisified(response.data, writer);
+        ok = true;
+      } catch (e: any) {
+        console.warn(`download ${fileUrl} failed:${e.message}, retry ${i}`);
+      }
+    }
+    if (!ok) {
+      throw new ComError(`download failed`, ComError.Status.BadRequest);
+    }
+    const base64Data = fs.readFileSync(tempFilePath).toString('base64');
+    return `data:${
+      (await fileType.fromFile(tempFilePath))?.mime
+    };base64,${base64Data}`;
+  } catch (e: any) {
+    console.error(e.message);
+    throw e;
   }
 }

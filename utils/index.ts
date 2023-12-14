@@ -16,6 +16,7 @@ const turndownService = new TurndownService({ codeBlockStyle: 'fenced' });
 type eventFunc = (eventName: string, data: string) => void;
 
 export const TimeFormat = 'YYYY-MM-DD HH:mm:ss';
+
 export function toEventCB(arr: Uint8Array, emit: eventFunc) {
   const pt = new PassThrough();
   pt.write(arr);
@@ -125,6 +126,7 @@ export class EventStream {
   setModel(model: ModelType) {
     this.model = model;
   }
+
   constructor() {
     this.pt.setEncoding('utf-8');
   }
@@ -572,4 +574,20 @@ export function extractHttpURLs(text: string): string[] {
   // 正则表达式匹配以 "https" 开头，并在空格、"]"、或 ")" 之前结束的 URL
   const urlRegex = /https?:\/\/[^\s\]\)]*(?=\s|\]|\)|\n|\t|$)/g;
   return text.match(urlRegex) || [];
+}
+
+// 过滤出符合条件的行
+export function grepStr(v: string, filter: string | RegExp): string[] {
+  const lines = v.split('\n');
+  const result: string[] = [];
+  for (const line of lines) {
+    if (typeof filter === 'string') {
+      if (line.indexOf(filter) > -1) {
+        result.push(line);
+      }
+    } else {
+      line.match(filter)?.forEach((v) => result.push(v));
+    }
+  }
+  return result;
 }
