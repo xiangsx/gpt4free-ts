@@ -14,7 +14,6 @@ import {
   EventStream,
   extractHttpURLs,
   getRandomOne,
-  grepStr,
   parseJSON,
 } from '../../utils';
 import {
@@ -30,7 +29,6 @@ import { Config } from '../../utils/config';
 import { v4 } from 'uuid';
 import es from 'event-stream';
 import moment from 'moment';
-import { IsImageMineType } from '../../utils/file';
 
 interface Account extends ComInfo {
   apikey: string;
@@ -135,19 +133,23 @@ class Child extends ComChild<Account> {
       safetySettings: [
         {
           category: HarmCategory.HARM_CATEGORY_HARASSMENT,
-          threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+          threshold: HarmBlockThreshold.BLOCK_NONE,
         },
         {
           category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
-          threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+          threshold: HarmBlockThreshold.BLOCK_NONE,
         },
         {
           category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
-          threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+          threshold: HarmBlockThreshold.BLOCK_NONE,
         },
         {
           category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
-          threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+          threshold: HarmBlockThreshold.BLOCK_NONE,
+        },
+        {
+          category: HarmCategory.HARM_CATEGORY_UNSPECIFIED,
+          threshold: HarmBlockThreshold.BLOCK_NONE,
         },
       ],
       generationConfig: {
