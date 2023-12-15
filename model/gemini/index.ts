@@ -316,7 +316,9 @@ export class Gemini extends Chat {
       }, 5000);
       response.on('data', (content: string) => {
         delay.refresh();
-        stream.write(Event.message, { content: content });
+        if (!stream.stream().closed) {
+          stream.write(Event.message, { content: content });
+        }
       });
       response.on('error', this.logger.error);
     } catch (e: any) {
