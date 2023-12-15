@@ -312,12 +312,13 @@ export class Gemini extends Chat {
       const delay = setTimeout(() => {
         stream.write(Event.done, { content: '' });
         stream.end();
-        response.destroy();
       }, 5000);
       response.on('data', (content: string) => {
-        delay.refresh();
-        if (!stream.stream().closed) {
+        try {
+          delay.refresh();
           stream.write(Event.message, { content: content });
+        } catch (e: any) {
+          this.logger.error(e.message);
         }
       });
       response.on('error', this.logger.error);
