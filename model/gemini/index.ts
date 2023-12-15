@@ -139,6 +139,28 @@ class Child extends ComChild<Account> {
     return [[content], hasImage];
   }
 
+  async preHandleContent(data: Content[]) {
+    const result: Content[] = [];
+    let lastRole = '';
+    for (const v of data) {
+      if (lastRole === 'user' && v.role === 'user') {
+        result.push({
+          role: 'model',
+          parts: [{ text: '...' }],
+        });
+      }
+      if (lastRole === 'model' && v.role === 'model') {
+        result.push({
+          role: 'user',
+          parts: [{ text: '...' }],
+        });
+      }
+      lastRole = v.role;
+      result.push(v);
+    }
+    return result;
+  }
+
   async generateContentStream(model: ModelType, messages: Message[]) {
     const data = {
       safetySettings: [
@@ -175,6 +197,7 @@ class Child extends ComChild<Account> {
       );
       if (hasImage) {
         data.contents.push(...content);
+        data.contents = await this.preHandleContent(data.contents);
         return this.client.post(
           `/v1beta/models/${model}:streamGenerateContent?key=${this.info.apikey}&alt=sse`,
           data,
@@ -190,6 +213,7 @@ class Child extends ComChild<Account> {
       const [content] = await this.messageToContent(v, true);
       data.contents.push(...content);
     }
+    data.contents = await this.preHandleContent(data.contents);
     return this.client.post(
       `/v1beta/models/${targetModel}:streamGenerateContent?key=${this.info.apikey}&alt=sse`,
       data,
@@ -288,6 +312,7 @@ export class Gemini extends Chat {
       const delay = setTimeout(() => {
         stream.write(Event.done, { content: '' });
         stream.end();
+        response.destroy();
       }, 5000);
       response.on('data', (content: string) => {
         delay.refresh();
