@@ -147,7 +147,7 @@ class Child extends ComChild<Account> {
       generationConfig: {
         // candidateCount:
         // stopSequences
-        maxOutputTokens: 32000,
+        maxOutputTokens: model === ModelType.GeminiProVision ? 2000 : 4000,
         temperature: 1,
         // topP: 1,
         // topK: 1,
@@ -232,9 +232,9 @@ export class Gemini extends Chat {
   support(model: ModelType): number {
     switch (model) {
       case ModelType.GeminiPro:
-        return 3000;
+        return 30000;
       case ModelType.GeminiProVision:
-        return 3000;
+        return 10000;
       default:
         return 0;
     }
