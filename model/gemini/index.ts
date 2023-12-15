@@ -172,14 +172,15 @@ class Child extends ComChild<Account> {
           },
         );
       }
-      model = ModelType.GeminiPro;
+      targetModel = ModelType.GeminiPro;
+      targetMessages = messages;
     }
     for (const v of targetMessages) {
       const [content] = await this.messageToContent(v, true);
       data.contents.push(content);
     }
     return this.client.post(
-      `/v1beta/models/${model}:streamGenerateContent?key=${this.info.apikey}&alt=sse`,
+      `/v1beta/models/${targetModel}:streamGenerateContent?key=${this.info.apikey}&alt=sse`,
       data,
       {
         responseType: 'stream',
