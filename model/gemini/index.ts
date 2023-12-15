@@ -318,6 +318,7 @@ export class Gemini extends Chat {
         delay.refresh();
         stream.write(Event.message, { content: content });
       });
+      response.on('error', this.logger.error);
     } catch (e: any) {
       e.response.data.on('data', (chunk: any) =>
         this.logger.error(chunk.toString()),
