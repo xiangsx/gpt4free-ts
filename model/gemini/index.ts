@@ -61,22 +61,30 @@ class Child extends ComChild<Account> {
   async messageToContent(
     v: Message,
     filterImage: boolean,
-  ): Promise<[Content, boolean]> {
+  ): Promise<[Content[], boolean]> {
     if (v.role === 'assistant') {
       return [
-        {
-          role: 'model',
-          parts: [{ text: contentToString(v.content) }],
-        },
+        [
+          {
+            role: 'model',
+            parts: [{ text: contentToString(v.content) }],
+          },
+        ],
         false,
       ];
     }
     if (v.role === 'system') {
       return [
-        {
-          role: 'user',
-          parts: [{ text: contentToString(v.content) }],
-        },
+        [
+          {
+            role: 'user',
+            parts: [{ text: contentToString(v.content) }],
+          },
+          {
+            role: 'model',
+            parts: [{ text: 'Got it!' }],
+          },
+        ],
         false,
       ];
     }
@@ -97,6 +105,9 @@ class Child extends ComChild<Account> {
           continue;
         }
         if (c.type !== 'image_url') {
+          if (c.text) {
+            content.parts.push({ text: c.text });
+          }
           continue;
         }
         if (typeof c.image_url === 'string') {
@@ -125,7 +136,7 @@ class Child extends ComChild<Account> {
         })),
       );
     }
-    return [content, hasImage];
+    return [[content], hasImage];
   }
 
   async generateContentStream(model: ModelType, messages: Message[]) {
@@ -163,7 +174,7 @@ class Child extends ComChild<Account> {
         false,
       );
       if (hasImage) {
-        data.contents.push(content);
+        data.contents.push(...content);
         return this.client.post(
           `/v1beta/models/${model}:streamGenerateContent?key=${this.info.apikey}&alt=sse`,
           data,
@@ -177,7 +188,7 @@ class Child extends ComChild<Account> {
     }
     for (const v of targetMessages) {
       const [content] = await this.messageToContent(v, true);
-      data.contents.push(content);
+      data.contents.push(...content);
     }
     return this.client.post(
       `/v1beta/models/${targetModel}:streamGenerateContent?key=${this.info.apikey}&alt=sse`,
@@ -267,6 +278,9 @@ export class Gemini extends Chat {
             {} as any,
           );
           for (const v of content.candidates || []) {
+            if (!v.content?.parts) {
+              continue;
+            }
             cb(null, v.content.parts[0].text || '');
           }
         }),
