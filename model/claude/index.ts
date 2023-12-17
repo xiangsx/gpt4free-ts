@@ -56,11 +56,13 @@ interface Account extends ComInfo {
   client_sha: string;
   client_version: string;
   org_id: string;
+  banned: boolean;
 }
 
 class Child extends ComChild<Account> {
   public client!: WebFetchWithPage;
   public page!: Page;
+  public closeDelay!: NodeJS.Timeout;
 
   constructor(label: string, info: any, options?: ChildOptions) {
     super(label, info, options);
@@ -163,7 +165,14 @@ class Child extends ComChild<Account> {
 
   async destroy(options?: DestroyOptions) {
     super.destroy(options);
-    this.page?.browser()?.close();
+    if (this.closeDelay) {
+      this.closeDelay.refresh();
+      return false;
+    }
+    this.closeDelay = setTimeout(() => {
+      this.page?.browser().close();
+    }, 8 * 60 * 1000);
+    return true;
   }
 
   initFailed() {
@@ -190,6 +199,9 @@ export class ClaudeChat extends Chat {
       if (!v.session_key) {
         return false;
       }
+      if (v.banned) {
+        return false;
+      }
       return true;
     },
     {
@@ -197,13 +209,19 @@ export class ClaudeChat extends Chat {
       serial: () => Config.config.claudechat.serial || 1,
       needDel: (v) => !v.session_key,
       preHandleAllInfos: async (infos) => {
-        return Config.config.claudechat.sessions_keys.map(
-          (v) =>
-            ({
-              id: v4(),
-              session_key: v,
-            } as Account),
-        );
+        const emailSet = new Map(infos.map((v) => [v.session_key, v]));
+        for (const v of Config.config.claudechat.sessions_keys) {
+          if (emailSet.has(v)) {
+            continue;
+          }
+          const newA = {
+            id: v4(),
+            session_key: v,
+          } as Account;
+          emailSet.set(v, newA);
+          infos.push(newA);
+        }
+        return infos;
       },
     },
   );
@@ -251,19 +269,15 @@ export class ClaudeChat extends Chat {
     const child = await this.pool.pop();
     try {
       const body = {
-        completion: {
-          prompt: req.prompt,
-          timezone: 'Asia/Shanghai',
-          model: 'claude-2',
-        },
-        organization_uuid: child.info.org_id,
-        conversation_uuid: await child.newChat(),
-        text: req.prompt,
+        prompt: req.prompt,
+        timezone: 'Asia/Shanghai',
+        model: 'claude-2.1',
         attachments: [],
       };
-
+      const organ_id = child.info.org_id;
+      const conversation_uuid = await child.newChat();
       const pt = await child.client.fetch(
-        'https://claude.ai/api/append_message',
+        `https://claude.ai/api/organizations/${organ_id}/chat_conversations/${conversation_uuid}/completion`,
         {
           headers: {
             accept: 'text/event-stream, text/event-stream',
@@ -277,7 +291,7 @@ export class ClaudeChat extends Chat {
             'sec-fetch-mode': 'cors',
             'sec-fetch-site': 'same-origin',
           },
-          referrer: `https://claude.ai/chat/${body.conversation_uuid}`,
+          referrer: `https://claude.ai/chat/${conversation_uuid}`,
           referrerPolicy: 'strict-origin-when-cross-origin',
           body: JSON.stringify(body),
           method: 'POST',
@@ -288,12 +302,28 @@ export class ClaudeChat extends Chat {
       let old = '';
       pt.pipe(es.split(/\r?\n\r?\n/)).pipe(
         es.map(async (chunk: any, cb: any) => {
-          const dataStr = chunk.replace('data: ', '');
+          let [, dataStr] = chunk.split('\n');
+          dataStr = dataStr.replace('data: ', '');
           const data = parseJSON<{
             completion: string;
             stop_reason: string | null;
           }>(dataStr, {} as any);
           if (data.stop_reason) {
+            if (
+              data.completion.indexOf(
+                'Your account has been disabled after an automatic review of your recent activities that violate our Terms of Service.',
+              ) > -1
+            ) {
+              this.logger.error('account has been banned');
+              pt.destroy();
+              stream.write(Event.error, {
+                error: 'account has been disabled',
+              });
+              stream.end();
+              child.update({ banned: true });
+              child.destroy({ delFile: false, delMem: true });
+              return;
+            }
             this.logger.info('Recv msg ok');
             pt.destroy();
             stream.write(Event.done, { content: '' });
