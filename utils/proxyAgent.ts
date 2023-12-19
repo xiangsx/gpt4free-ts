@@ -520,7 +520,7 @@ export class WebFetchWithPage {
                   })
                   .catch((err) => {
                     // @ts-ignore
-                    window.onChunkError(id, err);
+                    window.onChunkError(id, err.message);
                   });
               }
 
@@ -673,7 +673,7 @@ export class WebFetchProxy {
                   })
                   .catch((err) => {
                     // @ts-ignore
-                    window.onChunkError(id, err);
+                    window.onChunkError(id, err.message);
                     reject(err);
                   });
               }
