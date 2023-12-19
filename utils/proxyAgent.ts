@@ -451,9 +451,10 @@ export class WebFetchWithPage {
         (id: string, err: string) => {
           const stream = this.streamMap[id];
           if (stream) {
-            stream.emit('close');
-            stream.end();
             delete this.streamMap[id];
+            stream.write('Something error happen, please input continue.');
+            stream.end();
+            stream.destroy();
           }
         },
       );
