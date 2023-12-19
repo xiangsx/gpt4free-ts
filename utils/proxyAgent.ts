@@ -451,10 +451,10 @@ export class WebFetchWithPage {
         (id: string, err: string) => {
           const stream = this.streamMap[id];
           if (stream) {
-            delete this.streamMap[id];
-            stream.write('Something error happen, please input continue.');
+            console.log(`web fetch with page error: ${err}`);
             stream.end();
             stream.destroy();
+            delete this.streamMap[id];
           }
         },
       );
@@ -495,7 +495,7 @@ export class WebFetchWithPage {
                 setTimeout(() => {
                   // @ts-ignore
                   window.onChunkError(id, 'timeout');
-                }, 30 * 1000);
+                }, 1 * 1000);
               let delay = newDelay();
               const refresh = () => {
                 clearTimeout(delay);
