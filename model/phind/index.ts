@@ -69,7 +69,7 @@ class Child extends ComChild<Account> {
     this.update({ left });
     this.logger.info('update left ok');
     if (!left) {
-      this.update({ user_out_time: moment().utc().unix() });
+      this.update({ user_out_time: moment().utc().unix(), left: 0 });
       throw new Error('no left');
     }
   }
