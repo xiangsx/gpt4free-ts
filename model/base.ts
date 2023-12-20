@@ -60,7 +60,7 @@ export enum ModelType {
   GPT4VisionPreview = 'gpt-4-vision-preview',
   GPT4_32k = 'gpt-4-32k',
   NetGPT4 = 'net-gpt-4',
-  DalleE3 = 'dalle-e-3',
+  DallE3 = 'dall-e-3',
   Sage = 'sage',
   NetGpt3p5 = 'net-gpt-3.5-turbo',
   ClaudeInstant = 'claude-instant',
