@@ -8,7 +8,7 @@ import {
   Pool,
 } from '../../utils/pool';
 import { Config } from '../../utils/config';
-import { CreateAxiosProxy } from '../../utils/proxyAgent';
+import { CreateAxiosProxy, CreateNewAxios } from '../../utils/proxyAgent';
 import moment from 'moment/moment';
 import { Page } from 'puppeteer';
 import { AxiosInstance } from 'axios';
@@ -30,15 +30,12 @@ class Child extends ComChild<Account> {
 
   constructor(label: string, info: any, options?: ChildOptions) {
     super(label, info, options);
-    this.client = CreateAxiosProxy(
-      {
-        baseURL: 'https://packdir.com',
-        headers: {
-          Referer: 'https://airoom.chat/',
-        },
+    this.client = CreateNewAxios({
+      baseURL: 'https://packdir.com',
+      headers: {
+        Referer: 'https://airoom.chat/',
       },
-      true,
-    );
+    });
   }
 
   async init(): Promise<void> {
