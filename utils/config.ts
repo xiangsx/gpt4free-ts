@@ -41,6 +41,7 @@ interface ConfigData {
   };
   gmail_list: { email: string; password: string; recovery_email: string }[];
   hypotenuse: MailCfg & SizeCfg;
+  airoom: SizeCfg;
   opensess: {
     size: number;
     serial: number;
@@ -175,6 +176,10 @@ class BaseConfig {
       },
       chrome_path: 'google-chrome',
       download_map: {},
+    },
+    airoom: {
+      size: 0,
+      serial: 1,
     },
     hypotenuse: {
       size: 0,

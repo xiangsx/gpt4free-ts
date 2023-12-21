@@ -59,6 +59,7 @@ import { Askx } from './askx';
 import { OpenSess } from './opensess';
 import { Hypotenuse } from './hypotenuse';
 import { Gemini } from './gemini';
+import { AIRoom } from './airoom';
 
 export class ChatModelFactory {
   private readonly modelMap: Map<Site, Chat>;
@@ -145,6 +146,7 @@ export class ChatModelFactory {
     this.modelMap.set(Site.Askx, new Askx({ name: Site.Askx }));
     this.modelMap.set(Site.OpenSess, new OpenSess({ name: Site.OpenSess }));
     this.modelMap.set(Site.Gemini, new Gemini({ name: Site.Gemini }));
+    this.modelMap.set(Site.AIRoom, new AIRoom({ name: Site.AIRoom }));
     this.modelMap.set(
       Site.Hypotenuse,
       new Hypotenuse({ name: Site.Hypotenuse }),
