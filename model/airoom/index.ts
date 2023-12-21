@@ -8,15 +8,20 @@ import {
   Pool,
 } from '../../utils/pool';
 import { Config } from '../../utils/config';
-import { CreateAxiosProxy, CreateNewAxios } from '../../utils/proxyAgent';
+import { CreateNewAxios } from '../../utils/proxyAgent';
 import moment from 'moment/moment';
 import { Page } from 'puppeteer';
 import { AxiosInstance } from 'axios';
 
+type Room = {
+  rid: string;
+  sid: string;
+};
 interface Account extends ComInfo {
   email: string;
   password: string;
   token: string;
+  roomMap: Partial<Record<ModelType, Room[]>>;
 }
 
 const ModelMap: Partial<Record<ModelType, string>> = {
@@ -50,6 +55,16 @@ class Child extends ComChild<Account> {
       this.update({ email, password });
       await this.signup();
       await this.login();
+      if (!this.info.roomMap) {
+        this.update({
+          roomMap: {
+            [ModelType.GPT3p5_16k]: [],
+            [ModelType.GPT41106Preview]: [],
+          },
+        });
+      }
+      await this.newRoom(ModelType.GPT41106Preview, true);
+      await this.newRoom(ModelType.GPT3p5_16k, true);
     } catch (e) {
       throw e;
     }
@@ -82,7 +97,20 @@ class Child extends ComChild<Account> {
     });
   }
 
-  async room(model: ModelType) {
+  async popRoom(model: ModelType) {
+    const rooms = this.info.roomMap[model]!;
+    const room = rooms.shift();
+    this.update({ roomMap: this.info.roomMap });
+    if (room) {
+      this.newRoom(model, true);
+      return room;
+    } else {
+      this.newRoom(model, true);
+      return await this.newRoom(model, false);
+    }
+  }
+
+  async newRoom(model: ModelType, save: boolean) {
     if (!ModelMap[model]) {
       throw new Error(`not support model:${model}`);
     }
@@ -102,7 +130,15 @@ class Child extends ComChild<Account> {
     if (!res.data.room_uuid || !res.data.session_uuid) {
       throw new ComError('can not get room info', ComError.Status.Forbidden);
     }
-    return { sid: res.data.session_uuid, rid: res.data.room_uuid };
+    const room = {
+      sid: res.data.session_uuid,
+      rid: res.data.room_uuid,
+    };
+    if (save) {
+      this.info.roomMap[model]!.push(room);
+      this.update({ roomMap: this.info.roomMap });
+    }
+    return room;
   }
 
   initFailed() {
@@ -164,7 +200,7 @@ export class AIRoom extends Chat {
   async askStream(req: ChatRequest, stream: EventStream): Promise<void> {
     const child = await this.pool.pop();
     try {
-      const { sid, rid } = await child.room(req.model);
+      const { sid, rid } = await child.popRoom(req.model);
       const res = await child.client.post(
         '/api/airoom/message',
         {
