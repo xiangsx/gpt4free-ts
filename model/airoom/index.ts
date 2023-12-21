@@ -219,6 +219,7 @@ export class AIRoom extends Chat {
       res.data.on('close', () => {
         stream.write(Event.done, { content: '' });
         stream.end();
+        this.logger.info('Recv msg ok');
       });
     } catch (e: any) {
       stream.write(Event.error, { error: e.message });
