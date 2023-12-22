@@ -89,6 +89,9 @@ export enum ModelType {
   PlaygroundV2 = 'playground-v2',
   GeminiPro = 'gemini-pro',
   GeminiProVision = 'gemini-pro-vision',
+  Qwen72bChat = 'qwen-72b',
+  Mixtral8x7BChat = 'mixtral-8x7b',
+  MistralMedium = 'mistral-medium',
 }
 
 export enum Site {
