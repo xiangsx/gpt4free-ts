@@ -591,3 +591,42 @@ export function grepStr(v: string, filter: string | RegExp): string[] {
   }
   return result;
 }
+
+export function replaceStrInBuffer(
+  source: string,
+  startIdx: number,
+  endIdx: number,
+  targetStr: string,
+): string {
+  // 将源字符串转换为 Buffer
+  let buffer = Buffer.from(source);
+
+  // 边界处理
+  if (startIdx >= buffer.length) {
+    return source;
+  }
+
+  if (endIdx > buffer.length) {
+    endIdx = buffer.length;
+  }
+
+  // 计算目标字符串的长度
+  const targetLength = Buffer.from(targetStr).length;
+
+  // 计算要替换的部分的长度
+  const replaceLength = endIdx - startIdx;
+
+  // 创建一个新的 Buffer 用于存放结果
+  let resultBuffer = Buffer.alloc(buffer.length - replaceLength + targetLength);
+
+  // 将 startIdx 之前的部分复制到新 Buffer
+  buffer.copy(resultBuffer, 0, 0, startIdx);
+
+  // 将目标字符串添加到新 Buffer
+  resultBuffer.write(targetStr, startIdx);
+
+  // 将 endIdx 之后的部分复制到新 Buffer
+  buffer.copy(resultBuffer, startIdx + targetLength, endIdx);
+
+  return resultBuffer.toString();
+}
