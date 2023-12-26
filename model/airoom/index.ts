@@ -8,7 +8,7 @@ import {
   Pool,
 } from '../../utils/pool';
 import { Config } from '../../utils/config';
-import { CreateNewAxios } from '../../utils/proxyAgent';
+import { CreateAxiosProxy, CreateNewAxios } from '../../utils/proxyAgent';
 import moment from 'moment/moment';
 import { Page } from 'puppeteer';
 import { AxiosInstance } from 'axios';
@@ -35,12 +35,15 @@ class Child extends ComChild<Account> {
 
   constructor(label: string, info: any, options?: ChildOptions) {
     super(label, info, options);
-    this.client = CreateNewAxios({
-      baseURL: 'https://packdir.com',
-      headers: {
-        Referer: 'https://airoom.chat/',
+    this.client = CreateAxiosProxy(
+      {
+        baseURL: 'https://packdir.com',
+        headers: {
+          Referer: 'https://airoom.chat/',
+        },
       },
-    });
+      true,
+    );
   }
 
   async init(): Promise<void> {
@@ -82,10 +85,14 @@ class Child extends ComChild<Account> {
 
   async login() {
     const res: { data: { token: string; message: string } } =
-      await this.client.post('/api/airoom/login', {
-        email: this.info.email,
-        password: this.info.password,
-      });
+      await this.client.post(
+        '/api/airoom/login',
+        {
+          email: this.info.email,
+          password: this.info.password,
+        },
+        { timeout: 10 * 1000 },
+      );
     if (res.data.message !== 'ok') {
       throw new Error('login failed');
     }
@@ -117,7 +124,7 @@ class Child extends ComChild<Account> {
     const res: {
       data: { message: string; room_uuid: string; session_uuid: string };
     } = await this.client.post(
-      'https://packdir.com/api/airoom/room',
+      '/api/airoom/room',
       {
         botUuid: ModelMap[model],
         botType: 0,
