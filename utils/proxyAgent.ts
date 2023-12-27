@@ -181,7 +181,9 @@ export async function CreateNewPage(
   if (!globalBrowser || !globalBrowser.isConnected()) {
     globalBrowser = await p.launch(launchOpt);
   }
-  const browser = await globalBrowser.createIncognitoBrowserContext();
+  const browser = await globalBrowser.createIncognitoBrowserContext({
+    proxyServer: proxy,
+  });
   try {
     const gen = new FingerprintGenerator();
     let page: Page;
