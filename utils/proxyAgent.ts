@@ -171,9 +171,7 @@ export async function CreateNewPage(
   if (protocolTimeout) {
     launchOpt.protocolTimeout = protocolTimeout;
   }
-  if (proxy) {
-    launchOpt.args?.push(`--proxy-server=${proxy}`);
-  }
+  launchOpt.args?.push(`--proxy-server=${proxy || getProxy()}`);
   let p = puppeteer;
   if (stealth) {
     p = p.use(StealthPlugin());
@@ -182,7 +180,7 @@ export async function CreateNewPage(
     globalBrowser = await p.launch(launchOpt);
   }
   const browser = await globalBrowser.createIncognitoBrowserContext({
-    proxyServer: proxy,
+    proxyServer: proxy || getProxy(),
   });
   try {
     const gen = new FingerprintGenerator();
