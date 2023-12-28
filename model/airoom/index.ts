@@ -69,7 +69,10 @@ class Child extends ComChild<Account> {
       }
       await this.newRoom(ModelType.GPT41106Preview, true);
       await this.newRoom(ModelType.GPT3p5_16k, true);
-    } catch (e) {
+    } catch (e: any) {
+      if (e?.response?.status === 403 || e?.response?.status === 401) {
+        this.destroy({ delFile: true, delMem: true });
+      }
       throw e;
     }
   }
@@ -234,7 +237,7 @@ export class AIRoom extends Chat {
       stream.write(Event.done, { content: '' });
       stream.end();
       child.update({ token: '' });
-      if (e.response.status === 403 || e.response.status === 401) {
+      if (e.response?.status === 403 || e.response?.status === 401) {
         child.destroy({ delFile: true, delMem: true });
       } else {
         child.destroy({ delFile: false, delMem: true });
