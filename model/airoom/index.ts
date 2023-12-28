@@ -109,10 +109,10 @@ class Child extends ComChild<Account> {
     const room = rooms.shift();
     this.update({ roomMap: this.info.roomMap });
     if (room) {
-      this.newRoom(model, true);
+      this.newRoom(model, true).catch((e) => this.logger.error(e.message));
       return room;
     } else {
-      this.newRoom(model, true);
+      this.newRoom(model, true).catch((e) => this.logger.error(e.message));
       return await this.newRoom(model, false);
     }
   }
