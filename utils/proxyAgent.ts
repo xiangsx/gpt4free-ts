@@ -459,8 +459,7 @@ export class WebFetchWithPage {
           const stream = this.streamMap[id];
           if (stream) {
             console.log(`web fetch with page error: ${err}`);
-            stream.end();
-            stream.destroy();
+            stream.write('data: [ERROR]\n\n', 'utf-8');
             delete this.streamMap[id];
           }
         },
