@@ -17,6 +17,7 @@ type Room = {
   rid: string;
   sid: string;
 };
+
 interface Account extends ComInfo {
   email: string;
   password: string;
@@ -233,7 +234,11 @@ export class AIRoom extends Chat {
       stream.write(Event.done, { content: '' });
       stream.end();
       child.update({ token: '' });
-      child.destroy({ delFile: false, delMem: true });
+      if (e.response.status === 403 || e.response.status === 401) {
+        child.destroy({ delFile: true, delMem: true });
+      } else {
+        child.destroy({ delFile: false, delMem: true });
+      }
     }
   }
 }
