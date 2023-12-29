@@ -455,7 +455,10 @@ export class SmailPro extends BaseEmail {
           simplify: true,
         });
         setTimeout(() => {
-          this.page?.browser().close();
+          this.page
+            ?.browser()
+            .close()
+            .catch((e) => console.error(e.message));
         }, 360 * 1000);
       }
       const page = this.page;

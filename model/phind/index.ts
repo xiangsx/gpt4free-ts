@@ -92,6 +92,7 @@ class Child extends ComChild<Account> {
     let page;
     if (this.info.token) {
       page = await CreateNewPage('https://www.phind.com/', {
+        recognize: false,
         cookies: [
           {
             name: '__Secure-next-auth.session-token',
@@ -109,7 +110,9 @@ class Child extends ComChild<Account> {
         throw new Error('cf failed');
       }
     } else {
-      page = await CreateNewPage('https://www.phind.com/api/auth/signin');
+      page = await CreateNewPage('https://www.phind.com/api/auth/signin', {
+        recognize: false,
+      });
       this.page = page;
       page = await handleCF(page);
       this.page = page;

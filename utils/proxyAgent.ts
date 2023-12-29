@@ -143,6 +143,7 @@ export async function CreateNewPage(
     devtools?: boolean;
     fingerprint_inject?: boolean;
     protocolTimeout?: number;
+    recognize?: boolean;
   },
 ) {
   const {
@@ -156,6 +157,7 @@ export async function CreateNewPage(
     fingerprint_inject = false,
     protocolTimeout,
     stealth = true,
+    recognize = true,
   } = options || {};
   const launchOpt: PuppeteerLaunchOptions = {
     headless: process.env.DEBUG === '1' ? false : 'new',
@@ -179,9 +181,11 @@ export async function CreateNewPage(
   if (!globalBrowser || !globalBrowser.isConnected()) {
     globalBrowser = await p.launch(launchOpt);
   }
-  const browser = await globalBrowser.createIncognitoBrowserContext({
-    proxyServer: proxy || getProxy(),
-  });
+  const browser = recognize
+    ? await globalBrowser.createIncognitoBrowserContext({
+        proxyServer: proxy || getProxy(),
+      })
+    : globalBrowser;
   try {
     const gen = new FingerprintGenerator();
     let page: Page;
@@ -204,8 +208,10 @@ export async function CreateNewPage(
       height: 1080,
     });
     await page.goto(url);
-    // @ts-ignore
-    page.browser = page.browserContext;
+    if (recognize) {
+      // @ts-ignore
+      page.browser = page.browserContext;
+    }
     return page;
   } catch (e) {
     console.error(e);
