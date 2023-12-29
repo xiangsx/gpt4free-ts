@@ -549,7 +549,11 @@ export class WebFetchWithPage {
       init,
     )) as { status: number; [key: string]: any };
     if (data.status !== 200) {
-      throw new ComError('fetch failed', data.status, data);
+      throw new ComError(
+        `fetch failed ${JSON.stringify(data)}`,
+        data.status,
+        data,
+      );
     }
 
     return stream;
