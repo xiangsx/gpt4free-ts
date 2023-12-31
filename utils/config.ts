@@ -57,7 +57,7 @@ interface ConfigData {
     serial: number;
     concurrency: number;
     system: string;
-    model: string;
+    model: ModelType;
   };
   izea: {
     size: number;
@@ -287,7 +287,7 @@ class BaseConfig {
       tokens: [],
       concurrency: 1,
       system: '',
-      model: 'perplexity',
+      model: ModelType.GPT3p5Turbo,
     },
     vanus: {
       size: 0,

@@ -6,7 +6,6 @@ import { ComChild, ComInfo, DestroyOptions, Pool } from '../../utils/pool';
 import { CreateNewPage } from '../../utils/proxyAgent';
 import { handleCF, ifCF } from '../../utils/captcha';
 import { v4 } from 'uuid';
-import * as util from 'util';
 
 type UseLeft = Partial<Record<ModelType, number>>;
 
@@ -19,10 +18,16 @@ enum FocusType {
   Reddit = 6,
 }
 
-enum PerModel {
-  Perplexity = 'perplexity',
-  Gpt4 = 'gpt4',
-}
+const ModelMap: Partial<Record<ModelType, string>> = {
+  [ModelType.GPT3p5Turbo]:
+    '#__next > main > div.flex.justify-center.items-center > div > div > div > div > div > div:nth-child(1)',
+  [ModelType.GPT4]:
+    '#__next > main > div.flex.justify-center.items-center > div > div > div > div > div > div:nth-child(3)',
+  [ModelType.Claude2]:
+    '#__next > main > div.flex.justify-center.items-center > div > div > div > div > div > div:nth-child(4)',
+  [ModelType.GeminiPro]:
+    '#__next > main > div.flex.justify-center.items-center > div > div > div > div > div > div:nth-child(5)',
+};
 
 interface Account extends ComInfo {
   email?: string;
@@ -41,6 +46,7 @@ class Child extends ComChild<Account> {
   private cb?: (ansType: string, ansObj: any) => void;
   private refresh?: () => void;
   private client!: CDPSession;
+
   async isLogin(page: Page) {
     try {
       await page.waitForSelector(this.UserName, { timeout: 5 * 1000 });
@@ -50,9 +56,8 @@ class Child extends ComChild<Account> {
     }
   }
 
-  private InputSelector =
-    '.grow > div > .rounded-md > .relative > .outline-none';
-  private UserName = `a[href="/settings"]`;
+  private InputSelector = 'textarea';
+  private UserName = `a[href="/settings/account"]`;
 
   private async closeCopilot(page: Page) {
     try {
@@ -66,13 +71,21 @@ class Child extends ComChild<Account> {
     }
   }
 
-  async setModel(page: Page, model: PerModel) {
+  async setModel(page: Page, model: ModelType) {
     try {
       await page.goto('https://www.perplexity.ai/settings');
-      await page.reload();
-      await page.waitForSelector('#model-select', { timeout: 3000 });
-      await page.click('#model-select');
-      await page.select('#model-select', model);
+      await page.waitForSelector(
+        'div > div:nth-child(4) > div:nth-child(2) > div:nth-child(2) > div > button > div > svg',
+        { timeout: 3000 },
+      );
+      await page.click(
+        'div > div:nth-child(4) > div:nth-child(2) > div:nth-child(2) > div > button > div > svg',
+      );
+      const selector = ModelMap[model];
+      if (!selector) {
+        throw new Error('model not support');
+      }
+      await page.click(selector);
     } catch (e) {
       this.logger.error('set model failed', e);
       throw new Error('set model failed');
@@ -250,6 +263,7 @@ class Child extends ComChild<Account> {
       throw new Error('token is empty');
     }
     let page = await CreateNewPage('https://www.perplexity.ai', {
+      recognize: false,
       cookies: [
         {
           url: 'https://www.perplexity.ai',
@@ -272,7 +286,7 @@ class Child extends ComChild<Account> {
       this.update({ invalid: true });
       throw new Error(`account:${this.info.id}, no login status`);
     }
-    if (Config.config.perplexity.model === PerModel.Gpt4) {
+    if (Config.config.perplexity.model !== ModelType.GPT3p5Turbo) {
       if (!(await this.isPro(page))) {
         this.update({ invalid: true });
         this.logger.error(`account:${this.info.token}, not pro`);
@@ -282,7 +296,7 @@ class Child extends ComChild<Account> {
     await this.closeCopilot(page);
     await this.setModel(
       page,
-      (Config.config.perplexity.model as PerModel) || PerModel.Perplexity,
+      Config.config.perplexity.model || ModelType.GPT3p5Turbo,
     );
 
     await this.startListener();
