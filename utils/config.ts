@@ -42,6 +42,7 @@ interface ConfigData {
   gmail_list: { email: string; password: string; recovery_email: string }[];
   hypotenuse: MailCfg & SizeCfg;
   airoom: SizeCfg;
+  gptgod: SizeCfg;
   opensess: {
     size: number;
     serial: number;
@@ -178,6 +179,10 @@ class BaseConfig {
       download_map: {},
     },
     airoom: {
+      size: 0,
+      serial: 1,
+    },
+    gptgod: {
       size: 0,
       serial: 1,
     },

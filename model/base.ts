@@ -160,6 +160,7 @@ export enum Site {
   Hypotenuse = 'hypotenuse',
   Gemini = 'gemini',
   AIRoom = 'airoom',
+  GPTGOD = 'gptgod',
 }
 
 export interface ChatRequest {
