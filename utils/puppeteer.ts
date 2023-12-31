@@ -254,6 +254,17 @@ export async function simplifyPage(page: Page) {
   });
 }
 
+export async function blockGoogleAnalysis(page: Page) {
+  await page.setRequestInterception(true);
+  page.on('request', (req) => {
+    if (req.url().indexOf('googletagmanager') > -1) {
+      req.abort();
+    } else {
+      req.continue();
+    }
+  });
+}
+
 export async function simplifyPageAll(page: Page) {
   await page.setRequestInterception(true);
   const blockTypes = new Set([

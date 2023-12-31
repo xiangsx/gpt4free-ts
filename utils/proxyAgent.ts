@@ -9,7 +9,11 @@ import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import { spawn } from 'child_process';
 import WebSocket from 'ws';
 import moment from 'moment';
-import { closeOtherPages, simplifyPage } from './puppeteer';
+import {
+  blockGoogleAnalysis,
+  closeOtherPages,
+  simplifyPage,
+} from './puppeteer';
 import { v4 } from 'uuid';
 import { PassThrough, pipeline } from 'stream';
 import {
@@ -144,6 +148,7 @@ export async function CreateNewPage(
     fingerprint_inject?: boolean;
     protocolTimeout?: number;
     recognize?: boolean;
+    block_google_analysis?: boolean;
   },
 ) {
   const {
@@ -158,6 +163,7 @@ export async function CreateNewPage(
     protocolTimeout,
     stealth = true,
     recognize = true,
+    block_google_analysis = false,
   } = options || {};
   const launchOpt: PuppeteerLaunchOptions = {
     headless: process.env.DEBUG === '1' ? false : 'new',
@@ -199,6 +205,9 @@ export async function CreateNewPage(
     }
     if (simplify) {
       await simplifyPage(page);
+    }
+    if (block_google_analysis) {
+      await blockGoogleAnalysis(page);
     }
     if (cookies.length > 0) {
       await page.setCookie(...cookies);

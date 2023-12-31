@@ -1,5 +1,5 @@
 import { Chat, ChatOptions, ChatRequest, ModelType } from '../base';
-import { Event, EventStream, getRandomOne } from '../../utils';
+import { Event, EventStream, getRandomOne, sleep } from '../../utils';
 import {
   ChildOptions,
   ComChild,
@@ -26,13 +26,31 @@ class Child extends ComChild<Account> {
       getRandomOne([
         'https://gptgod.online',
         'https://gptgod.fun',
-        'https://gptgod.work',
+        'https://gptgod.space',
         'https://gptgod.site',
       ]),
       {
         fingerprint_inject: true,
+        simplify: false,
+        block_google_analysis: true,
       },
     );
+    this.page = page;
+    // 拦截谷歌数据分析的接口
+
+    const intl = setInterval(async () => {
+      try {
+        await page.waitForResponse(
+          (req) => req.url().indexOf('/api/user/report') > -1,
+          { timeout: 30 * 1000 },
+        );
+        this.logger.info('Check ok!');
+      } catch (e: any) {
+        this.logger.error(e.message);
+        this.destroy({ delFile: true, delMem: true });
+        clearInterval(intl);
+      }
+    }, 10 * 1000);
   }
 
   initFailed() {
@@ -41,6 +59,7 @@ class Child extends ComChild<Account> {
   }
 
   destroy(options?: DestroyOptions) {
+    this.page?.browser().close();
     super.destroy(options);
   }
 
@@ -55,7 +74,7 @@ class Child extends ComChild<Account> {
 export class GPTGOD extends Chat {
   private pool: Pool<Account, Child> = new Pool(
     this.options?.name || '',
-    () => Config.config.airoom.size,
+    () => Config.config.gptgod.size,
     (info, options) => {
       return new Child(this.options?.name || '', info, options);
     },
