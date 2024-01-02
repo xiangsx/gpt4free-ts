@@ -277,11 +277,11 @@ class Child extends ComChild<Account> {
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36',
     );
     page = await handleCF(page);
+    this.page = page;
     if (await ifCF(page)) {
       await page.browser().close();
       throw new Error('cf failed');
     }
-    this.page = page;
     if (!(await this.isLogin(page))) {
       this.update({ invalid: true });
       throw new Error(`account:${this.info.id}, no login status`);
