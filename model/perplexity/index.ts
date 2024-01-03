@@ -85,10 +85,10 @@ class Child extends ComChild<Account> {
       if (!selector) {
         throw new Error('model not support');
       }
+      await page.waitForSelector(selector, { timeout: 3000 });
       await page.click(selector);
     } catch (e) {
       this.logger.error('set model failed', e);
-      throw new Error('set model failed');
     }
   }
 
@@ -132,6 +132,7 @@ class Child extends ComChild<Account> {
         { timeout: 3000 },
       );
       await page.click('.grow > .items-center > .relative:nth-child(1)');
+      await sleep(1000);
     } catch (e) {
       await page.goto('https://www.perplexity.ai');
       this.logger.error('go home failed', e);
@@ -149,17 +150,18 @@ class Child extends ComChild<Account> {
     }
     try {
       await page.waitForSelector(
-        '.grow:nth-child(1) > div > .rounded-md > .relative > .absolute > .absolute > div > div > *',
+        'div.grow > div > div > div > div:nth-child(1) > div > button',
         {
           timeout: 2 * 1000,
           visible: true,
         },
       );
       await page.click(
-        '.grow:nth-child(1) > div > .rounded-md > .relative > .absolute > .absolute > div > div > *',
+        'div.grow > div > div > div > div:nth-child(1) > div > button',
       );
 
-      const selector = `div > .animate-in > .md\\:h-full:nth-child(${t}) > .md\\:h-full > .relative`;
+      await sleep(100);
+      const selector = `#__next > main > div.flex.justify-center.items-center > div > div > div > div > div > div:nth-child(${t}) > div`;
       await page.waitForSelector(selector, {
         timeout: 2 * 1000,
         visible: true,
@@ -403,6 +405,9 @@ export class Perplexity extends Chat {
       countPrompt: true,
       forceRemove: true,
     });
+    reqH.prompt =
+      reqH.messages.map((v) => `${v.role}_role: ${v.content}`).join('\n') +
+      '\nassistant_role: ';
     if (Config.config.perplexity.system) {
       reqH.prompt =
         Config.config.perplexity.system.replace(/\%s/g, req.model) +
