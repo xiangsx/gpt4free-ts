@@ -115,13 +115,15 @@ class Child extends ComChild<Account> {
   }
 
   initFailed() {
-    this.page?.browser().close();
+    this.page
+      ?.browser()
+      .close()
+      .catch((e) => this.logger.error(e.message));
     this.destroy({ delFile: true, delMem: true });
   }
 
   destroy(options?: DestroyOptions) {
     super.destroy(options);
-    this.page?.browser()?.close();
   }
 
   use(): void {
@@ -201,9 +203,14 @@ export class Askx extends Chat {
             cb(null, parseJSON(content, ''));
           }),
         )
-        .on('data', (chunk: string) => {
+        .on('data', (chunk: string | { message: string }) => {
           res.data.pause();
-          stream.write(Event.message, { content: chunk });
+          if (typeof chunk !== 'string') {
+            stream.write(Event.error, { error: chunk?.message });
+            child.destroy({ delFile: true, delMem: true });
+          } else {
+            stream.write(Event.message, { content: chunk });
+          }
           res.data.resume();
         });
       res.data.on('close', () => {
