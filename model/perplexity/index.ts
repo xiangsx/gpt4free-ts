@@ -279,7 +279,6 @@ class Child extends ComChild<Account> {
     page = await handleCF(page);
     this.page = page;
     if (await ifCF(page)) {
-      await page.browser().close();
       throw new Error('cf failed');
     }
     if (!(await this.isLogin(page))) {
@@ -310,12 +309,18 @@ class Child extends ComChild<Account> {
 
   initFailed() {
     super.initFailed();
-    this.page?.browser?.().close?.();
+    this.page
+      ?.browser?.()
+      .close?.()
+      .catch((e) => this.logger.error(e.message));
   }
 
   destroy(options?: DestroyOptions) {
     super.destroy(options);
-    this.page?.browser?.().close?.();
+    this.page
+      ?.browser?.()
+      .close?.()
+      .catch((e) => this.logger.error(e.message));
   }
 
   async isPro(page: Page) {

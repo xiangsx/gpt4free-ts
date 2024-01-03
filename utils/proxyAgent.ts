@@ -4,7 +4,13 @@ import { SessionConstructorOptions } from 'tls-client/dist/esm/types';
 import { Session } from 'tls-client/dist/esm/sessions';
 import tlsClient from 'tls-client';
 import puppeteer from 'puppeteer-extra';
-import { Browser, Page, Protocol, PuppeteerLaunchOptions } from 'puppeteer';
+import {
+  Browser,
+  BrowserContext,
+  Page,
+  Protocol,
+  PuppeteerLaunchOptions,
+} from 'puppeteer';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import { spawn } from 'child_process';
 import WebSocket from 'ws';
@@ -184,14 +190,17 @@ export async function CreateNewPage(
   if (stealth) {
     p = p.use(StealthPlugin());
   }
-  if (!globalBrowser || !globalBrowser.isConnected()) {
-    globalBrowser = await p.launch(launchOpt);
+  let browser: Browser | BrowserContext;
+  if (recognize) {
+    if (!globalBrowser || !globalBrowser.isConnected()) {
+      globalBrowser = await p.launch(launchOpt);
+    }
+    browser = await globalBrowser.createIncognitoBrowserContext({
+      proxyServer: proxy || getProxy(),
+    });
+  } else {
+    browser = await p.launch(launchOpt);
   }
-  const browser = recognize
-    ? await globalBrowser.createIncognitoBrowserContext({
-        proxyServer: proxy || getProxy(),
-      })
-    : globalBrowser;
   try {
     const gen = new FingerprintGenerator();
     let page: Page;
