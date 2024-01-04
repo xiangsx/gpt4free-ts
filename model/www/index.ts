@@ -1,16 +1,19 @@
-import {
-  Chat,
-  ChatOptions,
-  ChatRequest,
-  ChatResponse,
-  ModelType,
-} from '../base';
-import { Event, EventStream, getTokenCount, sleep } from '../../utils';
+import { Chat, ChatOptions, ChatRequest, ModelType } from '../base';
+import { Event, EventStream, getTokenCount } from '../../utils';
 import puppeteer from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
-import { CreateNewBrowser } from '../../utils/proxyAgent';
-import { Browser } from 'puppeteer';
+import { CreateNewBrowser, CreateNewPage } from '../../utils/proxyAgent';
+import { Page } from 'puppeteer';
 import { simplifyPageAll } from '../../utils/puppeteer';
+import {
+  ChildOptions,
+  ComChild,
+  ComInfo,
+  DestroyOptions,
+  Pool,
+} from '../../utils/pool';
+import moment from 'moment';
+import { Config } from '../../utils/config';
 
 puppeteer.use(StealthPlugin());
 
@@ -18,55 +21,37 @@ interface WWWChatRequest extends ChatRequest {
   max_tokens?: number;
 }
 
-export class WWW extends Chat {
-  private browser?: Browser;
-  constructor(options?: ChatOptions) {
-    super(options);
+interface Account extends ComInfo {}
+
+class Child extends ComChild<Account> {
+  public page!: Page;
+
+  constructor(label: string, info: any, options?: ChildOptions) {
+    super(label, info, options);
   }
 
-  async init() {
-    this.browser = await CreateNewBrowser();
-    this.logger.info('init ok');
+  async init(): Promise<void> {
+    this.page = await CreateNewPage('about:blank', {
+      simplify: true,
+      recognize: true,
+      protocolTimeout: 5000,
+    });
   }
 
-  async newPage() {
-    if (!this.browser) throw new Error('browser not init');
-    const page = await this.browser.newPage();
-    await simplifyPageAll(page);
-    return page;
-  }
-
-  support(model: ModelType): number {
-    switch (model) {
-      case ModelType.URL:
-        return 2000;
-      default:
-        return 0;
-    }
-  }
-
-  async askStream(req: WWWChatRequest, stream: EventStream): Promise<void> {
-    if (!this.browser) {
-      await this.init();
-    }
-    if (Math.random() * 10 > 8) {
-      this.logger.info(`page count:${(await this.browser?.pages())?.length}`);
-    }
-    const page = await this.newPage();
+  async getURLInfo(url: string): Promise<string> {
     try {
-      await page
-        .goto(req.prompt, {
-          waitUntil: 'networkidle0',
-          timeout: 10000,
-        })
-        .catch((err) => this.logger.error(`page load failed, `, err));
-      // @ts-ignore
-      let content = await page.$$eval(
+      await this.page.goto(url, {
+        waitUntil: 'domcontentloaded',
+        timeout: 5000,
+      });
+      let content = await this.page.$$eval(
         'p, h1, h2, h3, h4, h5, h6, div, section, article, main',
+        // @ts-ignore
         (elements) => {
           let textEntries = [];
           const textMap = new Map();
 
+          // @ts-ignore
           elements.forEach((element) => {
             const tag = element.tagName.toLowerCase();
             const newText = element.innerText;
@@ -106,6 +91,56 @@ export class WWW extends Chat {
           return maxText.replace(/\s+/g, ' ').trim();
         },
       );
+      this.release();
+      return content;
+    } catch (e: any) {
+      this.logger.error(e.message);
+      this.release();
+      return '';
+    }
+  }
+
+  initFailed() {
+    this.page?.browser().close();
+    this.destroy({ delFile: true, delMem: true });
+  }
+
+  destroy(options?: DestroyOptions) {
+    this.page?.browser().close();
+    super.destroy(options);
+  }
+}
+
+export class WWW extends Chat {
+  private pool: Pool<Account, Child> = new Pool(
+    this.options?.name || '',
+    () => Config.config.www.size,
+    (info, options) => {
+      return new Child(this.options?.name || '', info, options);
+    },
+    (v) => {
+      return false;
+    },
+    { delay: 1000, serial: () => Config.config.www.serial || 1 },
+  );
+
+  constructor(options?: ChatOptions) {
+    super(options);
+  }
+
+  support(model: ModelType): number {
+    switch (model) {
+      case ModelType.URL:
+        return 2000;
+      default:
+        return 0;
+    }
+  }
+
+  async askStream(req: WWWChatRequest, stream: EventStream): Promise<void> {
+    try {
+      const child = await this.pool.pop();
+      let content = await child.getURLInfo(req.prompt);
       const maxToken = +(req.max_tokens || process.env.WWW_MAX_TOKEN || 2000);
       const token = getTokenCount(content);
       if (token > maxToken) {
@@ -115,15 +150,11 @@ export class WWW extends Chat {
         );
       }
       stream.write(Event.message, { content });
-    } catch (e: any) {
-      this.logger.error('ask stream failed', e);
+    } catch {
       stream.write(Event.message, { content: '' });
-      await this.browser?.close();
-      await this.init();
     } finally {
       stream.write(Event.done, { content: '' });
       stream.end();
-      await page.close();
     }
   }
 }

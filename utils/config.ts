@@ -51,6 +51,8 @@ interface ConfigData {
   openai: {
     token_limit: { [key: string]: number };
   };
+  www: SizeCfg;
+  ddg: SizeCfg;
   perplexity: {
     size: number;
     tokens: string[];
@@ -321,6 +323,14 @@ class BaseConfig {
       size: 0,
       serial: 0,
       mail_type: TempEmailType.SmailPro,
+    },
+    www: {
+      size: 0,
+      serial: 1,
+    },
+    ddg: {
+      size: 0,
+      serial: 1,
     },
     poevip: {
       size: 0,

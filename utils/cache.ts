@@ -100,14 +100,15 @@ export class CommCache<T> {
       throw new Error('init is null');
     }
     const initFunc = init || this.init;
-    this.logger.debug(`get`);
     const v = await this.redis.get(this.key(subkey));
     if (v) {
+      this.logger.debug(`${subkey} cache got`);
       return parseJSON<T | null>(v, null);
     }
     const nv = await initFunc!();
     const sv = JSON.stringify(nv);
     await this.redis.set(this.key(subkey), sv, 'EX', this.expire);
+    this.logger.debug(`${subkey} cache miss`);
     return nv;
   }
 
