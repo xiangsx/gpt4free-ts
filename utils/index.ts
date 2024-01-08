@@ -9,7 +9,7 @@ import { getEncoding } from 'js-tiktoken';
 import chalk from 'chalk';
 import * as OpenCC from 'opencc-js';
 import { ModelType } from '../model/base';
-import moment from 'moment';
+import moment, { max } from 'moment';
 
 const turndownService = new TurndownService({ codeBlockStyle: 'fenced' });
 
@@ -629,4 +629,26 @@ export function replaceStrInBuffer(
   buffer.copy(resultBuffer, startIdx + targetLength, endIdx);
 
   return resultBuffer.toString();
+}
+
+export async function retryFunc<T>(
+  func: () => Promise<T>,
+  maxRetry: number,
+  options: { label?: string; delay?: number; defaultV?: T },
+): Promise<T> {
+  const { label, delay = 1000, defaultV } = options;
+  for (let i = 0; i < maxRetry; i++) {
+    try {
+      return await func();
+    } catch (error) {
+      console.error(
+        `${label || 'retryFunc'} failed, retry ${i + 1}/${maxRetry} times`,
+      );
+      await sleep(delay);
+    }
+  }
+  if (defaultV === undefined) {
+    throw new Error(`${options.label ?? 'retryFunc'} failed after retry`);
+  }
+  return defaultV;
 }
