@@ -182,8 +182,8 @@ class Child extends ComChild<Account> {
         // stopSequences
         maxOutputTokens: model === ModelType.GeminiProVision ? 2000 : 4000,
         temperature: 1,
-        // topP: 1,
-        // topK: 1,
+        topP: 0.95,
+        topK: 1,
       },
       contents: [],
     } as GenerateContentRequest;
