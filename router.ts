@@ -97,7 +97,7 @@ const AskHandle: Middleware = async (ctx) => {
     ...(ctx.request.body as any),
     ...(ctx.params as any),
   } as AskReq;
-  if (!prompt) {
+  if (model !== ModelType.GetGizmoInfo && !prompt) {
     throw new ComError(`need prompt in query`, ComError.Status.BadRequest);
   }
   const chat = chatModel.get(site);
@@ -136,7 +136,7 @@ const AskStreamHandle: (ESType: new () => EventStream) => Middleware =
       ...(ctx.request.body as any),
       ...(ctx.params as any),
     } as AskReq;
-    if (!prompt) {
+    if (model !== ModelType.GetGizmoInfo && !prompt) {
       throw new ComError(`need prompt in query`, ComError.Status.BadRequest);
     }
     const chat = chatModel.get(site);

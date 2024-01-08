@@ -29,6 +29,7 @@ import { Config } from '../../utils/config';
 import { v4 } from 'uuid';
 import es from 'event-stream';
 import moment from 'moment';
+import { GeminiRequest } from './define';
 
 interface Account extends ComInfo {
   apikey: string;
@@ -161,7 +162,8 @@ class Child extends ComChild<Account> {
     return result;
   }
 
-  async generateContentStream(model: ModelType, messages: Message[]) {
+  async generateContentStream(req: GeminiRequest) {
+    const { model, messages, topP = 0.95, topK = 1, temperature = 1 } = req;
     const data = {
       safetySettings: [
         {
@@ -181,9 +183,9 @@ class Child extends ComChild<Account> {
         // candidateCount:
         // stopSequences
         maxOutputTokens: model === ModelType.GeminiProVision ? 2000 : 4000,
-        temperature: 1,
-        topP: 0.95,
-        topK: 1,
+        temperature,
+        topP,
+        topK,
       },
       contents: [],
     } as GenerateContentRequest;
@@ -288,10 +290,10 @@ export class Gemini extends Chat {
     return super.preHandle(req, options);
   }
 
-  public async askStream(req: ChatRequest, stream: EventStream) {
+  public async askStream(req: GeminiRequest, stream: EventStream) {
     const child = await this.pool.pop();
     try {
-      const res = await child.generateContentStream(req.model, req.messages);
+      const res = await child.generateContentStream(req);
       const response = res.data.pipe(es.split(/\r?\n\r?\n/)).pipe(
         es.map((chunk: any, cb: any) => {
           if (!chunk) {
