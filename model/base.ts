@@ -93,6 +93,8 @@ export enum ModelType {
   Mixtral8x7BChat = 'mixtral-8x7b',
   MistralMedium = 'mistral-medium',
   GetGizmoInfo = 'get-gizmo-info',
+  SearchGPTS = 'search-gpts',
+  SearchGPTSChat = 'search-gpts-chat',
 }
 
 export enum Site {
