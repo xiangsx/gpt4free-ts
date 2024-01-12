@@ -35,6 +35,8 @@ interface Account extends ComInfo {
   apikey: string;
 }
 
+const EndChars = '|END|';
+
 class Child extends ComChild<Account> {
   client: AxiosInstance = CreateNewAxios(
     {
@@ -200,6 +202,12 @@ class Child extends ComChild<Account> {
       if (hasImage) {
         data.contents.push(...content);
         data.contents = await this.preHandleContent(data.contents);
+        for (const v of data.contents[data.contents.length - 1].parts) {
+          if (v.text) {
+            v.text = v.text += `
+Tips: Your answer must end with ${EndChars}`;
+          }
+        }
         return this.client.post(
           `/v1beta/models/${model}:streamGenerateContent?key=${this.info.apikey}&alt=sse`,
           data,
@@ -216,6 +224,12 @@ class Child extends ComChild<Account> {
       data.contents.push(...content);
     }
     data.contents = await this.preHandleContent(data.contents);
+    for (const v of data.contents[data.contents.length - 1].parts) {
+      if (v.text) {
+        v.text = v.text += `
+Tips: If the answer is finished, please end with ${EndChars}`;
+      }
+    }
     return this.client.post(
       `/v1beta/models/${targetModel}:streamGenerateContent?key=${this.info.apikey}&alt=sse`,
       data,
@@ -314,11 +328,22 @@ export class Gemini extends Chat {
       const delay = setTimeout(() => {
         stream.write(Event.done, { content: '' });
         stream.end();
+        this.logger.info('Recv msg ok, End timeout');
       }, 5000);
       response.on('data', (content: string) => {
         try {
           delay.refresh();
-          stream.write(Event.message, { content: content });
+          if (content.indexOf(EndChars) > -1) {
+            stream.write(Event.message, {
+              content: content.replace(EndChars, ''),
+            });
+            stream.write(Event.done, { content: '' });
+            stream.end();
+            clearTimeout(delay);
+            this.logger.info('Recv msg ok, End ok');
+          } else {
+            stream.write(Event.message, { content: content });
+          }
         } catch (e: any) {
           this.logger.error(e.message);
         }
