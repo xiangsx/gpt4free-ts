@@ -223,7 +223,6 @@ const AskStreamHandle: (ESType: new () => EventStream) => Middleware =
             },
           );
           await chat.askStream(req, es).catch((err) => {
-            console.log(AsyncStoreSN.getStore()?.sn);
             clearTimeout(timeout);
             es.destroy();
             reject(err);
