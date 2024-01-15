@@ -23,6 +23,8 @@ import moment from 'moment/moment';
 import cors from '@koa/cors';
 import Router from 'koa-router';
 import bodyParser from 'koa-bodyparser';
+import { randomUUID } from 'crypto';
+import { AsyncStoreSN } from './asyncstore';
 
 const supportsHandler = async (ctx: Context) => {
   const result: Support[] = [];
@@ -221,6 +223,7 @@ const AskStreamHandle: (ESType: new () => EventStream) => Middleware =
             },
           );
           await chat.askStream(req, es).catch((err) => {
+            console.log(AsyncStoreSN.getStore()?.sn);
             clearTimeout(timeout);
             es.destroy();
             reject(err);
@@ -311,6 +314,14 @@ export const registerApp = () => {
   const app = new Koa();
   app.use(cors());
   const router = new Router();
+  app.use(async (ctx, next) => {
+    const sn: string = (ctx.req.headers['x-request-id'] ||
+      randomUUID().replace(/-/g, '')) as string;
+    await AsyncStoreSN.run({ sn }, async () => {
+      const store = AsyncStoreSN.getStore();
+      return await next();
+    });
+  });
   app.use(errorHandler);
   app.use(bodyParser({ jsonLimit: '10mb' }));
   app.use(checkApiKey);

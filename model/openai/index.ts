@@ -4,6 +4,7 @@ import { CreateAxiosProxy } from '../../utils/proxyAgent';
 import es from 'event-stream';
 import { Event, EventStream, parseJSON } from '../../utils';
 import { Config } from '../../utils/config';
+import { AsyncStoreSN } from '../../asyncstore';
 
 interface RealReq extends ChatRequest {
   functions?: {
@@ -106,6 +107,7 @@ export class OpenAI extends Chat {
         responseType: 'stream',
         headers: {
           Authorization: `Bearer ${this.options?.api_key || req.secret || ''}`,
+          'x-request-id': AsyncStoreSN.getStore()?.sn,
         },
       } as AxiosRequestConfig);
       res.data.pipe(es.split(/\r?\n\r?\n/)).pipe(

@@ -6,6 +6,7 @@ import Transport from 'winston-transport';
 import { Socket } from 'dgram';
 import * as dgram from 'dgram';
 import { format } from 'util';
+import { AsyncStoreSN } from '../asyncstore';
 
 let logger: Logger;
 
@@ -64,9 +65,11 @@ export const initLog = () => {
       winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }), // 添加时间戳
       winston.format.prettyPrint(), // 打印整个日志对象
       winston.format.splat(), // 支持格式化的字符串
-      winston.format.printf(({ level, message, timestamp, site }) => {
+      winston.format.printf(({ level, message, timestamp, site, sn }) => {
         const labelStr = site ? ` [${colorLabel(site)}]` : '';
-        return `${timestamp} ${level}:${labelStr} ${message}`; // 自定义输出格式
+        return `${timestamp} ${level} ${
+          sn ? `[${sn}]` : ''
+        }:${labelStr} ${message}`; // 自定义输出格式
       }),
     ),
     transports: transports,
@@ -78,13 +81,17 @@ function replaceConsoleWithWinston(): void {
   const logger: Logger = newLogger();
 
   // 替换所有 console 方法
-  console.log = (...msg) => logger.info(format(...msg));
+  console.log = (...msg) =>
+    logger.info(format(...msg), { sn: AsyncStoreSN.getStore()?.sn });
 
-  console.error = (...msg) => logger.error(format(...msg));
+  console.error = (...msg) =>
+    logger.error(format(...msg), { sn: AsyncStoreSN.getStore()?.sn });
 
-  console.warn = (...msg) => logger.warn(format(...msg));
+  console.warn = (...msg) =>
+    logger.warn(format(...msg), { sn: AsyncStoreSN.getStore()?.sn });
 
-  console.debug = (...msg) => logger.debug(format(...msg));
+  console.debug = (...msg) =>
+    logger.debug(format(...msg), { sn: AsyncStoreSN.getStore()?.sn });
 }
 
 export function newLogger(site?: string) {
