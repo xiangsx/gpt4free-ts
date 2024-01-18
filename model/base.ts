@@ -175,6 +175,9 @@ export interface ChatRequest {
 }
 
 export function contentToString(content: MessageContent): string {
+  if (!content) {
+    return '';
+  }
   if (typeof content === 'string') {
     return content;
   }
