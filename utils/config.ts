@@ -94,7 +94,7 @@ interface ConfigData {
   poevip: {
     size: number;
     serial: number;
-    pb_list: string[];
+    pb_list: { lat: string; pb: string }[];
   };
   cursor: {
     primary_model: ModelType;
