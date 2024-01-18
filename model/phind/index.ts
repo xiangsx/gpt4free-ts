@@ -271,7 +271,9 @@ export class Phind extends Chat {
           ...req.messages
             .slice(0, req.messages.length)
             .map((v) =>
-              v.role === 'user' ? { ...v } : { ...v, meta: {}, name: 'base' },
+              v.role === 'user'
+                ? { role: v.role, content: contentToString(v.content) }
+                : { ...v, meta: {}, name: 'base' },
             ),
         ],
         requested_model: modelMap[req.model],
@@ -307,6 +309,9 @@ export class Phind extends Chat {
         es.map(async (chunk: any, cb: any) => {
           const dataStr = chunk.replace('data: ', '');
           if (!dataStr) {
+            return;
+          }
+          if (dataStr === 'null') {
             return;
           }
           if (dataStr === '[DONE]') {
