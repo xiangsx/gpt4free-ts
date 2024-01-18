@@ -65,9 +65,9 @@ export function CreateNewAxios(
 ) {
   const { proxy = true } = options || {};
   const createConfig = { ...config };
+  createConfig.proxy = false;
   if (proxy) {
     const realProxy = proxy === true ? getProxy() : proxy;
-    createConfig.proxy = false;
     createConfig.httpAgent = HttpsProxyAgent(realProxy);
     createConfig.httpsAgent = HttpsProxyAgent(realProxy);
   }
