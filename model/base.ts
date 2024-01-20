@@ -172,6 +172,7 @@ export interface ChatRequest {
   search?: boolean;
   max_tokens?: number;
   secret?: string;
+  images?: { width: number; height: number; url?: string }[];
 }
 
 export function contentToString(content: MessageContent): string {

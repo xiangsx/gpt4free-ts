@@ -25,6 +25,7 @@ import Router from 'koa-router';
 import bodyParser from 'koa-bodyparser';
 import { randomUUID } from 'crypto';
 import { AsyncStoreSN } from './asyncstore';
+import winston from 'winston';
 
 const supportsHandler = async (ctx: Context) => {
   const result: Support[] = [];
@@ -124,6 +125,7 @@ const AskHandle: Middleware = async (ctx) => {
   req.messages.push({ role: 'assistant', content: data.content || '' });
   console.debug(req.messages);
   ctx.body = data;
+  return req;
 };
 
 const AskStreamHandle: (ESType: new () => EventStream) => Middleware =
@@ -265,8 +267,17 @@ const openAIHandle: Middleware = async (ctx, next) => {
     await AskStreamHandle(OpenaiEventStream)(ctx, next);
     return;
   }
-  await AskHandle(ctx, next);
+  const req: ChatRequest = await AskHandle(ctx, next);
   let reqLen = countMessagesToken(messages);
+  const tileSize = 512;
+  const tokensPerTile = 170;
+  for (const v of req.images || []) {
+    const tilesForWidth = Math.ceil(v.width / tileSize);
+    const tilesForHeight = Math.ceil(v.height / tileSize);
+    const totalTiles = tilesForWidth * tilesForHeight;
+    const totalTokens = 85 + tokensPerTile * totalTiles;
+    reqLen += totalTokens;
+  }
   ctx.body = {
     id: 'chatcmpl-' + '89D' + randomStr(26),
     object: 'chat.completion',
