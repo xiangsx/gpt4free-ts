@@ -132,8 +132,12 @@ export class EventStream {
   }
 
   public write<T extends Event>(event: T, data: Data<T>) {
-    this.pt.write(`event: ${event}\n`, 'utf-8');
-    this.pt.write(`data: ${JSON.stringify(data)}\n\n`, 'utf-8');
+    try {
+      this.pt.write(`event: ${event}\n`, 'utf-8');
+      this.pt.write(`data: ${JSON.stringify(data)}\n\n`, 'utf-8');
+    } catch (e: any) {
+      console.error(e.message);
+    }
   }
 
   stream() {
