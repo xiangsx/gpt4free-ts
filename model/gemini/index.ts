@@ -351,7 +351,9 @@ export class Gemini extends Chat {
       response.on('error', this.logger.error);
     } catch (e: any) {
       e.response.data.on('data', (chunk: any) =>
-        this.logger.error(chunk.toString()),
+        this.logger.error(
+          `req:${JSON.stringify(req.messages)} err:${chunk.toString()}`,
+        ),
       );
       console.error(e.message);
       throw new ComError(e.message, ComError.Status.InternalServerError);
