@@ -132,12 +132,11 @@ export class EventStream {
   }
 
   public write<T extends Event>(event: T, data: Data<T>) {
-    try {
-      this.pt.write(`event: ${event}\n`, 'utf-8');
-      this.pt.write(`data: ${JSON.stringify(data)}\n\n`, 'utf-8');
-    } catch (e: any) {
-      console.error(e.message);
+    if (this.pt.writableEnded) {
+      return;
     }
+    this.pt.write(`event: ${event}\n`, 'utf-8');
+    this.pt.write(`data: ${JSON.stringify(data)}\n\n`, 'utf-8');
   }
 
   stream() {
@@ -208,6 +207,9 @@ export class OpenaiEventStream extends EventStream {
   private created: number = moment().unix();
 
   write<T extends Event>(event: T, data: Data<T>) {
+    if (this.pt.writableEnded) {
+      return;
+    }
     if (!this.start) {
       this.pt.write(
         `data: ${JSON.stringify({
@@ -308,6 +310,9 @@ export class ClaudeEventStream extends EventStream {
   private log_id: string = randomStr(64).toLowerCase();
 
   write<T extends Event>(event: T, data: Data<T>) {
+    if (this.pt.writableEnded) {
+      return;
+    }
     switch (event) {
       case Event.done:
         this.pt.write(
