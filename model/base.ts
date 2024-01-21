@@ -163,6 +163,7 @@ export enum Site {
   Gemini = 'gemini',
   AIRoom = 'airoom',
   GPTGOD = 'gptgod',
+  Arkose = 'arkose',
 }
 
 export interface ChatRequest {

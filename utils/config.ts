@@ -51,6 +51,17 @@ interface ConfigData {
   openai: {
     token_limit: { [key: string]: number };
   };
+  arkose: {
+    size: number;
+    max_pool_size: number;
+    gen_interval: number;
+    serial: number;
+    allow_3: boolean;
+    must_all_tools: boolean;
+    must_plus: boolean;
+    keep_arkose_refresh?: boolean;
+    accounts: { email: string; password: string }[];
+  };
   www: SizeCfg;
   ddg: SizeCfg;
   perplexity: {
@@ -115,7 +126,6 @@ interface ConfigData {
     allow_3: boolean;
     must_all_tools: boolean;
     must_plus: boolean;
-    arkose_data?: string[];
     keep_arkose_refresh?: boolean;
     upload_url: string;
     download_proxy: string;
@@ -312,7 +322,6 @@ class BaseConfig {
       allow_3: false,
       must_plus: false,
       must_all_tools: false,
-      arkose_data: [],
       accounts: [],
       keep_arkose_refresh: false,
       upload_url: '',
@@ -336,6 +345,17 @@ class BaseConfig {
       size: 0,
       serial: 0,
       pb_list: [],
+    },
+    arkose: {
+      size: 0,
+      serial: 0,
+      max_pool_size: 0,
+      allow_3: false,
+      must_plus: false,
+      must_all_tools: false,
+      accounts: [],
+      keep_arkose_refresh: false,
+      gen_interval: 10,
     },
   };
   public config: ConfigData;

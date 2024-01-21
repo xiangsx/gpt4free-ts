@@ -35,9 +35,9 @@ export class StringPool {
     this.logger = newLogger(`${this.key}`);
   }
 
-  async add(value: string): Promise<void> {
+  async add(value: string): Promise<number> {
     this.logger.debug(`add ${value}`);
-    await this.redis.sadd(this.key, value);
+    return this.redis.sadd(this.key, value);
   }
 
   async remove(value: string): Promise<void> {
