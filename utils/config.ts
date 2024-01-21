@@ -130,6 +130,7 @@ interface ConfigData {
     upload_url: string;
     download_proxy: string;
     download_map?: Record<string, string>;
+    prompt_map?: Record<string, string>;
     system?: string;
     accounts: { email: string; password: string }[];
   };
