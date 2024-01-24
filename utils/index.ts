@@ -1,5 +1,5 @@
 import es from 'event-stream';
-import { PassThrough, Stream } from 'stream';
+import { PassThrough, pipeline, Stream } from 'stream';
 import * as crypto from 'crypto';
 import TurndownService from 'turndown';
 import stringSimilarity from 'string-similarity';
@@ -10,6 +10,15 @@ import chalk from 'chalk';
 import * as OpenCC from 'opencc-js';
 import { ModelType } from '../model/base';
 import moment, { max } from 'moment';
+import { Config } from './config';
+import path from 'path';
+import { v4 } from 'uuid';
+import fs, { createWriteStream } from 'fs';
+import fileType from 'file-type';
+import sizeOf from 'image-size';
+import { CreateAxiosProxy, CreateNewAxios } from './proxyAgent';
+import { promisify } from 'util';
+import FormData from 'form-data';
 
 const turndownService = new TurndownService({ codeBlockStyle: 'fenced' });
 
@@ -53,6 +62,14 @@ export function randomStr(length: number = 6): string {
     result += charactersForRandom.charAt(
       Math.floor(Math.random() * charactersLength),
     );
+  }
+  return result;
+}
+
+export function randomNonce(length: number = 6): string {
+  let result: string = '';
+  for (let i = 0; i < length; i++) {
+    result += Math.floor(Math.random() * 9);
   }
   return result;
 }
@@ -656,9 +673,11 @@ export async function retryFunc<T>(
   for (let i = 0; i < maxRetry; i++) {
     try {
       return await func();
-    } catch (error) {
+    } catch (e: any) {
       console.error(
-        `${label || 'retryFunc'} failed, retry ${i + 1}/${maxRetry} times`,
+        `${label || 'retryFunc'} failed, retry ${
+          i + 1
+        }/${maxRetry} times. err:${e.message}`,
       );
       await sleep(delay);
     }
@@ -667,4 +686,161 @@ export async function retryFunc<T>(
     throw new Error(`${options.label ?? 'retryFunc'} failed after retry`);
   }
   return defaultV;
+}
+
+export function extractJSON<T>(str: string): T | null {
+  let start = -1;
+  let bracketCount = 0;
+
+  for (let i = 0; i < str.length; i++) {
+    if (str[i] === '{') {
+      bracketCount++;
+      if (start === -1) start = i;
+    } else if (str[i] === '}') {
+      bracketCount--;
+      if (bracketCount === 0 && start !== -1) {
+        try {
+          let jsonStr = str.substring(start, i + 1);
+          return JSON.parse(jsonStr);
+        } catch (e) {
+          console.error('Found string is not a valid JSON');
+          return null;
+        }
+      }
+    }
+  }
+
+  console.error('No valid JSON found in the string');
+  return null;
+}
+
+export function getFilenameFromContentDisposition(content: string = '') {
+  const match = content.match(/filename=(.+)/);
+  if (match) {
+    return match[1];
+  }
+  return '';
+}
+const pipelinePromisified = promisify(pipeline);
+
+export async function downloadFile(fileUrl: string): Promise<{
+  file_name: string;
+  file_size: number;
+  width: number;
+  height: number;
+  ext: string;
+  mime: string;
+  outputFilePath: string;
+  image: boolean;
+}> {
+  if (Config.config.global.download_map) {
+    for (const old in Config.config.global.download_map) {
+      fileUrl = fileUrl.replace(old, Config.config.global.download_map[old]);
+    }
+  }
+  try {
+    let tempFilePath = path.join(Config.config.global.download.dir, v4());
+    let filename!: string;
+    if (fileUrl.startsWith('data:image/')) {
+      // base64 写入文件
+      const base64Data = fileUrl.replace(/^data:image\/\w+;base64,/, '');
+      const dataBuffer = Buffer.from(base64Data, 'base64');
+      fs.writeFileSync(tempFilePath, dataBuffer);
+    } else {
+      let ok = false;
+      await retryFunc(
+        async () => {
+          const response = await CreateNewAxios({}, { proxy: true }).get(
+            fileUrl,
+            {
+              responseType: 'stream',
+              headers: {
+                'User-Agent': randomUserAgent(),
+              },
+            },
+          );
+          filename = getFilenameFromContentDisposition(
+            response.headers['content-disposition'],
+          );
+          let writer = createWriteStream(tempFilePath);
+          await pipelinePromisified(response.data, writer);
+          ok = true;
+        },
+        3,
+        { label: 'downloadFile' },
+      );
+      if (!ok) {
+        throw new ComError(`download failed`, ComError.Status.BadRequest);
+      }
+    }
+
+    let { ext, mime } = (await fileType.fromFile(tempFilePath)) || {
+      ext: path.extname(filename).replace(/\./g, '').toLowerCase() || 'txt',
+      mime: 'text/plain',
+    };
+    let file_name = `${moment().format('YYYY-MM-DD-HH')}-${randomStr(
+      20,
+    )}.${ext}`;
+
+    const file_size: number = fs.statSync(tempFilePath).size;
+    const outputFilePath = path.join(
+      Config.config.global.download.dir,
+      file_name,
+    );
+    // Rename the temporary file to the final filename
+    const result = {
+      file_name,
+      file_size,
+      ext: ext.toLowerCase(),
+      width: 1280,
+      height: 720,
+      mime,
+      outputFilePath,
+      image: mime.indexOf('image') > -1,
+    };
+    await fs.promises.rename(tempFilePath, outputFilePath);
+    if (result.image) {
+      const dimensions = sizeOf(outputFilePath);
+      result.height = dimensions.height || 720;
+      result.width = dimensions.width || 1280;
+    }
+
+    return result;
+  } catch (e: any) {
+    console.error(`download filed failed, url:${fileUrl}, err = ${e.message}`);
+    throw e;
+  }
+}
+
+export async function uploadFile(filePath: string): Promise<string> {
+  return await retryFunc(
+    async () => {
+      let data = new FormData();
+      data.append('file', fs.createReadStream(filePath));
+      const res = await CreateNewAxios({
+        baseURL: Config.config.openchat4.upload_url,
+        timeout: 10000,
+      })({
+        method: 'post',
+        maxBodyLength: Infinity,
+        headers: {
+          ...data.getHeaders(),
+        },
+        data: data,
+      });
+      const { code } = res.data;
+      if (code !== 0) {
+        throw new Error('upload file failed');
+      }
+      return res.data.data?.url || '';
+    },
+    3,
+    { label: 'uploadFile' },
+  );
+}
+
+export async function downloadAndUploadCDN(url: string): Promise<string> {
+  const { outputFilePath } = await downloadFile(url);
+  const newURL = await uploadFile(outputFilePath);
+  return newURL || url;
 }

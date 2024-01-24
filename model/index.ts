@@ -62,6 +62,7 @@ import { Gemini } from './gemini';
 import { AIRoom } from './airoom';
 import { GPTGOD } from './gptgod';
 import { Arkose } from './arkose';
+import { Midjourney } from './midjourney';
 
 export class ChatModelFactory {
   private readonly modelMap: Map<Site, Chat>;
@@ -152,6 +153,10 @@ export class ChatModelFactory {
     this.modelMap.set(Site.GPTGOD, new GPTGOD({ name: Site.GPTGOD }));
     this.modelMap.set(Site.Arkose, new Arkose({ name: Site.Arkose }));
     this.modelMap.set(
+      Site.Midjourney,
+      new Midjourney({ name: Site.Midjourney }),
+    );
+    this.modelMap.set(
       Site.Hypotenuse,
       new Hypotenuse({ name: Site.Hypotenuse }),
     );
@@ -165,3 +170,5 @@ export class ChatModelFactory {
     return this.modelMap.get(model);
   }
 }
+
+export const chatModel = new ChatModelFactory();

@@ -25,6 +25,13 @@ type MailCfg = {
 interface ConfigData {
   exit: boolean;
   global: {
+    download: {
+      proxy?: string;
+      dir: string;
+    };
+    cdn: {
+      url: string;
+    };
     redis: {
       host: string;
       port: number;
@@ -50,6 +57,13 @@ interface ConfigData {
   };
   openai: {
     token_limit: { [key: string]: number };
+  };
+  midjourney: SizeCfg & {
+    accounts: {
+      token: string;
+      server_id: string;
+      channel_id: string;
+    }[];
   };
   arkose: {
     size: number;
@@ -182,6 +196,12 @@ class BaseConfig {
   private defaultConfig: ConfigData = {
     exit: true,
     global: {
+      download: {
+        dir: './run/file/',
+      },
+      cdn: {
+        url: '',
+      },
       redis: {
         host: '',
         port: 0,
@@ -357,6 +377,11 @@ class BaseConfig {
       accounts: [],
       keep_arkose_refresh: false,
       gen_interval: 10,
+    },
+    midjourney: {
+      size: 0,
+      serial: 0,
+      accounts: [],
     },
   };
   public config: ConfigData;

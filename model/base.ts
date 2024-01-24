@@ -14,6 +14,7 @@ import { ClaudeChat } from './claude';
 import exp from 'constants';
 import { OpenSess } from './opensess';
 import { Hypotenuse } from './hypotenuse';
+import { Midjourney } from './midjourney';
 
 export interface ChatOptions {
   name: string;
@@ -95,6 +96,7 @@ export enum ModelType {
   GetGizmoInfo = 'get-gizmo-info',
   SearchGPTS = 'search-gpts',
   SearchGPTSChat = 'search-gpts-chat',
+  MJChat = 'mj-chat',
 }
 
 export enum Site {
@@ -164,6 +166,7 @@ export enum Site {
   AIRoom = 'airoom',
   GPTGOD = 'gptgod',
   Arkose = 'arkose',
+  Midjourney = 'midjourney',
 }
 
 export interface ChatRequest {

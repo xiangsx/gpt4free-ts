@@ -25,7 +25,7 @@ import Router from 'koa-router';
 import bodyParser from 'koa-bodyparser';
 import { randomUUID } from 'crypto';
 import { AsyncStoreSN } from './asyncstore';
-import winston from 'winston';
+import { chatModel } from './model';
 
 const supportsHandler = async (ctx: Context) => {
   const result: Support[] = [];
@@ -64,8 +64,6 @@ const errorHandler = async (ctx: Context, next: Next) => {
     ctx.status = err.status || ComError.Status.InternalServerError;
   }
 };
-
-const chatModel = new ChatModelFactory();
 
 interface AskReq extends ChatRequest {
   site: Site;

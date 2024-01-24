@@ -61,9 +61,9 @@ const reqProxy = (config: any) => {
 
 export function CreateNewAxios(
   config: CreateAxiosDefaults,
-  options?: { proxy: string | boolean },
+  options?: { proxy: string | boolean | undefined },
 ) {
-  const { proxy = true } = options || {};
+  const { proxy } = options || {};
   const createConfig = { ...config };
   createConfig.proxy = false;
   if (proxy) {
