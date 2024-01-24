@@ -110,7 +110,10 @@ export class Midjourney extends Chat {
             content: `[100%](${url})\n\n`,
           });
           stream.write(Event.message, {
-            content: `![${action.prompt}](${url})\n\n`,
+            content: `![${action.prompt}](${url})\n[⏬下载](${url.replace(
+              '/cdn/',
+              '/cdn/download/',
+            )})\n\n`,
           });
           const components = e.components;
           if (components?.length) {
@@ -180,7 +183,10 @@ export class Midjourney extends Chat {
           content: `[100%](${url})\n\n`,
         });
         stream.write(Event.message, {
-          content: `![${action.prompt}](${url})\n\n`,
+          content: `![${action.prompt}](${url})\n[⏬下载](${url.replace(
+            '/cdn/',
+            '/cdn/download/',
+          )})\n\n`,
         });
         const components = e.components;
         if (components?.length) {
