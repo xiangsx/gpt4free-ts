@@ -94,20 +94,23 @@ export class Midjourney extends Chat {
             stream.write(Event.message, { content: '.' });
           }, 3000);
         },
-        onUpdate: (e) => {
+        onUpdate: async (e) => {
           if (e.attachments[0]?.url) {
             stream.write(Event.message, {
-              content: `[${getProgress(e.content)}%](${e.attachments[0]?.url})`,
+              content: `[${getProgress(
+                e.content,
+              )}%](${await downloadAndUploadCDN(e.attachments[0]?.proxy_url)})`,
             });
           }
         },
-        onEnd: (e) => {
+        onEnd: async (e) => {
           clearInterval(itl);
+          const url = await downloadAndUploadCDN(e.attachments[0]?.proxy_url);
           stream.write(Event.message, {
-            content: `[100%](${e.attachments[0].url})\n\n`,
+            content: `[100%](${url})\n\n`,
           });
           stream.write(Event.message, {
-            content: `![${action.prompt}](${e.attachments[0].url})\n\n`,
+            content: `![${action.prompt}](${url})\n\n`,
           });
           const components = e.components;
           if (components?.length) {
@@ -221,13 +224,7 @@ export class Midjourney extends Chat {
   async askStream(req: ChatRequest, stream: EventStream): Promise<void> {
     try {
       const child = await this.pool.pop();
-      const auto = await chatModel.get(Site.Auto);
-      const GizmoCache = new CommCache<GizmoInfo>(
-        DefaultRedis,
-        'gizmo_cache',
-        3 * 60 * 60,
-      );
-      await GizmoCache.clear('g-x6pzO1Y0U');
+      const auto = chatModel.get(Site.Auto);
       let old = '';
       const pt = new ThroughEventStream(
         (event, data) => {
