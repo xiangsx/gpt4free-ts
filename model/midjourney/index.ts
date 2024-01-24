@@ -250,6 +250,8 @@ export class Midjourney extends Chat {
               await this.doComponents(action, child, stream);
               return;
             default:
+              stream.write(Event.done, { content: '' });
+              stream.end();
               break;
           }
         },
