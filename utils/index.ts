@@ -818,7 +818,7 @@ export async function uploadFile(filePath: string): Promise<string> {
       let data = new FormData();
       data.append('file', fs.createReadStream(filePath));
       const res = await CreateNewAxios({
-        baseURL: Config.config.openchat4.upload_url,
+        baseURL: Config.config.global.cdn.url,
         timeout: 10000,
       })({
         method: 'post',
