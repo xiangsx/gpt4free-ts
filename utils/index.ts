@@ -840,7 +840,11 @@ export async function uploadFile(filePath: string): Promise<string> {
 }
 
 export async function downloadAndUploadCDN(url: string): Promise<string> {
-  const { outputFilePath } = await downloadFile(url);
-  const newURL = await uploadFile(outputFilePath);
-  return newURL || url;
+  try {
+    const { outputFilePath } = await downloadFile(url);
+    const newURL = await uploadFile(outputFilePath);
+    return newURL || url;
+  } catch (e) {
+    return url;
+  }
 }
