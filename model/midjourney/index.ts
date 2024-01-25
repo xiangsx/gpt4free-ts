@@ -97,13 +97,13 @@ export class Midjourney extends Chat {
             stream.write(Event.message, {
               content: `[${getProgress(
                 e.content,
-              )}%](${await downloadAndUploadCDN(e.attachments[0]?.proxy_url)})`,
+              )}%](${await downloadAndUploadCDN(e.attachments[0]?.url)})`,
             });
           }
         },
         onEnd: async (e) => {
           clearInterval(itl);
-          const url = await downloadAndUploadCDN(e.attachments[0]?.proxy_url);
+          const url = await downloadAndUploadCDN(e.attachments[0]?.url);
           stream.write(Event.message, {
             content: `[100%](${url})\n\n`,
           });
@@ -169,14 +169,14 @@ export class Midjourney extends Chat {
         if (e.attachments[0]?.url) {
           stream.write(Event.message, {
             content: `[${getProgress(e.content)}%](${await downloadAndUploadCDN(
-              e.attachments[0]?.proxy_url,
+              e.attachments[0]?.url,
             )})`,
           });
         }
       },
       onEnd: async (e) => {
         clearInterval(itl);
-        const url = await downloadAndUploadCDN(e.attachments[0]?.proxy_url);
+        const url = await downloadAndUploadCDN(e.attachments[0]?.url);
         stream.write(Event.message, {
           content: `[100%](${url})\n\n`,
         });
@@ -251,14 +251,14 @@ export class Midjourney extends Chat {
         if (e.attachments[0]?.url) {
           stream.write(Event.message, {
             content: `[${getProgress(e.content)}%](${await downloadAndUploadCDN(
-              e.attachments[0]?.proxy_url,
+              e.attachments[0]?.url,
             )})`,
           });
         }
       },
       onEnd: async (e) => {
         clearInterval(itl);
-        const url = await downloadAndUploadCDN(e.attachments[0]?.proxy_url);
+        const url = await downloadAndUploadCDN(e.attachments[0]?.url);
         stream.write(Event.message, {
           content: `[100%](${url})\n\n`,
         });
