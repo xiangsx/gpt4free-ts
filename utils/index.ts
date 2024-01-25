@@ -754,6 +754,7 @@ export async function downloadFile(fileUrl: string): Promise<{
         async () => {
           const response = await CreateNewAxios({}, { proxy }).get(fileUrl, {
             responseType: 'stream',
+            timeout: 20 * 1000,
             headers: {
               'User-Agent': randomUserAgent(),
             },
