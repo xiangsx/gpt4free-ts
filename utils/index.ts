@@ -736,8 +736,10 @@ export async function downloadFile(fileUrl: string): Promise<{
   let proxy = true;
   if (Config.config.global.download_map) {
     for (const old in Config.config.global.download_map) {
-      fileUrl = fileUrl.replace(old, Config.config.global.download_map[old]);
-      proxy = false;
+      if (fileUrl.indexOf(old) > -1) {
+        fileUrl = fileUrl.replace(old, Config.config.global.download_map[old]);
+        proxy = false;
+      }
     }
   }
   try {
