@@ -1,4 +1,5 @@
 import { ComInfo } from '../../utils/pool';
+import exp from 'constants';
 
 export interface Account extends ComInfo {
   token: string;
@@ -222,6 +223,20 @@ export enum ApplicationCommandType {
   MESSAGE = 3, // A UI-based command that shows up when you right click or tap on a message
 }
 
+export enum ApplicationCommandOptionType {
+  SUB_COMMAND = 1,
+  SUB_COMMAND_GROUP = 2,
+  STRING = 3,
+  INTEGER = 4, // Any integer between -2^53 and 2^53
+  BOOLEAN = 5,
+  USER = 6,
+  CHANNEL = 7, // Includes all channel types + categories
+  ROLE = 8,
+  MENTIONABLE = 9, // Includes users and roles
+  NUMBER = 10, // Any double between -2^53 and 2^53
+  ATTACHMENT = 11, // attachment object
+}
+
 export interface ApplicationCommand {
   version: string;
   id: string;
@@ -236,17 +251,30 @@ export interface ApplicationCommand {
   name_localized?: string;
   application_command?: ApplicationCommand;
   user?: User;
-  attachments?: any[];
+  attachments?: ApplicationCommandAttachment[];
+}
+
+export interface ApplicationCommandAttachment {
+  id: string;
+  filename: string;
+  uploaded_filename: string;
+}
+
+export interface ChoiceItem {
+  name: string;
+  value: string;
+  name_localized: string;
 }
 
 export interface ApplicationCommandOption {
-  type: number;
+  type: ApplicationCommandOptionType;
   name: string;
-  value?: string;
+  value?: string | number;
   description?: string;
   required?: boolean;
   description_localized?: string;
   name_localized?: string;
+  choices?: ChoiceItem[];
 }
 
 export const MJApplicationID = '936929561302675456';
@@ -254,13 +282,13 @@ export const MJApplicationID = '936929561302675456';
 export const ImagineCommand: ApplicationCommand = {
   id: '938956540159881230',
   type: ApplicationCommandType.CHAT_INPUT,
-  application_id: '936929561302675456',
+  application_id: MJApplicationID,
   version: '1166847114203123795',
   name: 'imagine',
   description: 'Create images with Midjourney',
   options: [
     {
-      type: 3,
+      type: ApplicationCommandOptionType.STRING,
       name: 'prompt',
       description: 'The prompt to imagine',
       required: true,
@@ -274,6 +302,83 @@ export const ImagineCommand: ApplicationCommand = {
   name_localized: 'imagine',
 };
 
+export const BlendCommand: ApplicationCommand = {
+  id: '1062880104792997970',
+  type: ApplicationCommandType.CHAT_INPUT,
+  application_id: MJApplicationID,
+  version: '1166847114203123796',
+  name: 'blend',
+  description: 'Blend images together seamlessly!',
+  options: [
+    {
+      type: ApplicationCommandOptionType.ATTACHMENT,
+      name: 'image1',
+      description: 'First image to add to the blend',
+      required: true,
+      description_localized: 'First image to add to the blend',
+      name_localized: 'image1',
+    },
+    {
+      type: ApplicationCommandOptionType.ATTACHMENT,
+      name: 'image2',
+      description: 'Second image to add to the blend',
+      required: true,
+      description_localized: 'Second image to add to the blend',
+      name_localized: 'image2',
+    },
+    {
+      type: ApplicationCommandOptionType.STRING,
+      name: 'dimensions',
+      description:
+        'The dimensions of the image. If not specified, the image will be square.',
+      required: false,
+      choices: [
+        { name: 'Portrait', value: '--ar 2:3', name_localized: 'Portrait' },
+        {
+          name: 'Square',
+          value: '--ar 1:1',
+          name_localized: 'Square',
+        },
+        {
+          name: 'Landscape',
+          value: '--ar 3:2',
+          name_localized: 'Landscape',
+        },
+      ],
+      description_localized:
+        'The dimensions of the image. If not specified, the image will be square.',
+      name_localized: 'dimensions',
+    },
+    {
+      type: ApplicationCommandOptionType.ATTACHMENT,
+      name: 'image3',
+      description: 'Third image to add to the blend (optional)',
+      required: false,
+      description_localized: 'Third image to add to the blend (optional)',
+      name_localized: 'image3',
+    },
+    {
+      type: ApplicationCommandOptionType.ATTACHMENT,
+      name: 'image4',
+      description: 'Fourth image to add to the blend (optional)',
+      required: false,
+      description_localized: 'Fourth image to add to the blend (optional)',
+      name_localized: 'image4',
+    },
+    {
+      type: ApplicationCommandOptionType.ATTACHMENT,
+      name: 'image5',
+      description: 'Fifth image to add to the blend (optional)',
+      required: false,
+      description_localized: 'Fifth image to add to the blend (optional)',
+      name_localized: 'image5',
+    },
+  ],
+  integration_types: [0],
+  global_popularity_rank: 3,
+  description_localized: 'Blend images together seamlessly!',
+  name_localized: 'blend',
+};
 export function getProgress(text: string) {
   // 这个正则表达式匹配后面跟着百分号的数字
   const regex = /\d+(\.\d+)?(?=%)/;
@@ -281,6 +386,13 @@ export function getProgress(text: string) {
   const match = text.match(regex);
   // 将匹配的字符串转换为数字
   return match ? Number(match[0]) : null;
+}
+
+export function getPrompt(text: string) {
+  const regex = /\*\*(.*?)\*\*/;
+  let match = regex.exec(text);
+
+  return match ? match[1] : null;
 }
 
 export enum AIActionType {
@@ -296,6 +408,7 @@ export type AIAction = {
   custom_id?: string;
   image_urls?: string[];
   component_type?: number;
+  dimensions?: string;
 };
 
 export const ComponentLabelMap: Record<string, string> = {
@@ -313,3 +426,22 @@ export const ComponentLabelMap: Record<string, string> = {
   'Vary (Subtle)': '细微变体',
   'Vary (Strong)': '强烈变体',
 };
+
+export type UploadFileInfo = {
+  filename: string;
+  file_size: number;
+  id?: string;
+  is_clip: boolean;
+};
+
+export type UploadedFileData = {
+  id: number;
+  upload_filename: string;
+  upload_url: string;
+};
+
+export enum DimensionsType {
+  Portrait = '--ar 2:3',
+  Square = '--ar 1:1',
+  Landscape = '--ar 3:2',
+}

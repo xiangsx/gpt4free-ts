@@ -1,6 +1,9 @@
 import { ComChild, DestroyOptions } from '../../utils/pool';
 import {
   Account,
+  ApplicationCommandAttachment,
+  ApplicationCommandOptionType,
+  BlendCommand,
   GatewayDHello,
   GatewayDMessageCreate,
   GatewayDMessageUpdate,
@@ -9,16 +12,21 @@ import {
   GatewayEvents,
   GatewayHandler,
   GatewayMessageType,
+  getProgress,
+  getPrompt,
   ImagineCommand,
   InteractionPayload,
   InteractionType,
   MessageSubComponent,
   MJApplicationID,
+  UploadedFileData,
+  UploadFileInfo,
 } from './define';
 import { CreateNewAxios, WSS } from '../../utils/proxyAgent';
 import { AxiosInstance } from 'axios';
-import { randomNonce, randomStr } from '../../utils';
+import { downloadFile, randomNonce, randomStr } from '../../utils';
 import moment from 'moment';
+import fs from 'fs';
 
 export class Child extends ComChild<Account> {
   private ws!: WSS;
@@ -48,6 +56,32 @@ export class Child extends ComChild<Account> {
 
   async interact(d: InteractionPayload<InteractionType>) {
     return this.client.post('/interactions', d);
+  }
+
+  async upload(url: string) {
+    const { file_size, file_name, outputFilePath } = await downloadFile(url);
+    const res: { data: { attachments: UploadedFileData[] } } =
+      await this.client.post(`/channels/${this.info.channel_id}/attachments`, {
+        files: [
+          {
+            file_size,
+            filename: file_name,
+            id: `${Math.floor(Math.random() * 9999999)}`,
+            is_clip: false,
+          } as UploadFileInfo,
+        ],
+      });
+    if (!res.data.attachments.length) {
+      throw new Error('upload failed');
+    }
+    const file = res.data.attachments[0];
+    const filestream = fs.createReadStream(outputFilePath);
+    await this.client.put(file.upload_url, filestream, {
+      headers: {
+        'Content-Type': 'application/octet-stream',
+      },
+    });
+    return { file_name, upload_filename: file.upload_filename };
   }
 
   async doComponent(
@@ -165,7 +199,103 @@ export class Child extends ComChild<Account> {
       (e: GatewayEventPayload<GatewayDMessageCreate>) =>
         e.d.content.indexOf(prompt) > -1 && !e.d.interaction,
       {
-        timeout: 2 * 60 * 1000,
+        onTimeout: () => {
+          removeUpdate();
+          onError(new Error(`Midjourney create image timeout...`));
+        },
+        onEvent: (e) => {
+          onEnd(e.d);
+          removeUpdate();
+          removeEnd();
+        },
+      },
+    );
+  }
+
+  async blend(
+    image_urls: string[],
+    options: {
+      dimensions?: string;
+      onStart: (msg: GatewayDMessageCreate) => void;
+      onUpdate: (msg: GatewayDMessageUpdate) => void;
+      onEnd: (msg: GatewayDMessageCreate) => void;
+      onError: (error: Error) => void;
+    },
+  ) {
+    const { onStart, onError, onEnd, onUpdate, dimensions } = options;
+    const nonce = randomNonce(19);
+    const data: InteractionPayload<InteractionType.APPLICATION_COMMAND> = {
+      type: InteractionType.APPLICATION_COMMAND,
+      application_id: MJApplicationID,
+      guild_id: this.info.server_id,
+      channel_id: this.info.channel_id,
+      session_id: this.session_id,
+      data: {
+        version: BlendCommand.version,
+        id: BlendCommand.id,
+        name: BlendCommand.name,
+        type: BlendCommand.type,
+        options: [],
+        application_command: BlendCommand,
+        attachments: [],
+      },
+      nonce,
+      analytics_location: 'slash_ui',
+    };
+    const files = await Promise.all(image_urls.map((v) => this.upload(v)));
+    data.data.options.push(
+      ...files.map((v, idx) => ({
+        type: ApplicationCommandOptionType.ATTACHMENT,
+        name: `image${idx + 1}`,
+        value: idx,
+      })),
+    );
+    data.data.attachments!.push(
+      ...files.map(
+        (v, idx) =>
+          ({
+            id: `${idx}`,
+            filename: v.file_name,
+            uploaded_filename: v.upload_filename,
+          } as ApplicationCommandAttachment),
+      ),
+    );
+    if (dimensions) {
+      data.data.options.push({
+        type: ApplicationCommandOptionType.STRING,
+        name: 'dimensions',
+        value: dimensions,
+      });
+    }
+    await this.interact(data);
+    const mCreate = await this.waitGatewayEventNameAsync(
+      GatewayEventName.MESSAGE_CREATE,
+      (e: GatewayEventPayload<GatewayDMessageCreate>) => e.d.nonce === nonce,
+      {},
+    );
+    if (mCreate.d.embeds?.length) {
+      onError(
+        new Error(
+          `### ${mCreate.d.embeds?.[0].title}\n\n ${mCreate.d.embeds?.[0].description}`,
+        ),
+      );
+      return;
+    }
+    onStart(mCreate.d);
+    const prompt = getPrompt(mCreate.d.content) || '';
+    const removeUpdate = await this.waitGatewayEventName(
+      GatewayEventName.MESSAGE_UPDATE,
+      (e: GatewayEventPayload<GatewayDMessageUpdate>) =>
+        e.d.id === mCreate.d.id && e.d.content.indexOf(prompt) > -1,
+      {
+        onEvent: (e) => onUpdate(e.d),
+      },
+    );
+    const removeEnd = await this.waitGatewayEventName(
+      GatewayEventName.MESSAGE_CREATE,
+      (e: GatewayEventPayload<GatewayDMessageCreate>) =>
+        e.d.content.indexOf(prompt) > -1,
+      {
         onTimeout: () => {
           removeUpdate();
           onError(new Error(`Midjourney create image timeout...`));
@@ -294,11 +424,11 @@ export class Child extends ComChild<Account> {
   }
 
   listenEvent(e: GatewayEventPayload<any>) {
-    this.logger.info(JSON.stringify(e));
     this.event_map[e.op]?.(e);
     if (e.t) {
       const wait_map = this.event_wait_map[e.t];
       if (wait_map) {
+        this.logger.info(JSON.stringify(e));
         for (const [, v] of Object.entries(wait_map)) {
           if (v.condition(e)) {
             v.cb(e);

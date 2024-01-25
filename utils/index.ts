@@ -733,9 +733,11 @@ export async function downloadFile(fileUrl: string): Promise<{
   outputFilePath: string;
   image: boolean;
 }> {
+  let proxy = true;
   if (Config.config.global.download_map) {
     for (const old in Config.config.global.download_map) {
       fileUrl = fileUrl.replace(old, Config.config.global.download_map[old]);
+      proxy = false;
     }
   }
   try {
@@ -750,15 +752,12 @@ export async function downloadFile(fileUrl: string): Promise<{
       let ok = false;
       await retryFunc(
         async () => {
-          const response = await CreateNewAxios({}, { proxy: true }).get(
-            fileUrl,
-            {
-              responseType: 'stream',
-              headers: {
-                'User-Agent': randomUserAgent(),
-              },
+          const response = await CreateNewAxios({}, { proxy }).get(fileUrl, {
+            responseType: 'stream',
+            headers: {
+              'User-Agent': randomUserAgent(),
             },
-          );
+          });
           filename = getFilenameFromContentDisposition(
             response.headers['content-disposition'],
           );
