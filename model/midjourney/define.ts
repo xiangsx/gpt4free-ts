@@ -379,6 +379,7 @@ export const BlendCommand: ApplicationCommand = {
   description_localized: 'Blend images together seamlessly!',
   name_localized: 'blend',
 };
+
 export function getProgress(text: string) {
   // 这个正则表达式匹配后面跟着百分号的数字
   const regex = /\d+(\.\d+)?(?=%)/;
@@ -425,6 +426,12 @@ export const ComponentLabelMap: Record<string, string> = {
   'Upscale (Creative)': '创造放大',
   'Vary (Subtle)': '细微变体',
   'Vary (Strong)': '强烈变体',
+  'Zoom Out 2x': '缩放2倍',
+  'Zoom Out 1.5x': '缩放1.5倍',
+  '⬅️': '左移',
+  '➡️': '右移',
+  '⬆️': '上移',
+  '⬇️': '下移',
 };
 
 export type UploadFileInfo = {
