@@ -318,7 +318,7 @@ export class Child extends ComChild<Account> {
       onTimeout?: () => void;
     },
   ): Promise<() => void> {
-    const { timeout = 3 * 60 * 1000, onEvent, onTimeout = () => {} } = options;
+    const { timeout = 5 * 60 * 1000, onEvent, onTimeout = () => {} } = options;
     const itl = setTimeout(() => {
       delete this.event_wait_map[t]![id];
       onTimeout();
