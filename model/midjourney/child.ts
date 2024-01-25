@@ -186,6 +186,7 @@ export class Child extends ComChild<Account> {
       return;
     }
     onStart(mCreate.d);
+    const content = getPrompt(mCreate.d.content) || '';
     const removeUpdate = await this.waitGatewayEventName(
       GatewayEventName.MESSAGE_UPDATE,
       (e: GatewayEventPayload<GatewayDMessageUpdate>) =>
@@ -197,7 +198,7 @@ export class Child extends ComChild<Account> {
     const removeEnd = await this.waitGatewayEventName(
       GatewayEventName.MESSAGE_CREATE,
       (e: GatewayEventPayload<GatewayDMessageCreate>) =>
-        e.d.content.indexOf(prompt) > -1 && !e.d.interaction,
+        e.d.content.indexOf(content) > -1 && !e.d.interaction,
       {
         onTimeout: () => {
           removeUpdate();
