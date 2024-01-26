@@ -58,6 +58,7 @@ export class Midjourney extends Chat {
       },
     },
   );
+
   constructor(options?: ChatOptions) {
     super(options);
   }
@@ -71,12 +72,18 @@ export class Midjourney extends Chat {
     }
   }
 
-  async doComponents(action: AIAction, child: Child, stream: EventStream) {
+  async doComponents(
+    action: AIAction,
+    child: Child,
+    stream: EventStream,
+    onEnd: () => void,
+  ) {
     let itl: NodeJS.Timeout;
     if (!action.component_type || !action.message_id || !action.custom_id) {
       stream.write(Event.message, { content: 'Invalid component action' });
       stream.write(Event.done, { content: '' });
       stream.end();
+      onEnd();
       return;
     }
     await child.doComponent(
@@ -137,6 +144,7 @@ export class Midjourney extends Chat {
           }
           stream.write(Event.done, { content: '' });
           stream.end();
+          onEnd();
         },
         onError: (e) => {
           clearInterval(itl);
@@ -150,12 +158,18 @@ export class Midjourney extends Chat {
     );
   }
 
-  async imagine(action: AIAction, child: Child, stream: EventStream) {
+  async imagine(
+    action: AIAction,
+    child: Child,
+    stream: EventStream,
+    onEnd: () => void,
+  ) {
     let itl: NodeJS.Timeout;
     if (!action.prompt) {
       stream.write(Event.message, { content: 'Generate prompt failed' });
       stream.write(Event.done, { content: '' });
       stream.end();
+      onEnd();
       return;
     }
     await child.imagine(action.prompt!, {
@@ -213,6 +227,7 @@ export class Midjourney extends Chat {
         });
         stream.write(Event.done, { content: '' });
         stream.end();
+        onEnd();
       },
       onError: (e) => {
         clearInterval(itl);
@@ -225,7 +240,12 @@ export class Midjourney extends Chat {
     });
   }
 
-  async blend(action: AIAction, child: Child, stream: EventStream) {
+  async blend(
+    action: AIAction,
+    child: Child,
+    stream: EventStream,
+    onEnd: () => void,
+  ) {
     let itl: NodeJS.Timeout;
     if (
       !action.image_urls?.length ||
@@ -237,6 +257,7 @@ export class Midjourney extends Chat {
       });
       stream.write(Event.done, { content: '' });
       stream.end();
+      onEnd();
       return;
     }
     await child.blend(action.image_urls!, {
@@ -295,6 +316,7 @@ export class Midjourney extends Chat {
         });
         stream.write(Event.done, { content: '' });
         stream.end();
+        onEnd();
       },
       onError: (e) => {
         clearInterval(itl);
@@ -308,8 +330,8 @@ export class Midjourney extends Chat {
   }
 
   async askStream(req: ChatRequest, stream: EventStream): Promise<void> {
+    const child = await this.pool.pop();
     try {
-      const child = await this.pool.pop();
       const auto = chatModel.get(Site.Auto);
       let old = '';
       const pt = new ThroughEventStream(
@@ -333,17 +355,22 @@ export class Midjourney extends Chat {
             }
             switch (action?.type) {
               case AIActionType.Imagine:
-                await this.imagine(action, child, stream);
+                await this.imagine(action, child, stream, () =>
+                  child.release(),
+                );
                 return;
               case AIActionType.Component:
-                await this.doComponents(action, child, stream);
+                await this.doComponents(action, child, stream, () =>
+                  child.release(),
+                );
                 return;
               case AIActionType.Blend:
-                await this.blend(action, child, stream);
+                await this.blend(action, child, stream, () => child.release());
                 return;
               default:
                 stream.write(Event.done, { content: '' });
                 stream.end();
+                child.release();
                 break;
             }
           } catch (e: any) {
@@ -358,6 +385,7 @@ export class Midjourney extends Chat {
         pt,
       );
     } catch (e: any) {
+      child.release();
       throw new ComError(e.message);
     }
   }

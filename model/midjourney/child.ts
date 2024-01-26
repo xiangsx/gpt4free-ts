@@ -477,11 +477,4 @@ export class Child extends ComChild<Account> {
       this.event_wait_map[v as GatewayEventName] = {};
     }
   }
-
-  use(): void {
-    this.update({
-      lastUseTime: moment().unix(),
-      useCount: (this.info.useCount || 0) + 1,
-    });
-  }
 }
