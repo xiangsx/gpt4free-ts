@@ -2,7 +2,7 @@ import { Chat, ChatOptions, ChatRequest, ModelType } from '../base';
 import { AxiosInstance, AxiosRequestConfig, CreateAxiosDefaults } from 'axios';
 import { CreateAxiosProxy } from '../../utils/proxyAgent';
 import es from 'event-stream';
-import { Event, EventStream, parseJSON } from '../../utils';
+import { ComError, Event, EventStream, parseJSON } from '../../utils';
 import { Config } from '../../utils/config';
 import { AsyncStoreSN } from '../../asyncstore';
 
@@ -140,10 +140,23 @@ export class OpenAI extends Chat {
         stream.end();
       });
     } catch (e: any) {
-      this.logger.error(e.message);
-      e.response.data.on('data', (chunk: any) =>
-        this.logger.error(chunk.toString()),
-      );
+      if (e.response && e.response.data) {
+        await new Promise((resolve, reject) => {
+          e.response.data.on('data', (chunk: any) => {
+            this.logger.error(chunk.toString());
+            reject(
+              new ComError(
+                parseJSON<{ error: { message: string } }>(chunk.toString(), {
+                  error: { message: '' },
+                }).error.message,
+                e.response.status,
+              ),
+            );
+          });
+        });
+        return;
+      }
+      this.logger.error(`openai failed: ${e.message}`);
       stream.write(Event.error, { error: e.message });
       stream.end();
     }
