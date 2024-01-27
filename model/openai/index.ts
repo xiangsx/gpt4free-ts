@@ -140,23 +140,10 @@ export class OpenAI extends Chat {
         stream.end();
       });
     } catch (e: any) {
-      if (e.response && e.response.data) {
-        await new Promise((resolve, reject) => {
-          e.response.data.on('data', (chunk: any) => {
-            this.logger.error(chunk.toString());
-            reject(
-              new ComError(
-                parseJSON<{ error: { message: string } }>(chunk.toString(), {
-                  error: { message: '' },
-                }).error.message,
-                e.response.status,
-              ),
-            );
-          });
-        });
-        return;
-      }
-      this.logger.error(`openai failed: ${e.message}`);
+      this.logger.error(e.message);
+      e.response.data.on('data', (chunk: any) =>
+        this.logger.error(chunk.toString()),
+      );
       stream.write(Event.error, { error: e.message });
       stream.end();
     }
