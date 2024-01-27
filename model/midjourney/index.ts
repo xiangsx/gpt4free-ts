@@ -126,7 +126,7 @@ export class Midjourney extends Chat {
               content: `> message_id: \`${e.id}\`\n\n`,
             });
             stream.write(Event.message, {
-              content: `|name|component|label|custom_id|\n|---|---|---|---|\n`,
+              content: `|name|label|type|custom_id|\n|---|---|---|---|\n`,
             });
             for (const v of components) {
               if (v.type === 1) {
@@ -206,7 +206,7 @@ export class Midjourney extends Chat {
             content: `> This message contains 4 images in one, contains such action components \n\n > message_id: \`${e.id}\`\n\n`,
           });
           stream.write(Event.message, {
-            content: `|name|component_type|label|custom_id|\n|---|---|---|---|\n`,
+            content: `|name|label|type|custom_id|\n|---|---|---|---|\n`,
           });
           for (const v of components) {
             if (v.type === 1) {
@@ -295,7 +295,7 @@ export class Midjourney extends Chat {
             content: `> This message contains 4 images in one, contains such action components \n\n > message_id: \`${e.id}\`\n\n`,
           });
           stream.write(Event.message, {
-            content: `|name|component_type|label|custom_id|\n|---|---|---|---|\n`,
+            content: `|name|label|type|custom_id|\n|---|---|---|---|\n`,
           });
           for (const v of components) {
             if (v.type === 1) {
