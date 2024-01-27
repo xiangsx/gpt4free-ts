@@ -418,10 +418,7 @@ export class Child extends ComChild<Account> {
     if (this.heartbeat_itl) {
       clearInterval(this.heartbeat_itl);
     }
-    this.heartbeat_itl = setInterval(
-      () => this.sendHeartBeat(),
-      heatBeatInterval,
-    );
+    this.heartbeat_itl = setInterval(() => this.sendHeartBeat(), 20 * 1000);
   }
 
   handleHello(e: GatewayEventPayload<GatewayDHello>) {
