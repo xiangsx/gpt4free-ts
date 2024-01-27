@@ -153,6 +153,7 @@ export class Midjourney extends Chat {
           });
           stream.write(Event.done, { content: '' });
           stream.end();
+          onEnd();
         },
       },
     );
@@ -236,6 +237,7 @@ export class Midjourney extends Chat {
         });
         stream.write(Event.done, { content: '' });
         stream.end();
+        onEnd();
       },
     });
   }
@@ -325,6 +327,7 @@ export class Midjourney extends Chat {
         });
         stream.write(Event.done, { content: '' });
         stream.end();
+        onEnd();
       },
     });
   }

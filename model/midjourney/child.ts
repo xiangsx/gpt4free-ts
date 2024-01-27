@@ -4,6 +4,8 @@ import {
   ApplicationCommandAttachment,
   ApplicationCommandOptionType,
   BlendCommand,
+  DimensionsList,
+  DimensionsType,
   GatewayDHello,
   GatewayDMessageCreate,
   GatewayDMessageUpdate,
@@ -265,7 +267,9 @@ export class Child extends ComChild<Account> {
       data.data.options.push({
         type: ApplicationCommandOptionType.STRING,
         name: 'dimensions',
-        value: dimensions,
+        value: DimensionsList.includes(dimensions as DimensionsType)
+          ? dimensions
+          : DimensionsType.Square,
       });
     }
     await this.interact(data);

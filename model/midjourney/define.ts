@@ -452,3 +452,9 @@ export enum DimensionsType {
   Square = '--ar 1:1',
   Landscape = '--ar 3:2',
 }
+
+export const DimensionsList = [
+  DimensionsType.Landscape,
+  DimensionsType.Square,
+  DimensionsType.Portrait,
+];
