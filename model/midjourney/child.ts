@@ -413,16 +413,17 @@ export class Child extends ComChild<Account> {
     });
   }
 
-  initHeartbeat(heatBeatInterval: number) {
+  initHello(heatBeatInterval: number) {
     this.identify();
     if (this.heartbeat_itl) {
       clearInterval(this.heartbeat_itl);
     }
     this.heartbeat_itl = setInterval(() => this.sendHeartBeat(), 20 * 1000);
+    this.logger.info('init hello ok');
   }
 
   handleHello(e: GatewayEventPayload<GatewayDHello>) {
-    this.initHeartbeat(e.d.heartbeat_interval);
+    this.initHello(e.d.heartbeat_interval);
   }
 
   listenEvent(e: GatewayEventPayload<any>) {
