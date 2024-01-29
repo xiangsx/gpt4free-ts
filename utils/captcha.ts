@@ -199,7 +199,7 @@ export async function handleCF(
       },
       sessionId,
     );
-    await sleep(5000);
+    await sleep(20 * 1000);
   } catch (e) {
     await client.Browser.close();
     throw e;

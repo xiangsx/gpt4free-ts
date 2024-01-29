@@ -63,6 +63,7 @@ import { AIRoom } from './airoom';
 import { GPTGOD } from './gptgod';
 import { Arkose } from './arkose';
 import { Midjourney } from './midjourney';
+import { FreeGPT4 } from './freegpt4';
 
 export class ChatModelFactory {
   private readonly modelMap: Map<Site, Chat>;
@@ -152,6 +153,7 @@ export class ChatModelFactory {
     this.modelMap.set(Site.AIRoom, new AIRoom({ name: Site.AIRoom }));
     this.modelMap.set(Site.GPTGOD, new GPTGOD({ name: Site.GPTGOD }));
     this.modelMap.set(Site.Arkose, new Arkose({ name: Site.Arkose }));
+    this.modelMap.set(Site.FreeGPT4, new FreeGPT4({ name: Site.FreeGPT4 }));
     this.modelMap.set(
       Site.Midjourney,
       new Midjourney({ name: Site.Midjourney }),

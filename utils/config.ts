@@ -46,6 +46,7 @@ interface ConfigData {
     stable_proxy_list: string[];
     proxy_list: string[];
   };
+  freegpt4: SizeCfg & MailCfg;
   gmail_list: { email: string; password: string; recovery_email: string }[];
   hypotenuse: MailCfg & SizeCfg;
   airoom: SizeCfg;
@@ -382,6 +383,11 @@ class BaseConfig {
       size: 0,
       serial: 0,
       accounts: [],
+    },
+    freegpt4: {
+      size: 0,
+      serial: 0,
+      mail_type: TempEmailType.TempMailLOL,
     },
   };
   public config: ConfigData;

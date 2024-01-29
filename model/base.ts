@@ -167,6 +167,7 @@ export enum Site {
   GPTGOD = 'gptgod',
   Arkose = 'arkose',
   Midjourney = 'midjourney',
+  FreeGPT4 = 'freegpt4',
 }
 
 export interface ChatRequest {
