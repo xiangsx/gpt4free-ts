@@ -6,7 +6,10 @@ import {
   AIAction,
   AIActionType,
   ComponentLabelMap,
+  GatewayDMessageCreate,
+  getAllComponents,
   getProgress,
+  MessageComponent,
 } from './define';
 import { Config } from '../../utils/config';
 import { v4 } from 'uuid';
@@ -72,6 +75,41 @@ export class Midjourney extends Chat {
     }
   }
 
+  async doMultiComponents(
+    child: Child,
+    message_id: string,
+    custom_ids: string[],
+  ) {
+    if (!custom_ids?.length) {
+      return [];
+    }
+    return await Promise.all(
+      custom_ids.map(
+        (v) =>
+          new Promise((resolve, reject) => {
+            child.doComponent(
+              message_id,
+              {
+                component_type: 2,
+                custom_id: v,
+              },
+              {
+                onStart: (e) => {},
+                onUpdate: async (e) => {},
+                onEnd: async (e) => {
+                  const url = await downloadAndUploadCDN(e.attachments[0]?.url);
+                  resolve(url);
+                },
+                onError: async (e) => {
+                  resolve(null);
+                },
+              },
+            );
+          }),
+      ),
+    );
+  }
+
   async doComponents(
     action: AIAction,
     child: Child,
@@ -120,28 +158,7 @@ export class Midjourney extends Chat {
               '/cdn/download/',
             )})\n\n`,
           });
-          const components = e.components;
-          if (components?.length) {
-            stream.write(Event.message, {
-              content: `> message_id: \`${e.id}\`\n\n`,
-            });
-            stream.write(Event.message, {
-              content: `|name|label|type|custom_id|\n|---|---|---|---|\n`,
-            });
-            for (const v of components) {
-              if (v.type === 1) {
-                for (const b of v.components) {
-                  const label = b.label || b.emoji?.name;
-                  if (b.type === 2 && label && ComponentLabelMap[label]) {
-                    b.name = ComponentLabelMap[label];
-                    stream.write(Event.message, {
-                      content: `|${b.name}|${label}|${b.type}|${b.custom_id}|\n`,
-                    });
-                  }
-                }
-              }
-            }
-          }
+          await this.handleComponents(e, child, stream);
           stream.write(Event.done, { content: '' });
           stream.end();
           onEnd();
@@ -157,6 +174,45 @@ export class Midjourney extends Chat {
         },
       },
     );
+  }
+
+  async handleComponents(
+    e: GatewayDMessageCreate,
+    child: Child,
+    stream: EventStream,
+  ) {
+    const components = getAllComponents(e.components);
+    // const urls = await this.doMultiComponents(
+    //   child,
+    //   e.id,
+    //   components
+    //     .filter((v) => v.label?.startsWith('U') || false)
+    //     .map((v) => v.custom_id),
+    // );
+    // stream.write(Event.message, {
+    //   content:
+    //     urls.map((v, idx) => `[下载${idx + 1}](${v})`).join(' ') + '\n\n',
+    // });
+    if (components?.length) {
+      stream.write(Event.message, {
+        content: `> This message contains 4 images in one, contains such action components \n\n > message_id: \`${e.id}\`\n\n`,
+      });
+      stream.write(Event.message, {
+        content: `|name|label|type|custom_id|\n|---|---|---|---|\n`,
+      });
+      for (const b of components) {
+        // if (b.label?.startsWith('U')) {
+        //   continue;
+        // }
+        const label = b.label || b.emoji?.name;
+        if (b.type === 2 && label && ComponentLabelMap[label]) {
+          b.name = ComponentLabelMap[label];
+          stream.write(Event.message, {
+            content: `|${b.name}|${label}|${b.type}|${b.custom_id}|\n`,
+          });
+        }
+      }
+    }
   }
 
   async imagine(
@@ -201,28 +257,7 @@ export class Midjourney extends Chat {
             '/cdn/download/',
           )})\n\n`,
         });
-        const components = e.components;
-        if (components?.length) {
-          stream.write(Event.message, {
-            content: `> This message contains 4 images in one, contains such action components \n\n > message_id: \`${e.id}\`\n\n`,
-          });
-          stream.write(Event.message, {
-            content: `|name|label|type|custom_id|\n|---|---|---|---|\n`,
-          });
-          for (const v of components) {
-            if (v.type === 1) {
-              for (const b of v.components) {
-                const label = b.label || b.emoji?.name;
-                if (b.type === 2 && label && ComponentLabelMap[label]) {
-                  b.name = ComponentLabelMap[label];
-                  stream.write(Event.message, {
-                    content: `|${b.name}|${label}|${b.type}|${b.custom_id}|\n`,
-                  });
-                }
-              }
-            }
-          }
-        }
+        await this.handleComponents(e, child, stream);
         stream.write(Event.message, {
           content: '\n **接下来你可以直接对我说命令，例如：帮我放大第一张图**',
         });
@@ -291,28 +326,7 @@ export class Midjourney extends Chat {
             '/cdn/download/',
           )})\n\n`,
         });
-        const components = e.components;
-        if (components?.length) {
-          stream.write(Event.message, {
-            content: `> This message contains 4 images in one, contains such action components \n\n > message_id: \`${e.id}\`\n\n`,
-          });
-          stream.write(Event.message, {
-            content: `|name|label|type|custom_id|\n|---|---|---|---|\n`,
-          });
-          for (const v of components) {
-            if (v.type === 1) {
-              for (const b of v.components) {
-                const label = b.label || b.emoji?.name;
-                if (b.type === 2 && label && ComponentLabelMap[label]) {
-                  b.name = ComponentLabelMap[label];
-                  stream.write(Event.message, {
-                    content: `|${b.name}|${label}|${b.type}|${b.custom_id}|\n`,
-                  });
-                }
-              }
-            }
-          }
-        }
+        await this.handleComponents(e, child, stream);
         stream.write(Event.message, {
           content: '\n **接下来你可以直接对我说命令，例如：帮我放大第一张图**',
         });

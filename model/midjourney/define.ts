@@ -458,3 +458,17 @@ export const DimensionsList = [
   DimensionsType.Square,
   DimensionsType.Portrait,
 ];
+
+export const getAllComponents = (
+  components: MessageComponent[],
+): MessageSubComponent[] => {
+  const result: MessageSubComponent[] = [];
+  for (const v of components) {
+    if (v.type === 1) {
+      for (const b of v.components) {
+        result.push(b);
+      }
+    }
+  }
+  return result;
+};
