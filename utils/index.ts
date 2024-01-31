@@ -723,7 +723,7 @@ export function getFilenameFromContentDisposition(content: string = '') {
 }
 const pipelinePromisified = promisify(pipeline);
 
-const extMap = new Map([
+const extMimeMapList: [string, string][] = [
   ['aac', 'audio/aac'],
   ['abw', 'application/x-abiword'],
   ['arc', 'application/x-freearc'],
@@ -810,7 +810,16 @@ const extMap = new Map([
   ['mkv', 'video/x-matroska'],
   ['mov', 'video/quicktime'],
   ['msg', 'application/vnd.ms-outlook'],
+];
+
+export const extMimeMap = new Map(extMimeMapList);
+
+const mimeExtMapList: [string, string][] = extMimeMapList.map(([ext, mime]) => [
+  mime,
+  ext,
 ]);
+
+export const mimeExtMap = new Map(mimeExtMapList);
 
 export async function downloadFile(fileUrl: string): Promise<{
   file_name: string;
@@ -869,7 +878,7 @@ export async function downloadFile(fileUrl: string): Promise<{
 
     const ext =
       path.extname(filename).replace(/\./g, '').toLowerCase() || 'txt';
-    const mime = extMap.get(ext) || 'text/plain';
+    const mime = extMimeMap.get(ext) || 'text/plain';
     let file_name = `${moment().format('YYYY-MM-DD-HH')}-${randomStr(
       20,
     )}.${ext}`;
