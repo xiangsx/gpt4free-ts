@@ -405,6 +405,7 @@ export enum AIActionType {
 export type AIAction = {
   type: AIActionType;
   prompt?: string;
+  channel_id?: string;
   message_id?: string;
   custom_id?: string;
   image_urls?: string[];

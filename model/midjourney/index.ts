@@ -9,7 +9,6 @@ import {
   GatewayDMessageCreate,
   getAllComponents,
   getProgress,
-  MessageComponent,
 } from './define';
 import { Config } from '../../utils/config';
 import { v4 } from 'uuid';
@@ -195,7 +194,7 @@ export class Midjourney extends Chat {
     // });
     if (components?.length) {
       stream.write(Event.message, {
-        content: `> This message contains 4 images in one, contains such action components \n\n > message_id: \`${e.id}\`\n\n`,
+        content: `> message_id: \`${e.id}\`\n\n > channel_id: \`${child.info.channel_id}\`\n\n > This message contains such action components \n\n`,
       });
       stream.write(Event.message, {
         content: `|name|label|type|custom_id|\n|---|---|---|---|\n`,
@@ -377,9 +376,20 @@ export class Midjourney extends Chat {
                 );
                 return;
               case AIActionType.Component:
-                await this.doComponents(action, child, stream, () =>
-                  child.release(),
-                );
+                try {
+                  const newChild = await this.pool.popIf(
+                    (v) => v.channel_id === action.channel_id,
+                  );
+                  await this.doComponents(action, newChild, stream, () =>
+                    child.release(),
+                  );
+                } catch (e) {
+                  stream.write(Event.message, {
+                    content: '该图像处理服务器已掉线',
+                  });
+                  stream.write(Event.done, { content: '' });
+                  stream.end();
+                }
                 return;
               case AIActionType.Blend:
                 await this.blend(action, child, stream, () => child.release());

@@ -297,4 +297,19 @@ export class Pool<U extends Info, T extends PoolChild<U>> {
     }
     throw new ComError('No valid connect', ComError.Status.RequestTooMany);
   }
+
+  async popIf(condition: (v: U) => boolean) {
+    const children = shuffleArray(this.children);
+    for (let i = 0; i < children.length; i++) {
+      if (
+        !this.using.has(children[i].info.id) &&
+        children[i].info.ready &&
+        condition(children[i].info)
+      ) {
+        children[i].use();
+        return children[i];
+      }
+    }
+    throw new ComError('No valid connect', ComError.Status.RequestTooMany);
+  }
 }
