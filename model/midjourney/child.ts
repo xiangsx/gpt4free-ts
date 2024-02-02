@@ -315,7 +315,7 @@ export class Child extends ComChild<Account> {
     );
   }
 
-  async getInfo(): Promise<MJProfileInfo | undefined> {
+  async getInfo(): Promise<MJProfileInfo> {
     const nonce = randomNonce(19);
     const data: InteractionPayload<InteractionType.APPLICATION_COMMAND> = {
       type: InteractionType.APPLICATION_COMMAND,
@@ -335,28 +335,23 @@ export class Child extends ComChild<Account> {
       nonce,
       analytics_location: 'slash_ui',
     };
-    try {
-      await this.interact(data);
-      const mCreate = await this.waitGatewayEventNameAsync(
-        GatewayEventName.MESSAGE_CREATE,
-        (e: GatewayEventPayload<GatewayDMessageCreate>) => e.d.nonce === nonce,
-        {
-          timeout: 10 * 1000,
-        },
-      );
-      const update = await this.waitGatewayEventNameAsync(
-        GatewayEventName.MESSAGE_UPDATE,
-        (e: GatewayEventPayload<GatewayDMessageUpdate>) =>
-          e.d.id === mCreate.d.id,
-        {
-          timeout: 10 * 1000,
-        },
-      );
-      return parseMJProfile(update.d.embeds?.[0].description);
-    } catch (e: any) {
-      this.logger.error(e.message);
-      return undefined;
-    }
+    await this.interact(data);
+    const mCreate = await this.waitGatewayEventNameAsync(
+      GatewayEventName.MESSAGE_CREATE,
+      (e: GatewayEventPayload<GatewayDMessageCreate>) => e.d.nonce === nonce,
+      {
+        timeout: 10 * 1000,
+      },
+    );
+    const update = await this.waitGatewayEventNameAsync(
+      GatewayEventName.MESSAGE_UPDATE,
+      (e: GatewayEventPayload<GatewayDMessageUpdate>) =>
+        e.d.id === mCreate.d.id,
+      {
+        timeout: 10 * 1000,
+      },
+    );
+    return parseMJProfile(update.d.embeds?.[0].description);
   }
 
   async waitGatewayEventName<T>(
@@ -473,10 +468,6 @@ export class Child extends ComChild<Account> {
 
   async updateInfo() {
     const info = await this.getInfo();
-    if (!info) {
-      this.destroy({ delFile: false, delMem: true });
-      return;
-    }
     this.logger.info(`got profile info: ${JSON.stringify(info)}`);
     this.update({ profile: info });
     if (this.info.mode !== 'relax' && info.fastTimeRemainingMinutes === 0) {
@@ -556,6 +547,11 @@ export class Child extends ComChild<Account> {
     );
     await this.initWS();
     await this.updateInfo();
+  }
+
+  initFailed() {
+    super.initFailed();
+    this.logger.info(`${this.info.channel_id}: init failed`);
   }
 
   use(): void {
