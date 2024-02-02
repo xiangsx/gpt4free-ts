@@ -59,6 +59,10 @@ export class Midjourney extends Chat {
         const result: Account[] = allInfos;
         for (const info of Config.config.midjourney.accounts) {
           if (channelIDSet.has(info.channel_id)) {
+            Object.assign(
+              info,
+              allInfos.find((v) => v.channel_id === info.channel_id),
+            );
             continue;
           }
           result.push({
