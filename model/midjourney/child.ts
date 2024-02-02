@@ -480,7 +480,7 @@ export class Child extends ComChild<Account> {
     this.logger.info(`got profile info: ${JSON.stringify(info)}`);
     this.update({ profile: info });
     if (this.info.mode !== 'relax' && info.fastTimeRemainingMinutes === 0) {
-      this.destroy({ delFile: true, delMem: true });
+      this.destroy({ delFile: false, delMem: true });
       throw new Error('fast time remaining 0');
     }
     this.logger.info('update info ok');

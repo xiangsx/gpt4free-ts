@@ -42,14 +42,25 @@ export class Midjourney extends Chat {
       if (!info.channel_id) {
         return false;
       }
+      if (
+        info.mode !== MJSpeedMode.Relax &&
+        info.profile &&
+        info.profile.fastTimeRemainingMinutes === 0
+      ) {
+        return false;
+      }
       return true;
     },
     {
       delay: 3000,
       serial: () => Config.config.midjourney.serial,
       preHandleAllInfos: async (allInfos) => {
-        const result: Account[] = [];
+        const channelIDSet = new Set(allInfos.map((v) => v.channel_id));
+        const result: Account[] = allInfos;
         for (const info of Config.config.midjourney.accounts) {
+          if (channelIDSet.has(info.channel_id)) {
+            continue;
+          }
           result.push({
             id: v4(),
             token: info.token,
