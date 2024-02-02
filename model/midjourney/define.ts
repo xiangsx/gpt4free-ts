@@ -5,6 +5,8 @@ export interface Account extends ComInfo {
   token: string;
   server_id: string;
   channel_id: string;
+  mode: MJSpeedMode;
+  profile?: MJProfileInfo;
 }
 
 export enum GatewayEvents {
@@ -302,6 +304,20 @@ export const ImagineCommand: ApplicationCommand = {
   name_localized: 'imagine',
 };
 
+export const InfoCommand: ApplicationCommand = {
+  id: '972289487818334209',
+  type: 1,
+  application_id: '936929561302675456',
+  version: '1166847114203123799',
+  name: 'info',
+  description: 'View information about your profile.',
+  integration_types: [0],
+  global_popularity_rank: 3,
+  options: [],
+  description_localized: 'View information about your profile.',
+  name_localized: 'info',
+};
+
 export const BlendCommand: ApplicationCommand = {
   id: '1062880104792997970',
   type: ApplicationCommandType.CHAT_INPUT,
@@ -473,3 +489,74 @@ export const getAllComponents = (
   }
   return result;
 };
+
+export interface MJProfileInfo {
+  userId: string;
+  subscriptionRenew: number; // 时间戳
+  fastTimeRemainingMinutes: number;
+  totalFastTimeMinutes: number;
+  lifetimeUsageImages: number;
+  lifetimeUsageHours: number; // 转换为分钟
+  relaxedUsageImages: number;
+  relaxedUsageHours: number; // 转换为分钟
+  queuedJobsFast: number;
+  queuedJobsRelax: number;
+}
+
+export const parseMJProfile = (dataString: string): MJProfileInfo => {
+  const regexPatterns: Record<string, RegExp> = {
+    userId: /\*\*User ID\*\*:\s+([^\n]+)/,
+    subscriptionRenew: /\*\*Subscription\*\*:.*<t:(\d+)>/,
+    fastTimeRemainingMinutes:
+      /\*\*Fast Time Remaining\*\*:\s+([\d.]+)\/([\d.]+) hours/,
+    lifetimeUsageImages: /\*\*Lifetime Usage\*\*:\s+(\d+) images/,
+    lifetimeUsageHours: /\*\*Lifetime Usage\*\*.*\(([\d.]+) hours\)/,
+    relaxedUsageImages: /\*\*Relaxed Usage\*\*:\s+(\d+) images/,
+    relaxedUsageHours: /\*\*Relaxed Usage\*\*.*\(([\d.]+) hours\)/,
+    queuedJobsFast: /\*\*Queued Jobs \(fast\)\*\*:\s+(\d+)/,
+    queuedJobsRelax: /\*\*Queued Jobs \(relax\)\*\*:\s+(\d+)/,
+  };
+
+  const result: MJProfileInfo = {
+    userId: '',
+    subscriptionRenew: 0,
+    fastTimeRemainingMinutes: 0,
+    totalFastTimeMinutes: 0,
+    lifetimeUsageImages: 0,
+    lifetimeUsageHours: 0,
+    relaxedUsageImages: 0,
+    relaxedUsageHours: 0,
+    queuedJobsFast: 0,
+    queuedJobsRelax: 0,
+  };
+
+  Object.keys(regexPatterns).forEach((key) => {
+    const match = dataString.match(regexPatterns[key]);
+    if (match) {
+      // 对特定字段进行数值转换
+      switch (key) {
+        case 'fastTimeRemainingMinutes':
+          result.fastTimeRemainingMinutes = parseFloat(match[1]) * 60;
+          result.totalFastTimeMinutes = parseFloat(match[2]) * 60;
+          break;
+        case 'lifetimeUsageHours':
+        case 'relaxedUsageHours':
+          result[key] = parseFloat(match[1]) * 60;
+          break;
+        default:
+          // @ts-ignore
+          result[key] = isNaN(parseInt(match[1]))
+            ? match[1]
+            : parseInt(match[1]);
+      }
+    }
+  });
+
+  return result;
+};
+
+export enum MJSpeedMode {
+  Relax = 'relax',
+  Fast = 'fast',
+  Turbo = 'turbo',
+}

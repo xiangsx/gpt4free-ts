@@ -64,7 +64,7 @@ export function CreateNewAxios(
   options?: { proxy: string | boolean | undefined },
 ) {
   const { proxy } = options || {};
-  const createConfig = { ...config };
+  const createConfig: CreateAxiosDefaults = { timeout: 15 * 1000, ...config };
   createConfig.proxy = false;
   if (proxy) {
     const realProxy = proxy === true ? getProxy() : proxy;

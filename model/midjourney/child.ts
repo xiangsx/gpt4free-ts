@@ -17,16 +17,19 @@ import {
   getProgress,
   getPrompt,
   ImagineCommand,
+  InfoCommand,
   InteractionPayload,
   InteractionType,
   MessageSubComponent,
   MJApplicationID,
+  MJProfileInfo,
+  parseMJProfile,
   UploadedFileData,
   UploadFileInfo,
 } from './define';
 import { CreateNewAxios, WSS } from '../../utils/proxyAgent';
 import { AxiosInstance } from 'axios';
-import { downloadFile, randomNonce, randomStr } from '../../utils';
+import { downloadFile, parseJSON, randomNonce, randomStr } from '../../utils';
 import moment from 'moment';
 import fs from 'fs';
 
@@ -34,9 +37,7 @@ export class Child extends ComChild<Account> {
   private ws!: WSS;
   private heartbeat_itl: NodeJS.Timeout | null = null;
   private last_heartbeat_ack: number = 1;
-  private event_map: Partial<Record<GatewayEvents, GatewayHandler>> = {
-    [GatewayEvents.Hello]: this.handleHello.bind(this),
-  };
+  private event_map: Partial<Record<GatewayEvents, GatewayHandler>> = {};
   private client!: AxiosInstance;
   private session_id: string = randomStr(32);
   private event_wait_map: Partial<
@@ -314,6 +315,50 @@ export class Child extends ComChild<Account> {
     );
   }
 
+  async getInfo(): Promise<MJProfileInfo | undefined> {
+    const nonce = randomNonce(19);
+    const data: InteractionPayload<InteractionType.APPLICATION_COMMAND> = {
+      type: InteractionType.APPLICATION_COMMAND,
+      application_id: MJApplicationID,
+      guild_id: this.info.server_id,
+      channel_id: this.info.channel_id,
+      session_id: this.session_id,
+      data: {
+        version: InfoCommand.version,
+        id: InfoCommand.id,
+        name: InfoCommand.name,
+        type: InfoCommand.type,
+        options: [],
+        application_command: InfoCommand,
+        attachments: [],
+      },
+      nonce,
+      analytics_location: 'slash_ui',
+    };
+    try {
+      await this.interact(data);
+      const mCreate = await this.waitGatewayEventNameAsync(
+        GatewayEventName.MESSAGE_CREATE,
+        (e: GatewayEventPayload<GatewayDMessageCreate>) => e.d.nonce === nonce,
+        {
+          timeout: 10 * 1000,
+        },
+      );
+      const update = await this.waitGatewayEventNameAsync(
+        GatewayEventName.MESSAGE_UPDATE,
+        (e: GatewayEventPayload<GatewayDMessageUpdate>) =>
+          e.d.id === mCreate.d.id,
+        {
+          timeout: 10 * 1000,
+        },
+      );
+      return parseMJProfile(update.d.embeds?.[0].description);
+    } catch (e: any) {
+      this.logger.error(e.message);
+      return undefined;
+    }
+  }
+
   async waitGatewayEventName<T>(
     t: GatewayEventName,
     condition: (e: GatewayEventPayload<T>) => boolean,
@@ -422,8 +467,23 @@ export class Child extends ComChild<Account> {
     this.logger.info('init hello ok');
   }
 
-  handleHello(e: GatewayEventPayload<GatewayDHello>) {
+  async handleHello(e: GatewayEventPayload<GatewayDHello>) {
     this.initHello(e.d.heartbeat_interval);
+  }
+
+  async updateInfo() {
+    const info = await this.getInfo();
+    if (!info) {
+      this.destroy({ delFile: false, delMem: true });
+      return;
+    }
+    this.logger.info(`got profile info: ${JSON.stringify(info)}`);
+    this.update({ profile: info });
+    if (this.info.mode !== 'relax' && info.fastTimeRemainingMinutes === 0) {
+      this.destroy({ delFile: true, delMem: true });
+      throw new Error('fast time remaining 0');
+    }
+    this.logger.info('update info ok');
   }
 
   listenEvent(e: GatewayEventPayload<any>) {
@@ -442,25 +502,31 @@ export class Child extends ComChild<Account> {
   }
 
   initWS() {
-    this.ws = new WSS('wss://gateway.discord.gg/?v=10&encoding=json', {
-      onOpen: () => {},
-      onMessage: (v: string) => {
-        this.listenEvent(JSON.parse(v));
-      },
-      onClose: () => {
-        this.destroy({ delFile: false, delMem: true });
-      },
-      onError: () => {},
-    });
-    this.client = CreateNewAxios(
-      {
-        baseURL: 'https://discord.com/api/v9/',
-        headers: {
-          Authorization: this.info.token,
+    return new Promise((resolve, reject) => {
+      this.ws = new WSS('wss://gateway.discord.gg/?v=10&encoding=json', {
+        onOpen: () => {},
+        onMessage: (v: string) => {
+          const e = parseJSON<GatewayEventPayload<any> | undefined>(
+            v,
+            undefined,
+          );
+          if (!e) {
+            return;
+          }
+          this.listenEvent(e);
+          if (e.op === GatewayEvents.Hello) {
+            this.handleHello(e as GatewayEventPayload<GatewayDHello>)
+              .then(resolve)
+              .catch(reject);
+          }
         },
-      },
-      { proxy: 'http://192.168.0.160:10811' },
-    );
+        onClose: () => {
+          reject(new Error('ws closed'));
+          this.destroy({ delFile: false, delMem: true });
+        },
+        onError: () => {},
+      });
+    });
   }
 
   destroy(options?: DestroyOptions) {
@@ -468,14 +534,28 @@ export class Child extends ComChild<Account> {
     if (this.heartbeat_itl) {
       clearInterval(this.heartbeat_itl);
     }
-    this.ws.close();
+    this.ws?.close();
   }
 
   async init(): Promise<void> {
-    this.initWS();
+    if (!this.info.channel_id || !this.info.token || !this.info.server_id) {
+      this.destroy({ delFile: true, delMem: true });
+      throw new Error('invalid info');
+    }
     for (const v of Object.values(GatewayEventName)) {
       this.event_wait_map[v as GatewayEventName] = {};
     }
+    this.client = CreateNewAxios(
+      {
+        baseURL: 'https://discord.com/api/v9/',
+        headers: {
+          Authorization: this.info.token,
+        },
+      },
+      { proxy: true },
+    );
+    await this.initWS();
+    await this.updateInfo();
   }
 
   use(): void {

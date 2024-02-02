@@ -9,6 +9,7 @@ import {
   GatewayDMessageCreate,
   getAllComponents,
   getProgress,
+  MJSpeedMode,
 } from './define';
 import { Config } from '../../utils/config';
 import { v4 } from 'uuid';
@@ -54,6 +55,7 @@ export class Midjourney extends Chat {
             token: info.token,
             server_id: info.server_id,
             channel_id: info.channel_id,
+            mode: info.mode || MJSpeedMode.Fast,
           } as Account);
         }
         return result;
@@ -371,6 +373,7 @@ export class Midjourney extends Chat {
             }
             switch (action?.type) {
               case AIActionType.Imagine:
+                this.logger.info(child.info.channel_id);
                 await this.imagine(action, child, stream, () =>
                   child.release(),
                 );

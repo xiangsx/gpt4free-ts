@@ -64,6 +64,7 @@ interface ConfigData {
       token: string;
       server_id: string;
       channel_id: string;
+      mode: 'relax' | 'fast' | 'turbo';
     }[];
   };
   arkose: {
