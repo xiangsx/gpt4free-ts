@@ -450,9 +450,7 @@ export class Child extends ComChild<Account> {
       onClose: () => {
         this.destroy({ delFile: false, delMem: true });
       },
-      onError: () => {
-        this.destroy({ delFile: false, delMem: true });
-      },
+      onError: () => {},
     });
     this.client = CreateNewAxios(
       {
