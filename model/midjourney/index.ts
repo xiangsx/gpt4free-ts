@@ -24,6 +24,7 @@ import {
 } from '../../utils';
 import { chatModel } from '../index';
 import { clearInterval } from 'timers';
+import { MJPrompt } from './prompt';
 
 export class Midjourney extends Chat {
   private pool = new Pool<Account, Child>(
@@ -426,7 +427,11 @@ export class Midjourney extends Chat {
         },
       );
       await auto?.askStream(
-        { ...req, model: ModelType.GPT4Gizmo, gizmo_id: 'g-x6pzO1Y0U' } as any,
+        {
+          ...req,
+          messages: [{ role: 'system', content: MJPrompt }, ...req.messages],
+          model: ModelType.GPT4All,
+        } as ChatRequest,
         pt,
       );
     } catch (e: any) {
