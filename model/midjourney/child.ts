@@ -63,8 +63,13 @@ export class Child extends ComChild<Account> {
 
   async upload(url: string) {
     const { file_size, file_name, outputFilePath } = await downloadFile(url);
-    const res: { data: { attachments: UploadedFileData[] } } =
-      await this.client.post(`/channels/${this.info.channel_id}/attachments`, {
+    const res: {
+      data: {
+        attachments: UploadedFileData[];
+      };
+    } = await this.client.post(
+      `/channels/${this.info.channel_id}/attachments`,
+      {
         files: [
           {
             file_size,
@@ -73,7 +78,8 @@ export class Child extends ComChild<Account> {
             is_clip: false,
           } as UploadFileInfo,
         ],
-      });
+      },
+    );
     if (!res.data.attachments.length) {
       throw new Error('upload failed');
     }
@@ -542,6 +548,7 @@ export class Child extends ComChild<Account> {
         headers: {
           Authorization: this.info.token,
         },
+        timeout: 10 * 1000,
       },
       { proxy: true },
     );
