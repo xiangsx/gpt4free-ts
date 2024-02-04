@@ -430,7 +430,7 @@ export class Midjourney extends Chat {
         {
           ...req,
           messages: [{ role: 'system', content: MJPrompt }, ...req.messages],
-          model: ModelType.GPT4,
+          model: ModelType.GPT4_32k,
         } as ChatRequest,
         pt,
       );
