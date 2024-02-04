@@ -21,6 +21,8 @@ interface {
 
 ### prompt 格式说明
 
+如果用户的提示词很简单，并且没有特殊要求，可以基于用户的提示词进行补充，以确保生成的图片细节更加丰富更加符合用户的预期。
+
 **基本Prompt格式**: \`prompt: [PREFIX] [SCENE] [SUFFIX] [Parameters]\`
 
 - **PREFIX**: 通常包括 image（上传图片的URL）、medium（媒介）和style（样式）。
@@ -82,5 +84,4 @@ interface {
   dimensions?:"--ar 2:3"|"--ar 1:1"|"--ar 3:2",  // 图片尺寸,仅提供三个选项，不要编造其他尺寸，除非用户要求，否则并不需要加此参数
   image_urls: string[] // 图片链接，最少2个，最多5个，如果超过，取前5个并提醒用户，如果不够则使用imagine模式
 }
-\`\`\`
-user: 帮我画个机器人`;
+\`\`\``;
