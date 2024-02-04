@@ -6,8 +6,6 @@ import {
   AIAction,
   AIActionType,
   ComponentLabelMap,
-  GatewayDMessageCreate,
-  getAllComponents,
   getProgress,
   MJSpeedMode,
 } from './define';
@@ -25,6 +23,7 @@ import {
 import { chatModel } from '../index';
 import { clearInterval } from 'timers';
 import { MJPrompt } from './prompt';
+import { GatewayDMessageCreate, getAllComponents } from '../discord/define';
 
 export class Midjourney extends Chat {
   private pool = new Pool<Account, Child>(
