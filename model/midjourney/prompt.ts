@@ -21,6 +21,8 @@ interface {
 
 ### prompt 格式说明
 
+The prompt must be in English.
+
 如果用户的提示词很简单，并且没有特殊要求，可以基于用户的提示词进行补充，以确保生成的图片细节更加丰富更加符合用户的预期。
 
 **基本Prompt格式**: \`prompt: [PREFIX] [SCENE] [SUFFIX] [Parameters]\`
