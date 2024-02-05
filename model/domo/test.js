@@ -633,3 +633,317 @@ const ccc = {
     guild_id: '1203629291527737406',
   },
 };
+
+const an = {
+  type: 2,
+  application_id: '1153984868804468756',
+  guild_id: '1203629291527737406',
+  channel_id: '1203629291527737409',
+  session_id: 'cd87976ed2b8fe9f1658e8a74b1a088f',
+  data: {
+    version: '1195397958552780891',
+    id: '1164545300099239957',
+    name: 'animate',
+    type: 1,
+    options: [{ type: 11, name: 'image', value: 0 }],
+    application_command: {
+      id: '1164545300099239957',
+      type: 1,
+      application_id: '1153984868804468756',
+      version: '1195397958552780891',
+      name: 'animate',
+      description: 'Turn image into video.',
+      options: [
+        {
+          type: 11,
+          name: 'image',
+          description: 'Upload an image and AI helps you turn it into a video.',
+          required: true,
+          description_localized:
+            'Upload an image and AI helps you turn it into a video.',
+          name_localized: 'image',
+        },
+      ],
+      integration_types: [0],
+      global_popularity_rank: 2,
+      description_localized: 'Turn image into video.',
+      name_localized: 'animate',
+    },
+    attachments: [
+      {
+        id: '0',
+        filename: '微信支付二维码.png',
+        uploaded_filename:
+          'd73f2941-152a-4727-803d-75f053f4ca5e/ab0ea701122ea6a1.png',
+      },
+    ],
+  },
+  nonce: '1204024380712026112',
+  analytics_location: 'slash_ui',
+};
+
+const animate = {
+  t: 'MESSAGE_UPDATE',
+  s: 20,
+  op: 0,
+  d: {
+    webhook_id: '1153984868804468756',
+    type: 20,
+    tts: false,
+    timestamp: '2024-02-05T12:22:21.734000+00:00',
+    pinned: false,
+    mentions: [
+      {
+        username: 'xiang4055',
+        public_flags: 0,
+        id: '554911728199270402',
+        global_name: 'xiang',
+        discriminator: '0',
+        avatar_decoration_data: null,
+        avatar: '4696de53b591e5668ad5f36e2fc76597',
+      },
+    ],
+    mention_roles: [],
+    mention_everyone: false,
+    interaction: {
+      user: {
+        username: 'xiang4055',
+        public_flags: 0,
+        id: '554911728199270402',
+        global_name: 'xiang',
+        discriminator: '0',
+        avatar_decoration_data: null,
+        avatar: '4696de53b591e5668ad5f36e2fc76597',
+      },
+      type: 2,
+      name: 'animate',
+      id: '1204039310005772338',
+    },
+    id: '1204039311096422410',
+    flags: 64,
+    embeds: [
+      {
+        url: 'https://discord.com/channels/1146459660770099341/1164805888222179378',
+        type: 'rich',
+        title: '/animate',
+        thumbnail: {
+          width: 400,
+          url: 'https://img.domoai.app/official/discord/msg-icon-animate.png',
+          proxy_url:
+            'https://images-ext-1.discordapp.net/external/JSFLoZZMVsGmpJTRyLbduhgwVlhoHSIuSVngcaU_wvc/https/img.domoai.app/official/discord/msg-icon-animate.png',
+          height: 400,
+        },
+        description:
+          'Before starting the generation, \nplease select the options before starting.',
+        color: 6516338,
+      },
+    ],
+    edited_timestamp: null,
+    content: 'by <@554911728199270402>',
+    components: [
+      {
+        type: 1,
+        components: [
+          {
+            type: 2,
+            style: 3,
+            label: 'Intensity: low',
+            emoji: { name: '1️⃣' },
+            custom_id:
+              'modify_animate:1163817:dc12dfd1-f5b5-43d6-8f64-0771c5c15624:intensity_low',
+          },
+          {
+            type: 2,
+            style: 2,
+            label: 'Intensity: mid',
+            emoji: { name: '2️⃣' },
+            custom_id:
+              'modify_animate:1163817:dc12dfd1-f5b5-43d6-8f64-0771c5c15624:intensity_mid',
+          },
+          {
+            type: 2,
+            style: 2,
+            label: 'Intensity: high',
+            emoji: { name: '3️⃣' },
+            custom_id:
+              'modify_animate:1163817:dc12dfd1-f5b5-43d6-8f64-0771c5c15624:intensity_high',
+          },
+        ],
+      },
+      {
+        type: 1,
+        components: [
+          {
+            type: 2,
+            style: 3,
+            label: 'Gen 3s (Avg. waiting 2.5 min)',
+            emoji: { name: '⏱️' },
+            custom_id:
+              'modify_animate:1163817:dc12dfd1-f5b5-43d6-8f64-0771c5c15624:duration_3s',
+          },
+          {
+            type: 2,
+            style: 2,
+            label: 'Gen 5s (Avg. waiting 4.5 min)',
+            emoji: { name: '⏱️' },
+            custom_id:
+              'modify_animate:1163817:dc12dfd1-f5b5-43d6-8f64-0771c5c15624:duration_5s',
+          },
+        ],
+      },
+      {
+        type: 1,
+        components: [
+          {
+            type: 2,
+            style: 1,
+            label: 'Start',
+            custom_id:
+              'gen_animate:1163817:dc12dfd1-f5b5-43d6-8f64-0771c5c15624',
+          },
+        ],
+      },
+    ],
+    channel_id: '1203629291527737409',
+    author: {
+      username: 'DomoAI',
+      public_flags: 65536,
+      premium_type: 0,
+      id: '1153984868804468756',
+      global_name: null,
+      discriminator: '7882',
+      bot: true,
+      avatar_decoration_data: null,
+      avatar: '884a22dceddcee990dd2b0544211a02d',
+    },
+    attachments: [
+      {
+        width: 801,
+        url: 'https://cdn.discordapp.com/ephemeral-attachments/1203629291527737409/1204039313717985370/2024-02-05-20-375XFf7GazRSExDWPjYs.png?ex=65d347fe&is=65c0d2fe&hm=b1e90139421d3659bf2e50bfe27691713d064ca56697bcfdc19c7a05b0b8e239&',
+        size: 170276,
+        proxy_url:
+          'https://media.discordapp.net/ephemeral-attachments/1203629291527737409/1204039313717985370/2024-02-05-20-375XFf7GazRSExDWPjYs.png?ex=65d347fe&is=65c0d2fe&hm=b1e90139421d3659bf2e50bfe27691713d064ca56697bcfdc19c7a05b0b8e239&',
+        placeholder_version: 1,
+        placeholder: 'MfgNBgDo12iIiPhXWHiHe5eIB4ignvc=',
+        id: '1204039313717985370',
+        height: 873,
+        filename: '2024-02-05-20-375XFf7GazRSExDWPjYs.png',
+        ephemeral: true,
+        content_type: 'image/png',
+      },
+    ],
+    application_id: '1153984868804468756',
+  },
+};
+
+const uuuu = {
+  t: 'MESSAGE_CREATE',
+  s: 19,
+  op: 0,
+  d: {
+    type: 0,
+    tts: false,
+    timestamp: '2024-02-05T12:53:36.481000+00:00',
+    referenced_message: null,
+    pinned: false,
+    mentions: [
+      {
+        username: 'xiang4055',
+        public_flags: 0,
+        member: {
+          roles: [],
+          premium_since: null,
+          pending: false,
+          nick: null,
+          mute: false,
+          joined_at: '2024-02-04T09:13:05.462000+00:00',
+          flags: 0,
+          deaf: false,
+          communication_disabled_until: null,
+          avatar: null,
+        },
+        id: '554911728199270402',
+        global_name: 'xiang',
+        discriminator: '0',
+        avatar_decoration_data: null,
+        avatar: '4696de53b591e5668ad5f36e2fc76597',
+      },
+    ],
+    mention_roles: [],
+    mention_everyone: false,
+    member: {
+      roles: ['1203630328552366102'],
+      premium_since: null,
+      pending: false,
+      nick: null,
+      mute: false,
+      joined_at: '2024-02-04T09:17:12.748895+00:00',
+      flags: 0,
+      deaf: false,
+      communication_disabled_until: null,
+      avatar: null,
+    },
+    id: '1204047174355128320',
+    flags: 0,
+    embeds: [
+      {
+        url: 'https://discord.com/channels/1146459660770099341/1164805888222179378',
+        type: 'rich',
+        title: '/animate',
+        thumbnail: {
+          width: 400,
+          url: 'https://img.domoai.app/official/discord/msg-icon-animate-loading.gif',
+          proxy_url:
+            'https://images-ext-1.discordapp.net/external/Z7BaesNyIzDd15-8dXEl1xE2tVOFcmfFjhJXIl-W2UQ/https/img.domoai.app/official/discord/msg-icon-animate-loading.gif',
+          height: 400,
+        },
+        description: 'Turn image into video.\nWaiting to start ...',
+        color: 6516338,
+      },
+    ],
+    edited_timestamp: null,
+    content: 'by <@554911728199270402>',
+    components: [
+      {
+        type: 1,
+        components: [
+          {
+            type: 2,
+            style: 2,
+            emoji: { name: '❌' },
+            custom_id:
+              'stop_wait_post:38fb8b77-486f-49b8-8438-5ccaa075ba30:1163817',
+          },
+        ],
+      },
+    ],
+    channel_id: '1203629291527737409',
+    author: {
+      username: 'DomoAI',
+      public_flags: 65536,
+      premium_type: 0,
+      id: '1153984868804468756',
+      global_name: null,
+      discriminator: '7882',
+      bot: true,
+      avatar_decoration_data: null,
+      avatar: '884a22dceddcee990dd2b0544211a02d',
+    },
+    attachments: [
+      {
+        width: 801,
+        url: 'https://cdn.discordapp.com/attachments/1203629291527737409/1204047174560911380/7e5fdb61-3002-4c8e-8350-fd60c851b55a..png?ex=65d34f50&is=65c0da50&hm=fa30a933dc9c54ff606dbaf284f094b6b25510b2179c8a390d2919892de7b0ff&',
+        size: 170276,
+        proxy_url:
+          'https://media.discordapp.net/attachments/1203629291527737409/1204047174560911380/7e5fdb61-3002-4c8e-8350-fd60c851b55a..png?ex=65d34f50&is=65c0da50&hm=fa30a933dc9c54ff606dbaf284f094b6b25510b2179c8a390d2919892de7b0ff&',
+        placeholder_version: 1,
+        placeholder: 'MfgNBgDo12iIiPhXWHiHe5eIB4ignvc=',
+        id: '1204047174560911380',
+        height: 873,
+        filename: '7e5fdb61-3002-4c8e-8350-fd60c851b55a..png',
+        content_type: 'image/png',
+      },
+    ],
+    guild_id: '1203629291527737406',
+  },
+};

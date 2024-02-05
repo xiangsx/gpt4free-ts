@@ -1,6 +1,7 @@
 import {
   ApplicationCommand,
   ApplicationCommandType,
+  MessageFlags,
   MJAccount,
 } from '../discord/define';
 
@@ -23,6 +24,30 @@ export const InfoCommand: ApplicationCommand = {
   options: [],
   description_localized: 'View information about your profile.',
   name_localized: 'info',
+};
+
+export const AnimateCommand: ApplicationCommand = {
+  id: '1164545300099239957',
+  type: ApplicationCommandType.CHAT_INPUT,
+  application_id: DomoApplicationID,
+  version: '1195397958552780891',
+  name: 'animate',
+  description: 'Turn image into video.',
+  options: [
+    {
+      type: 11,
+      name: 'image',
+      description: 'Upload an image and AI helps you turn it into a video.',
+      required: true,
+      description_localized:
+        'Upload an image and AI helps you turn it into a video.',
+      name_localized: 'image',
+    },
+  ],
+  integration_types: [0],
+  global_popularity_rank: 2,
+  description_localized: 'Turn image into video.',
+  name_localized: 'animate',
 };
 
 export const GenCommand: ApplicationCommand = {
@@ -173,11 +198,13 @@ export function getPrompt(text: string) {
 export enum AIActionType {
   Gen = 'gen',
   Component = 'component',
+  Animate = 'animate',
 }
 
 export type AIAction = {
   type: AIActionType;
   prompt?: string;
+  flags?: MessageFlags;
   reference_prompt?: string;
   model?: number;
   channel_id?: string;
@@ -196,6 +223,12 @@ export const ComponentLabelMap: Record<string, string> = {
   V2: '第二张变体',
   V3: '第三张变体',
   V4: '第四张变体',
+  'Intensity: low': '低变化度',
+  'Intensity: mid': '中变化度',
+  'Intensity: high': '高变化度',
+  'Gen 3s (Avg. waiting 2.5 min)': '3s视频',
+  'Gen 5s (Avg. waiting 4.5 min)': '5s视频',
+  Start: '开始生成 ✅',
   '⬅️': '左移',
   '➡️': '右移',
   '⬆️': '上移',

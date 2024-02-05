@@ -5,6 +5,7 @@ import {
   InfoCommand,
   DomoProfileInfo,
   parseMJProfile,
+  AnimateCommand,
 } from './define';
 import { randomNonce } from '../../utils';
 import { DiscordChild } from '../discord/child';
@@ -14,8 +15,10 @@ import {
   GatewayDMessageUpdate,
   GatewayEventName,
   GatewayEventPayload,
+  getAllComponents,
   InteractionPayload,
   InteractionType,
+  MessageFlags,
   MessageSubComponent,
 } from '../discord/define';
 
@@ -144,6 +147,78 @@ export class Child extends DiscordChild<Account> {
         },
       },
     );
+  }
+
+  async animate(
+    image_url: string,
+    options: {
+      model?: number;
+      onStart: (msg: GatewayDMessageCreate) => void;
+      onEnd: (msg: GatewayDMessageCreate) => void;
+      onError: (error: Error) => void;
+    },
+  ) {
+    const { onStart, onError, onEnd, model } = options;
+    const nonce = randomNonce(19);
+    const data: InteractionPayload<InteractionType.APPLICATION_COMMAND> = {
+      type: InteractionType.APPLICATION_COMMAND,
+      application_id: this.application_id,
+      guild_id: this.info.server_id,
+      channel_id: this.info.channel_id,
+      session_id: this.session_id,
+      data: {
+        version: AnimateCommand.version,
+        id: AnimateCommand.id,
+        name: AnimateCommand.name,
+        type: AnimateCommand.type,
+        options: [],
+        application_command: AnimateCommand,
+        attachments: [],
+      },
+      nonce,
+      analytics_location: 'slash_ui',
+    };
+    const file = await this.upload(image_url);
+    data.data.options.push({
+      type: ApplicationCommandOptionType.ATTACHMENT,
+      name: `image`,
+      value: 0,
+    });
+    data.data.attachments!.push({
+      id: `0`,
+      filename: file.file_name,
+      uploaded_filename: file.upload_filename,
+    });
+    await this.interact(data);
+    const mCreate = await this.waitGatewayEventNameAsync(
+      GatewayEventName.MESSAGE_CREATE,
+      (e: GatewayEventPayload<GatewayDMessageCreate>) => e.d.nonce === nonce,
+      {},
+    );
+    onStart(mCreate.d);
+    const mCreateEnd = await this.waitGatewayEventNameAsync(
+      GatewayEventName.MESSAGE_UPDATE,
+      (e: GatewayEventPayload<GatewayDMessageCreate>) =>
+        e.d.id === mCreate.d.id,
+      {},
+    );
+    const custom_id = getAllComponents(mCreateEnd.d.components).find(
+      (v) => v.label === 'Start',
+    )?.custom_id!;
+    await this.interact({
+      type: InteractionType.MESSAGE_COMPONENT,
+      nonce: nonce,
+      guild_id: this.info.server_id,
+      channel_id: this.info.channel_id,
+      message_flags: MessageFlags.EPHEMERAL,
+      message_id: mCreateEnd.d.id,
+      application_id: this.application_id,
+      session_id: this.session_id,
+      data: {
+        component_type: 2,
+        custom_id,
+      },
+    });
   }
 
   async getInfo(): Promise<DomoProfileInfo> {

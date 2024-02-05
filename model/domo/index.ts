@@ -1,11 +1,4 @@
-import {
-  Chat,
-  ChatOptions,
-  ChatRequest,
-  contentToString,
-  ModelType,
-  Site,
-} from '../base';
+import { Chat, ChatOptions, ChatRequest, ModelType, Site } from '../base';
 import { Pool } from '../../utils/pool';
 import { Child } from './child';
 import {
@@ -13,8 +6,8 @@ import {
   AIAction,
   AIActionType,
   ComponentLabelMap,
-  getProgress,
   DomoSpeedMode,
+  getProgress,
 } from './define';
 import { Config } from '../../utils/config';
 import { v4 } from 'uuid';
@@ -30,7 +23,11 @@ import {
 import { chatModel } from '../index';
 import { clearInterval } from 'timers';
 import { MJPrompt } from './prompt';
-import { GatewayDMessageCreate, getAllComponents } from '../discord/define';
+import {
+  GatewayDMessageCreate,
+  getAllComponents,
+  MessageFlags,
+} from '../discord/define';
 
 export class Domo extends Chat {
   private pool = new Pool<Account, Child>(
@@ -93,6 +90,8 @@ export class Domo extends Chat {
     switch (model) {
       case ModelType.DomoChatGen:
         return 28000;
+      case ModelType.DomoChatAnimate:
+        return 28000;
       default:
         return 0;
     }
@@ -120,6 +119,7 @@ export class Domo extends Chat {
         custom_id: action.custom_id,
       },
       {
+        flags: action.flags,
         onStart: (e) => {
           stream.write(Event.message, { content: '> 开始绘制' });
           itl = setInterval(() => {
@@ -187,9 +187,6 @@ export class Domo extends Chat {
     // });
     if (components?.length) {
       stream.write(Event.message, {
-        content: `> message_id: \`${e.id}\`\n\n > channel_id: \`${child.info.channel_id}\`\n\n > This message contains such action components \n\n`,
-      });
-      stream.write(Event.message, {
         content: `|name|label|type|custom_id|\n|---|---|---|---|\n`,
       });
       for (const b of components) {
@@ -200,7 +197,9 @@ export class Domo extends Chat {
         if (b.type === 2 && label && ComponentLabelMap[label]) {
           b.name = ComponentLabelMap[label];
           stream.write(Event.message, {
-            content: `|${b.name}|${label}|${b.type}|${b.custom_id}|\n`,
+            content: `|${b.name}${b.style === 3 ? '☑️' : ''}|${label}|${
+              b.type
+            }|${b.custom_id}|\n`,
           });
         }
       }
@@ -237,6 +236,61 @@ export class Domo extends Chat {
         });
         stream.write(Event.message, {
           content: `> reference_prompt: ${action.prompt}\n\n`,
+        });
+        await this.handleComponents(e, child, stream);
+        stream.write(Event.message, {
+          content: '\n **接下来你可以直接对我说命令，例如：帮我放大第一张图**',
+        });
+        stream.write(Event.done, { content: '' });
+        stream.end();
+        onEnd();
+      },
+      onError: (e) => {
+        clearInterval(itl);
+        stream.write(Event.message, {
+          content: e.message,
+        });
+        stream.write(Event.done, { content: '' });
+        stream.end();
+        onEnd();
+      },
+    });
+  }
+
+  async animate(
+    action: AIAction,
+    child: Child,
+    stream: EventStream,
+    onEnd: () => void,
+  ) {
+    let itl: NodeJS.Timeout;
+    await child.animate(action.image_url!, {
+      model: action.model,
+      onStart: (e) => {
+        stream.write(Event.message, { content: '> 开始绘制' });
+        itl = setInterval(() => {
+          stream.write(Event.message, { content: `.` });
+        }, 3000);
+      },
+      onEnd: async (e) => {
+        clearInterval(itl);
+        const url = await downloadAndUploadCDN(e.attachments[0]?.url);
+        stream.write(Event.message, {
+          content: `[100%](${url})\n\n`,
+        });
+        stream.write(Event.message, {
+          content: `![${action.prompt}](${url})\n[⏬下载](${url.replace(
+            '/cdn/',
+            '/cdn/download/',
+          )})\n\n`,
+        });
+        stream.write(Event.message, {
+          content: `\`\`\`\n${JSON.stringify({
+            flags: e.flags,
+            message_id: e.id,
+            channel_id: child.info.channel_id,
+            reference_prompt: action.reference_prompt,
+          })}\n\`\`\`\n\n`,
         });
         await this.handleComponents(e, child, stream);
         stream.write(Event.message, {
@@ -307,6 +361,11 @@ export class Domo extends Chat {
                 return;
               case AIActionType.Gen:
                 await this.gen(action, child, stream, () => child.release());
+                return;
+              case AIActionType.Animate:
+                await this.animate(action, child, stream, () =>
+                  child.release(),
+                );
                 return;
               default:
                 stream.write(Event.done, { content: '' });

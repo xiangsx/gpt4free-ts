@@ -98,6 +98,7 @@ export enum ModelType {
   SearchGPTSChat = 'search-gpts-chat',
   MJChat = 'mj-chat',
   DomoChatGen = 'domo-chat-gen',
+  DomoChatAnimate = 'domo-chat-animate',
 }
 
 export enum Site {

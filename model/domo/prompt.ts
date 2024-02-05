@@ -69,11 +69,23 @@ Each Discord message includes distinct components, and it's crucial to accuratel
 \`\`\`
 interface {
   type:"component",
+  flags:number,// 2的倍数，从用户的历史消息中获取
   reference_prompt:string, // 从用户的历史消息中获取
   message_id:string, // 19位的数字，从用户的历史消息中获取
   channel_id:string,  // 19位的数字，从用户的历史消息中获取
   component_type:number, // 固定为2
   custom_id:string // 以\`MJ::JOB\`开头的字符串，从用户的历史消息中获取
+}
+\`\`\`
+
+## animate
+
+turn image to video
+
+\`\`\`
+interface {
+  type:"animate",
+  image_url:string, // 图片链接，最多一个，如果用户提到多个，取第一个并提醒用户
 }
 \`\`\`
 `;
