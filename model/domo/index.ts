@@ -147,6 +147,9 @@ export class Domo extends Chat {
               '/cdn/download/',
             )})\n\n`,
           });
+          stream.write(Event.message, {
+            content: `> reference_prompt: ${action.reference_prompt}\n\n`,
+          });
           await this.handleComponents(e, child, stream);
           stream.write(Event.done, { content: '' });
           stream.end();
@@ -233,7 +236,7 @@ export class Domo extends Chat {
           )})\n\n`,
         });
         stream.write(Event.message, {
-          content: `> reference_prompt: ${action.reference_prompt}\n\n`,
+          content: `> reference_prompt: ${action.prompt}\n\n`,
         });
         await this.handleComponents(e, child, stream);
         stream.write(Event.message, {
