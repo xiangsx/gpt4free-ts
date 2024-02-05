@@ -26,6 +26,7 @@ import {
 } from '../discord/define';
 
 export class Child extends DiscordChild<Account> {
+  protected application_id = MJApplicationID;
   async imagine(
     prompt: string,
     options: {
