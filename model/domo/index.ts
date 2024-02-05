@@ -119,7 +119,6 @@ export class Domo extends Chat {
         custom_id: action.custom_id,
       },
       {
-        flags: action.flags,
         onStart: (e) => {
           stream.write(Event.message, { content: '> 开始绘制' });
           itl = setInterval(() => {
