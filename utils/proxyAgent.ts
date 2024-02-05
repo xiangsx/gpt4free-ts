@@ -371,7 +371,9 @@ export class WSS {
   ) {
     const { onOpen, onClose, onMessage, onError } = callbacks || {};
     // 创建一个代理代理
-    const wsOptions: WebSocket.ClientOptions = {};
+    const wsOptions: WebSocket.ClientOptions = {
+      handshakeTimeout: 10 * 1000,
+    };
     if (getProxy()) {
       wsOptions.agent = HttpsProxyAgent(getProxy());
     }
