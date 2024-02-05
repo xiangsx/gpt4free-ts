@@ -97,6 +97,7 @@ export enum ModelType {
   SearchGPTS = 'search-gpts',
   SearchGPTSChat = 'search-gpts-chat',
   MJChat = 'mj-chat',
+  DomoChatGen = 'domo-chat-gen',
 }
 
 export enum Site {
@@ -168,6 +169,7 @@ export enum Site {
   Arkose = 'arkose',
   Midjourney = 'midjourney',
   FreeGPT4 = 'freegpt4',
+  Domo = 'domo',
 }
 
 export interface ChatRequest {

@@ -11,7 +11,7 @@ import {
   parseMJProfile,
 } from './define';
 import { randomNonce } from '../../utils';
-import { MJChild } from '../discord/child';
+import { DiscordChild } from '../discord/child';
 import {
   ApplicationCommandAttachment,
   ApplicationCommandOptionType,
@@ -19,11 +19,13 @@ import {
   GatewayDMessageUpdate,
   GatewayEventName,
   GatewayEventPayload,
+  GatewayMessageType,
   InteractionPayload,
   InteractionType,
+  MessageSubComponent,
 } from '../discord/define';
 
-export class Child extends MJChild<Account> {
+export class Child extends DiscordChild<Account> {
   async imagine(
     prompt: string,
     options: {
@@ -68,26 +70,75 @@ export class Child extends MJChild<Account> {
     }
     onStart(mCreate.d);
     const content = getPrompt(mCreate.d.content) || '';
-    const removeUpdate = await this.waitGatewayEventName(
-      GatewayEventName.MESSAGE_UPDATE,
-      (e: GatewayEventPayload<GatewayDMessageUpdate>) =>
-        e.d.id === mCreate.d.id,
-      {
-        onEvent: (e) => onUpdate(e.d),
-      },
-    );
     const removeEnd = await this.waitGatewayEventName(
       GatewayEventName.MESSAGE_CREATE,
       (e: GatewayEventPayload<GatewayDMessageCreate>) =>
         e.d.content.indexOf(content) > -1 && !e.d.interaction,
       {
         onTimeout: () => {
-          removeUpdate();
           onError(new Error(`Midjourney create image timeout...`));
         },
         onEvent: (e) => {
           onEnd(e.d);
-          removeUpdate();
+          removeEnd();
+        },
+      },
+    );
+  }
+
+  async doComponent(
+    message_id: string,
+    info: MessageSubComponent,
+    options: {
+      onStart: (msg: GatewayDMessageCreate) => void;
+      onUpdate: (msg: GatewayDMessageUpdate) => void;
+      onEnd: (msg: GatewayDMessageCreate) => void;
+      onError: (error: Error) => void;
+    },
+  ) {
+    const nonce = randomNonce(19);
+    await this.interact({
+      type: InteractionType.MESSAGE_COMPONENT,
+      nonce: nonce,
+      guild_id: this.info.server_id,
+      channel_id: this.info.channel_id,
+      message_flags: 0,
+      message_id: message_id,
+      application_id: this.application_id,
+      session_id: this.session_id,
+      data: {
+        component_type: info.component_type,
+        custom_id: info.custom_id,
+      },
+    });
+    const { onStart, onError, onEnd, onUpdate } = options;
+    const mCreate = await this.waitGatewayEventNameAsync(
+      GatewayEventName.MESSAGE_CREATE,
+      (e: GatewayEventPayload<GatewayDMessageCreate>) => e.d.nonce === nonce,
+      {},
+    );
+    onStart(mCreate.d);
+    await this.waitGatewayEventName(
+      GatewayEventName.MESSAGE_UPDATE,
+      (e: GatewayEventPayload<GatewayDMessageUpdate>) =>
+        e.d.type === GatewayMessageType.REPLY &&
+        e.d.message_reference.message_id === message_id,
+      {
+        onEvent: (e) => onUpdate(e.d),
+        onTimeout: () => onError(new Error(`do component timeout...`)),
+      },
+    );
+    const removeEnd = await this.waitGatewayEventName(
+      GatewayEventName.MESSAGE_CREATE,
+      (e: GatewayEventPayload<GatewayDMessageCreate>) =>
+        e.d.type === GatewayMessageType.REPLY &&
+        e.d.message_reference.message_id === message_id,
+      {
+        onTimeout: () => {
+          onError(new Error(`do component timeout...`));
+        },
+        onEvent: (e) => {
+          onEnd(e.d);
           removeEnd();
         },
       },

@@ -12,7 +12,6 @@ import {
   InteractionPayload,
   InteractionType,
   MessageSubComponent,
-  MJApplicationID,
   UploadedFileData,
   UploadFileInfo,
 } from './define';
@@ -22,13 +21,14 @@ import { downloadFile, parseJSON, randomNonce, randomStr } from '../../utils';
 import moment from 'moment';
 import fs from 'fs';
 
-export class MJChild<T extends MJAccount> extends ComChild<T> {
+export class DiscordChild<T extends MJAccount> extends ComChild<T> {
   protected ws!: WSS;
   protected heartbeat_itl: NodeJS.Timeout | null = null;
   protected last_heartbeat_ack: number = 1;
   protected event_map: Partial<Record<GatewayEvents, GatewayHandler>> = {};
   protected client!: AxiosInstance;
   protected session_id: string = randomStr(32);
+  protected application_id!: string;
   protected event_wait_map: Partial<
     Record<
       GatewayEventName,
@@ -80,65 +80,6 @@ export class MJChild<T extends MJAccount> extends ComChild<T> {
       },
     });
     return { file_name, upload_filename: file.upload_filename };
-  }
-
-  async doComponent(
-    message_id: string,
-    info: MessageSubComponent,
-    options: {
-      onStart: (msg: GatewayDMessageCreate) => void;
-      onUpdate: (msg: GatewayDMessageUpdate) => void;
-      onEnd: (msg: GatewayDMessageCreate) => void;
-      onError: (error: Error) => void;
-    },
-  ) {
-    const nonce = randomNonce(19);
-    await this.interact({
-      type: InteractionType.MESSAGE_COMPONENT,
-      nonce: nonce,
-      guild_id: this.info.server_id,
-      channel_id: this.info.channel_id,
-      message_flags: 0,
-      message_id: message_id,
-      application_id: MJApplicationID,
-      session_id: this.session_id,
-      data: {
-        component_type: info.component_type,
-        custom_id: info.custom_id,
-      },
-    });
-    const { onStart, onError, onEnd, onUpdate } = options;
-    const mCreate = await this.waitGatewayEventNameAsync(
-      GatewayEventName.MESSAGE_CREATE,
-      (e: GatewayEventPayload<GatewayDMessageCreate>) => e.d.nonce === nonce,
-      {},
-    );
-    onStart(mCreate.d);
-    await this.waitGatewayEventName(
-      GatewayEventName.MESSAGE_UPDATE,
-      (e: GatewayEventPayload<GatewayDMessageUpdate>) =>
-        e.d.type === GatewayMessageType.REPLY &&
-        e.d.message_reference.message_id === message_id,
-      {
-        onEvent: (e) => onUpdate(e.d),
-        onTimeout: () => onError(new Error(`Midjourney component timeout...`)),
-      },
-    );
-    const removeEnd = await this.waitGatewayEventName(
-      GatewayEventName.MESSAGE_CREATE,
-      (e: GatewayEventPayload<GatewayDMessageCreate>) =>
-        e.d.type === GatewayMessageType.REPLY &&
-        e.d.message_reference.message_id === message_id,
-      {
-        onTimeout: () => {
-          onError(new Error(`Midjourney component timeout...`));
-        },
-        onEvent: (e) => {
-          onEnd(e.d);
-          removeEnd();
-        },
-      },
-    );
   }
 
   async waitGatewayEventName<T>(
@@ -308,6 +249,9 @@ export class MJChild<T extends MJAccount> extends ComChild<T> {
     if (!this.info.channel_id || !this.info.token || !this.info.server_id) {
       this.destroy({ delFile: true, delMem: true });
       throw new Error('invalid info');
+    }
+    if (!this.application_id) {
+      throw new Error('invalid application_id');
     }
     for (const v of Object.values(GatewayEventName)) {
       this.event_wait_map[v as GatewayEventName] = {};

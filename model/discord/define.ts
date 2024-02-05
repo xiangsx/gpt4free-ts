@@ -262,7 +262,7 @@ export interface ApplicationCommandAttachment {
 
 export interface ChoiceItem {
   name: string;
-  value: string;
+  value: string | number;
   name_localized: string;
 }
 

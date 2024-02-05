@@ -21,6 +21,11 @@ type MailCfg = {
   mail_type: TempEmailType;
 };
 
+type DiscordAccount = {
+  token: string;
+  server_id: string;
+  channel_id: string;
+};
 // 首先定义配置的数据类型
 interface ConfigData {
   exit: boolean;
@@ -60,12 +65,14 @@ interface ConfigData {
     token_limit: { [key: string]: number };
   };
   midjourney: SizeCfg & {
-    accounts: {
-      token: string;
-      server_id: string;
-      channel_id: string;
+    accounts: (DiscordAccount & {
       mode: 'relax' | 'fast' | 'turbo';
-    }[];
+    })[];
+  };
+  domo: SizeCfg & {
+    accounts: (DiscordAccount & {
+      mode: 'relax' | 'fast';
+    })[];
   };
   arkose: {
     size: number;
@@ -389,6 +396,11 @@ class BaseConfig {
       size: 0,
       serial: 0,
       mail_type: TempEmailType.TempMailLOL,
+    },
+    domo: {
+      size: 0,
+      serial: 0,
+      accounts: [],
     },
   };
   public config: ConfigData;
