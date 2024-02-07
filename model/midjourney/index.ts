@@ -42,6 +42,9 @@ export class Midjourney extends Chat {
       if (!info.channel_id) {
         return false;
       }
+      if (info.auth_failed) {
+        return false;
+      }
       if (
         info.mode !== MJSpeedMode.Relax &&
         info.profile &&

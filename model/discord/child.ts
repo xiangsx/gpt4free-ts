@@ -1,6 +1,6 @@
 import { ComChild, DestroyOptions } from '../../utils/pool';
 import {
-  MJAccount,
+  DiscordAccount,
   GatewayDHello,
   GatewayDMessageCreate,
   GatewayDMessageUpdate,
@@ -21,7 +21,9 @@ import { downloadFile, parseJSON, randomNonce, randomStr } from '../../utils';
 import moment from 'moment';
 import fs from 'fs';
 
-export class DiscordChild<T extends MJAccount> extends ComChild<T> {
+export class DiscordChild<
+  T extends DiscordAccount = DiscordAccount,
+> extends ComChild<T> {
   protected ws!: WSS;
   protected heartbeat_itl: NodeJS.Timeout | null = null;
   protected last_heartbeat_ack: number = 1;
@@ -269,8 +271,11 @@ export class DiscordChild<T extends MJAccount> extends ComChild<T> {
     await this.initWS();
   }
 
-  initFailed() {
+  initFailed(e?: Error) {
     super.initFailed();
+    if ((e as any)?.response?.status === 401) {
+      this.update({ auth_failed: true } as Partial<T>);
+    }
     this.logger.info(`${this.info.channel_id}: init failed`);
   }
 

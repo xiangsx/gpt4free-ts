@@ -2,10 +2,10 @@ import {
   ApplicationCommand,
   ApplicationCommandOptionType,
   ApplicationCommandType,
-  MJAccount,
+  DiscordAccount,
 } from '../discord/define';
 
-export interface Account extends MJAccount {
+export interface Account extends DiscordAccount {
   mode: MJSpeedMode;
   profile?: MJProfileInfo;
 }

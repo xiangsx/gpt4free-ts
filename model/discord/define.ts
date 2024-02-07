@@ -1,10 +1,11 @@
 import { ComInfo } from '../../utils/pool';
 import exp from 'constants';
 
-export interface MJAccount extends ComInfo {
+export interface DiscordAccount extends ComInfo {
   token: string;
   server_id: string;
   channel_id: string;
+  auth_failed?: boolean;
 }
 
 export enum MessageFlags {

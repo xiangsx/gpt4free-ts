@@ -2,10 +2,10 @@ import {
   ApplicationCommand,
   ApplicationCommandType,
   MessageFlags,
-  MJAccount,
+  DiscordAccount,
 } from '../discord/define';
 
-export interface Account extends MJAccount {
+export interface Account extends DiscordAccount {
   mode: DomoSpeedMode;
   profile?: DomoProfileInfo;
 }

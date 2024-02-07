@@ -30,7 +30,7 @@ interface PoolChild<T extends Info> {
   // 销毁，删除数据
   destroy(options?: DestroyOptions): void;
 
-  initFailed(): void;
+  initFailed(e?: Error): void;
 }
 
 export interface ComInfo extends Info {
@@ -211,7 +211,7 @@ export class Pool<U extends Info, T extends PoolChild<U>> {
       .catch((e) => {
         this.logger.error(`create new child failed: ${e}`);
         try {
-          child.initFailed();
+          child.initFailed(e);
         } catch (e: any) {
           this.logger.error('init failed run failed:', e.message);
         }
