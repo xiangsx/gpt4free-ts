@@ -149,9 +149,11 @@ export class OpenAI extends Chat {
       });
     } catch (e: any) {
       this.logger.error(e.message);
-      e.response.data.on('data', (chunk: any) =>
-        this.logger.error(chunk.toString()),
-      );
+      if (e.response?.data) {
+        e.response.data.on('data', (chunk: any) =>
+          this.logger.error(chunk.toString()),
+        );
+      }
       stream.write(Event.error, { error: e.message });
       stream.end();
     }
@@ -165,4 +167,9 @@ export class OpenAI extends Chat {
     ctx.set(res.headers as any);
     ctx.body = res.data;
   }
+
+  async generations(
+    ctx: Application.Context,
+    req: SpeechRequest,
+  ): Promise<void> {}
 }
