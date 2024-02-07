@@ -356,6 +356,7 @@ export const registerApp = () => {
   router.post('/v1/complete', claudeHandle);
   router.post('/:site/v1/complete', claudeHandle);
   router.post('/v1/audio/speech', audioHandle);
+  router.post('/:site/v1/audio/speech', audioHandle);
 
   app.use(router.routes());
   const port = +(process.env.PORT || 3000);
