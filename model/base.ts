@@ -195,6 +195,25 @@ export interface SpeechRequest {
   speed?: number;
 }
 
+export interface ImageGenerationRequest {
+  // 'prompt' is a required field and it's a string.
+  prompt: string;
+  // 'model' is an optional field that defaults to a specific model version.
+  model?: 'dall-e-2' | 'dall-e-3';
+  // 'n' is an optional field that determines the number of images to generate.
+  n?: number;
+  // 'quality' defines the quality of the image and has specific options.
+  quality?: 'standard' | 'hd';
+  // 'response_format' indicates the format in which the images are returned.
+  response_format?: 'url' | 'b64_json';
+  // 'size' is an optional field that specifies the size of the generated images.
+  size?: '256x256' | '512x512' | '1024x1024' | '1792x1024' | '1024x1792';
+  // 'style' defines the style of the generated images.
+  style?: 'vivid' | 'natural';
+  // 'user' is an optional string that represents a unique identifier for the user.
+  user?: string;
+}
+
 export function contentToString(content: MessageContent): string {
   if (!content) {
     return '';
@@ -434,6 +453,10 @@ export class Chat {
   }
 
   public async speech(ctx: Context, req: SpeechRequest) {
+    throw new ComError('not implement', ComError.Status.InternalServerError);
+  }
+
+  public async generations(ctx: Context, req: SpeechRequest) {
     throw new ComError('not implement', ComError.Status.InternalServerError);
   }
 }

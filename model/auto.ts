@@ -230,4 +230,12 @@ export class Auto extends Chat {
     const chat = this.getRandomModel(req.model);
     await chat.speech(ctx, req);
   }
+
+  async generations(
+    ctx: Application.Context,
+    req: SpeechRequest,
+  ): Promise<void> {
+    const chat = this.getRandomModel(req.model);
+    await chat.generations(ctx, req);
+  }
 }
