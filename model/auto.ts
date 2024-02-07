@@ -5,6 +5,7 @@ import {
   contentToString,
   ModelType,
   Site,
+  SpeechRequest,
 } from './base';
 import {
   ComError,
@@ -19,6 +20,7 @@ import { Config, SiteCfg } from '../utils/config';
 import { OpenAI } from './openai';
 import { ClaudeAPI } from './claudeapi';
 import moment from 'moment';
+import Application from 'koa';
 
 interface AutoOptions extends ChatOptions {
   ModelMap: Map<Site, Chat>;
@@ -222,5 +224,10 @@ export class Auto extends Chat {
     }
     // auto站点不处理
     return req;
+  }
+
+  async speech(ctx: Application.Context, req: SpeechRequest): Promise<void> {
+    const chat = this.getRandomModel(req.model);
+    await chat.speech(ctx, req);
   }
 }

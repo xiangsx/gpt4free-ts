@@ -15,6 +15,7 @@ import exp from 'constants';
 import { OpenSess } from './opensess';
 import { Hypotenuse } from './hypotenuse';
 import { Midjourney } from './midjourney';
+import { Context } from 'koa';
 
 export interface ChatOptions {
   name: string;
@@ -99,6 +100,8 @@ export enum ModelType {
   MJChat = 'mj-chat',
   DomoChatGen = 'domo-chat-gen',
   DomoChatAnimate = 'domo-chat-animate',
+  TTS1 = 'tts-1',
+  TTS1HD = 'tts-1-hd',
 }
 
 export enum Site {
@@ -181,6 +184,15 @@ export interface ChatRequest {
   max_tokens?: number;
   secret?: string;
   images?: { width: number; height: number; url?: string }[];
+}
+
+export interface SpeechRequest {
+  model: ModelType;
+  input: string;
+  voice: string;
+  secret?: string;
+  response_format?: 'mp3' | 'opus' | 'aac' | 'flac';
+  speed?: number;
 }
 
 export function contentToString(content: MessageContent): string {
@@ -418,6 +430,10 @@ export class Chat {
   }
 
   public async askStream(req: ChatRequest, stream: EventStream): Promise<void> {
+    throw new ComError('not implement', ComError.Status.InternalServerError);
+  }
+
+  public async speech(ctx: Context, req: SpeechRequest) {
     throw new ComError('not implement', ComError.Status.InternalServerError);
   }
 }

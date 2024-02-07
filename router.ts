@@ -318,6 +318,19 @@ const claudeHandle: Middleware = async (ctx, next) => {
   };
 };
 
+const audioHandle: Middleware = async (ctx, next) => {
+  const { site, ...req } = {
+    ...(ctx.query as any),
+    ...(ctx.request.body as any),
+    ...(ctx.params as any),
+  } as any;
+  const chat = chatModel.get(site);
+  if (!chat) {
+    throw new ComError(`not support site: ${site} `, ComError.Status.NotFound);
+  }
+  await chat.speech(ctx, req);
+};
+
 export const registerApp = () => {
   const app = new Koa();
   app.use(cors());
@@ -342,6 +355,7 @@ export const registerApp = () => {
   router.post('/:site/v1/chat/completions', openAIHandle);
   router.post('/v1/complete', claudeHandle);
   router.post('/:site/v1/complete', claudeHandle);
+  router.post('/v1/audio/speech', audioHandle);
 
   app.use(router.routes());
   const port = +(process.env.PORT || 3000);

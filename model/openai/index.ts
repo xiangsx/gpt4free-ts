@@ -1,10 +1,17 @@
-import { Chat, ChatOptions, ChatRequest, ModelType } from '../base';
+import {
+  Chat,
+  ChatOptions,
+  ChatRequest,
+  ModelType,
+  SpeechRequest,
+} from '../base';
 import { AxiosInstance, AxiosRequestConfig, CreateAxiosDefaults } from 'axios';
 import { CreateAxiosProxy } from '../../utils/proxyAgent';
 import es from 'event-stream';
 import { ComError, Event, EventStream, parseJSON } from '../../utils';
 import { Config } from '../../utils/config';
 import { AsyncStoreSN } from '../../asyncstore';
+import Application from 'koa';
 
 interface RealReq extends ChatRequest {
   functions?: {
@@ -60,11 +67,9 @@ export class OpenAI extends Chat {
         baseURL: options?.base_url || 'https://api.openai.com/',
         headers: {
           'Content-Type': 'application/json',
-          accept: 'text/event-stream',
-          'Cache-Control': 'no-cache',
-          'Proxy-Connection': 'keep-alive',
           Authorization: `Bearer ${options?.api_key || ''}`,
         },
+        timeout: 10 * 1000,
       } as CreateAxiosDefaults,
       false,
       !!options?.proxy,
@@ -106,6 +111,9 @@ export class OpenAI extends Chat {
       const res = await this.client.post('/v1/chat/completions', data, {
         responseType: 'stream',
         headers: {
+          accept: 'text/event-stream',
+          'Cache-Control': 'no-cache',
+          'Proxy-Connection': 'keep-alive',
           Authorization: `Bearer ${this.options?.api_key || req.secret || ''}`,
           'x-request-id': AsyncStoreSN.getStore()?.sn,
         },
@@ -147,5 +155,14 @@ export class OpenAI extends Chat {
       stream.write(Event.error, { error: e.message });
       stream.end();
     }
+  }
+
+  async speech(ctx: Application.Context, req: SpeechRequest): Promise<void> {
+    delete req.secret;
+    const res = await this.client.post('/v1/audio/speech', req, {
+      responseType: 'stream',
+    });
+    ctx.set(res.headers as any);
+    ctx.body = res.data;
   }
 }
