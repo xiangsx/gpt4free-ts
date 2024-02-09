@@ -71,16 +71,26 @@ export class Child extends DiscordChild<Account> {
     }
     onStart(mCreate.d);
     const content = getPrompt(mCreate.d.content) || '';
+    const removeUpdate = await this.waitGatewayEventName(
+      GatewayEventName.MESSAGE_UPDATE,
+      (e: GatewayEventPayload<GatewayDMessageUpdate>) =>
+        e.d.id === mCreate.d.id,
+      {
+        onEvent: (e) => onUpdate(e.d),
+      },
+    );
     const removeEnd = await this.waitGatewayEventName(
       GatewayEventName.MESSAGE_CREATE,
       (e: GatewayEventPayload<GatewayDMessageCreate>) =>
         e.d.content.indexOf(content) > -1 && !e.d.interaction,
       {
         onTimeout: () => {
+          removeUpdate();
           onError(new Error(`Midjourney create image timeout...`));
         },
         onEvent: (e) => {
           onEnd(e.d);
+          removeUpdate();
           removeEnd();
         },
       },
