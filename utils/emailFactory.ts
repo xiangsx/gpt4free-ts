@@ -438,18 +438,15 @@ class Internal extends BaseEmail {
 
 export class SmailPro extends BaseEmail {
   private page!: Page;
-  private lock: Lock;
   private mail: string;
 
   constructor(options: SmailProOptions) {
     super(options);
-    this.lock = options.lock;
     this.mail = options.mail || 'gmail';
   }
 
   async getMailAddress() {
     try {
-      await this.lock.lock(120 * 1000);
       if (!this.page) {
         this.page = await CreateNewPage('http://smailpro.com/advanced', {
           simplify: true,
@@ -500,7 +497,6 @@ export class SmailPro extends BaseEmail {
         path: `./run/smailpro_${randomStr(10)}.png`,
       });
       this.page?.browser?.().close();
-      this.lock.unlock();
       throw e;
     }
   }
@@ -540,13 +536,11 @@ export class SmailPro extends BaseEmail {
         });
         if (content) {
           await this.page?.browser().close();
-          this.lock.unlock();
           return [{ content }];
         }
         await sleep(10 * 1000);
       } catch (e: any) {
         if (times >= 6) {
-          this.lock.unlock();
           await this.page?.screenshot({
             path: `./run/smailpro_${randomStr(10)}.png`,
           });
