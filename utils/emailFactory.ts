@@ -480,12 +480,10 @@ export class SmailPro extends BaseEmail {
       let times = 0;
       while (true) {
         times += 1;
-        await page.waitForSelector('#my-email');
-        const email = await page.evaluate(
-          () => document.querySelector('#my-email')?.textContent || '',
-        );
-        const domain = await page.evaluate(
-          () => document.querySelector('.text-right')?.textContent || '',
+        await page.waitForSelector('div > h1');
+        const [email, domain] = await page.evaluate(() =>
+          // @ts-ignore
+          document.querySelector('div > h1').textContent.split(' '),
         );
         if (email === '...') {
           if (times > 5) {
