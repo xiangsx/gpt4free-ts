@@ -170,6 +170,8 @@ export class OpenAI extends Chat {
     ctx: Application.Context,
     req: ImageGenerationRequest,
   ): Promise<void> {
-    return super.generations(ctx, req);
+    const res = await this.client.post('/v1/audio/speech', req);
+    ctx.set(res.headers as any);
+    ctx.body = res.data;
   }
 }
