@@ -2,6 +2,7 @@ import {
   Chat,
   ChatOptions,
   ChatRequest,
+  ImageGenerationRequest,
   ModelType,
   SpeechRequest,
 } from '../base';
@@ -167,6 +168,8 @@ export class OpenAI extends Chat {
 
   async generations(
     ctx: Application.Context,
-    req: SpeechRequest,
-  ): Promise<void> {}
+    req: ImageGenerationRequest,
+  ): Promise<void> {
+    return super.generations(ctx, req);
+  }
 }

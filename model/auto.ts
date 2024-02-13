@@ -3,6 +3,7 @@ import {
   ChatOptions,
   ChatRequest,
   contentToString,
+  ImageGenerationRequest,
   ModelType,
   Site,
   SpeechRequest,
@@ -233,7 +234,7 @@ export class Auto extends Chat {
 
   async generations(
     ctx: Application.Context,
-    req: SpeechRequest,
+    req: ImageGenerationRequest,
   ): Promise<void> {
     const chat = this.getRandomModel(req.model);
     await chat.generations(ctx, req);

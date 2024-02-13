@@ -64,6 +64,7 @@ export enum ModelType {
   GPT4_32k = 'gpt-4-32k',
   NetGPT4 = 'net-gpt-4',
   DallE3 = 'dall-e-3',
+  DallE2 = 'dall-e-2',
   Sage = 'sage',
   NetGpt3p5 = 'net-gpt-3.5-turbo',
   ClaudeInstant = 'claude-instant',
@@ -201,7 +202,7 @@ export interface ImageGenerationRequest {
   // 'prompt' is a required field and it's a string.
   prompt: string;
   // 'model' is an optional field that defaults to a specific model version.
-  model?: 'dall-e-2' | 'dall-e-3';
+  model: Partial<ModelType>;
   // 'n' is an optional field that determines the number of images to generate.
   n?: number;
   // 'quality' defines the quality of the image and has specific options.
@@ -458,7 +459,7 @@ export class Chat {
     throw new ComError('not implement', ComError.Status.InternalServerError);
   }
 
-  public async generations(ctx: Context, req: SpeechRequest) {
+  public async generations(ctx: Context, req: ImageGenerationRequest) {
     throw new ComError('not implement', ComError.Status.InternalServerError);
   }
 }
