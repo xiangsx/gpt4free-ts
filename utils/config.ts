@@ -52,6 +52,7 @@ interface ConfigData {
     proxy_list: string[];
   };
   freegpt4: SizeCfg & MailCfg;
+  bingcopilot: SizeCfg;
   gmail_list: { email: string; password: string; recovery_email: string }[];
   hypotenuse: MailCfg & SizeCfg;
   airoom: SizeCfg;
@@ -396,6 +397,10 @@ class BaseConfig {
       size: 0,
       serial: 0,
       mail_type: TempEmailType.TempMailLOL,
+    },
+    bingcopilot: {
+      size: 0,
+      serial: 0,
     },
     domo: {
       size: 0,

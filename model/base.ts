@@ -102,6 +102,7 @@ export enum ModelType {
   DomoChatAnimate = 'domo-chat-animate',
   TTS1 = 'tts-1',
   TTS1HD = 'tts-1-hd',
+  Bing = 'bing',
 }
 
 export enum Site {
@@ -174,6 +175,7 @@ export enum Site {
   Midjourney = 'midjourney',
   FreeGPT4 = 'freegpt4',
   Domo = 'domo',
+  BingCopilot = 'bingcopilot',
 }
 
 export interface ChatRequest {
