@@ -51,6 +51,7 @@ export type Message = {
 
 export enum ModelType {
   GPT3p5Turbo = 'gpt-3.5-turbo',
+  Assistant = 'assistant',
   GPT3p5TurboInstruct = 'gpt-3.5-turbo-instruct',
   GPT3p5_16k = 'gpt-3.5-turbo-16k',
   GPT4 = 'gpt-4',
@@ -77,6 +78,7 @@ export enum ModelType {
   Llama_2_70b = 'llama-2-70b',
   Llama_2_13b = 'llama-2-13b',
   Llama_2_7b = 'llama-2-7b',
+  Code_Llama_70b_fw = 'code-llama-34b-fw',
   Code_Llama_34b = 'code-llama-34b',
   Code_Llama_13b = 'code-llama-13b',
   Code_Llama_7b = 'code-llama-7b',
