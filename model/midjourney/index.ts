@@ -45,6 +45,9 @@ export class Midjourney extends Chat {
       if (info.auth_failed) {
         return false;
       }
+      if (info.blocked) {
+        return false;
+      }
       if (
         info.mode !== MJSpeedMode.Relax &&
         info.profile &&

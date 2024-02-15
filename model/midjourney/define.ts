@@ -8,6 +8,7 @@ import {
 export interface Account extends DiscordAccount {
   mode: MJSpeedMode;
   profile?: MJProfileInfo;
+  blocked?: boolean;
 }
 
 export const MJApplicationID = '936929561302675456';
