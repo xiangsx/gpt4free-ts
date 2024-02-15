@@ -14,7 +14,6 @@ import { Bai } from './bai';
 import { Gra } from './gra';
 import { Magic } from './magic';
 import { Chim } from './chim';
-import { Poe } from './poe';
 import { Ram } from './ram';
 import { Chur } from './chur';
 import { Xun } from './xun';
