@@ -191,6 +191,7 @@ export interface ChatRequest {
   max_tokens?: number;
   secret?: string;
   images?: { width: number; height: number; url?: string }[];
+  prompt_tokens?: number;
 }
 
 export interface SpeechRequest {

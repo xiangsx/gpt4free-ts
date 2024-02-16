@@ -10,6 +10,7 @@ export type SiteCfg = {
   label?: string;
   proxy?: boolean;
   model_map?: { [key: string]: ModelType };
+  condition?: string; // eval function (req:{model,prompt_tokens}):bool
 };
 
 type SizeCfg = {

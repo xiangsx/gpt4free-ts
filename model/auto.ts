@@ -3,6 +3,7 @@ import {
   ChatOptions,
   ChatRequest,
   contentToString,
+  countMessagesToken,
   ImageGenerationRequest,
   ModelType,
   Site,
@@ -75,14 +76,24 @@ export class Auto extends Chat {
     return this.claudeAIChatMap.get(key) as ClaudeAPI;
   };
 
-  getRandomModel(model: ModelType): Chat {
+  getRandomModel(req: { model: ModelType; prompt_tokens?: number }): Chat {
+    const { model, prompt_tokens } = req;
     const list: SiteCfg[] = [];
     for (const m in Config.config.site_map) {
       const v = Config.config.site_map[m as ModelType] || [];
       // 通配符
-      if (matchPattern(m, model)) {
+      if (!matchPattern(m, model)) {
+        continue;
+      }
+      for (const cfg of v) {
+        if (!cfg.priority) {
+          continue;
+        }
+        if (cfg.condition && eval(cfg.condition) !== true) {
+          continue;
+        }
         this.logger.debug(`auto site match ${m} ${model}`);
-        list.push(...v);
+        list.push(cfg);
       }
     }
     if (!list) {
@@ -112,9 +123,10 @@ export class Auto extends Chat {
         ComError.Status.NotFound,
       );
     }
-
-    this.logger.info(`auto site choose site [${v.label || v.site}]`, {
-      label: v.label,
+    const label = v.label || v.site;
+    this.logger.info(`${model} auto site choose site [${label}]`, {
+      label,
+      model,
     });
     if (v.site === Site.OpenAI) {
       return this.getOpenAIChat(v);
@@ -151,7 +163,7 @@ export class Auto extends Chat {
         stream.end();
       },
     );
-    const chat = this.getRandomModel(req.model);
+    const chat = this.getRandomModel(req);
     if (!chat) {
       es.destroy();
       throw new ComError(
@@ -224,11 +236,12 @@ export class Auto extends Chat {
       ];
     }
     // auto站点不处理
+    req.prompt_tokens = countMessagesToken(req.messages);
     return req;
   }
 
   async speech(ctx: Application.Context, req: SpeechRequest): Promise<void> {
-    const chat = this.getRandomModel(req.model);
+    const chat = this.getRandomModel(req);
     await chat.speech(ctx, req);
   }
 
@@ -236,7 +249,7 @@ export class Auto extends Chat {
     ctx: Application.Context,
     req: ImageGenerationRequest,
   ): Promise<void> {
-    const chat = this.getRandomModel(req.model);
+    const chat = this.getRandomModel(req);
     await chat.generations(ctx, req);
   }
 }
