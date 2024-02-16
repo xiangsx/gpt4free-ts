@@ -7,7 +7,7 @@ import { parseJSON } from './index';
 export let DefaultRedis: Redis;
 
 export function initCache() {
-  if (!Config.config.global.redis) {
+  if (!Config.config.global?.redis?.host) {
     setTimeout(() => initCache(), 5000);
     return;
   }
