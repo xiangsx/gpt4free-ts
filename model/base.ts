@@ -62,6 +62,8 @@ export enum ModelType {
   GPT4AllSource = 'gpt-4-all-source',
   GPT4VisionPreview = 'gpt-4-vision-preview',
   GPT41106Preview = 'gpt-4-1106-preview',
+  GPT40125Preview = 'gpt-4-0125-preview',
+  GPT4TurboPreview = 'gpt-4-turbo-preview',
   GPT4_32k = 'gpt-4-32k',
   NetGPT4 = 'net-gpt-4',
   DallE3 = 'dall-e-3',
