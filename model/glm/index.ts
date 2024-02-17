@@ -58,7 +58,6 @@ const ParamsList = [
   'n',
   'stream',
   'stop',
-  'max_tokens',
   'presence_penalty',
   'frequency_penalty',
   'logit_bias',
