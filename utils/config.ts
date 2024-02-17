@@ -66,6 +66,9 @@ interface ConfigData {
   openai: {
     token_limit: { [key: string]: number };
   };
+  glm?: {
+    token_limit: { [key: string]: number };
+  };
   midjourney: SizeCfg & {
     accounts: (DiscordAccount & {
       mode: 'relax' | 'fast' | 'turbo';

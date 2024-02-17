@@ -138,6 +138,7 @@ export enum Site {
   PoeAuto = 'poeauto',
   PoeVIP = 'poevip',
   Claude = 'claude',
+  GLM = 'glm',
   ClaudeChat = 'claudechat',
   Cursor = 'cursor',
   Auto = 'auto',

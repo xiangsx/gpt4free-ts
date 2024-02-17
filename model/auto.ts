@@ -23,6 +23,7 @@ import { OpenAI } from './openai';
 import { ClaudeAPI } from './claudeapi';
 import moment from 'moment';
 import Application from 'koa';
+import { GLM } from './glm';
 
 interface AutoOptions extends ChatOptions {
   ModelMap: Map<Site, Chat>;
@@ -34,6 +35,7 @@ export class Auto extends Chat {
   private modelMap: Map<Site, Chat>;
   private openAIChatMap: Map<string, OpenAI> = new Map();
   private claudeAIChatMap: Map<string, ClaudeAPI> = new Map();
+  private glmAIChatMap: Map<string, GLM> = new Map();
 
   constructor(options: AutoOptions) {
     super(options);
@@ -56,6 +58,23 @@ export class Auto extends Chat {
       );
     }
     return this.openAIChatMap.get(key) as OpenAI;
+  };
+  getGLMChat = (v: SiteCfg) => {
+    const key = JSON.stringify(v);
+    if (!this.glmAIChatMap.has(key)) {
+      this.logger.info(`create openai chat: ${key}`);
+      this.glmAIChatMap.set(
+        key,
+        new GLM({
+          api_key: v.api_key,
+          base_url: v.base_url,
+          name: v.label || v.site,
+          proxy: v.proxy,
+          model_map: v.model_map,
+        }),
+      );
+    }
+    return this.glmAIChatMap.get(key) as GLM;
   };
 
   getClaudeAIChat = (v: SiteCfg) => {
@@ -133,6 +152,9 @@ export class Auto extends Chat {
     }
     if (v.site === Site.Claude) {
       return this.getClaudeAIChat(v);
+    }
+    if (v.site === Site.GLM) {
+      return this.getGLMChat(v);
     }
     return this.modelMap.get(v.site) as Chat;
   }
