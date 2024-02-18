@@ -48,22 +48,7 @@ interface OpenAIChatOptions extends ChatOptions {
   model_map?: { [key: string]: ModelType };
 }
 
-const ParamsList = [
-  'model',
-  'messages',
-  'functions',
-  'function_call',
-  'temperature',
-  'top_p',
-  'n',
-  'stream',
-  'stop',
-  'presence_penalty',
-  'frequency_penalty',
-  'logit_bias',
-  'user',
-  'gizmo_id',
-];
+const ParamsList = ['model', 'messages', 'stream'];
 
 /**
  * 生成鉴权token
