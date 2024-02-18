@@ -276,6 +276,7 @@ const openAIHandle: Middleware = async (ctx, next) => {
     const totalTokens = 85 + tokensPerTile * totalTiles;
     reqLen += totalTokens;
   }
+  const completion_tokens = getTokenCount(ctx.body.content || '');
   ctx.body = {
     id: 'chatcmpl-' + '89D' + randomStr(26),
     object: 'chat.completion',
@@ -293,8 +294,8 @@ const openAIHandle: Middleware = async (ctx, next) => {
     ],
     usage: {
       prompt_tokens: reqLen,
-      completion_tokens: getTokenCount(ctx.body.content || ''),
-      total_tokens: reqLen + getTokenCount(ctx.body.content || ''),
+      completion_tokens,
+      total_tokens: reqLen + completion_tokens,
     },
   };
 };

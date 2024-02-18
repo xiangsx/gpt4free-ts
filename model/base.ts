@@ -407,9 +407,11 @@ export class Chat {
         ComError.Status.NotFound,
       );
     }
-    req.messages = token
-      ? sliceMessagesByToken(req.messages, size, countPrompt, forceRemove)
-      : sliceMessagesByLength(req.messages, size, countPrompt, forceRemove);
+    if (size !== Number.MAX_SAFE_INTEGER) {
+      req.messages = token
+        ? sliceMessagesByToken(req.messages, size, countPrompt, forceRemove)
+        : sliceMessagesByLength(req.messages, size, countPrompt, forceRemove);
+    }
     req.prompt = messagesToPrompt(req.messages);
     return req;
   }
