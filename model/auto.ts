@@ -258,7 +258,7 @@ export class Auto extends Chat {
       ];
     }
     // auto站点不处理
-    // req.prompt_tokens = countMessagesToken(req.messages);
+    req.prompt_tokens = countMessagesToken(req.messages);
     return req;
   }
 
