@@ -5,7 +5,7 @@ import TurndownService from 'turndown';
 import stringSimilarity from 'string-similarity';
 //@ts-ignore
 import UserAgent from 'user-agents';
-import { getEncoding } from 'js-tiktoken';
+import { get_encoding } from 'tiktoken';
 import chalk from 'chalk';
 import * as OpenCC from 'opencc-js';
 import { ModelType } from '../model/base';
@@ -527,10 +527,10 @@ export function getRandomOne<T>(arr: T[]) {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
-const tokenizer = getEncoding('cl100k_base');
+const tokenizer = get_encoding('cl100k_base');
 
-export function tokenEncode(input: string): Uint32Array {
-  return new Uint32Array(tokenizer.encode(input));
+export function tokenEncode(input: string) {
+  return tokenizer.encode(input);
 }
 
 export function getTokenCount(input: string) {
