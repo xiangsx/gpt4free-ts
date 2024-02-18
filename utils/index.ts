@@ -667,18 +667,20 @@ export function replaceStrInBuffer(
 export async function retryFunc<T>(
   func: () => Promise<T>,
   maxRetry: number,
-  options: { label?: string; delay?: number; defaultV?: T },
+  options: { label?: string; delay?: number; defaultV?: T; log?: boolean },
 ): Promise<T> {
-  const { label, delay = 1000, defaultV } = options;
+  const { log = true, label, delay = 1000, defaultV } = options;
   for (let i = 0; i < maxRetry; i++) {
     try {
       return await func();
     } catch (e: any) {
-      console.error(
-        `${label || 'retryFunc'} failed, retry ${
-          i + 1
-        }/${maxRetry} times. err:${e.message}`,
-      );
+      if (log) {
+        console.error(
+          `${label || 'retryFunc'} failed, retry ${
+            i + 1
+          }/${maxRetry} times. err:${e.message}`,
+        );
+      }
       await sleep(delay);
     }
   }
