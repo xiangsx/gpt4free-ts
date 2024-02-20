@@ -736,9 +736,11 @@ export async function downloadImageToBase64(fileUrl: string): Promise<{
   base64Data: string;
   mimeType: string;
 }> {
+  let local = false;
   if (Config.config.global.download_map) {
     for (const old in Config.config.global.download_map) {
       fileUrl = fileUrl.replace(old, Config.config.global.download_map[old]);
+      local = true;
     }
   }
   try {
@@ -748,7 +750,11 @@ export async function downloadImageToBase64(fileUrl: string): Promise<{
       try {
         const response = await CreateNewAxios(
           {},
-          { proxy: getRandomOne(Config.config.proxy_pool.stable_proxy_list) },
+          {
+            proxy: local
+              ? false
+              : getRandomOne(Config.config.proxy_pool.stable_proxy_list),
+          },
         ).get(fileUrl, {
           responseType: 'stream',
           headers: {
