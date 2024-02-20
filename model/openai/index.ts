@@ -57,6 +57,7 @@ const ParamsList = [
   'user',
   'gizmo_id',
 ];
+
 export class OpenAI extends Chat {
   private client: AxiosInstance;
   protected options?: OpenAIChatOptions;
@@ -151,8 +152,12 @@ export class OpenAI extends Chat {
       if (e.response && e.response.data) {
         e.message = await new Promise((resolve, reject) => {
           e.response.data.on('data', (chunk: any) => {
-            this.logger.error(chunk.toString());
-            resolve(chunk.toString());
+            const content = chunk.toString();
+            this.logger.error(content);
+            resolve(
+              parseJSON<{ error?: { message?: string } }>(content, {})?.error
+                ?.message || content,
+            );
           });
         });
       }
