@@ -431,6 +431,7 @@ export class Midjourney extends Chat {
           }
         },
       );
+      await auto?.preHandle(req);
       await auto?.askStream(
         {
           ...req,
