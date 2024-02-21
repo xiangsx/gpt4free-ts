@@ -431,10 +431,12 @@ export class Midjourney extends Chat {
           }
         },
       );
+      const content = req.messages[req.messages.length - 1].content;
+      req.messages[req.messages.length - 1].content =
+        MJPrompt + '\n' + 'user: ' + content;
       await auto?.askStream(
         {
           ...req,
-          messages: [{ role: 'user', content: MJPrompt }, ...req.messages],
           model: ModelType.GPT4_32k,
         } as ChatRequest,
         pt,
