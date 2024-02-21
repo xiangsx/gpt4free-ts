@@ -41,14 +41,14 @@ interface RealReq extends ChatRequest {
   user?: string;
 }
 
-interface OpenAIChatOptions extends ChatOptions {
+interface GLMChatOptions extends ChatOptions {
   base_url?: string;
   api_key?: string;
   proxy?: boolean;
   model_map?: { [key: string]: ModelType };
 }
 
-const ParamsList = ['model', 'messages', 'stream'];
+const ParamsList = ['model', 'messages', 'stream', 'tools', 'tool_choice'];
 
 /**
  * 生成鉴权token
@@ -89,9 +89,9 @@ function generateAuthToken(apiKey: string): string {
 
 export class GLM extends Chat {
   private client: AxiosInstance;
-  protected options?: OpenAIChatOptions;
+  protected options?: GLMChatOptions;
 
-  constructor(options?: OpenAIChatOptions) {
+  constructor(options?: GLMChatOptions) {
     super(options);
     this.client = CreateAxiosProxy(
       {
