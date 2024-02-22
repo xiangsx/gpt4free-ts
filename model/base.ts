@@ -204,6 +204,41 @@ export interface SpeechRequest {
   speed?: number;
 }
 
+export interface TextEmbeddingRequest {
+  /**
+   * The input text to embed, which can be a single string or an array of strings or tokens.
+   * For multiple inputs in a single request, an array of strings or array of token arrays can be used.
+   * The input size is limited, and the maximum size for certain models (e.g., text-embedding-ada-002)
+   * is 8192 tokens. The input cannot be empty, and any array must have 2048 dimensions or less.
+   */
+  input: string | string[] | Array<Array<string | number>>;
+
+  /**
+   * The unique identifier for the model to be used for embedding.
+   * Use the List models API to fetch all available models or refer to the Model overview for descriptions.
+   */
+  model: ModelType;
+
+  /**
+   * The format for the returned embeddings, which can either be a float or base64 encoded string.
+   * This parameter is optional and defaults to 'float' if not specified.
+   */
+  encoding_format?: 'float' | 'base64';
+
+  /**
+   * The number of dimensions for the output embeddings.
+   * This is an optional parameter and is only supported in 'text-embedding-3' and later models.
+   */
+  dimensions?: number;
+
+  /**
+   * A unique string that identifies the end-user.
+   * This helps OpenAI to monitor and detect potential misuse of the service.
+   * This parameter is optional.
+   */
+  user?: string;
+}
+
 export interface ImageGenerationRequest {
   // 'prompt' is a required field and it's a string.
   prompt: string;
@@ -468,6 +503,10 @@ export class Chat {
   }
 
   public async generations(ctx: Context, req: ImageGenerationRequest) {
+    throw new ComError('not implement', ComError.Status.InternalServerError);
+  }
+
+  public async embeddings(ctx: Context, req: TextEmbeddingRequest) {
     throw new ComError('not implement', ComError.Status.InternalServerError);
   }
 }

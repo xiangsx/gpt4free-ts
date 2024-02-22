@@ -5,6 +5,7 @@ import {
   ImageGenerationRequest,
   ModelType,
   SpeechRequest,
+  TextEmbeddingRequest,
 } from '../base';
 import { AxiosInstance, AxiosRequestConfig, CreateAxiosDefaults } from 'axios';
 import { CreateAxiosProxy } from '../../utils/proxyAgent';
@@ -182,6 +183,17 @@ export class OpenAI extends Chat {
     req: ImageGenerationRequest,
   ): Promise<void> {
     const res = await this.client.post('/v1/images/generations', req);
+    ctx.set(res.headers as any);
+    ctx.set('access-control-allow-origin', '*');
+    ctx.body = res.data;
+  }
+
+  async embeddings(
+    ctx: Application.Context,
+    req: TextEmbeddingRequest,
+  ): Promise<void> {
+    const res = await this.client.post('/v1/embeddings', req);
+    ctx.set(res.headers as any);
     ctx.set('access-control-allow-origin', '*');
     ctx.body = res.data;
   }

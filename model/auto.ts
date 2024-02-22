@@ -8,6 +8,7 @@ import {
   ModelType,
   Site,
   SpeechRequest,
+  TextEmbeddingRequest,
 } from './base';
 import {
   ComError,
@@ -273,5 +274,13 @@ export class Auto extends Chat {
   ): Promise<void> {
     const chat = this.getRandomModel(req);
     await chat.generations(ctx, req);
+  }
+
+  async embeddings(
+    ctx: Application.Context,
+    req: TextEmbeddingRequest,
+  ): Promise<void> {
+    const chat = this.getRandomModel(req);
+    await chat.embeddings(ctx, req);
   }
 }
