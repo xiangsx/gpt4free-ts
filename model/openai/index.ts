@@ -171,8 +171,9 @@ export class OpenAI extends Chat {
     delete req.secret;
     const res = await this.client.post('/v1/audio/speech', req, {
       responseType: 'stream',
+      headers: ctx.req.headers,
     });
-    ctx.set('Content-Type', res.headers['content-type'] as any);
+    ctx.set(res.headers as any);
     ctx.body = res.data;
   }
 
@@ -180,8 +181,10 @@ export class OpenAI extends Chat {
     ctx: Application.Context,
     req: ImageGenerationRequest,
   ): Promise<void> {
-    const res = await this.client.post('/v1/images/generations', req);
-    ctx.set('Content-Type', res.headers['content-type'] as any);
+    const res = await this.client.post('/v1/images/generations', req, {
+      headers: ctx.req.headers,
+    });
+    ctx.set(res.headers as any);
     ctx.body = res.data;
   }
 }
