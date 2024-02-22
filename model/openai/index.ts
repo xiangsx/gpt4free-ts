@@ -172,6 +172,7 @@ export class OpenAI extends Chat {
     const res = await this.client.post('/v1/audio/speech', req, {
       responseType: 'stream',
     });
+    ctx.set(res.headers as any);
     ctx.set('access-control-allow-origin', '*');
     ctx.body = res.data;
   }
