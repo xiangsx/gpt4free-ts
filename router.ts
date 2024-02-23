@@ -26,6 +26,7 @@ import bodyParser from 'koa-bodyparser';
 import { randomUUID } from 'crypto';
 import { AsyncStoreSN } from './asyncstore';
 import { chatModel } from './model';
+import { TraceLogger } from './utils/log';
 
 const supportsHandler = async (ctx: Context) => {
   const result: Support[] = [];
@@ -52,14 +53,12 @@ const errorHandler = async (ctx: Context, next: Next) => {
   try {
     await next();
   } catch (err: any) {
-    console.error(
-      `req: ${JSON.stringify({
-        ...(ctx.query as any),
-        ...(ctx.request.body as any),
-        ...(ctx.params as any),
-      })}, error handle: `,
-      err,
-    );
+    ctx.logger?.info(err.message, {
+      trace_label: 'error',
+      ...(ctx.query as any),
+      ...(ctx.request.body as any),
+      ...(ctx.params as any),
+    });
     ctx.body = { error: { message: err.message } };
     ctx.status = err.status || ComError.Status.InternalServerError;
   }
@@ -162,6 +161,12 @@ const AskStreamHandle: (ESType: new () => EventStream) => Middleware =
     let stream = new ESType();
     stream.setModel(req.model);
     req = await chat.preHandle(req, { stream });
+    ctx.logger.info('', {
+      ...req,
+      prompt: undefined,
+      trace_label: 'start',
+      site,
+    });
     let ok = true;
     const timeout = setTimeout(() => {
       stream.write(Event.error, { error: 'timeout' });
@@ -177,6 +182,12 @@ const AskStreamHandle: (ESType: new () => EventStream) => Middleware =
             (event, data: any) => {
               switch (event) {
                 case Event.error:
+                  ctx.logger.info(data.error, {
+                    ...req,
+                    trace_label: 'error',
+                    prompt: undefined,
+                    site,
+                  });
                   clearTimeout(timeout);
                   if (data instanceof ComError) {
                     reject(data);
@@ -206,6 +217,12 @@ const AskStreamHandle: (ESType: new () => EventStream) => Middleware =
                       Connection: 'keep-alive',
                     });
                     ctx.body = stream.stream();
+                    ctx.logger.info('', {
+                      ...req,
+                      trace_label: 'recv',
+                      prompt: undefined,
+                      site,
+                    });
                   }
                   resolve();
                   stream.write(event, data);
@@ -218,7 +235,12 @@ const AskStreamHandle: (ESType: new () => EventStream) => Middleware =
                 return;
               }
               input.push({ role: 'assistant', content: output });
-              console.debug(input);
+              ctx.logger.info('', {
+                ...req,
+                trace_label: 'end',
+                messages: input,
+                prompt: undefined,
+              });
               stream.end();
             },
           );
@@ -350,6 +372,7 @@ export const registerApp = () => {
   app.use(cors());
   const router = new Router();
   app.use(async (ctx, next) => {
+    ctx.logger = new TraceLogger();
     const sn: string = (ctx.req.headers['x-request-id'] ||
       randomUUID().replace(/-/g, '')) as string;
     await AsyncStoreSN.run({ sn }, async () => {

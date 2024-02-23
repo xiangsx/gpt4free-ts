@@ -31,6 +31,7 @@ type DiscordAccount = {
 interface ConfigData {
   exit: boolean;
   global: {
+    trace?: boolean;
     download: {
       proxy?: string;
       dir: string;

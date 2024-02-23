@@ -7,6 +7,8 @@ import { Socket } from 'dgram';
 import * as dgram from 'dgram';
 import { format } from 'util';
 import { AsyncStoreSN } from '../asyncstore';
+import moment from 'moment';
+import { Config } from './config';
 
 let logger: Logger;
 
@@ -98,6 +100,25 @@ export function newLogger(site?: string) {
   const log = logger.child({ site });
   log.exitOnError = false;
   return log;
+}
+
+export class TraceLogger {
+  private logger: Logger;
+  // ms 时间戳
+  private start_time: number = moment().valueOf();
+  constructor() {
+    this.logger = logger.child({ trace: 'request' });
+    logger.exitOnError = false;
+  }
+
+  info(msg: string, meta: any) {
+    if (!Config.config.global.trace) {
+      return;
+    }
+    this.logger.info(msg, meta, {
+      time_label: moment().valueOf() - this.start_time,
+    });
+  }
 }
 
 interface UDPTransportOptions extends Transport.TransportStreamOptions {
