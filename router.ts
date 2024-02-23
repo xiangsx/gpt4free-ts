@@ -315,7 +315,8 @@ const openAIHandle: Middleware = async (ctx, next) => {
       },
     ],
     usage: {
-      prompt_tokens: reqLen,
+      // 官方默认所有请求token都+7
+      prompt_tokens: 7 + reqLen,
       completion_tokens,
       total_tokens: reqLen + completion_tokens,
     },
