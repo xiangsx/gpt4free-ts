@@ -42,7 +42,7 @@ class Child extends ComChild<Account> {
     try {
       await this.page.goto(url, {
         waitUntil: 'domcontentloaded',
-        timeout: 5000,
+        timeout: 10000,
       });
       let content = await this.page.$$eval(
         'p, h1, h2, h3, h4, h5, h6, div, section, article, main',
@@ -91,12 +91,10 @@ class Child extends ComChild<Account> {
           return maxText.replace(/\s+/g, ' ').trim();
         },
       );
-      this.release();
       return content;
     } catch (e: any) {
       this.logger.error(e.message);
-      this.release();
-      return '';
+      return 'None';
     }
   }
 
@@ -138,8 +136,8 @@ export class WWW extends Chat {
   }
 
   async askStream(req: WWWChatRequest, stream: EventStream): Promise<void> {
+    const child = await this.pool.pop();
     try {
-      const child = await this.pool.pop();
       let content = await child.getURLInfo(req.prompt);
       const maxToken = +(req.max_tokens || process.env.WWW_MAX_TOKEN || 2000);
       const token = getTokenCount(content);
@@ -155,6 +153,7 @@ export class WWW extends Chat {
     } finally {
       stream.write(Event.done, { content: '' });
       stream.end();
+      child.release();
     }
   }
 }
