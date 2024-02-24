@@ -1,3 +1,4 @@
+import 'heapdump';
 import dotenv from 'dotenv';
 import { Config } from './utils/config';
 import { initLog } from './utils/log';
