@@ -46,6 +46,7 @@
     "cheerio": "^1.0.0-rc.12",
     "chrome-remote-interface": "^0.33.0",
     "dotenv": "^16.0.3",
+    "elastic-apm-node": "^4.4.1",
     "event-stream": "^4.0.1",
     "fake-useragent": "^1.0.1",
     "file-type": "^16.5.4",

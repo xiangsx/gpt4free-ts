@@ -3,10 +3,20 @@ import { Config } from './utils/config';
 import { initLog } from './utils/log';
 import cluster from 'cluster';
 import { initCache } from './utils/cache';
+import rpm from 'elastic-apm-node';
 
 process.setMaxListeners(1000); // 将限制提高到20个
-
 dotenv.config();
+if (process.env['apm.enable']) {
+  rpm.start({
+    serverUrl: process.env['apm.serverUrl'],
+    serviceName: process.env['apm.serviceName'],
+    environment: process.env['apm.environment'],
+    transactionSampleRate: parseInt(
+      process.env['apm.transactionSampleRate'] || '1',
+    ),
+  });
+}
 initLog();
 Config.load();
 Config.watchFile();
