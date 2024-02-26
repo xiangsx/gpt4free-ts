@@ -368,13 +368,14 @@ export class WSS {
       onMessage?: (data: string) => void;
       onError?: Function;
     },
-    options?: { proxy?: string },
+    options?: { proxy?: string; wssOptions?: WebSocket.ClientOptions },
   ) {
     const { onOpen, onClose, onMessage, onError } = callbacks || {};
-    const { proxy = getProxy() } = options || {};
+    const { proxy = getProxy(), wssOptions } = options || {};
     // 创建一个代理代理
     const wsOptions: WebSocket.ClientOptions = {
       handshakeTimeout: 10 * 1000,
+      ...wssOptions,
     };
     if (proxy) {
       wsOptions.agent = HttpsProxyAgent(proxy);
