@@ -169,13 +169,11 @@ const AskStreamHandle: (ESType: new () => EventStream) => Middleware =
       res: ctx.res,
       trace_label: 'start',
     });
-    const span = apm.startSpan('recv stream');
     let ok = true;
     const timeout = setTimeout(() => {
       stream.write(Event.error, { error: 'timeout' });
       stream.write(Event.done, { content: '' });
       stream.end();
-      span?.end();
     }, 120 * 1000);
     const input = req.messages;
     let output = '';
@@ -237,13 +235,13 @@ const AskStreamHandle: (ESType: new () => EventStream) => Middleware =
                 return;
               }
               input.push({ role: 'assistant', content: output });
-              ctx.logger.info(output, {
+              delete (req as any).prompt;
+              ctx.logger.info(JSON.stringify(req), {
                 req: ctx.req,
                 res: ctx.res,
                 trace_label: 'end',
               });
               stream.end();
-              if (span) span.end();
             },
           );
           await chat.askStream(req, es).catch((err) => {
