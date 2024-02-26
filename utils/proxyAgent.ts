@@ -368,14 +368,16 @@ export class WSS {
       onMessage?: (data: string) => void;
       onError?: Function;
     },
+    options?: { proxy?: string },
   ) {
     const { onOpen, onClose, onMessage, onError } = callbacks || {};
+    const { proxy = getProxy() } = options || {};
     // 创建一个代理代理
     const wsOptions: WebSocket.ClientOptions = {
       handshakeTimeout: 10 * 1000,
     };
-    if (getProxy()) {
-      wsOptions.agent = HttpsProxyAgent(getProxy());
+    if (proxy) {
+      wsOptions.agent = HttpsProxyAgent(proxy);
     }
 
     // 创建一个配置了代理的 WebSocket 客户端
