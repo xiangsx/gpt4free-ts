@@ -165,6 +165,7 @@ const AskStreamHandle: (ESType: new () => EventStream) => Middleware =
     stream.setModel(req.model);
     req = await chat.preHandle(req, { stream });
     ctx.logger.info('start', {
+      model,
       req: ctx.req,
       res: ctx.res,
       trace_label: 'start',
@@ -219,6 +220,7 @@ const AskStreamHandle: (ESType: new () => EventStream) => Middleware =
                     });
                     ctx.body = stream.stream();
                     ctx.logger.info('recv', {
+                      model,
                       req: ctx.req,
                       res: ctx.res,
                       trace_label: 'recv',
@@ -237,6 +239,7 @@ const AskStreamHandle: (ESType: new () => EventStream) => Middleware =
               input.push({ role: 'assistant', content: output });
               delete (req as any).prompt;
               ctx.logger.info(JSON.stringify(req), {
+                model,
                 req: ctx.req,
                 res: ctx.res,
                 trace_label: 'end',
