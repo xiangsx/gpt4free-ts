@@ -1,14 +1,14 @@
 import path from 'path';
 import winston, { Logger } from 'winston';
-import { colorLabel } from './index';
 // @ts-ignore
 import Transport from 'winston-transport';
 import { Socket } from 'dgram';
 import * as dgram from 'dgram';
 import { format } from 'util';
-import { AsyncStoreSN } from '../asyncstore';
 import moment from 'moment';
 import { Config } from './config';
+import { ecsFields, ecsFormat } from '@elastic/ecs-winston-format';
+import { colorLabel } from './index';
 
 let logger: Logger;
 
@@ -39,19 +39,15 @@ export const initLog = () => {
   if (process.env.LOG_ELK === '1') {
     const port = +(process.env.LOG_ELK_PORT || 28777);
     const host = process.env.LOG_ELK_HOST || '';
-    const node = process.env.LOG_ELK_NODE || '';
     if (!host) {
       throw new Error('LOG_ELK_HOST is required');
     }
-    console.log(`init winston elk ${host} ${port} ${node}`);
+    console.log(`init winston elk ${host} ${port}`);
     transports.push(
       new UDPTransport({
         host,
         port,
-        format: winston.format((info, opts) => {
-          info.node = node;
-          return info;
-        })(),
+        format: ecsFields({ convertReqRes: true }),
       }),
     );
   }
@@ -64,6 +60,11 @@ export const initLog = () => {
   logger = winston.createLogger({
     level: process.env.LOG_LEVEL || 'info', // 从环境变量中读取日志等级，如果没有设置，则默认为 'info'
     format: winston.format.combine(
+      ecsFormat({ convertReqRes: true }),
+      winston.format((info, opts) => {
+        info.sn = info['trace.id'];
+        return info;
+      })(),
       winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }), // 添加时间戳
       winston.format.prettyPrint(), // 打印整个日志对象
       winston.format.splat(), // 支持格式化的字符串
@@ -83,17 +84,13 @@ function replaceConsoleWithWinston(): void {
   const logger: Logger = newLogger();
 
   // 替换所有 console 方法
-  console.log = (...msg) =>
-    logger.info(format(...msg), { sn: AsyncStoreSN.getStore()?.sn });
+  console.log = (...msg) => logger.info(format(...msg));
 
-  console.error = (...msg) =>
-    logger.error(format(...msg), { sn: AsyncStoreSN.getStore()?.sn });
+  console.error = (...msg) => logger.error(format(...msg));
 
-  console.warn = (...msg) =>
-    logger.warn(format(...msg), { sn: AsyncStoreSN.getStore()?.sn });
+  console.warn = (...msg) => logger.warn(format(...msg));
 
-  console.debug = (...msg) =>
-    logger.debug(format(...msg), { sn: AsyncStoreSN.getStore()?.sn });
+  console.debug = (...msg) => logger.debug(format(...msg));
 }
 
 export function newLogger(site?: string) {
@@ -106,8 +103,9 @@ export class TraceLogger {
   private logger: Logger;
   // ms 时间戳
   private start_time: number = moment().valueOf();
+
   constructor() {
-    this.logger = logger.child({ trace: 'request' });
+    this.logger = logger.child({ trace_type: 'request' });
     logger.exitOnError = false;
   }
 
@@ -125,6 +123,7 @@ interface UDPTransportOptions extends Transport.TransportStreamOptions {
   port: number;
   host: string;
 }
+
 export class UDPTransport extends Transport {
   private client: Socket;
   private options: { port: number; host: string };

@@ -39,6 +39,7 @@
   "dependencies": {
     "@cemalgnlts/mailjs": "^2.2.0",
     "@dqbd/tiktoken": "^1.0.7",
+    "@elastic/ecs-winston-format": "^1.5.2",
     "@google/generative-ai": "^0.1.1",
     "@koa/cors": "^4.0.0",
     "axios": "^1.4.0",

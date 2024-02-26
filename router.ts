@@ -27,6 +27,8 @@ import { randomUUID } from 'crypto';
 import { AsyncStoreSN } from './asyncstore';
 import { chatModel } from './model';
 import { TraceLogger } from './utils/log';
+import { end } from 'cheerio/lib/api/traversing';
+import apm from 'elastic-apm-node';
 
 const supportsHandler = async (ctx: Context) => {
   const result: Support[] = [];
@@ -137,6 +139,7 @@ const AskStreamHandle: (ESType: new () => EventStream) => Middleware =
       ...(ctx.request.body as any),
       ...(ctx.params as any),
     } as AskReq;
+    apm.currentTransaction?.addLabels({ site, model }, true);
     if (model !== ModelType.GetGizmoInfo && !prompt) {
       throw new ComError(`need prompt in query`, ComError.Status.BadRequest);
     }
@@ -161,17 +164,18 @@ const AskStreamHandle: (ESType: new () => EventStream) => Middleware =
     let stream = new ESType();
     stream.setModel(req.model);
     req = await chat.preHandle(req, { stream });
-    ctx.logger.info('', {
-      ...req,
-      prompt: undefined,
+    ctx.logger.info('start', {
+      req: ctx.req,
+      res: ctx.res,
       trace_label: 'start',
-      site,
     });
+    const span = apm.startSpan('recv stream');
     let ok = true;
     const timeout = setTimeout(() => {
       stream.write(Event.error, { error: 'timeout' });
       stream.write(Event.done, { content: '' });
       stream.end();
+      span?.end();
     }, 120 * 1000);
     const input = req.messages;
     let output = '';
@@ -183,10 +187,9 @@ const AskStreamHandle: (ESType: new () => EventStream) => Middleware =
               switch (event) {
                 case Event.error:
                   ctx.logger.info(data.error, {
-                    ...req,
+                    req: ctx.req,
+                    res: ctx.res,
                     trace_label: 'error',
-                    prompt: undefined,
-                    site,
                   });
                   clearTimeout(timeout);
                   if (data instanceof ComError) {
@@ -217,11 +220,10 @@ const AskStreamHandle: (ESType: new () => EventStream) => Middleware =
                       Connection: 'keep-alive',
                     });
                     ctx.body = stream.stream();
-                    ctx.logger.info('', {
-                      ...req,
+                    ctx.logger.info('recv', {
+                      req: ctx.req,
+                      res: ctx.res,
                       trace_label: 'recv',
-                      prompt: undefined,
-                      site,
                     });
                   }
                   resolve();
@@ -235,13 +237,13 @@ const AskStreamHandle: (ESType: new () => EventStream) => Middleware =
                 return;
               }
               input.push({ role: 'assistant', content: output });
-              ctx.logger.info('', {
-                ...req,
+              ctx.logger.info(output, {
+                req: ctx.req,
+                res: ctx.res,
                 trace_label: 'end',
-                messages: input,
-                prompt: undefined,
               });
               stream.end();
+              if (span) span.end();
             },
           );
           await chat.askStream(req, es).catch((err) => {
@@ -374,12 +376,7 @@ export const registerApp = () => {
   const router = new Router();
   app.use(async (ctx, next) => {
     ctx.logger = new TraceLogger();
-    const sn: string = (ctx.req.headers['x-request-id'] ||
-      randomUUID().replace(/-/g, '')) as string;
-    await AsyncStoreSN.run({ sn }, async () => {
-      const store = AsyncStoreSN.getStore();
-      return await next();
-    });
+    await next();
   });
   app.use(errorHandler);
   app.use(bodyParser({ jsonLimit: '10mb' }));
