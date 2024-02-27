@@ -1,7 +1,7 @@
 import normalPPT, { Browser, Page, PuppeteerLaunchOptions } from 'puppeteer';
 import * as fs from 'fs';
 import { ComError, shuffleArray, sleep } from './index';
-import { launchChromeAndFetchWsUrl } from './proxyAgent';
+import { getProxy, launchChromeAndFetchWsUrl } from './proxyAgent';
 
 const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
@@ -99,8 +99,8 @@ export class BrowserPool<T> {
       ],
       userDataDir: this.savefile ? `run/${info.id}` : undefined,
     };
-    if (process.env.http_proxy) {
-      options.args?.push(`--proxy-server=${process.env.http_proxy}`);
+    if (getProxy()) {
+      options.args?.push(`--proxy-server=${getProxy()}`);
     }
     let browser: Browser;
     try {
@@ -254,6 +254,17 @@ export async function simplifyPage(page: Page) {
   });
 }
 
+export async function blockGoogleAnalysis(page: Page) {
+  await page.setRequestInterception(true);
+  page.on('request', (req) => {
+    if (req.url().indexOf('googletagmanager') > -1) {
+      req.abort();
+    } else {
+      req.continue();
+    }
+  });
+}
+
 export async function simplifyPageAll(page: Page) {
   await page.setRequestInterception(true);
   const blockTypes = new Set([
@@ -273,4 +284,42 @@ export async function simplifyPageAll(page: Page) {
       req.continue();
     }
   });
+}
+
+export async function loginGoogle(
+  page: Page,
+  email: string,
+  password: string,
+  recovery_email: string,
+) {
+  await page.waitForSelector('#identifierId', { timeout: 10 * 60 * 1000 });
+  await sleep(2000);
+  await page.click('#identifierId');
+  await page.keyboard.type(email);
+  await page.keyboard.press('Enter');
+  await sleep(2000);
+
+  await page.waitForSelector('#password');
+  await page.click('#password');
+  await page.keyboard.type(password);
+  await page.keyboard.press('Enter');
+  await sleep(3000);
+  await checkRecoveryMail(page, recovery_email);
+}
+
+export async function checkRecoveryMail(page: Page, email: string) {
+  const str = await page.evaluate(
+    // @ts-ignore
+    () => document.querySelector('li:nth-child(3)')?.textContent || '',
+  );
+  if (!str.includes('recovery email')) {
+    return;
+  }
+  await page.waitForSelector('li:nth-child(3)');
+  await page.click('li:nth-child(3)');
+  await sleep(2000);
+  await page.waitForSelector('input');
+  await page.click('input');
+  await page.keyboard.type(email);
+  await page.keyboard.press('Enter');
 }

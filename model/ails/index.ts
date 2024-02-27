@@ -3,6 +3,7 @@ import {
   ChatOptions,
   ChatRequest,
   ChatResponse,
+  contentToString,
   Message,
   ModelType,
 } from '../base';
@@ -104,7 +105,7 @@ export class AILS extends Chat {
       t: `${now}`,
       s: Utils.hash({
         t: now,
-        m: req.messages[req.messages.length - 1].content,
+        m: contentToString(req.messages[req.messages.length - 1].content),
       }),
     };
     try {

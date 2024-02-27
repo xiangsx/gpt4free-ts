@@ -1,6 +1,12 @@
 import { AxiosInstance } from 'axios';
-import { sleep } from './index';
+import { randomStr, sleep } from './index';
 import { CreateAxiosProxy } from './proxyAgent';
+import { Page } from 'puppeteer';
+import CDP from 'chrome-remote-interface';
+import { Config } from './config';
+import fs from 'fs';
+import puppeteer from 'puppeteer-extra';
+import { closeOtherPages } from './puppeteer';
 
 class CaptchaSolver {
   private readonly apiKey: string;
@@ -79,4 +85,129 @@ export async function getCaptchaCode(base64: string) {
     console.error('Error:', error.message);
     return '';
   }
+}
+
+export async function ifCF(page: Page) {
+  try {
+    await page.waitForSelector('#challenge-running', { timeout: 2 * 1000 });
+    return true;
+  } catch (e) {
+    console.log('no cf');
+    return false;
+  }
+}
+
+export async function handleCF(
+  page: Page,
+  debug: boolean = false,
+): Promise<Page> {
+  if (!(await ifCF(page))) {
+    return page;
+  }
+  const browser = page.browser();
+  const url = page.url();
+  const pageIdx = (await browser.pages()).findIndex((v) => v === page);
+  const wsEndpoint = browser.wsEndpoint();
+  browser.disconnect();
+  console.log('handle cf start');
+  const client: CDP.Client = await CDP({
+    target: wsEndpoint,
+  });
+  try {
+    const targets = await client.Target.getTargets();
+    await sleep(10000);
+    const target = targets.targetInfos.find((v) => v.url.indexOf(url) > -1);
+    if (!target) {
+      throw new Error('not found target');
+    }
+    const { sessionId } = await client.Target.attachToTarget({
+      targetId: target.targetId,
+      flatten: true,
+    });
+
+    // 设置页面尺寸
+    await client.Page.enable(sessionId);
+    await client.Page.setDeviceMetricsOverride(
+      {
+        width: 1280,
+        height: 720,
+        deviceScaleFactor: 1,
+        mobile: false,
+      },
+      sessionId,
+    );
+
+    await client.Runtime.enable(sessionId);
+    await client.DOM.enable(sessionId);
+    const iframeExpression = `document.querySelector('iframe')`;
+    const { result: iframeResult } = await client.Runtime.evaluate(
+      {
+        expression: iframeExpression,
+      },
+      sessionId,
+    );
+    const { objectId: iframeObjectId } = iframeResult;
+    const { model: iframeModel } = await client.DOM.getBoxModel(
+      {
+        objectId: iframeObjectId,
+      },
+      sessionId,
+    );
+    const iframeCoordinates = iframeModel.border; // iframe 的坐标
+    let [x, y] = iframeCoordinates;
+    x = x + 9 + 14 + 8;
+    y = y + 10 + 14 + 8;
+    if (debug) {
+      await client.Runtime.enable(sessionId);
+      await client.Runtime.evaluate(
+        {
+          expression: `const dot = document.createElement('div');
+            dot.style.width = '100px';
+            dot.style.height = '100px';
+            dot.style.background = 'red';
+            dot.style.position = 'fixed';
+            dot.style.left = ${x} + 'px';
+            dot.style.top = ${y} + 'px';
+            document.body.appendChild(dot);`,
+        },
+        sessionId,
+      );
+      await client.Page.enable(sessionId);
+      const res = await client.Page.captureScreenshot(
+        { format: 'png' },
+        sessionId,
+      );
+      fs.writeFileSync(`./run/png/${randomStr(6)}.png`, res.data, 'base64');
+    }
+    await client.Input.dispatchMouseEvent(
+      {
+        type: 'mousePressed',
+        x,
+        y,
+        button: 'left',
+        clickCount: 1,
+      },
+      sessionId,
+    );
+    await client.Input.dispatchMouseEvent(
+      {
+        type: 'mouseReleased',
+        x,
+        y,
+        button: 'left',
+        clickCount: 1,
+      },
+      sessionId,
+    );
+    await sleep(20 * 1000);
+  } catch (e) {
+    await client.Browser.close();
+    throw e;
+  }
+
+  console.log('handle cf end');
+  const newB = await puppeteer.connect({ browserWSEndpoint: wsEndpoint });
+  return (await newB.pages()).find(
+    (v) => v.url().indexOf('blank') === -1,
+  ) as Page;
 }

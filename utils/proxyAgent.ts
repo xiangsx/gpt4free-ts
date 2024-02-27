@@ -4,16 +4,50 @@ import { SessionConstructorOptions } from 'tls-client/dist/esm/types';
 import { Session } from 'tls-client/dist/esm/sessions';
 import tlsClient from 'tls-client';
 import puppeteer from 'puppeteer-extra';
-import { Page, PuppeteerLaunchOptions } from 'puppeteer';
+import {
+  Browser,
+  BrowserContext,
+  Page,
+  Protocol,
+  PuppeteerLaunchOptions,
+} from 'puppeteer';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import { spawn } from 'child_process';
 import WebSocket from 'ws';
 import moment from 'moment';
-import { closeOtherPages } from './puppeteer';
+import {
+  blockGoogleAnalysis,
+  closeOtherPages,
+  simplifyPage,
+} from './puppeteer';
 import { v4 } from 'uuid';
-import { PassThrough } from 'stream';
+import { PassThrough, pipeline } from 'stream';
+import {
+  ComError,
+  getRandomOne,
+  randomStr,
+  randomUserAgent,
+  sleep,
+} from './index';
+import { Config } from './config';
+import { newInjectedPage } from 'fingerprint-injector';
+import { FingerprintGenerator } from 'fingerprint-generator';
+import path from 'path';
+import fs, { createWriteStream } from 'fs';
+import fileType from 'file-type';
+import sizeOf from 'image-size';
+import { promisify } from 'util';
 
-puppeteer.use(StealthPlugin());
+export const getProxy = () => {
+  let proxy = '';
+  if (Config.config.proxy_pool?.enable) {
+    proxy = getRandomOne(Config.config.proxy_pool.proxy_list);
+  } else {
+    proxy = process.env.http_proxy || '';
+  }
+  console.debug('use proxy: ', proxy);
+  return proxy;
+};
 
 const reqProxy = (config: any) => {
   config.params = {
@@ -25,6 +59,21 @@ const reqProxy = (config: any) => {
   return config;
 };
 
+export function CreateNewAxios(
+  config: CreateAxiosDefaults,
+  options?: { proxy: string | boolean | undefined },
+) {
+  const { proxy } = options || {};
+  const createConfig: CreateAxiosDefaults = { timeout: 15 * 1000, ...config };
+  createConfig.proxy = false;
+  if (proxy) {
+    const realProxy = proxy === true ? getProxy() : proxy;
+    createConfig.httpAgent = HttpsProxyAgent(realProxy);
+    createConfig.httpsAgent = HttpsProxyAgent(realProxy);
+  }
+  return axios.create(createConfig);
+}
+
 export function CreateAxiosProxy(
   config: CreateAxiosDefaults,
   useReqProxy = true,
@@ -33,7 +82,7 @@ export function CreateAxiosProxy(
 ): AxiosInstance {
   const { retry = true } = options || {};
   const createConfig = { ...config };
-  const useProxy = proxy ? process.env.http_proxy : '';
+  const useProxy = proxy ? getProxy() : '';
   createConfig.proxy = false;
   if (useProxy) {
     createConfig.httpAgent = HttpsProxyAgent(useProxy);
@@ -82,37 +131,158 @@ export function CreateTlsProxy(
   proxy?: string,
 ): Session {
   const client = new tlsClient.Session(config);
-  const useProxy = process.env.http_proxy || proxy;
+  const useProxy = getProxy() || proxy;
   if (useProxy) {
     client.proxy = useProxy;
   }
   return client;
 }
 
+let globalBrowser: Browser;
+
 export async function CreateNewPage(
   url: string,
-  options?: { allowExtensions?: boolean; proxy?: string; args?: string[] },
+  options?: {
+    stealth?: boolean;
+    allowExtensions?: boolean;
+    proxy?: string;
+    args?: string[];
+    simplify?: boolean;
+    user_agent?: string;
+    cookies?: Protocol.Network.CookieParam[];
+    devtools?: boolean;
+    fingerprint_inject?: boolean;
+    protocolTimeout?: number;
+    recognize?: boolean;
+    block_google_analysis?: boolean;
+  },
 ) {
   const {
     allowExtensions = false,
-    proxy = process.env.http_proxy,
+    proxy = getProxy(),
     args = [],
+    simplify = true,
+    cookies = [],
+    user_agent = '',
+    devtools = false,
+    fingerprint_inject = false,
+    protocolTimeout,
+    stealth = true,
+    recognize = true,
+    block_google_analysis = false,
   } = options || {};
-  const browser = await puppeteer.launch({
+  const launchOpt: PuppeteerLaunchOptions = {
     headless: process.env.DEBUG === '1' ? false : 'new',
+    devtools,
     args: [
       '--no-sandbox',
       '--disable-setuid-sandbox',
-      `--proxy-server=${proxy}`,
       '--disable-background-timer-throttling',
       '--disable-backgrounding-occluded-windows',
       ...args,
     ],
-  } as PuppeteerLaunchOptions);
-  const page = await browser.newPage();
-  await page.goto(url);
-  await page.setViewport({ width: 1920, height: 1080 });
-  return page;
+  };
+  if (protocolTimeout) {
+    launchOpt.protocolTimeout = protocolTimeout;
+  }
+  launchOpt.args?.push(`--proxy-server=${proxy || getProxy()}`);
+  let p = puppeteer;
+  if (stealth) {
+    p = p.use(StealthPlugin());
+  }
+  let browser: Browser | BrowserContext;
+  if (recognize) {
+    if (!globalBrowser || !globalBrowser.isConnected()) {
+      globalBrowser = await p.launch(launchOpt);
+    }
+    browser = await globalBrowser.createIncognitoBrowserContext({
+      proxyServer: proxy || getProxy(),
+    });
+  } else {
+    browser = await p.launch(launchOpt);
+  }
+  try {
+    const gen = new FingerprintGenerator();
+    let page: Page;
+    if (fingerprint_inject) {
+      page = await newInjectedPage(browser as any);
+    } else {
+      page = await browser.newPage();
+    }
+    if (user_agent) {
+      await page.setUserAgent(user_agent);
+    }
+    if (simplify) {
+      await simplifyPage(page);
+    }
+    if (block_google_analysis) {
+      await blockGoogleAnalysis(page);
+    }
+    if (cookies.length > 0) {
+      await page.setCookie(...cookies);
+    }
+    await page.setViewport({
+      width: 1000 + Math.floor(Math.random() * 1000),
+      height: 1080,
+    });
+    await page.goto(url);
+    if (recognize) {
+      // @ts-ignore
+      page.browser = page.browserContext;
+    }
+    return page;
+  } catch (e) {
+    console.error(e);
+    await browser.close();
+    throw e;
+  }
+}
+
+export async function CreateNewPageWS(
+  url: string,
+  options?: {
+    allowExtensions?: boolean;
+    proxy?: string;
+    args?: string[];
+    simplify?: boolean;
+    user_agent?: string;
+    cookies?: Protocol.Network.CookieParam[];
+    devtools?: boolean;
+  },
+) {
+  const {
+    allowExtensions = false,
+    proxy = getProxy(),
+    args = [],
+    simplify = true,
+    cookies = [],
+    user_agent = '',
+    devtools = false,
+  } = options || {};
+  const ws = await launchChromeAndFetchWsUrl();
+  if (!ws) {
+    throw new Error('launch chrome failed');
+  }
+  const browser = await puppeteer.connect({ browserWSEndpoint: ws });
+  try {
+    const page = await browser.newPage();
+    if (user_agent) {
+      await page.setUserAgent(user_agent);
+    }
+    if (simplify) {
+      await simplifyPage(page);
+    }
+    if (cookies.length > 0) {
+      await page.setCookie(...cookies);
+    }
+    await page.setViewport({ width: 1920, height: 1080 });
+    await page.goto(url);
+    return page;
+  } catch (e) {
+    console.error(e);
+    await browser.close();
+    throw e;
+  }
 }
 
 export async function CreateNewBrowser() {
@@ -128,17 +298,18 @@ export async function CreateNewBrowser() {
   if (process.env.DEBUG === '1') {
     options.headless = false;
   }
-  if (process.env.http_proxy) {
-    options.args?.push(`--proxy-server=${process.env.http_proxy}`);
+  if (getProxy()) {
+    options.args?.push(`--proxy-server=${getProxy()}`);
   }
   return await puppeteer.launch(options);
 }
 
 let pptPort = 19222 + Math.floor(Math.random() * 10000);
+
 export function launchChromeAndFetchWsUrl(): Promise<string | null> {
   pptPort += 1;
   return new Promise((resolve, reject) => {
-    const command = `${process.env.CHROME_PATH}`;
+    const command = Config.config.global.chrome_path;
     if (!command) {
       reject(new Error('not config CHROME_PATH in env'));
     }
@@ -152,8 +323,8 @@ export function launchChromeAndFetchWsUrl(): Promise<string | null> {
       '--disable-backgrounding-occluded-windows',
       // `--user-data-dir=${path.join(__dirname, `${randomStr(10)}`)}`,
     ];
-    if (process.env.http_proxy) {
-      args.push(`--proxy-server=${process.env.http_proxy}`);
+    if (getProxy()) {
+      args.push(`--proxy-server=${getProxy()}`);
     }
     if (process.env.DEBUG !== '1') {
       args.push('--headless=new');
@@ -197,19 +368,23 @@ export class WSS {
       onMessage?: (data: string) => void;
       onError?: Function;
     },
+    options?: { proxy?: string; wssOptions?: WebSocket.ClientOptions },
   ) {
     const { onOpen, onClose, onMessage, onError } = callbacks || {};
+    const { proxy = getProxy(), wssOptions } = options || {};
     // 创建一个代理代理
-    const wsOptions: WebSocket.ClientOptions = {};
-    if (process.env.http_proxy) {
-      wsOptions.agent = HttpsProxyAgent(process.env.http_proxy || '');
+    const wsOptions: WebSocket.ClientOptions = {
+      handshakeTimeout: 10 * 1000,
+      ...wssOptions,
+    };
+    if (proxy) {
+      wsOptions.agent = HttpsProxyAgent(proxy);
     }
 
     // 创建一个配置了代理的 WebSocket 客户端
     const ws = new WebSocket(target, wsOptions);
 
     ws.on('open', () => {
-      console.log('ws open');
       onOpen && onOpen();
     });
 
@@ -257,13 +432,198 @@ export class WSS {
 //   return fetch(url, { ...initOptions, ...options });
 // }
 
+export class WebFetchWithPage {
+  private streamMap: Record<string, PassThrough> = {};
+  private useCount = 0;
+
+  constructor(private page: Page) {
+    this.init().then(() => console.log(`web fetch with page init ok`));
+  }
+
+  public isUsing() {
+    return this.useCount > 0;
+  }
+
+  public useEnd() {
+    this.useCount -= 1;
+  }
+
+  getPage() {
+    return this.page;
+  }
+
+  async close() {
+    for (let i = 0; i <= 10; i++) {
+      if (this.isUsing()) {
+        console.log(
+          `web fetch proxy is using,usecount:${this.useCount}, wait 5s`,
+        );
+        await sleep(5000);
+        continue;
+      }
+      console.log(`web fetch proxy closed ok, usecount:${this.useCount}`);
+      this.page?.browser().close();
+      break;
+    }
+  }
+
+  async init() {
+    try {
+      await this.page.exposeFunction('onChunk', (id: string, text: string) => {
+        const stream = this.streamMap[id];
+        if (stream) {
+          stream.write(text);
+        }
+      });
+      await this.page.exposeFunction('onChunkEnd', (id: string) => {
+        const stream = this.streamMap[id];
+        if (stream) {
+          stream.end();
+          delete this.streamMap[id];
+        }
+      });
+      await this.page.exposeFunction(
+        'onChunkError',
+        (id: string, err: string) => {
+          const stream = this.streamMap[id];
+          if (stream) {
+            console.log(`web fetch with page error: ${err}`);
+            stream.write('data: [ERROR]\n\n', 'utf-8');
+            delete this.streamMap[id];
+          }
+        },
+      );
+    } catch (e) {
+      console.error('WebFetchProxy init failed, ', e);
+    }
+  }
+
+  async fetch(url: string, init?: RequestInit) {
+    if (!this.page) {
+      throw new Error('please retry wait init');
+    }
+    const id = v4();
+    const stream = new PassThrough();
+    this.streamMap[id] = stream;
+    this.useCount += 1;
+    const data = (await this.page.evaluate(
+      (id, url, init) => {
+        return new Promise((resolve, reject) => {
+          fetch(url, init)
+            .then((response) => {
+              if (!response.body) {
+                resolve({ status: 500 });
+                return null;
+              }
+              if (response.status !== 200) {
+                response
+                  .json()
+                  .then((res) => {
+                    return { status: response.status, ...res };
+                  })
+                  .then(resolve);
+                return null;
+              }
+              resolve({ status: 200 });
+              const reader = response.body.getReader();
+              const newDelay = () =>
+                setTimeout(() => {
+                  // @ts-ignore
+                  window.onChunkError(id, 'timeout');
+                }, 30 * 1000);
+              let delay = newDelay();
+              const refresh = () => {
+                clearTimeout(delay);
+                delay = newDelay();
+              };
+
+              function readNextChunk() {
+                reader
+                  .read()
+                  .then(({ done, value }) => {
+                    refresh();
+                    const textChunk = new TextDecoder('utf-8').decode(value);
+                    if (done) {
+                      // @ts-ignore
+                      window.onChunkEnd(id);
+                      // @ts-ignore
+                      return;
+                    }
+                    // @ts-ignore
+                    window.onChunk(id, textChunk);
+                    readNextChunk();
+                  })
+                  .catch((err) => {
+                    // @ts-ignore
+                    window.onChunkError(id, err.message);
+                  });
+              }
+
+              readNextChunk();
+            })
+            .catch((err) => {
+              console.error(err);
+              reject(err);
+            });
+        });
+      },
+      id,
+      url,
+      init,
+    )) as { status: number; [key: string]: any };
+    if (data.status !== 200) {
+      throw new ComError(
+        `fetch failed ${JSON.stringify(data)}`,
+        data.status,
+        data,
+      );
+    }
+
+    return stream;
+  }
+}
+
 export class WebFetchProxy {
   private page?: Page;
   private streamMap: Record<string, PassThrough> = {};
   private readonly homeURL: string;
-  constructor(homeURL: string) {
+  private options: { cookie: Protocol.Network.CookieParam[] } | undefined;
+  private useCount = 0;
+
+  constructor(
+    homeURL: string,
+    options?: { cookie: Protocol.Network.CookieParam[] },
+  ) {
     this.homeURL = homeURL;
+    this.options = options;
     this.init().then(() => console.log(`web fetch proxy init ok`));
+  }
+
+  public isUsing() {
+    return this.useCount > 0;
+  }
+
+  public useEnd() {
+    this.useCount -= 1;
+  }
+
+  getPage() {
+    return this.page;
+  }
+
+  async close() {
+    for (let i = 0; i <= 10; i++) {
+      if (this.isUsing()) {
+        console.log(
+          `web fetch proxy is using,usecount:${this.useCount}, wait 5s`,
+        );
+        await sleep(5000);
+        continue;
+      }
+      console.log(`web fetch proxy closed ok, usecount:${this.useCount}`);
+      this.page?.browser().close();
+      break;
+    }
   }
 
   async init() {
@@ -277,11 +637,14 @@ export class WebFetchProxy {
           '--disable-backgrounding-occluded-windows',
         ],
       };
-      if (process.env.http_proxy) {
-        options.args?.push(`--proxy-server=${process.env.http_proxy}`);
+      if (getProxy()) {
+        options.args?.push(`--proxy-server=${getProxy()}`);
       }
       const browser = await puppeteer.launch(options);
       this.page = await browser.newPage();
+      if (this.options?.cookie && this.options.cookie.length > 0) {
+        await this.page.setCookie(...this.options.cookie);
+      }
       await this.page.goto(this.homeURL);
       await closeOtherPages(browser, this.page);
       await this.page.exposeFunction('onChunk', (id: string, text: string) => {
@@ -319,53 +682,106 @@ export class WebFetchProxy {
     const id = v4();
     const stream = new PassThrough();
     this.streamMap[id] = stream;
+    this.useCount += 1;
+    this.page.evaluate(
+      (id, url, init) => {
+        return new Promise((resolve, reject) => {
+          fetch(url, init)
+            .then((response) => {
+              if (!response.body) {
+                resolve(null);
+                return null;
+              }
+              const reader = response.body.getReader();
 
-    this.page
-      .evaluate(
-        (id, url, init) => {
-          return new Promise((resolve, reject) => {
-            fetch(url, init)
-              .then((response) => {
-                if (!response.body) {
-                  resolve(null);
-                  return null;
-                }
-                const reader = response.body.getReader();
-                function readNextChunk() {
-                  reader
-                    .read()
-                    .then(({ done, value }) => {
-                      const textChunk = new TextDecoder('utf-8').decode(value);
-                      if (done) {
-                        // @ts-ignore
-                        window.onChunkEnd(id);
-                        // @ts-ignore
-                        resolve(textChunk);
-                        return;
-                      }
+              function readNextChunk() {
+                reader
+                  .read()
+                  .then(({ done, value }) => {
+                    const textChunk = new TextDecoder('utf-8').decode(value);
+                    if (done) {
                       // @ts-ignore
-                      window.onChunk(id, textChunk);
-                      readNextChunk();
-                    })
-                    .catch((err) => {
+                      window.onChunkEnd(id);
                       // @ts-ignore
-                      window.onChunkError(id, err);
-                      reject(err);
-                    });
-                }
-                readNextChunk();
-              })
-              .catch((err) => {
-                console.error(err);
-                reject(err);
-              });
-          });
-        },
-        id,
-        url,
-        init,
-      )
-      .catch(console.error);
+                      resolve(textChunk);
+                      return;
+                    }
+                    // @ts-ignore
+                    window.onChunk(id, textChunk);
+                    readNextChunk();
+                  })
+                  .catch((err) => {
+                    // @ts-ignore
+                    window.onChunkError(id, err.message);
+                    reject(err);
+                  });
+              }
+
+              readNextChunk();
+            })
+            .catch((err) => {
+              console.error(err);
+              reject(err);
+            });
+        });
+      },
+      id,
+      url,
+      init,
+    );
     return stream;
+  }
+}
+
+const pipelinePromisified = promisify(pipeline);
+
+export async function downloadImageToBase64(fileUrl: string): Promise<{
+  base64Data: string;
+  mimeType: string;
+}> {
+  let local = false;
+  if (Config.config.global.download_map) {
+    for (const old in Config.config.global.download_map) {
+      fileUrl = fileUrl.replace(old, Config.config.global.download_map[old]);
+      local = true;
+    }
+  }
+  try {
+    let tempFilePath = path.join('run/file', v4());
+    let ok = false;
+    for (let i = 0; i < 3; i++) {
+      try {
+        const response = await CreateNewAxios(
+          {},
+          {
+            proxy: local
+              ? false
+              : getRandomOne(Config.config.proxy_pool.stable_proxy_list),
+          },
+        ).get(fileUrl, {
+          responseType: 'stream',
+          headers: {
+            'User-Agent': randomUserAgent(),
+          },
+          timeout: 15 * 1000,
+        });
+        let writer = createWriteStream(tempFilePath);
+        await pipelinePromisified(response.data, writer);
+        ok = true;
+      } catch (e: any) {
+        console.warn(`download ${fileUrl} failed:${e.message}, retry ${i}`);
+      }
+    }
+    if (!ok) {
+      throw new ComError(`download failed`, ComError.Status.BadRequest);
+    }
+    const base64Data = fs.readFileSync(tempFilePath).toString('base64');
+    return {
+      base64Data,
+      mimeType: (await fileType.fromFile(tempFilePath))?.mime || 'image/jpeg',
+    };
+  } catch (e: any) {
+    console.error(e.message);
+    throw e;
   }
 }

@@ -3,6 +3,7 @@ import {
   ChatOptions,
   ChatRequest,
   ChatResponse,
+  contentToString,
   ModelType,
 } from '../base';
 import { Browser, Page, Protocol } from 'puppeteer';
@@ -228,9 +229,21 @@ export class Ram extends Chat implements BrowserUser<Account> {
         id: randomStr(15),
         content: {
           content_type: 'ask',
-          conversation: req.messages.slice(0, req.messages.length - 1),
+          conversation: req.messages
+            .slice(0, req.messages.length - 1)
+            .map((v) => ({
+              role: v.role,
+              content: contentToString(v.content),
+            })),
           internet_access: false,
-          parts: [req.messages[req.messages.length - 1]],
+          parts: [
+            {
+              content: contentToString(
+                req.messages[req.messages.length - 1].content,
+              ),
+              role: 'user',
+            },
+          ],
         },
       },
       model: req.model,

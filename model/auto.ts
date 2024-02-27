@@ -2,38 +2,120 @@ import {
   Chat,
   ChatOptions,
   ChatRequest,
-  ChatResponse,
+  contentToString,
+  countMessagesToken,
+  ImageGenerationRequest,
   ModelType,
   Site,
+  SpeechRequest,
+  TextEmbeddingRequest,
 } from './base';
 import {
   ComError,
-  DoneData,
-  ErrorData,
   Event,
   EventStream,
-  MessageData,
+  matchPattern,
+  parseJSON,
   ThroughEventStream,
+  TimeFormat,
 } from '../utils';
 import { Config, SiteCfg } from '../utils/config';
 import { OpenAI } from './openai';
+import { ClaudeAPI } from './claudeapi';
+import moment from 'moment';
+import Application from 'koa';
+import { GLM } from './glm';
 
 interface AutoOptions extends ChatOptions {
   ModelMap: Map<Site, Chat>;
 }
 
-const MaxRetryTimes = +(process.env.AUTO_RETRY_TIMES || 2);
+const MaxRetryTimes = +(process.env.AUTO_RETRY_TIMES || 0);
 
 export class Auto extends Chat {
   private modelMap: Map<Site, Chat>;
+  private openAIChatMap: Map<string, OpenAI> = new Map();
+  private claudeAIChatMap: Map<string, ClaudeAPI> = new Map();
+  private glmAIChatMap: Map<string, GLM> = new Map();
 
   constructor(options: AutoOptions) {
     super(options);
     this.modelMap = options.ModelMap;
   }
 
-  getRandomModel(model: ModelType): Chat {
-    const list = Config.config.site_map[model];
+  getOpenAIChat = (v: SiteCfg) => {
+    const key = JSON.stringify(v);
+    if (!this.openAIChatMap.has(key)) {
+      this.logger.info(`create openai chat: ${key}`);
+      this.openAIChatMap.set(
+        key,
+        new OpenAI({
+          api_key: v.api_key,
+          base_url: v.base_url,
+          name: v.label || v.site,
+          proxy: v.proxy,
+          model_map: v.model_map,
+        }),
+      );
+    }
+    return this.openAIChatMap.get(key) as OpenAI;
+  };
+  getGLMChat = (v: SiteCfg) => {
+    const key = JSON.stringify(v);
+    if (!this.glmAIChatMap.has(key)) {
+      this.logger.info(`create openai chat: ${key}`);
+      this.glmAIChatMap.set(
+        key,
+        new GLM({
+          api_key: v.api_key,
+          base_url: v.base_url,
+          name: v.label || v.site,
+          proxy: v.proxy,
+          model_map: v.model_map,
+        }),
+      );
+    }
+    return this.glmAIChatMap.get(key) as GLM;
+  };
+
+  getClaudeAIChat = (v: SiteCfg) => {
+    const key = JSON.stringify(v);
+    if (!this.claudeAIChatMap.has(key)) {
+      this.logger.info(`create claudeai chat: ${key}`);
+      this.claudeAIChatMap.set(
+        key,
+        new ClaudeAPI({
+          api_key: v.api_key,
+          base_url: v.base_url,
+          name: v.label || v.site,
+          proxy: v.proxy,
+          model_map: v.model_map,
+        }),
+      );
+    }
+    return this.claudeAIChatMap.get(key) as ClaudeAPI;
+  };
+
+  getRandomModel(req: { model: ModelType; prompt_tokens?: number }): Chat {
+    const { model, prompt_tokens } = req;
+    const list: SiteCfg[] = [];
+    for (const m in Config.config.site_map) {
+      const v = Config.config.site_map[m as ModelType] || [];
+      // 通配符
+      if (!matchPattern(m, model)) {
+        continue;
+      }
+      for (const cfg of v) {
+        if (!cfg.priority) {
+          continue;
+        }
+        if (cfg.condition && eval(cfg.condition) !== true) {
+          continue;
+        }
+        this.logger.debug(`auto site match ${m} ${model}`);
+        list.push(cfg);
+      }
+    }
     if (!list) {
       throw new ComError(
         `not cfg ${model} in site_map}`,
@@ -52,6 +134,7 @@ export class Auto extends Chat {
       rand -= list[i].priority;
       if (rand < 0) {
         v = list[i];
+        break;
       }
     }
     if (!v) {
@@ -60,17 +143,19 @@ export class Auto extends Chat {
         ComError.Status.NotFound,
       );
     }
-
-    this.logger.info(`auto site choose site [${v.label || v.site}]`, {
-      label: v.label,
+    const label = v.label || v.site;
+    this.logger.info(`${model} auto site choose site [${label}]`, {
+      label,
+      model,
     });
     if (v.site === Site.OpenAI) {
-      return new OpenAI({
-        api_key: v.api_key,
-        base_url: v.base_url,
-        name: v.label || v.site,
-        proxy: v.proxy,
-      });
+      return this.getOpenAIChat(v);
+    }
+    if (v.site === Site.Claude) {
+      return this.getClaudeAIChat(v);
+    }
+    if (v.site === Site.GLM) {
+      return this.getGLMChat(v);
     }
     return this.modelMap.get(v.site) as Chat;
   }
@@ -101,8 +186,15 @@ export class Auto extends Chat {
         stream.end();
       },
     );
-    const chat = this.getRandomModel(req.model);
-    await chat.preHandle(req);
+    const chat = this.getRandomModel(req);
+    if (!chat) {
+      es.destroy();
+      throw new ComError(
+        `not support model: ${req.model}`,
+        ComError.Status.NotFound,
+      );
+    }
+    await chat.preHandle(req, { stream });
     return await chat.askStream(req, es).catch((err) => {
       es.destroy();
       throw err;
@@ -118,8 +210,77 @@ export class Auto extends Chat {
     return Number.MAX_SAFE_INTEGER;
   }
 
-  async preHandle(req: ChatRequest): Promise<ChatRequest> {
+  async preHandle(req: ChatRequest, options: any): Promise<ChatRequest> {
+    if (req.search) {
+      const searchStr = contentToString(
+        req.messages[req.messages.length - 1].content,
+      );
+      const searchRes = await this.ask({
+        model: ModelType.Search,
+        messages: [{ role: 'user', content: searchStr }],
+        prompt: searchStr,
+      });
+      if (!searchRes.content) {
+        return req;
+      }
+      let searchParsed = parseJSON<any[]>(searchRes.content || '', []);
+      if (searchParsed.length === 0) {
+        return req;
+      }
+      searchParsed = searchParsed.slice(0, 5);
+      if (options?.stream) {
+        options.stream.write(Event.message, {
+          content: `${searchParsed
+            .map((v) => `- [${v.title}](${v.link})`)
+            .join('\n')}\n\n`,
+        });
+      }
+      const searchResStr = searchParsed
+        .map((item) => item.description)
+        .join('\n');
+      const urlParse = await this.ask({
+        model: ModelType.URL,
+        messages: [{ role: 'user', content: searchParsed[0].link }],
+        prompt: searchParsed[0].link,
+        max_tokens: 1000,
+      });
+      const urlContent = urlParse.content;
+      if (!urlContent) {
+        return req;
+      }
+      req.messages = [
+        ...req.messages.slice(0, -1),
+        {
+          role: 'user',
+          content: `I need you to act as an intelligent assistant, refer to the search results I provided, and ignore some search content that does not relate to my question, then summarize, and answer my question in detail. \n\nCurrent Date:${moment().format(
+            TimeFormat,
+          )}\n\nMy question is:${searchStr}\n\n The search results are:${searchResStr}\n${urlContent} \n\n The answer is as follows(The most important, the language of the answer must be the same of my question's language.):`,
+        },
+      ];
+    }
     // auto站点不处理
+    // req.prompt_tokens = countMessagesToken(req.messages);
     return req;
+  }
+
+  async speech(ctx: Application.Context, req: SpeechRequest): Promise<void> {
+    const chat = this.getRandomModel(req);
+    await chat.speech(ctx, req);
+  }
+
+  async generations(
+    ctx: Application.Context,
+    req: ImageGenerationRequest,
+  ): Promise<void> {
+    const chat = this.getRandomModel(req);
+    await chat.generations(ctx, req);
+  }
+
+  async embeddings(
+    ctx: Application.Context,
+    req: TextEmbeddingRequest,
+  ): Promise<void> {
+    const chat = this.getRandomModel(req);
+    await chat.embeddings(ctx, req);
   }
 }
