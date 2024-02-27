@@ -8,6 +8,11 @@ English | [中文](README_zh.md) | [日本語](README_ja.md)
 <p>You can join our discord: <a href="https://discord.gg/cYUU8mCDMd">discord.gg/gptgod<a> for further updates. <a href="https://discord.gg/cYUU8mCDMd"><img align="center" alt="gpt4free Discord" width="22px" src="https://raw.githubusercontent.com/peterthehan/peterthehan/master/assets/discord.svg" /></a></p>
 </div>
 
+Free OpenAI Key
+Base URL: https://api.gptgod.online
+Api Key: sk-OsMMq65tXdfOIlTUYtocSL7NCsmA7CerN77OkEv29dODg1EA
+Support Models: `gpt-3.5-turbo`,`gpt-3.5-turbo-16k`,`net-gpt-3.5-turbo`,`net-gpt-3.5-turbo-16k`,`claude-1-100k`,`google-palm`,`llama-2-70b`,`llama-2-13b`,`llama-2-7b`,`code-llama-34b`,`code-llama-13b`,`code-llama-7b`,`qwen-72b`,`stable-diffusion`,`mixtral-8x7b`,`mistral-medium`
+
 ## 🚩 Reverse target
 
 I suggest you fork this project first. Some websites may go offline at any time.
