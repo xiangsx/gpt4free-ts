@@ -161,6 +161,7 @@ interface ConfigData {
     download_map?: Record<string, string>;
     prompt_map?: Record<string, string>;
     system?: string;
+    sleep_interval?: number; // 429之后睡眠多久
     accounts: { email: string; password: string }[];
   };
   stack: {
