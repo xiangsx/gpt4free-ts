@@ -64,7 +64,7 @@ export class Child extends DiscordChild<Account> {
     if (mCreate.d.embeds?.length) {
       const error = `### ${mCreate.d.embeds?.[0].title}\n\n ${mCreate.d.embeds?.[0].description}`;
       onError(new Error(error));
-      if (error.includes('Blocked')) {
+      if (error.toLowerCase().includes('blocked')) {
         this.update({ blocked: true });
         this.destroy({ delFile: false, delMem: true });
       }
