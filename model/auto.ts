@@ -23,8 +23,9 @@ import { Config, SiteCfg } from '../utils/config';
 import { OpenAI } from './openai';
 import { ClaudeAPI } from './claudeapi';
 import moment from 'moment';
-import Application from 'koa';
+import Application, { Context } from 'koa';
 import { GLM } from './glm';
+import { TranscriptionRequest } from './define';
 
 interface AutoOptions extends ChatOptions {
   ModelMap: Map<Site, Chat>;
@@ -282,5 +283,10 @@ export class Auto extends Chat {
   ): Promise<void> {
     const chat = this.getRandomModel(req);
     await chat.embeddings(ctx, req);
+  }
+
+  public async transcriptions(ctx: Context, req: TranscriptionRequest) {
+    const chat = this.getRandomModel(req);
+    await chat.transcriptions(ctx, req);
   }
 }

@@ -16,6 +16,7 @@ import { OpenSess } from './opensess';
 import { Hypotenuse } from './hypotenuse';
 import { Midjourney } from './midjourney';
 import { Context } from 'koa';
+import { TranscriptionRequest } from './define';
 
 export interface ChatOptions {
   name: string;
@@ -108,6 +109,7 @@ export enum ModelType {
   TTS1 = 'tts-1',
   TTS1HD = 'tts-1-hd',
   Bing = 'bing',
+  Whisper1 = 'whisper-1',
 }
 
 export enum Site {
@@ -507,6 +509,10 @@ export class Chat {
   }
 
   public async embeddings(ctx: Context, req: TextEmbeddingRequest) {
+    throw new ComError('not implement', ComError.Status.InternalServerError);
+  }
+
+  public async transcriptions(ctx: Context, req: TranscriptionRequest) {
     throw new ComError('not implement', ComError.Status.InternalServerError);
   }
 }

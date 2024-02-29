@@ -14,6 +14,7 @@ import { ComError, Event, EventStream, parseJSON } from '../../utils';
 import { Config } from '../../utils/config';
 import { AsyncStoreSN } from '../../asyncstore';
 import Application from 'koa';
+import { TranscriptionRequest } from '../define';
 
 interface RealReq extends ChatRequest {
   functions?: {
@@ -197,4 +198,9 @@ export class OpenAI extends Chat {
     ctx.set('access-control-allow-origin', '*');
     ctx.body = res.data;
   }
+
+  async transcriptions(
+    ctx: Application.Context,
+    req: TranscriptionRequest,
+  ): Promise<void> {}
 }
