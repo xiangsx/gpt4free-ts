@@ -371,6 +371,16 @@ const imageGenHandle: Middleware = async (ctx, next) => {
   await chat.generations(ctx, req);
 };
 
+const tokenizerHandle: Middleware = async (ctx, next) => {
+  const params: { prompt: string } = {
+    ...(ctx.query as any),
+    ...(ctx.request.body as any),
+    ...(ctx.params as any),
+  } as any;
+  const tokens = getTokenCount(params.prompt);
+  ctx.body = { tokens };
+};
+
 export const registerApp = () => {
   const app = new Koa();
   app.use(cors());
@@ -394,6 +404,8 @@ export const registerApp = () => {
   router.post('/v1/audio/speech', audioHandle);
   router.post('/:site/v1/audio/speech', audioHandle);
   router.post('/:site/v1/images/generations', imageGenHandle);
+  router.get('/v1/tokenizer', tokenizerHandle);
+  router.post('/v1/tokenizer', tokenizerHandle);
 
   app.use(router.routes());
   const port = +(process.env.PORT || 3000);
