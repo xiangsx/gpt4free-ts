@@ -443,7 +443,9 @@ export const registerApp = () => {
   router.get('/v1/tokenizer', tokenizerHandle);
   router.post('/v1/tokenizer', tokenizerHandle);
   router.post('/v1/video/create', createVideoTaskHandle);
+  router.post('/:site/v1/video/create', createVideoTaskHandle);
   router.get('/v1/video/query', queryVideoTaskHandle);
+  router.get('/:site/v1/video/query', queryVideoTaskHandle);
 
   app.use(router.routes());
   const port = +(process.env.PORT || 3000);

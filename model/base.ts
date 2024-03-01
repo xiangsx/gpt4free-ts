@@ -114,6 +114,7 @@ export enum ModelType {
   TTS1HD = 'tts-1-hd',
   Bing = 'bing',
   Whisper1 = 'whisper-1',
+  PikaVideo = 'pika-video',
 }
 
 export enum Site {
