@@ -166,7 +166,7 @@ const AskStreamHandle: (ESType: new () => EventStream) => Middleware =
     req = await chat.preHandle(req, { stream });
     ctx.logger.info('start', {
       model,
-      req: {
+      params: {
         ...req,
         prompt: undefined,
       },
@@ -188,7 +188,7 @@ const AskStreamHandle: (ESType: new () => EventStream) => Middleware =
               switch (event) {
                 case Event.error:
                   ctx.logger.info(data.error, {
-                    req: {
+                    params: {
                       ...req,
                       prompt: undefined,
                     },
@@ -225,7 +225,7 @@ const AskStreamHandle: (ESType: new () => EventStream) => Middleware =
                     ctx.body = stream.stream();
                     ctx.logger.info('recv', {
                       model,
-                      req: {
+                      params: {
                         ...req,
                         prompt: undefined,
                       },
@@ -246,7 +246,7 @@ const AskStreamHandle: (ESType: new () => EventStream) => Middleware =
               delete (req as any).prompt;
               ctx.logger.info(JSON.stringify(req), {
                 model,
-                req: {
+                params: {
                   ...req,
                   prompt: undefined,
                 },
