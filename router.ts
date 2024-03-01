@@ -133,6 +133,7 @@ const AskStreamHandle: (ESType: new () => EventStream) => Middleware =
       prompt,
       model = ModelType.GPT3p5Turbo,
       site = Site.You,
+      search = false,
       ...rest
     } = {
       ...(ctx.query as any),
@@ -152,6 +153,7 @@ const AskStreamHandle: (ESType: new () => EventStream) => Middleware =
     }
     let req: ChatRequest = {
       ...rest,
+      search,
       prompt,
       messages: parseJSON<Message[]>(prompt, [
         { role: 'user', content: prompt },
