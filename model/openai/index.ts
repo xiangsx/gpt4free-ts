@@ -220,7 +220,7 @@ export class OpenAI extends Chat {
     ctx: Application.Context,
     req: QueryVideoTaskRequest,
   ): Promise<void> {
-    const res = await this.client.post('/v1/video/query', req);
+    const res = await this.client.get('/v1/video/query', { params: req });
     ctx.body = res.data;
   }
 }
