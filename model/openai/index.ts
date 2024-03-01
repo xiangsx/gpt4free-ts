@@ -14,7 +14,11 @@ import { ComError, Event, EventStream, parseJSON } from '../../utils';
 import { Config } from '../../utils/config';
 import { AsyncStoreSN } from '../../asyncstore';
 import Application from 'koa';
-import { TranscriptionRequest } from '../define';
+import {
+  CreateVideoTaskRequest,
+  QueryVideoTaskRequest,
+  TranscriptionRequest,
+} from '../define';
 
 interface RealReq extends ChatRequest {
   functions?: {
@@ -203,4 +207,20 @@ export class OpenAI extends Chat {
     ctx: Application.Context,
     req: TranscriptionRequest,
   ): Promise<void> {}
+
+  async createVideoTask(
+    ctx: Application.Context,
+    req: CreateVideoTaskRequest,
+  ): Promise<void> {
+    const res = await this.client.post('/v1/video/create', req);
+    ctx.body = res.data;
+  }
+
+  async queryVideoTask(
+    ctx: Application.Context,
+    req: QueryVideoTaskRequest,
+  ): Promise<void> {
+    const res = await this.client.post('/v1/video/query', req);
+    ctx.body = res.data;
+  }
 }
