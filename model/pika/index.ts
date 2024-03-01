@@ -6,7 +6,6 @@ import { Config } from '../../utils/config';
 import Application from 'koa';
 import { CreateVideoTaskRequest, QueryVideoTaskRequest } from '../define';
 import { v4 } from 'uuid';
-import { all } from 'axios';
 
 export class Pika extends Chat {
   constructor(options?: ChatOptions) {
@@ -63,6 +62,6 @@ export class Pika extends Chat {
   ): Promise<void> {
     const [child_id, id] = req.id.split('|');
     const child = await this.pool.popIf((v) => v.id === child_id);
-    ctx.body = await child.fetchVideo(id);
+    ctx.body = { url: await child.fetchVideo(id) };
   }
 }
