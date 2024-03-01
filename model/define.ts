@@ -63,3 +63,14 @@ export interface TranscriptionRequest {
    */
   timestamp_granularities?: TimestampGranularity[];
 }
+
+export interface CreateVideoTaskRequest {
+  prompt?: string;
+  image?: string;
+  model: ModelType;
+}
+
+export interface QueryVideoTaskRequest {
+  model: ModelType;
+  id: string;
+}

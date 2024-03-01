@@ -70,6 +70,9 @@ interface ConfigData {
   glm?: {
     token_limit: { [key: string]: number };
   };
+  pika?: SizeCfg & {
+    accounts: { token: string; cookies: Record<string, string> }[];
+  };
   midjourney: SizeCfg & {
     accounts: (DiscordAccount & {
       mode: 'relax' | 'fast' | 'turbo';

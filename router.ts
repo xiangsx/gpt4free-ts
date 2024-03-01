@@ -391,6 +391,32 @@ const tokenizerHandle: Middleware = async (ctx, next) => {
   ctx.body = { tokens };
 };
 
+const createVideoTaskHandle: Middleware = async (ctx, next) => {
+  const { site, ...req } = {
+    ...(ctx.query as any),
+    ...(ctx.request.body as any),
+    ...(ctx.params as any),
+  } as any;
+  const chat = chatModel.get(site);
+  if (!chat) {
+    throw new ComError(`not support site: ${site} `, ComError.Status.NotFound);
+  }
+  await chat.createVideoTask(ctx, req);
+};
+
+const queryVideoTaskHandle: Middleware = async (ctx, next) => {
+  const { site, ...req } = {
+    ...(ctx.query as any),
+    ...(ctx.request.body as any),
+    ...(ctx.params as any),
+  } as any;
+  const chat = chatModel.get(site);
+  if (!chat) {
+    throw new ComError(`not support site: ${site} `, ComError.Status.NotFound);
+  }
+  await chat.queryVideoTask(ctx, req);
+};
+
 export const registerApp = () => {
   const app = new Koa();
   app.use(cors());
@@ -416,6 +442,8 @@ export const registerApp = () => {
   router.post('/:site/v1/images/generations', imageGenHandle);
   router.get('/v1/tokenizer', tokenizerHandle);
   router.post('/v1/tokenizer', tokenizerHandle);
+  router.post('/v1/video/create', createVideoTaskHandle);
+  router.get('/v1/video/query', queryVideoTaskHandle);
 
   app.use(router.routes());
   const port = +(process.env.PORT || 3000);

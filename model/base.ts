@@ -16,7 +16,11 @@ import { OpenSess } from './opensess';
 import { Hypotenuse } from './hypotenuse';
 import { Midjourney } from './midjourney';
 import { Context } from 'koa';
-import { TranscriptionRequest } from './define';
+import {
+  TranscriptionRequest,
+  CreateVideoTaskRequest,
+  QueryVideoTaskRequest,
+} from './define';
 
 export interface ChatOptions {
   name: string;
@@ -183,6 +187,7 @@ export enum Site {
   Midjourney = 'midjourney',
   FreeGPT4 = 'freegpt4',
   Domo = 'domo',
+  Pika = 'pika',
   BingCopilot = 'bingcopilot',
 }
 
@@ -513,6 +518,14 @@ export class Chat {
   }
 
   public async transcriptions(ctx: Context, req: TranscriptionRequest) {
+    throw new ComError('not implement', ComError.Status.InternalServerError);
+  }
+
+  public async createVideoTask(ctx: Context, req: CreateVideoTaskRequest) {
+    throw new ComError('not implement', ComError.Status.InternalServerError);
+  }
+
+  public async queryVideoTask(ctx: Context, req: QueryVideoTaskRequest) {
     throw new ComError('not implement', ComError.Status.InternalServerError);
   }
 }

@@ -65,6 +65,7 @@ import { Midjourney } from './midjourney';
 import { FreeGPT4 } from './freegpt4';
 import { Domo } from './domo';
 import { BingCopilot } from './bingcopilot';
+import { Pika } from './pika';
 
 export class ChatModelFactory {
   private readonly modelMap: Map<Site, Chat>;
@@ -156,6 +157,7 @@ export class ChatModelFactory {
     this.modelMap.set(Site.Arkose, new Arkose({ name: Site.Arkose }));
     this.modelMap.set(Site.FreeGPT4, new FreeGPT4({ name: Site.FreeGPT4 }));
     this.modelMap.set(Site.Domo, new Domo({ name: Site.Domo }));
+    this.modelMap.set(Site.Pika, new Pika({ name: Site.Pika }));
     this.modelMap.set(
       Site.BingCopilot,
       new BingCopilot({ name: Site.BingCopilot }),

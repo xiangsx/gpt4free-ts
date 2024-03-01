@@ -25,7 +25,11 @@ import { ClaudeAPI } from './claudeapi';
 import moment from 'moment';
 import Application, { Context } from 'koa';
 import { GLM } from './glm';
-import { TranscriptionRequest } from './define';
+import {
+  CreateVideoTaskRequest,
+  QueryVideoTaskRequest,
+  TranscriptionRequest,
+} from './define';
 
 interface AutoOptions extends ChatOptions {
   ModelMap: Map<Site, Chat>;
@@ -288,5 +292,18 @@ export class Auto extends Chat {
   public async transcriptions(ctx: Context, req: TranscriptionRequest) {
     const chat = this.getRandomModel(req);
     await chat.transcriptions(ctx, req);
+  }
+
+  public async createVideoTask(ctx: Context, req: CreateVideoTaskRequest) {
+    const chat = this.getRandomModel(req);
+    await chat.createVideoTask(ctx, req);
+  }
+
+  public async queryVideoTask(
+    ctx: Application.Context,
+    req: QueryVideoTaskRequest,
+  ): Promise<void> {
+    const chat = this.getRandomModel(req);
+    await chat.queryVideoTask(ctx, req);
   }
 }
