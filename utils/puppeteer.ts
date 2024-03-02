@@ -1,6 +1,11 @@
-import normalPPT, { Browser, Page, PuppeteerLaunchOptions } from 'puppeteer';
+import normalPPT, {
+  Browser,
+  KnownDevices,
+  Page,
+  PuppeteerLaunchOptions,
+} from 'puppeteer';
 import * as fs from 'fs';
-import { ComError, shuffleArray, sleep } from './index';
+import { ComError, getRandomOne, shuffleArray, sleep } from './index';
 import { getProxy, launchChromeAndFetchWsUrl } from './proxyAgent';
 
 const puppeteer = require('puppeteer-extra');
@@ -322,4 +327,10 @@ export async function checkRecoveryMail(page: Page, email: string) {
   await page.click('input');
   await page.keyboard.type(email);
   await page.keyboard.press('Enter');
+}
+
+const devices = Object.values(KnownDevices);
+
+export function getRandomDevice() {
+  return getRandomOne(devices);
 }
