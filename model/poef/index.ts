@@ -448,9 +448,6 @@ export class Poef extends Chat implements BrowserUser<Account> {
   public static async clearContext(page: Page) {
     await page.waitForSelector(Poef.ClearSelector, { timeout: 10 * 60 * 1000 });
     await page.click(Poef.ClearSelector);
-    // new chat
-    await page.waitForSelector('aside > div > div > div > div > a');
-    await page.click('aside > div > div > div > div > a');
   }
 
   public async askStream(req: PoeChatRequest, stream: EventStream) {
