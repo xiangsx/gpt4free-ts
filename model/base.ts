@@ -201,6 +201,9 @@ export interface ChatRequest {
   secret?: string;
   images?: { width: number; height: number; url?: string }[];
   prompt_tokens?: number;
+  response_format?: {
+    type: 'json_object' | 'text';
+  };
 }
 
 export interface SpeechRequest {

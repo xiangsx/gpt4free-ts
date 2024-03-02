@@ -62,6 +62,7 @@ const ParamsList = [
   'logit_bias',
   'user',
   'gizmo_id',
+  'response_format',
 ];
 
 export class OpenAI extends Chat {
