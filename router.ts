@@ -52,9 +52,10 @@ const supportsHandler = async (ctx: Context) => {
 
 const errorHandler = async (ctx: Context, next: Next) => {
   try {
+    ctx.logger = new TraceLogger();
     await next();
   } catch (err: any) {
-    ctx.logger?.info(err.message, {
+    ctx.logger?.info(`err handle:${err.message}`, {
       trace_label: 'error',
       ...(ctx.query as any),
       ...(ctx.request.body as any),
@@ -469,10 +470,6 @@ export const registerApp = () => {
   const app = new Koa();
   app.use(cors());
   const router = new Router();
-  app.use(async (ctx, next) => {
-    ctx.logger = new TraceLogger();
-    await next();
-  });
   app.use(errorHandler);
   app.use(bodyParser({ jsonLimit: '10mb' }));
   app.use(checkApiKey);

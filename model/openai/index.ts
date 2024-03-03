@@ -8,7 +8,11 @@ import {
   TextEmbeddingRequest,
 } from '../base';
 import { AxiosInstance, AxiosRequestConfig, CreateAxiosDefaults } from 'axios';
-import { CreateAxiosProxy } from '../../utils/proxyAgent';
+import {
+  CreateAxiosProxy,
+  CreateNewAxios,
+  CreateNewPage,
+} from '../../utils/proxyAgent';
 import es from 'event-stream';
 import { ComError, Event, EventStream, parseJSON } from '../../utils';
 import { Config } from '../../utils/config';
@@ -71,7 +75,7 @@ export class OpenAI extends Chat {
 
   constructor(options?: OpenAIChatOptions) {
     super(options);
-    this.client = CreateAxiosProxy(
+    this.client = CreateNewAxios(
       {
         baseURL: options?.base_url || 'https://api.openai.com/',
         headers: {
@@ -79,8 +83,9 @@ export class OpenAI extends Chat {
           Authorization: `Bearer ${options?.api_key || ''}`,
         },
       } as CreateAxiosDefaults,
-      false,
-      !!options?.proxy,
+      {
+        proxy: options?.proxy,
+      },
     );
   }
 
