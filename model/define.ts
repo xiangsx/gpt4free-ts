@@ -1,5 +1,6 @@
 // Represents the audio file formats supported for transcription.
 import { ModelType } from './base';
+import FormData from 'form-data';
 
 type AudioFileFormat =
   | 'flac'
@@ -22,10 +23,11 @@ type TimestampGranularity = 'word' | 'segment';
 
 // Interface describing the structure for the request to create a transcription.
 export interface TranscriptionRequest {
+  form: FormData;
   /**
    * The audio file object to be transcribed. It must be one of the defined audio file formats.
    */
-  file: Blob; // Use 'Blob' type for file data in a TypeScript context
+  file: any; // Use 'Blob' type for file data in a TypeScript context
 
   /**
    * The model identifier used for transcription. Currently, only 'whisper-1' is available.

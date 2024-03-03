@@ -18,17 +18,16 @@ import {
   randomStr,
   ThroughEventStream,
 } from './utils';
-import { ChatModelFactory } from './model';
 import moment from 'moment/moment';
 import cors from '@koa/cors';
 import Router from 'koa-router';
 import bodyParser from 'koa-bodyparser';
-import { randomUUID } from 'crypto';
-import { AsyncStoreSN } from './asyncstore';
 import { chatModel } from './model';
 import { TraceLogger } from './utils/log';
-import { end } from 'cheerio/lib/api/traversing';
 import apm from 'elastic-apm-node';
+import Busboy from 'busboy';
+import { PassThrough, Stream } from 'stream';
+import FormData from 'form-data';
 
 const supportsHandler = async (ctx: Context) => {
   const result: Support[] = [];
@@ -368,6 +367,55 @@ const audioHandle: Middleware = async (ctx, next) => {
   await chat.speech(ctx, req);
 };
 
+const audioTransHandle: Middleware = async (ctx, next) => {
+  const { site, ...req } = {
+    ...(ctx.query as any),
+    ...(ctx.request.body as any),
+    ...(ctx.params as any),
+  } as any;
+
+  const fields: Record<string, any> = {}; // 用于存储需要解析的字段
+  const formData = new FormData();
+  await new Promise((resolve, reject) => {
+    const busboy = Busboy({ headers: ctx.req.headers });
+    const pt = new PassThrough();
+
+    busboy.on('field', (fieldname: string, val: string) => {
+      // 假设我们只需要解析特定的字段
+      fields[fieldname] = val;
+      formData.append(fieldname, val);
+    });
+
+    busboy.on(
+      'file',
+      (
+        fieldname: string,
+        file: Stream,
+        fileinfo: { filename: string; encoding: string; mimeType: string },
+      ) => {
+        file.pipe(pt);
+        // 直接将文件流导向 passThrough，以便可以透传
+        formData.append(fieldname, pt, {
+          filename: fileinfo.filename,
+          contentType: fileinfo.mimeType,
+        });
+      },
+    );
+
+    busboy.on('error', reject);
+    busboy.on('finish', resolve);
+    ctx.req.pipe(busboy);
+  });
+
+  // @ts-ignore
+  const chat = chatModel.get(site);
+  if (!chat) {
+    throw new ComError(`not support site: ${site} `, ComError.Status.NotFound);
+  }
+
+  await chat.transcriptions(ctx, { ...req, ...fields, form: formData });
+};
+
 const imageGenHandle: Middleware = async (ctx, next) => {
   const { site, ...req } = {
     ...(ctx.query as any),
@@ -446,6 +494,8 @@ export const registerApp = () => {
   router.post('/:site/v1/video/create', createVideoTaskHandle);
   router.get('/v1/video/query', queryVideoTaskHandle);
   router.get('/:site/v1/video/query', queryVideoTaskHandle);
+  router.post('/:site/v1/audio/transcriptions', audioTransHandle);
+  router.post('/v1/audio/transcriptions', audioTransHandle);
 
   app.use(router.routes());
   const port = +(process.env.PORT || 3000);

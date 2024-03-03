@@ -207,7 +207,13 @@ export class OpenAI extends Chat {
   async transcriptions(
     ctx: Application.Context,
     req: TranscriptionRequest,
-  ): Promise<void> {}
+  ): Promise<void> {
+    const res = await this.client.post('/v1/audio/transcriptions', req.form, {
+      headers: req.form.getHeaders(),
+      timeout: 30 * 1000,
+    });
+    ctx.body = res.data;
+  }
 
   async createVideoTask(
     ctx: Application.Context,
