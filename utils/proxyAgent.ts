@@ -7,6 +7,7 @@ import puppeteer from 'puppeteer-extra';
 import {
   Browser,
   BrowserContext,
+  Device,
   Page,
   Protocol,
   PuppeteerLaunchOptions,
@@ -18,6 +19,7 @@ import moment from 'moment';
 import {
   blockGoogleAnalysis,
   closeOtherPages,
+  getRandomDevice,
   simplifyPage,
 } from './puppeteer';
 import { v4 } from 'uuid';
@@ -143,6 +145,7 @@ let globalBrowser: Browser;
 export async function CreateNewPage(
   url: string,
   options?: {
+    emulate?: Device | boolean;
     stealth?: boolean;
     allowExtensions?: boolean;
     proxy?: string;
@@ -170,6 +173,7 @@ export async function CreateNewPage(
     stealth = true,
     recognize = true,
     block_google_analysis = false,
+    emulate = false,
   } = options || {};
   const launchOpt: PuppeteerLaunchOptions = {
     headless: process.env.DEBUG === '1' ? false : 'new',
@@ -225,6 +229,13 @@ export async function CreateNewPage(
       width: 1000 + Math.floor(Math.random() * 1000),
       height: 1080,
     });
+    if (emulate) {
+      if (typeof emulate === 'object' && user_agent in emulate) {
+        await page.emulate(emulate);
+      } else {
+        await page.emulate(getRandomDevice());
+      }
+    }
     await page.goto(url);
     if (recognize) {
       // @ts-ignore
