@@ -137,7 +137,8 @@ export class ClaudeAPI extends Chat {
       messages: req.messages,
       model: req.model,
       stream: true,
-      max_tokens: req.max_tokens || 4000,
+      max_tokens:
+        !req.max_tokens || req.max_tokens > 4096 ? 4096 : req.max_tokens,
     };
     for (const key in data) {
       if (MessagesParamsList.indexOf(key) === -1) {
