@@ -82,7 +82,7 @@ export class OpenAI extends Chat {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${options?.api_key || ''}`,
         },
-        timeout: 60 * 1000,
+        timeout: 120 * 1000,
       } as CreateAxiosDefaults,
       {
         proxy: options?.proxy,
