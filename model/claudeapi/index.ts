@@ -139,7 +139,7 @@ export class ClaudeAPI extends Chat {
         continue;
       }
       const v = data.messages[idx];
-      const lastV = data.messages[idx];
+      const lastV = data.messages[idx - 1];
       if (v.role === lastV.role) {
         if (lastV.role === 'assistant') {
           newMessages.push({ role: 'user', content: '..' });
