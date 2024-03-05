@@ -51,18 +51,9 @@ interface ClaudeChatOptions extends ChatOptions {
 const MessagesParamsList = [
   'model',
   'messages',
-  'functions',
-  'function_call',
-  'temperature',
-  'top_p',
-  'n',
   'stream',
   'stop',
   'max_tokens',
-  'presence_penalty',
-  'frequency_penalty',
-  'logit_bias',
-  'user',
 ];
 
 const ParamsList = [
