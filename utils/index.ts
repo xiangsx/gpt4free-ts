@@ -609,6 +609,13 @@ export function extractHttpFileURLs(text: string): string[] {
   return text.match(urlRegex) || [];
 }
 
+export function extractHttpImageFileURLs(text: string): string[] {
+  // 正则表达式匹配以 "https" 开头，并在空格、"]"、或 ")" 之前结束的 带有图片文件后缀的 URL
+  const urlRegex =
+    /https?:\/\/[^\s\]\)]*\.(bmp|gif|heic|heif|ico|jpeg|jpg|png|svg|tif|tiff|webp)(?=\s|\]|\)|\n|\t|$)/g;
+  return text.match(urlRegex) || [];
+}
+
 // 过滤出符合条件的行
 export function grepStr(v: string, filter: string | RegExp): string[] {
   const lines = v.split('\n');

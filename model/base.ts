@@ -3,6 +3,7 @@ import {
   ErrorData,
   Event,
   EventStream,
+  extractHttpFileURLs,
   getTokenCount,
   MessageData,
   OpenaiEventStream,
@@ -56,11 +57,11 @@ export type Message = {
 
 export function getImagesFromContent(content: MessageContent): string[] {
   if (typeof content === 'string') {
-    return [];
+    return [...extractHttpFileURLs(content)];
   }
   return content.reduce((prev: string[], cur) => {
     if (typeof cur === 'string') {
-      return prev;
+      return [...prev, ...extractHttpFileURLs(cur)];
     }
     if (cur.type === 'image_url') {
       if (typeof cur.image_url === 'string') {
@@ -68,7 +69,7 @@ export function getImagesFromContent(content: MessageContent): string[] {
       }
       return [...prev, cur.image_url!.url];
     }
-    return prev;
+    return [...prev, ...extractHttpFileURLs(cur.text || '')];
   }, []);
 }
 
