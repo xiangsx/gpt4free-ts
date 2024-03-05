@@ -140,6 +140,11 @@ export class ClaudeAPI extends Chat {
       max_tokens:
         !req.max_tokens || req.max_tokens > 4096 ? 4096 : req.max_tokens,
     };
+    for (const v of data.messages) {
+      if (v.role === 'system') {
+        v.role = 'user';
+      }
+    }
     for (const key in data) {
       if (MessagesParamsList.indexOf(key) === -1) {
         delete (data as any)[key];
