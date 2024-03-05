@@ -1,6 +1,18 @@
-import { Chat, ChatOptions, ChatRequest, Message, ModelType } from '../base';
+import {
+  Chat,
+  ChatOptions,
+  ChatRequest,
+  contentToString,
+  getImagesFromContent,
+  Message,
+  ModelType,
+} from '../base';
 import { AxiosInstance, AxiosRequestConfig, CreateAxiosDefaults } from 'axios';
-import { CreateAxiosProxy } from '../../utils/proxyAgent';
+import {
+  CreateAxiosProxy,
+  CreateNewAxios,
+  downloadImageToBase64,
+} from '../../utils/proxyAgent';
 import es from 'event-stream';
 import { ComError, Event, EventStream, parseJSON } from '../../utils';
 import { AsyncStoreSN } from '../../asyncstore';
@@ -28,6 +40,7 @@ interface MessagesReq extends ChatRequest {
   top_p?: number;
   n?: number;
   stream?: boolean;
+  system?: string;
   stop?: string | string[];
   max_tokens?: number;
   presence_penalty?: number;
@@ -69,7 +82,7 @@ export class ClaudeAPI extends Chat {
 
   constructor(options?: ClaudeChatOptions) {
     super(options);
-    this.client = CreateAxiosProxy(
+    this.client = CreateNewAxios(
       {
         baseURL: options?.base_url || 'https://api.anthropic.com/',
         headers: {
@@ -80,8 +93,9 @@ export class ClaudeAPI extends Chat {
           'anthropic-version': '2023-06-01',
         },
       } as CreateAxiosDefaults,
-      false,
-      !!options?.proxy,
+      {
+        proxy: options?.proxy,
+      },
     );
   }
 
@@ -124,12 +138,42 @@ export class ClaudeAPI extends Chat {
       messages: req.messages,
       model: req.model,
       stream: true,
+      system: '',
       max_tokens:
         !req.max_tokens || req.max_tokens > 4096 ? 4096 : req.max_tokens,
     };
     for (const v of data.messages) {
       if (v.role === 'system') {
         v.role = 'user';
+        data.system = contentToString(v.content);
+        continue;
+      }
+      const images = getImagesFromContent(v.content);
+      if (images.length > 0) {
+        let text = contentToString(v.content);
+        v.content = [];
+        // 过滤掉图片链接
+        for (const image of images) {
+          text = text.replace(image, '');
+          if (image.indexOf('base64') > -1) {
+            const media_type = image.split(';')[0].split(':')[1];
+            const data = image.split(',')[1];
+            v.content.push({
+              // @ts-ignore
+              type: 'image',
+              source: { type: 'base64', media_type, data },
+            });
+          } else {
+            const { mimeType: media_type, base64Data: data } =
+              await downloadImageToBase64(image);
+            v.content.push({
+              // @ts-ignore
+              type: 'image',
+              source: { type: 'base64', media_type, data },
+            });
+          }
+        }
+        v.content.push({ type: 'text', text });
       }
     }
     const newMessages: Message[] = [];

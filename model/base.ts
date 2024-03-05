@@ -54,6 +54,24 @@ export type Message = {
   content: MessageContent;
 };
 
+export function getImagesFromContent(content: MessageContent): string[] {
+  if (typeof content === 'string') {
+    return [];
+  }
+  return content.reduce((prev: string[], cur) => {
+    if (typeof cur === 'string') {
+      return prev;
+    }
+    if (cur.type === 'image_url') {
+      if (typeof cur.image_url === 'string') {
+        return [...prev, cur.image_url];
+      }
+      return [...prev, cur.image_url!.url];
+    }
+    return prev;
+  }, []);
+}
+
 export enum ModelType {
   GPT3p5Turbo = 'gpt-3.5-turbo',
   Assistant = 'assistant',
