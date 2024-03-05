@@ -56,13 +56,7 @@ interface ClaudeChatOptions extends ChatOptions {
   model_map?: { [key: string]: ModelType };
 }
 
-const MessagesParamsList = [
-  'model',
-  'messages',
-  'stream',
-  'stop',
-  'max_tokens',
-];
+const MessagesParamsList = ['model', 'messages', 'stream', 'max_tokens'];
 
 const ParamsList = [
   'model',
@@ -173,7 +167,9 @@ export class ClaudeAPI extends Chat {
             });
           }
         }
-        v.content.push({ type: 'text', text });
+        v.content.push({ type: 'text', text: text || '..' });
+      } else {
+        v.content = contentToString(v.content) || '..';
       }
     }
     const newMessages: Message[] = [];
