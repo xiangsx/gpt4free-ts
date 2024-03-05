@@ -1,14 +1,9 @@
-import { Chat, ChatOptions, ChatRequest, ModelType } from '../base';
+import { Chat, ChatOptions, ChatRequest, Message, ModelType } from '../base';
 import { AxiosInstance, AxiosRequestConfig, CreateAxiosDefaults } from 'axios';
 import { CreateAxiosProxy } from '../../utils/proxyAgent';
 import es from 'event-stream';
 import { ComError, Event, EventStream, parseJSON } from '../../utils';
 import { AsyncStoreSN } from '../../asyncstore';
-
-interface Message {
-  role: string;
-  content: string;
-}
 
 interface RealReq {
   model: string;
@@ -71,6 +66,7 @@ const ParamsList = [
 export class ClaudeAPI extends Chat {
   private client: AxiosInstance;
   protected options?: ClaudeChatOptions;
+
   constructor(options?: ClaudeChatOptions) {
     super(options);
     this.client = CreateAxiosProxy(
@@ -136,6 +132,24 @@ export class ClaudeAPI extends Chat {
         v.role = 'user';
       }
     }
+    const newMessages: Message[] = [];
+    for (let idx = 0; idx < data.messages.length; idx++) {
+      if (idx === 0) {
+        newMessages.push(data.messages[idx]);
+        continue;
+      }
+      const v = data.messages[idx];
+      const lastV = data.messages[idx];
+      if (v.role === lastV.role) {
+        if (lastV.role === 'assistant') {
+          newMessages.push({ role: 'user', content: '..' });
+        } else {
+          newMessages.push({ role: 'assistant', content: '..' });
+        }
+      }
+      newMessages.push(v);
+    }
+    data.messages = newMessages;
     for (const key in data) {
       if (MessagesParamsList.indexOf(key) === -1) {
         delete (data as any)[key];
