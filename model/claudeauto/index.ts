@@ -1,11 +1,13 @@
 import { Chat, ChatOptions, ChatRequest, ModelType } from '../base';
-import { EventStream } from '../../utils';
+import { Event, EventStream, parseJSON } from '../../utils';
 import { Pool } from '../../utils/pool';
 import { Account } from './define';
 import { Child } from './child';
 import { Config } from '../../utils/config';
 import moment from 'moment';
 import { v4 } from 'uuid';
+import es from 'event-stream';
+import { clearTimeout } from 'node:timers';
 
 interface RealReq {
   model: string;
@@ -94,6 +96,61 @@ export class ClaudeAuto extends Chat {
 
   public async askStream(req: ChatRequest, stream: EventStream) {
     const child = await this.pool.pop();
-    await child.askMessagesStream(req, stream);
+
+    try {
+      const pt = await child.askMessagesStream(req);
+      this.logger.info('recv res oik');
+      pt.pipe(es.split(/\r?\n\r?\n/)).pipe(
+        es.map(async (chunk: any, cb: any) => {
+          this.logger.debug(chunk);
+          let dataStr;
+          if (chunk.indexOf('event: ') > -1) {
+            dataStr = chunk.split('\n')[1]?.replace('data: ', '');
+          } else {
+            dataStr = chunk.replace('data: ', '');
+          }
+          if (!dataStr) {
+            return;
+          }
+          const data = parseJSON<{
+            content_block: { text: string };
+            delta: { text: string };
+            error: { type: string; message: 'string' };
+            type:
+              | 'error'
+              | 'message_stop'
+              | 'message_delta'
+              | 'content_block_stop'
+              | 'content_block_start';
+          }>(dataStr, {} as any);
+          if (data.error) {
+            stream.write(Event.error, { error: data.error.message });
+            stream.end();
+            return;
+          }
+          if (data.delta && data.delta.text) {
+            stream.write(Event.message, { content: data.delta.text });
+            return;
+          }
+          if (data.content_block && data.content_block.text) {
+            stream.write(Event.message, { content: data.content_block.text });
+            return;
+          }
+        }),
+      );
+      pt.on('close', () => {
+        stream.write(Event.done, { content: '' });
+        stream.end();
+        this.logger.info('Recv ok');
+      });
+    } catch (e: any) {
+      this.logger.error(`claude messages failed: ${e.message}`);
+      stream.write(Event.error, { error: e.message, status: e.status });
+      stream.end();
+      if (e.response && e.response.status === 429) {
+        child.destroy({ delFile: false, delMem: true });
+        child.update({ refresh_unix: moment().unix() + 30 });
+      }
+    }
   }
 }

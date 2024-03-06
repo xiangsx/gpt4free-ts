@@ -15,6 +15,7 @@ import es from 'event-stream';
 import { Config } from '../../utils/config';
 import { AwsLambda } from 'elastic-apm-node/types/aws-lambda';
 import moment from 'moment';
+import { clearTimeout } from 'node:timers';
 
 export class Child extends ComChild<Account> {
   private client = CreateNewAxios(
@@ -60,7 +61,7 @@ export class Child extends ComChild<Account> {
     console.log('check chat ok');
   }
 
-  async askMessagesStream(req: MessagesReq, stream: EventStream) {
+  async askMessagesStream(req: MessagesReq) {
     const data: MessagesReq = {
       ...req,
       messages: req.messages,
@@ -129,51 +130,12 @@ export class Child extends ComChild<Account> {
         delete (data as any)[key];
       }
     }
-    try {
-      const res = await this.client.post('/v1/messages', data, {
-        responseType: 'stream',
-        headers: {
-          'x-api-key': this.info.apikey,
-        },
-      } as AxiosRequestConfig);
-      res.data.pipe(es.split(/\r?\n\r?\n/)).pipe(
-        es.map(async (chunk: any, cb: any) => {
-          const dataStr = chunk.split('\n')[1]?.replace('data: ', '');
-          if (!dataStr) {
-            return;
-          }
-          if (dataStr === '[DONE]') {
-            return;
-          }
-          const data = parseJSON<{
-            content_block: { text: string };
-            delta: { text: string };
-            type:
-              | 'message_stop'
-              | 'message_delta'
-              | 'content_block_stop'
-              | 'content_block_start';
-          }>(dataStr, {} as any);
-          if (data.delta) {
-            stream.write(Event.message, { content: data.delta.text });
-            return;
-          }
-          if (data.content_block) {
-            stream.write(Event.message, { content: data.content_block.text });
-            return;
-          }
-        }),
-      );
-      res.data.on('close', () => {
-        stream.write(Event.done, { content: '' });
-        stream.end();
-        this.release();
-        this.logger.info('Recv ok');
-      });
-    } catch (e: any) {
-      this.logger.error(`claude messages failed: ${e.message}`);
-      stream.write(Event.error, { error: e.message, status: e.status });
-      stream.end();
-    }
+    const res = await this.client.post('/v1/messages', data, {
+      responseType: 'stream',
+      headers: {
+        'x-api-key': this.info.apikey,
+      },
+    } as AxiosRequestConfig);
+    return res.data;
   }
 }
