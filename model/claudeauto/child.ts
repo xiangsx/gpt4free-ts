@@ -14,6 +14,7 @@ import { AxiosRequestConfig, CreateAxiosDefaults } from 'axios';
 import es from 'event-stream';
 import { Config } from '../../utils/config';
 import { AwsLambda } from 'elastic-apm-node/types/aws-lambda';
+import moment from 'moment';
 
 export class Child extends ComChild<Account> {
   private client = CreateNewAxios(
@@ -37,6 +38,13 @@ export class Child extends ComChild<Account> {
       throw new Error('apikey empty');
     }
     await this.checkChat();
+  }
+
+  use(): void {
+    this.update({
+      lastUseTime: moment().unix(),
+      useCount: (this.info.useCount || 0) + 1,
+    });
   }
 
   async checkChat() {
@@ -163,7 +171,6 @@ export class Child extends ComChild<Account> {
         this.logger.info('Recv ok');
       });
     } catch (e: any) {
-      this.release();
       this.logger.error(`claude messages failed: ${e.message}`);
       stream.write(Event.error, { error: e.message, status: e.status });
       stream.end();
