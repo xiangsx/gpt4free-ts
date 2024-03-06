@@ -164,18 +164,6 @@ export class Child extends ComChild<Account> {
       });
     } catch (e: any) {
       this.release();
-      if (e.response && e.response.data) {
-        e.message = await new Promise((resolve, reject) => {
-          e.response.data.on('data', (chunk: any) => {
-            const content = chunk.toString();
-            this.logger.error(content);
-            resolve(
-              parseJSON<{ error?: { message?: string } }>(content, {})?.error
-                ?.message || content,
-            );
-          });
-        });
-      }
       this.logger.error(`claude messages failed: ${e.message}`);
       stream.write(Event.error, { error: e.message, status: e.status });
       stream.end();
