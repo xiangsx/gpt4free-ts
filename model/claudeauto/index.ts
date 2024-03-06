@@ -124,6 +124,7 @@ export class ClaudeAuto extends Chat {
               | 'content_block_start';
           }>(dataStr, {} as any);
           if (data.error) {
+            this.logger.error(`Recv error: ${data.error.message}`);
             stream.write(Event.error, { error: data.error.message });
             stream.end();
             return;
