@@ -160,6 +160,7 @@ export class Child extends ComChild<Account> {
         stream.write(Event.done, { content: '' });
         stream.end();
         this.release();
+        this.logger.info('Recv ok');
       });
     } catch (e: any) {
       this.release();
