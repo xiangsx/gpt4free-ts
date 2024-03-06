@@ -147,7 +147,7 @@ export class ClaudeAuto extends Chat {
     } catch (e: any) {
       this.logger.error(`claude messages failed: ${e.message}`);
       if (e.response) {
-        e.response.on?.('data', (v: any) => {
+        e.response.data?.on?.('data', (v: any) => {
           this.logger.error(v.toString());
         });
       }
