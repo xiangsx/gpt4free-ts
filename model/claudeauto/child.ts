@@ -159,8 +159,10 @@ export class Child extends ComChild<Account> {
       res.data.on('close', () => {
         stream.write(Event.done, { content: '' });
         stream.end();
+        this.release();
       });
     } catch (e: any) {
+      this.release();
       if (e.response && e.response.data) {
         e.message = await new Promise((resolve, reject) => {
           e.response.data.on('data', (chunk: any) => {
