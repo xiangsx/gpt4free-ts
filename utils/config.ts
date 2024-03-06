@@ -53,6 +53,10 @@ interface ConfigData {
     stable_proxy_list: string[];
     proxy_list: string[];
   };
+  claudeauto?: SizeCfg & {
+    apikey_list: string[];
+    proxy_list: string[];
+  };
   freegpt4: SizeCfg & MailCfg;
   bingcopilot: SizeCfg;
   gmail_list: { email: string; password: string; recovery_email: string }[];

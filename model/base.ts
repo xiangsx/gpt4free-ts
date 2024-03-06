@@ -216,6 +216,7 @@ export enum Site {
   Domo = 'domo',
   Pika = 'pika',
   BingCopilot = 'bingcopilot',
+  ClaudeAuto = 'claudeauto',
 }
 
 export interface ChatRequest {
