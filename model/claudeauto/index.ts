@@ -145,6 +145,11 @@ export class ClaudeAuto extends Chat {
       });
     } catch (e: any) {
       this.logger.error(`claude messages failed: ${e.message}`);
+      if (e.response) {
+        e.response.on?.('data', (v: any) => {
+          this.logger.error(v.toString());
+        });
+      }
       stream.write(Event.error, { error: e.message, status: e.status });
       stream.end();
       if (e.response && e.response.status === 429) {
