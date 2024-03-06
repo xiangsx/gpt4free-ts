@@ -3,19 +3,13 @@ import {
   ErrorData,
   Event,
   EventStream,
-  extractHttpFileURLs,
+  extractHttpImageFileURLs,
   getTokenCount,
   MessageData,
-  OpenaiEventStream,
   removeRandomChars,
 } from '../utils';
 import winston from 'winston';
 import { newLogger } from '../utils/log';
-import { ClaudeChat } from './claude';
-import exp from 'constants';
-import { OpenSess } from './opensess';
-import { Hypotenuse } from './hypotenuse';
-import { Midjourney } from './midjourney';
 import { Context } from 'koa';
 import {
   TranscriptionRequest,
@@ -57,11 +51,11 @@ export type Message = {
 
 export function getImagesFromContent(content: MessageContent): string[] {
   if (typeof content === 'string') {
-    return [...extractHttpFileURLs(content)];
+    return [...extractHttpImageFileURLs(content)];
   }
   return content.reduce((prev: string[], cur) => {
     if (typeof cur === 'string') {
-      return [...prev, ...extractHttpFileURLs(cur)];
+      return [...prev, ...extractHttpImageFileURLs(cur)];
     }
     if (cur.type === 'image_url') {
       if (typeof cur.image_url === 'string') {
@@ -69,7 +63,7 @@ export function getImagesFromContent(content: MessageContent): string[] {
       }
       return [...prev, cur.image_url!.url];
     }
-    return [...prev, ...extractHttpFileURLs(cur.text || '')];
+    return [...prev, ...extractHttpImageFileURLs(cur.text || '')];
   }, []);
 }
 
