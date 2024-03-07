@@ -48,6 +48,9 @@ export class Child extends ComChild<Account> {
       ) {
         this.update({ low_credit: true });
       }
+      if (err?.response?.status === 401) {
+        this.update({ banned: true });
+      }
       this.logger.error(
         `init error: ${err.message} ${JSON.stringify(err.response?.data)}`,
       );
