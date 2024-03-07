@@ -746,6 +746,14 @@ export class WebFetchProxy {
 
 const pipelinePromisified = promisify(pipeline);
 
+export function getDownloadClient(local: boolean) {
+  if (local) {
+    return CreateNewAxios({}, { proxy: false });
+  } else {
+    return CreateAxiosProxy({}, true);
+  }
+}
+
 export async function downloadImageToBase64(fileUrl: string): Promise<{
   base64Data: string;
   mimeType: string;
@@ -762,19 +770,12 @@ export async function downloadImageToBase64(fileUrl: string): Promise<{
     let ok = false;
     for (let i = 0; i < 3; i++) {
       try {
-        const response = await CreateNewAxios(
-          {},
-          {
-            proxy: local
-              ? false
-              : getRandomOne(Config.config.proxy_pool.stable_proxy_list),
-          },
-        ).get(fileUrl, {
+        const response = await getDownloadClient(local).get(fileUrl, {
           responseType: 'stream',
           headers: {
             'User-Agent': randomUserAgent(),
           },
-          timeout: 15 * 1000,
+          timeout: 30 * 1000,
         });
         let writer = createWriteStream(tempFilePath);
         await pipelinePromisified(response.data, writer);
