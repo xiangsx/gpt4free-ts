@@ -750,7 +750,7 @@ export function getDownloadClient(local: boolean) {
   if (local) {
     return CreateNewAxios({}, { proxy: false });
   } else {
-    return CreateAxiosProxy({}, true);
+    return CreateAxiosProxy({}, false, true);
   }
 }
 
