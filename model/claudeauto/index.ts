@@ -148,7 +148,14 @@ export class ClaudeAuto extends Chat {
       this.logger.error(`claude messages failed: ${e.message}`);
       if (e.response) {
         e.response.data?.on?.('data', (v: any) => {
-          this.logger.error(`${e.response.status} ${v.toString()}`);
+          const msg = v.toString();
+          this.logger.error(
+            `${child.info.apikey} ${e.response.status} ${v.toString()}`,
+          );
+          if (msg.indexOf('Your credit balance is too low') > -1) {
+            child.update({ low_credit: true });
+            child.destroy({ delFile: true, delMem: true });
+          }
         });
       }
       stream.write(Event.error, { error: e.message, status: e.status });
