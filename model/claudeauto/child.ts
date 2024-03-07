@@ -71,8 +71,8 @@ export class Child extends ComChild<Account> {
       max_tokens:
         !req.max_tokens || req.max_tokens > 4096 ? 4096 : req.max_tokens,
     };
-    if (req.messages[0].role !== 'user') {
-      req.messages = [{ role: 'user', content: '..' }, ...req.messages];
+    if (data.messages[0].role !== 'user') {
+      data.messages = [{ role: 'user', content: '..' }, ...data.messages];
     }
     for (const v of data.messages) {
       if (v.role === 'system') {

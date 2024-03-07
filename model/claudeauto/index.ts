@@ -44,7 +44,7 @@ export class ClaudeAuto extends Chat {
       return true;
     },
     {
-      delay: 3000,
+      delay: 1000,
       serial: () => Config.config.claudeauto?.serial || 1,
       needDel: (info) => !info.apikey || !!info.banned || !!info.low_credit,
       preHandleAllInfos: async (allInfos) => {
