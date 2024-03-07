@@ -35,10 +35,24 @@ export class Child extends ComChild<Account> {
   );
 
   async init(): Promise<void> {
-    if (!this.info.apikey) {
-      throw new Error('apikey empty');
+    try {
+      if (!this.info.apikey) {
+        throw new Error('apikey empty');
+      }
+      await this.checkChat();
+    } catch (err: any) {
+      if (
+        err.response?.data?.error?.message?.indexOf?.(
+          'Your credit balance is too low',
+        ) > -1
+      ) {
+        this.update({ low_credit: true });
+      }
+      this.logger.error(
+        `init error: ${err.message} ${JSON.stringify(err.response?.data)}`,
+      );
+      throw err;
     }
-    await this.checkChat();
   }
 
   use(): void {
