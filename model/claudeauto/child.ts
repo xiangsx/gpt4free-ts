@@ -48,6 +48,13 @@ export class Child extends ComChild<Account> {
       ) {
         this.update({ low_credit: true });
       }
+      if (
+        err.response?.data?.error?.message?.indexOf?.(
+          'This organization has been disabled',
+        ) > -1
+      ) {
+        this.update({ banned: true });
+      }
       if (err?.response?.status === 401) {
         this.update({ banned: true });
       }
