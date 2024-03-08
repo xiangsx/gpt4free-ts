@@ -748,9 +748,9 @@ const pipelinePromisified = promisify(pipeline);
 
 export function getDownloadClient(local: boolean) {
   if (local) {
-    return CreateNewAxios({}, { proxy: false });
+    return CreateNewAxios({ timeout: 15 * 1000 }, { proxy: false });
   } else {
-    return CreateAxiosProxy({}, false, true);
+    return CreateAxiosProxy({ timeout: 15 * 1000 }, false, true);
   }
 }
 
