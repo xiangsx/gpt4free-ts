@@ -91,7 +91,7 @@ export class Midjourney extends Chat {
   support(model: ModelType): number {
     switch (model) {
       case ModelType.MJChat:
-        return 28000;
+        return 15000;
       default:
         return 0;
     }
@@ -431,9 +431,7 @@ export class Midjourney extends Chat {
           }
         },
       );
-      const content = req.messages[req.messages.length - 1].content;
-      req.messages[req.messages.length - 1].content =
-        MJPrompt + '\n' + 'user: ' + content;
+      req.messages = [{ role: 'system', content: MJPrompt }, ...req.messages];
       await auto?.askStream(
         {
           ...req,
