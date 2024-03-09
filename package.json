@@ -26,7 +26,9 @@
     "@types/koa__cors": "^4.0.0",
     "@types/node": "^18.16.3",
     "@types/opencc-js": "^1.0.1",
+    "@types/pdf-parse": "^1.1.4",
     "@types/string-similarity": "^4.0.0",
+    "@types/textract": "^2.4.5",
     "@types/turndown": "^5.0.1",
     "@types/uuid": "^9.0.1",
     "@types/ws": "^8.5.5",
@@ -48,6 +50,7 @@
     "chalk": "^4.1.2",
     "cheerio": "^1.0.0-rc.12",
     "chrome-remote-interface": "^0.33.0",
+    "docx": "^8.5.0",
     "dotenv": "^16.0.3",
     "elastic-apm-node": "^4.4.1",
     "event-stream": "^4.0.1",
@@ -67,16 +70,19 @@
     "koa-router": "^12.0.0",
     "moment": "^2.29.4",
     "opencc-js": "^1.0.5",
+    "pdf-parse": "^1.1.1",
     "puppeteer": "^20.1.2",
     "puppeteer-extra": "^3.3.6",
     "puppeteer-extra-plugin-stealth": "^2.11.2",
     "string-similarity": "^4.0.4",
+    "textract": "^2.5.0",
     "tiktoken": "^1.0.13",
     "tls-client": "^0.0.5",
     "turndown": "^7.1.2",
     "user-agents": "^1.0.1367",
     "uuid": "^9.0.0",
     "winston": "^3.10.0",
-    "ws": "^8.13.0"
+    "ws": "^8.13.0",
+    "xlsx": "^0.18.5"
   }
 }

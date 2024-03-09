@@ -11,14 +11,16 @@ import * as OpenCC from 'opencc-js';
 import { ModelType } from '../model/base';
 import moment, { max } from 'moment';
 import { Config } from './config';
-import path from 'path';
 import { v4 } from 'uuid';
 import fs, { createWriteStream } from 'fs';
-import fileType from 'file-type';
 import sizeOf from 'image-size';
-import { CreateAxiosProxy, CreateNewAxios } from './proxyAgent';
+import { CreateNewAxios } from './proxyAgent';
 import { promisify } from 'util';
 import FormData from 'form-data';
+import textract from 'textract';
+import pdfParse from 'pdf-parse';
+import * as XLSX from 'xlsx';
+import path from 'path';
 
 const turndownService = new TurndownService({ codeBlockStyle: 'fenced' });
 
@@ -616,6 +618,25 @@ export function extractHttpImageFileURLs(text: string): string[] {
   return text.match(urlRegex) || [];
 }
 
+export function isImageURL(url: string): boolean {
+  const imageExtensions = [
+    'bmp',
+    'gif',
+    'heic',
+    'heif',
+    'ico',
+    'jpeg',
+    'jpg',
+    'png',
+    'svg',
+    'tif',
+    'tiff',
+    'webp',
+  ];
+  const extension = url.split('.').pop()?.toLowerCase();
+  return extension ? imageExtensions.includes(extension) : false;
+}
+
 // 过滤出符合条件的行
 export function grepStr(v: string, filter: string | RegExp): string[] {
   const lines = v.split('\n');
@@ -730,6 +751,7 @@ export function getFilenameFromContentDisposition(content: string = '') {
   }
   return '';
 }
+
 const pipelinePromisified = promisify(pipeline);
 
 const extMimeMapList: [string, string][] = [
@@ -956,5 +978,35 @@ export async function downloadAndUploadCDN(url: string): Promise<string> {
     return newURL || url;
   } catch (e) {
     return url;
+  }
+}
+
+export async function extractFileToText(fileURL: string) {
+  const { outputFilePath, mime } = await downloadFile(fileURL);
+  return parseFileToText(outputFilePath);
+}
+
+export async function parseFileToText(filePath: string) {
+  const ext = path.extname(filePath).toLowerCase();
+  try {
+    switch (ext) {
+      case '.pdf':
+        const pdfData = fs.readFileSync(filePath);
+        const pdfText = await pdfParse(pdfData);
+        return pdfText.text;
+      case '.xlsx':
+        const workbook = XLSX.readFile(filePath);
+        let sheetText = '';
+        for (const sheetName of workbook.SheetNames) {
+          const sheet = workbook.Sheets[sheetName];
+          sheetText += XLSX.utils.sheet_to_csv(sheet);
+        }
+        return sheetText;
+      default:
+        return fs.readFileSync(filePath, 'utf8');
+    }
+  } catch (err) {
+    console.error('Error parsing file:', err);
+    return '';
   }
 }

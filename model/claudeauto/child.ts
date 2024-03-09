@@ -4,18 +4,21 @@ import {
   ComError,
   Event,
   EventStream,
+  extractFileToText,
   getRandomOne,
+  isImageURL,
   parseJSON,
 } from '../../utils';
-import { contentToString, getImagesFromContent, Message } from '../base';
+import {
+  contentToString,
+  getFilesFromContent,
+  getImagesFromContent,
+  Message,
+} from '../base';
 import { CreateNewAxios, downloadImageToBase64 } from '../../utils/proxyAgent';
-import { AsyncStoreSN } from '../../asyncstore';
 import { AxiosRequestConfig, CreateAxiosDefaults } from 'axios';
-import es from 'event-stream';
 import { Config } from '../../utils/config';
-import { AwsLambda } from 'elastic-apm-node/types/aws-lambda';
 import moment from 'moment';
-import { clearTimeout } from 'node:timers';
 
 export class Child extends ComChild<Account> {
   private client = CreateNewAxios(
@@ -82,7 +85,7 @@ export class Child extends ComChild<Account> {
     if (res.data.error) {
       throw new ComError(JSON.stringify(res.data));
     }
-    console.log('check chat ok');
+    this.logger.info('check chat ok');
   }
 
   async askMessagesStream(req: MessagesReq) {
@@ -104,9 +107,39 @@ export class Child extends ComChild<Account> {
         data.system = contentToString(v.content);
         continue;
       }
-      const images = getImagesFromContent(v.content);
+      const files = getFilesFromContent(v.content);
+      const images: string[] = [];
+      const docs: string[] = [];
+      for (const v of files) {
+        if (isImageURL(v)) {
+          images.push(v);
+        } else {
+          docs.push(v);
+        }
+      }
+      let text = contentToString(v.content);
+      if (docs.length > 0) {
+        for (const doc of docs) {
+          text = text.replace(doc, '');
+        }
+        const fileTexts = await Promise.all(
+          docs.map((v) => extractFileToText(v)),
+        );
+        text = `Here are some documents for you to reference for your task: \n${fileTexts
+          .map(
+            (v, idx) => `<documents>
+<document index="${idx}">
+<source>
+${docs[idx]}
+</source>
+<document_content>
+${v}
+</document_content>
+</document>`,
+          )
+          .join('\n')}\n${text}`;
+      }
       if (images.length > 0) {
-        let text = contentToString(v.content);
         v.content = [];
         // 过滤掉图片链接
         for (const image of images) {
@@ -131,7 +164,7 @@ export class Child extends ComChild<Account> {
         }
         v.content.push({ type: 'text', text: text || '..' });
       } else {
-        v.content = contentToString(v.content) || '..';
+        v.content = text;
       }
     }
     const newMessages: Message[] = [];

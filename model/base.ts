@@ -3,6 +3,7 @@ import {
   ErrorData,
   Event,
   EventStream,
+  extractHttpFileURLs,
   extractHttpImageFileURLs,
   getTokenCount,
   MessageData,
@@ -64,6 +65,24 @@ export function getImagesFromContent(content: MessageContent): string[] {
       return [...prev, cur.image_url!.url];
     }
     return [...prev, ...extractHttpImageFileURLs(cur.text || '')];
+  }, []);
+}
+
+export function getFilesFromContent(content: MessageContent): string[] {
+  if (typeof content === 'string') {
+    return [...extractHttpFileURLs(content)];
+  }
+  return content.reduce((prev: string[], cur) => {
+    if (typeof cur === 'string') {
+      return [...prev, ...extractHttpFileURLs(cur)];
+    }
+    if (cur.type === 'image_url') {
+      if (typeof cur.image_url === 'string') {
+        return [...prev, cur.image_url];
+      }
+      return [...prev, cur.image_url!.url];
+    }
+    return [...prev, ...extractHttpFileURLs(cur.text || '')];
   }, []);
 }
 
