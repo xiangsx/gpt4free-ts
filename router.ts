@@ -219,11 +219,12 @@ const AskStreamHandle: (ESType: new () => EventStream) => Middleware =
                     break;
                   }
                   if (!ctx.body) {
-                    ctx.set({
-                      'Content-Type': 'text/event-stream;charset=utf-8',
-                      'Cache-Control': 'no-cache',
-                      Connection: 'keep-alive',
-                    });
+                    ctx.append(
+                      'Content-Type',
+                      'text/event-stream;charset=utf-8',
+                    );
+                    ctx.append('Cache-Control', 'no-cache');
+                    ctx.append('Connection', 'keep-alive');
                     ctx.body = stream.stream();
                     ctx.logger.info('recv', {
                       model,
