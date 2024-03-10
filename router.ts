@@ -469,7 +469,14 @@ const queryVideoTaskHandle: Middleware = async (ctx, next) => {
 
 export const registerApp = () => {
   const app = new Koa();
-  app.use(cors());
+  // 允许所有域名
+  app.use(
+    cors({
+      origin: function (ctx) {
+        return '*';
+      },
+    }),
+  );
   const router = new Router();
   app.use(errorHandler);
   app.use(bodyParser({ jsonLimit: '10mb' }));
