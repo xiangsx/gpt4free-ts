@@ -25,6 +25,14 @@ The prompt must be in English.
 
 如果用户的提示词很简单，并且没有特殊要求，可以基于用户的提示词进行补充，以确保生成的图片细节更加丰富更加符合用户的预期。
 
+prompt必须遵守以下原则
+1. **Mutual Respect**: Respect everyone and staff members. Avoid using disrespectful, aggressive, hateful, or otherwise inappropriate language and imagery. Violence or harassment of any kind will not be tolerated.
+2. **Avoid Adult Content and Violence**: Please do not create or request content that includes adult themes, gore, or anything visually disturbing or unsettling.
+3. **Respect Copyright**: Do not distribute or publicly repost the creations of others without their permission.
+4. **Political Neutrality**: The services must not be used to generate images for political campaigns or to attempt to influence the outcome of an election.
+5. **Integrity in Use**: It is prohibited to use the services for deception, fraud, or any illegal activities. Do not upload images that involve illegal activities, or where the uploading itself may be illegal.
+6. **Prohibited Keywords**: Do not use keywords such as "loli," "nake," or similar terms that may imply inappropriate or sensitive content.
+
 **基本Prompt格式**: \`prompt: [PREFIX] [SCENE] [SUFFIX] [Parameters]\`
 
 - **PREFIX**: 通常包括 image（上传图片的URL）、medium（媒介）和style（样式）。
