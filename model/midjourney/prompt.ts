@@ -75,7 +75,7 @@ prompt必须遵守以下原则
 ## component
 
 Each Discord message includes distinct components, and it's crucial to accurately extract specific parameters like component_type, message_id, and custom_id directly from the user's message, without any arbitrary assumptions or creations.
-
+下面所有参数都需要从用户的历史消息中获取，不要编造任何参数。
 \`\`\`
 interface {
   type:"component",
