@@ -748,9 +748,9 @@ const pipelinePromisified = promisify(pipeline);
 
 export function getDownloadClient(local: boolean) {
   if (local) {
-    return CreateNewAxios({ timeout: 15 * 1000 }, { proxy: false });
+    return CreateNewAxios({ timeout: 5 * 1000 }, { proxy: false });
   } else {
-    return CreateAxiosProxy({ timeout: 15 * 1000 }, false, true);
+    return CreateAxiosProxy({ timeout: 5 * 1000 }, false, true);
   }
 }
 
@@ -770,7 +770,10 @@ export async function downloadImageToBase64(fileUrl: string): Promise<{
     let ok = false;
     for (let i = 0; i < 3; i++) {
       try {
-        const response = await getDownloadClient(local).get(fileUrl, {
+        const response = await (i === 2
+          ? CreateNewAxios({}, { proxy: false })
+          : getDownloadClient(local)
+        ).get(fileUrl, {
           responseType: 'stream',
           headers: {
             'User-Agent': randomUserAgent(),
