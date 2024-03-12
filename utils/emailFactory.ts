@@ -460,13 +460,11 @@ export class SmailPro extends BaseEmail {
       }
       const page = this.page;
       await sleep(5000);
-      await page.waitForSelector('.grid > div > div > button:nth-child(2)');
-      await page.click('.grid > div > div > button:nth-child(2)');
-
       await page.waitForSelector(
-        '.relative > .absolute > .text-gray-500 > .h-6 > path',
+        'div > div> div:nth-child(2) > button:nth-child(1)',
       );
-      await page.click('.relative > .absolute > .text-gray-500 > .h-6 > path');
+      await page.click('div > div> div:nth-child(2) > button:nth-child(1)');
+
       await sleep(1000);
       await page.waitForSelector('#autosuggest__input', { visible: true });
       await page.click('#autosuggest__input');
@@ -477,19 +475,19 @@ export class SmailPro extends BaseEmail {
       let times = 0;
       while (true) {
         times += 1;
-        await page.waitForSelector('div > h1');
-        const [email, domain] = await page.evaluate(() =>
+        await page.waitForSelector('address');
+        const address = await page.evaluate(() =>
           // @ts-ignore
-          document.querySelector('div > h1').textContent.split(' '),
+          document.querySelector('address').textContent.trim(),
         );
-        if (email === '...') {
+        if (address.indexOf('@') === -1) {
           if (times > 5) {
             throw new Error('get mail failed, max retry times!');
           }
           await sleep(5 * 1000);
           continue;
         }
-        return email + domain;
+        return address;
       }
     } catch (e) {
       console.log('get mail failed, err:', e);
