@@ -89,7 +89,7 @@ export async function getCaptchaCode(base64: string) {
 
 export async function ifCF(page: Page) {
   try {
-    await page.waitForSelector('#challenge-running', { timeout: 2 * 1000 });
+    await page.waitForSelector('#challenge-stage > div', { timeout: 5 * 1000 });
     return true;
   } catch (e) {
     console.log('no cf');
@@ -104,6 +104,7 @@ export async function handleCF(
   if (!(await ifCF(page))) {
     return page;
   }
+  await page.waitForSelector('#challenge-stage > div');
   const browser = page.browser();
   const url = page.url();
   const pageIdx = (await browser.pages()).findIndex((v) => v === page);
@@ -139,51 +140,44 @@ export async function handleCF(
 
     await client.Runtime.enable(sessionId);
     await client.DOM.enable(sessionId);
-    const iframeExpression = `document.querySelector('iframe')`;
-    const { result: iframeResult } = await client.Runtime.evaluate(
+    const { result } = await client.Runtime.evaluate(
       {
-        expression: iframeExpression,
+        expression: `
+            const element = document.querySelector("#challenge-stage > div").children[0].children[0];
+            console.log(element)
+            const rect = element.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2 - 120; 
+            const centerY = rect.top + rect.height / 2;
+const redBox = document.createElement("div");
+redBox.style.position = "absolute";
+redBox.style.width = "32px";
+redBox.style.height = "32px";
+redBox.style.backgroundColor = "red";
+redBox.style.left = centerX+'px';
+redBox.style.top = centerY+'px';
+// document.body.appendChild(redBox);
+            ({centerX, centerY});
+        `,
+        returnByValue: true,
       },
       sessionId,
     );
-    const { objectId: iframeObjectId } = iframeResult;
-    const { model: iframeModel } = await client.DOM.getBoxModel(
-      {
-        objectId: iframeObjectId,
-      },
-      sessionId,
-    );
-    const iframeCoordinates = iframeModel.border; // iframe 的坐标
-    let [x, y] = iframeCoordinates;
-    x = x + 9 + 14 + 8;
-    y = y + 10 + 14 + 8;
-    if (debug) {
-      await client.Runtime.enable(sessionId);
-      await client.Runtime.evaluate(
-        {
-          expression: `const dot = document.createElement('div');
-            dot.style.width = '100px';
-            dot.style.height = '100px';
-            dot.style.background = 'red';
-            dot.style.position = 'fixed';
-            dot.style.left = ${x} + 'px';
-            dot.style.top = ${y} + 'px';
-            document.body.appendChild(dot);`,
-        },
-        sessionId,
-      );
-      await client.Page.enable(sessionId);
-      const res = await client.Page.captureScreenshot(
-        { format: 'png' },
-        sessionId,
-      );
-      fs.writeFileSync(`./run/png/${randomStr(6)}.png`, res.data, 'base64');
-    }
+    const { centerX, centerY } = (result.value as any) || {};
     await client.Input.dispatchMouseEvent(
       {
         type: 'mousePressed',
-        x,
-        y,
+        x: centerX,
+        y: centerY,
+        button: 'left',
+        clickCount: 1,
+      },
+      sessionId,
+    );
+    await client.Input.dispatchMouseEvent(
+      {
+        type: 'mousePressed',
+        x: centerX,
+        y: centerY,
         button: 'left',
         clickCount: 1,
       },
@@ -192,14 +186,14 @@ export async function handleCF(
     await client.Input.dispatchMouseEvent(
       {
         type: 'mouseReleased',
-        x,
-        y,
+        x: centerX,
+        y: centerY,
         button: 'left',
         clickCount: 1,
       },
       sessionId,
     );
-    await sleep(20 * 1000);
+    await sleep(10000);
   } catch (e) {
     await client.Browser.close();
     throw e;

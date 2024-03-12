@@ -24,13 +24,14 @@ export class Pika extends Chat {
     },
     {
       preHandleAllInfos: async (allInfos) => {
-        const oldset = new Set(allInfos.map((v) => v.token));
+        const oldset = new Set(allInfos.map((v) => v.email));
         for (const v of Config.config.pika?.accounts || []) {
-          if (!oldset.has(v.token)) {
+          if (!oldset.has(v.email)) {
             allInfos.push({
               id: v4(),
-              token: v.token,
-              cookies: v.cookies,
+              email: v.email,
+              password: v.password,
+              recovery: v.recovery,
             } as Account);
           }
         }

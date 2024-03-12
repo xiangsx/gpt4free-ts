@@ -5,27 +5,44 @@ import { CreateNewAxios, CreateNewPage } from '../../utils/proxyAgent';
 import FormData from 'form-data';
 import { Page, Protocol, Puppeteer } from 'puppeteer';
 import moment from 'moment';
+import { loginGoogle } from '../../utils/puppeteer';
+import { sleep } from '../../utils';
 
 export class Child extends ComChild<Account> {
   private client!: AxiosInstance;
   private page!: Page;
 
   async init() {
-    if (!this.info.token) {
-      throw new Error('token is empty');
-    }
-    const cookies: Protocol.Network.CookieParam[] = [];
-    for (const v in this.info.cookies) {
-      cookies.push({
-        name: v,
-        value: this.info.cookies[v],
-        domain: 'pika.art',
+    let page;
+    if (this.info.cookies) {
+      const cookies: Protocol.Network.CookieParam[] = [];
+      for (const v in this.info.cookies) {
+        cookies.push({
+          name: v,
+          value: this.info.cookies[v],
+          domain: 'pika.art',
+        });
+      }
+      page = await CreateNewPage('https://pika.art/my-library/', {
+        simplify: true,
+        cookies,
       });
+    } else {
+      page = await CreateNewPage('https://pika.art/login', {
+        simplify: false,
+      });
+      // click login
+      await page.waitForSelector('form > div > button');
+      await page.click('form > div > button');
+
+      await sleep(10 * 60 * 1000);
+      await loginGoogle(
+        page,
+        this.info.email,
+        this.info.password,
+        this.info.recovery,
+      );
     }
-    const page = await CreateNewPage('https://pika.art/my-library/', {
-      simplify: true,
-      cookies,
-    });
     this.page = page;
     this.client = CreateNewAxios(
       {

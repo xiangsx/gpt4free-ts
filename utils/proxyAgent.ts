@@ -778,7 +778,7 @@ export async function downloadImageToBase64(fileUrl: string): Promise<{
           headers: {
             'User-Agent': randomUserAgent(),
           },
-          timeout: 30 * 1000,
+          timeout: 5 * 1000,
         });
         let writer = createWriteStream(tempFilePath);
         await pipelinePromisified(response.data, writer);

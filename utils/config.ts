@@ -27,6 +27,13 @@ type DiscordAccount = {
   server_id: string;
   channel_id: string;
 };
+
+type GoogleMailAccount = {
+  email: string;
+  password: string;
+  recovery: string;
+};
+
 // 首先定义配置的数据类型
 interface ConfigData {
   exit: boolean;
@@ -75,7 +82,7 @@ interface ConfigData {
     token_limit: { [key: string]: number };
   };
   pika?: SizeCfg & {
-    accounts: { token: string; cookies: Record<string, string> }[];
+    accounts: GoogleMailAccount[];
   };
   midjourney: SizeCfg & {
     accounts: (DiscordAccount & {

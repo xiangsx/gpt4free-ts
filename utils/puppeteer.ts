@@ -304,8 +304,8 @@ export async function loginGoogle(
   await page.keyboard.press('Enter');
   await sleep(2000);
 
-  await page.waitForSelector('#password');
-  await page.click('#password');
+  await page.waitForSelector('input[type="password"]');
+  await page.click('input[type="password"]');
   await page.keyboard.type(password);
   await page.keyboard.press('Enter');
   await sleep(3000);

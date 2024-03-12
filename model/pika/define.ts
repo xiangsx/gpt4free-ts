@@ -1,6 +1,9 @@
 import { ComInfo } from '../../utils/pool';
 
 export interface Account extends ComInfo {
+  email: string;
+  password: string;
+  recovery: string;
   token: string;
   cookies: Record<string, string>;
 }
