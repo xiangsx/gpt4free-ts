@@ -17,7 +17,7 @@ export class Pika extends Chat {
     () => Config.config.pika?.size || 0,
     (info, options) => new Child(this.options?.name || 'pika', info, options),
     (info) => {
-      if (!info.token) {
+      if (!info.email || !info.password) {
         return false;
       }
       return true;
@@ -40,7 +40,7 @@ export class Pika extends Chat {
       delay: 3000,
       serial: Config.config.pika?.serial || 1,
       needDel: (info) => {
-        if (!info.token) {
+        if (!info.email || !info.password) {
           return true;
         }
         return false;
@@ -63,6 +63,6 @@ export class Pika extends Chat {
   ): Promise<void> {
     const [child_id, id] = req.id.split('|');
     const child = await this.pool.popIf((v) => v.id === child_id);
-    ctx.body = { url: await child.fetchVideo(id) };
+    ctx.body = { url: await child.myLibrary(id) };
   }
 }

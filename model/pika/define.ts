@@ -1,11 +1,13 @@
 import { ComInfo } from '../../utils/pool';
+import { Protocol } from 'puppeteer';
 
 export interface Account extends ComInfo {
   email: string;
   password: string;
   recovery: string;
   token: string;
-  cookies: Record<string, string>;
+  user_id: string;
+  cookies: Protocol.Network.CookieParam[];
 }
 
 export interface GenRequestOptions {
