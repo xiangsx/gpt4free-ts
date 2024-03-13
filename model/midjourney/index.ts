@@ -274,7 +274,7 @@ export class Midjourney extends Chat {
           content: `[100%](${url})\n\n`,
         });
         stream.write(Event.message, {
-          content: `![${action.prompt}](${url})\n[⏬下载](${url.replace(
+          content: `![${action.prompt}](${url})\n[⏬下载](${url?.replace(
             '/cdn/',
             '/cdn/download/',
           )})\n\n`,
