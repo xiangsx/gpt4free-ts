@@ -91,7 +91,7 @@ export class Child extends ComChild<Account> {
   async askMessagesStream(req: MessagesReq) {
     const data: MessagesReq = {
       ...req,
-      messages: req.messages,
+      messages: [...req.messages.map((v) => ({ ...v }))],
       model: req.model,
       stream: true,
       system: '',
@@ -122,13 +122,14 @@ export class Child extends ComChild<Account> {
         for (const doc of docs) {
           text = text.replace(doc, '');
         }
-        const fileTexts = await Promise.all(
+        let fileTexts = await Promise.all(
           docs.map((v) => extractFileToText(v)),
         );
+        fileTexts = fileTexts.map((v) => v.slice(0, 10000));
         text = `Here are some documents for you to reference for your task: \n${fileTexts
           .map(
             (v, idx) => `<documents>
-<document index="${idx}">
+<document index='${idx}'>
 <source>
 ${docs[idx]}
 </source>

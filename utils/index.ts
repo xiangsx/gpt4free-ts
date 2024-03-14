@@ -14,7 +14,7 @@ import { Config } from './config';
 import { v4 } from 'uuid';
 import fs, { createWriteStream } from 'fs';
 import sizeOf from 'image-size';
-import { CreateNewAxios } from './proxyAgent';
+import { CreateNewAxios, getDownloadClient } from './proxyAgent';
 import { promisify } from 'util';
 import FormData from 'form-data';
 import textract from 'textract';
@@ -693,14 +693,14 @@ export function replaceStrInBuffer(
 }
 
 export async function retryFunc<T>(
-  func: () => Promise<T>,
+  func: (idx: number) => Promise<T>,
   maxRetry: number,
   options: { label?: string; delay?: number; defaultV?: T; log?: boolean },
 ): Promise<T> {
   const { log = true, label, delay = 1000, defaultV } = options;
   for (let i = 0; i < maxRetry; i++) {
     try {
-      return await func();
+      return await func(i);
     } catch (e: any) {
       if (log) {
         console.error(
@@ -862,12 +862,15 @@ export async function downloadFile(fileUrl: string): Promise<{
   outputFilePath: string;
   image: boolean;
 }> {
-  let proxy = true;
+  let local = false;
   if (Config.config.global.download_map) {
     for (const old in Config.config.global.download_map) {
       if (fileUrl.indexOf(old) > -1) {
         fileUrl = fileUrl.replace(old, Config.config.global.download_map[old]);
-        proxy = false;
+        local = true;
+      }
+      if (fileUrl.startsWith('http:')) {
+        local = true;
       }
     }
   }
@@ -882,14 +885,16 @@ export async function downloadFile(fileUrl: string): Promise<{
     } else {
       let ok = false;
       await retryFunc(
-        async () => {
-          const response = await CreateNewAxios({}, { proxy }).get(fileUrl, {
-            responseType: 'stream',
-            timeout: 10 * 1000,
-            headers: {
-              'User-Agent': randomUserAgent(),
+        async (idx) => {
+          const response = await getDownloadClient(local || idx === 2).get(
+            fileUrl,
+            {
+              responseType: 'stream',
+              headers: {
+                'User-Agent': randomUserAgent(),
+              },
             },
-          });
+          );
           filename = getFilenameFromContentDisposition(
             response.headers['content-disposition'],
           );

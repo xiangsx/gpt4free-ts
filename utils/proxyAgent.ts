@@ -763,6 +763,9 @@ export async function downloadImageToBase64(fileUrl: string): Promise<{
     for (const old in Config.config.global.download_map) {
       fileUrl = fileUrl.replace(old, Config.config.global.download_map[old]);
       local = true;
+      if (fileUrl.startsWith('http:')) {
+        local = true;
+      }
     }
   }
   try {
@@ -770,16 +773,16 @@ export async function downloadImageToBase64(fileUrl: string): Promise<{
     let ok = false;
     for (let i = 0; i < 3; i++) {
       try {
-        const response = await (i === 2
-          ? CreateNewAxios({}, { proxy: false })
-          : getDownloadClient(local)
-        ).get(fileUrl, {
-          responseType: 'stream',
-          headers: {
-            'User-Agent': randomUserAgent(),
+        const response = await getDownloadClient(local || i === 2).get(
+          fileUrl,
+          {
+            responseType: 'stream',
+            headers: {
+              'User-Agent': randomUserAgent(),
+            },
+            timeout: 5 * 1000,
           },
-          timeout: 5 * 1000,
-        });
+        );
         let writer = createWriteStream(tempFilePath);
         await pipelinePromisified(response.data, writer);
         ok = true;
