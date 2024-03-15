@@ -177,6 +177,7 @@ interface ConfigData {
     system?: string;
     sleep_interval?: number; // 429之后睡眠多久
     accounts: { email: string; password: string }[];
+    clear_history?: boolean;
   };
   stack: {
     size: number;
