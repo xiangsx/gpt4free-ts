@@ -877,10 +877,16 @@ export async function downloadFile(fileUrl: string): Promise<{
   try {
     let tempFilePath = path.join(Config.config.global.download.dir, v4());
     let filename!: string;
+    let ext: string;
+    let mime: string;
     if (fileUrl.startsWith('data:image/')) {
       // base64 写入文件
       const base64Data = fileUrl.replace(/^data:image\/\w+;base64,/, '');
       const dataBuffer = Buffer.from(base64Data, 'base64');
+      // base64 写入文件
+      mime = fileUrl.split(';')[0].split(':')[1];
+      ext = mime.split('/')[1];
+      filename = `b64_${moment().format('YYYYMMDDHH')}_${randomStr(20)}.${ext}`;
       fs.writeFileSync(tempFilePath, dataBuffer);
     } else {
       let ok = false;
@@ -912,9 +918,8 @@ export async function downloadFile(fileUrl: string): Promise<{
       }
     }
 
-    const ext =
-      path.extname(filename).replace(/\./g, '').toLowerCase() || 'txt';
-    const mime = extMimeMap.get(ext) || 'text/plain';
+    ext = path.extname(filename).replace(/\./g, '').toLowerCase() || 'txt';
+    mime = extMimeMap.get(ext) || 'text/plain';
     let file_name = `${moment().format('YYYY-MM-DD-HH')}-${randomStr(
       20,
     )}.${ext}`;
