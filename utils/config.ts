@@ -179,6 +179,7 @@ interface ConfigData {
     accounts: { email: string; password: string }[];
     clear_history?: boolean;
     file_num_limit?: number;
+    ban_msg?: string[];
   };
   stack: {
     size: number;
