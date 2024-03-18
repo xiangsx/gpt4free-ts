@@ -288,26 +288,33 @@ export class Pool<U extends Info, T extends PoolChild<U>> {
   // 如果有空闲的child，则返回
   // 如果有空闲的child，但是child的数量小于maxsize，则创建一个新的child
   async pop(): Promise<T> {
-    const children = shuffleArray(this.children);
-    for (let i = 0; i < children.length; i++) {
-      if (!this.using.has(children[i].info.id) && children[i].info.ready) {
-        children[i].use();
-        return children[i];
+    // 随机从数组中的随机位置开始遍历，避免每次都从头开始遍历，遍历全部元素
+    const randomIndex = Math.floor(Math.random() * this.children.length);
+
+    for (let idx = 0; idx < this.children.length; idx++) {
+      const i = (randomIndex + idx) % this.children.length;
+      const child = this.children[i];
+      if (!this.using.has(child.info.id) && child.info.ready) {
+        child.use();
+        return child;
       }
     }
     throw new ComError('No valid connect', ComError.Status.RequestTooMany);
   }
 
   async popIf(condition: (v: U) => boolean) {
-    const children = shuffleArray(this.children);
-    for (let i = 0; i < children.length; i++) {
+    const randomIndex = Math.floor(Math.random() * this.children.length);
+
+    for (let idx = 0; idx < this.children.length; idx++) {
+      const i = (randomIndex + idx) % this.children.length;
+      const child = this.children[i];
       if (
-        !this.using.has(children[i].info.id) &&
-        children[i].info.ready &&
-        condition(children[i].info)
+        !this.using.has(child.info.id) &&
+        child.info.ready &&
+        condition(child.info)
       ) {
-        children[i].use();
-        return children[i];
+        child.use();
+        return child;
       }
     }
     throw new ComError('No valid connect', ComError.Status.RequestTooMany);
