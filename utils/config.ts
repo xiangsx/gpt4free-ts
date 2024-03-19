@@ -181,6 +181,8 @@ interface ConfigData {
     clear_history?: boolean;
     file_num_limit?: number;
     ban_msg?: string[];
+    max_retry_times?: number;
+    max_continue_times?: number;
   };
   stack: {
     size: number;
