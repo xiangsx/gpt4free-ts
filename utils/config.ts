@@ -183,6 +183,7 @@ interface ConfigData {
     ban_msg?: string[];
     max_retry_times?: number;
     max_continue_times?: number;
+    handle_login_turnstile?: boolean;
   };
   stack: {
     size: number;
