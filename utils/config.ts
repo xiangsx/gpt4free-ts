@@ -38,6 +38,7 @@ type GoogleMailAccount = {
 interface ConfigData {
   exit: boolean;
   global: {
+    retry_max_times?: number;
     trace?: boolean;
     download: {
       proxy?: string;

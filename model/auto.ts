@@ -35,8 +35,6 @@ interface AutoOptions extends ChatOptions {
   ModelMap: Map<Site, Chat>;
 }
 
-const MaxRetryTimes = +(process.env.AUTO_RETRY_TIMES || 0);
-
 export class Auto extends Chat {
   private modelMap: Map<Site, Chat>;
   private openAIChatMap: Map<string, OpenAI> = new Map();
@@ -174,7 +172,7 @@ export class Auto extends Chat {
       (event, data) => {
         switch (event) {
           case Event.error:
-            if (tried >= MaxRetryTimes) {
+            if (tried >= (Config.config.global.retry_max_times || 0)) {
               stream.write(event, data);
               return;
             }
