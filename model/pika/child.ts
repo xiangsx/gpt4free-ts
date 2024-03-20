@@ -57,13 +57,12 @@ export class Child extends ComChild<Account> {
 
   saveToken() {
     let login = this.info.cookies.find(
-      (v) => v.name === 'sb-login-auth-token.0',
+      (v) => v.name === 'sb-login-auth-token',
     )?.value;
     if (!login) {
       throw new Error('login token not found');
     }
     login = decodeURIComponent(login);
-    login += `"}`;
     const loginInfo = parseJSON<{
       access_token?: string;
       user?: { id: string };
