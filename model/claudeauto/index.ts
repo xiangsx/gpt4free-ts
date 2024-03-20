@@ -1,5 +1,10 @@
 import { Chat, ChatOptions, ChatRequest, ModelType } from '../base';
-import { Event, EventStream, parseJSON } from '../../utils';
+import {
+  checkSensitiveWords,
+  Event,
+  EventStream,
+  parseJSON,
+} from '../../utils';
 import { Pool } from '../../utils/pool';
 import { Account } from './define';
 import { Child } from './child';
@@ -100,6 +105,9 @@ export class ClaudeAuto extends Chat {
     const child = await this.pool.pop();
 
     try {
+      if (checkSensitiveWords(req.prompt)) {
+        throw new Error('Sensitive words detected');
+      }
       const pt = await child.askMessagesStream(req);
       this.logger.info('recv res oik');
       pt.pipe(es.split(/\r?\n\r?\n/)).pipe(

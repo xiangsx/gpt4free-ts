@@ -21,6 +21,7 @@ import textract from 'textract';
 import pdfParse from 'pdf-parse';
 import * as XLSX from 'xlsx';
 import path from 'path';
+import Mint from 'mint-filter';
 
 const turndownService = new TurndownService({ codeBlockStyle: 'fenced' });
 
@@ -1019,4 +1020,14 @@ export async function parseFileToText(filePath: string) {
     console.error('Error parsing file:', err);
     return '';
   }
+}
+
+let sensitiveWords: string[] = [];
+let mint: Mint | undefined;
+export function checkSensitiveWords(text: string) {
+  if (sensitiveWords.length === 0) {
+    sensitiveWords = require('../run/sensitive.json');
+    mint = new Mint(sensitiveWords);
+  }
+  return !mint?.verify(text);
 }
