@@ -197,11 +197,17 @@ export class Auto extends Chat {
         ComError.Status.NotFound,
       );
     }
-    await chat.preHandle(req, { stream });
-    return await chat.askStream(req, es).catch((err) => {
-      es.destroy();
-      throw err;
-    });
+    try {
+      await chat.preHandle(req, { stream });
+      await chat.askStream(req, es);
+    } catch (e) {
+      if (tried >= (Config.config.global.retry_max_times || 0)) {
+        throw e;
+      }
+      this.tryAskStream(req, stream, tried + 1).catch((e) =>
+        this.logger.error(`retry failed ${e}`),
+      );
+    }
   }
 
   async askStream(req: ChatRequest, stream: EventStream): Promise<void> {
