@@ -3,7 +3,6 @@ import {
   ChatOptions,
   ChatRequest,
   contentToString,
-  countMessagesToken,
   ImageGenerationRequest,
   ModelType,
   Site,
@@ -200,9 +199,12 @@ export class Auto extends Chat {
     try {
       await chat.preHandle(req, { stream });
       await chat.askStream(req, es);
-    } catch (e) {
+    } catch (e: any) {
+      this.logger.error(`auto ask failed ${e.message}`);
       if (tried >= (Config.config.global.retry_max_times || 0)) {
-        throw e;
+        stream.write(Event.error, { error: e.message });
+        stream.end();
+        return;
       }
       this.tryAskStream(req, stream, tried + 1).catch((e) =>
         this.logger.error(`retry failed ${e}`),
