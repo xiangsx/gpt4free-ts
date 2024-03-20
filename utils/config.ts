@@ -184,6 +184,7 @@ interface ConfigData {
     max_retry_times?: number;
     max_continue_times?: number;
     handle_login_turnstile?: boolean;
+    ask_sleep?: number; // 对话之后睡眠多久
   };
   stack: {
     size: number;
