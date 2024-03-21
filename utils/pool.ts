@@ -155,10 +155,12 @@ export class Pool<U extends Info, T extends PoolChild<U>> {
   }
 
   private getOneOldInfo() {
-    const infos = shuffleArray(this.allInfos);
-    for (let i = 0; i < this.allInfos.length; i++) {
-      const info = infos[i];
+    const randomIndex = Math.floor(Math.random() * this.allInfos.length);
+    for (let idx = 0; idx < this.allInfos.length; idx++) {
+      const i = (randomIndex + idx) % this.allInfos.length;
+      const info = this.allInfos[i];
       if (!this.childMap.has(info.id) && this.isInfoValid(info)) {
+        this.logger.debug(`get valid: ${i}/${this.allInfos.length}`);
         return info;
       }
     }
@@ -259,11 +261,16 @@ export class Pool<U extends Info, T extends PoolChild<U>> {
       }
       if (this.children.length > maxSize) {
         // 随机剔除一个
-        for (const child of shuffleArray(this.children)) {
+        const randomIndex = Math.floor(Math.random() * this.children.length);
+        for (let idx = 0; idx < this.children.length; idx++) {
+          const i = (randomIndex + idx) % this.children.length;
+          const child = this.children[i];
           if (!this.using.has(child.info.id)) {
             child.destroy({ delFile: false, delMem: true });
             this.logger.info(
-              `delete child ok, current ready size: ${this.children.reduce(
+              `delete child ok: ${i}/${
+                this.children.length
+              }, current ready size: ${this.children.reduce(
                 (prev, cur) => prev + (cur.info.ready ? 1 : 0),
                 0,
               )}/${maxSize}`,
@@ -295,6 +302,7 @@ export class Pool<U extends Info, T extends PoolChild<U>> {
       const i = (randomIndex + idx) % this.children.length;
       const child = this.children[i];
       if (!this.using.has(child.info.id) && child.info.ready) {
+        this.logger.debug(`pop idx:${i}/${this.children.length}`);
         child.use();
         return child;
       }
@@ -313,6 +321,7 @@ export class Pool<U extends Info, T extends PoolChild<U>> {
         child.info.ready &&
         condition(child.info)
       ) {
+        this.logger.debug(`pop idx:${i}/${this.children.length}`);
         child.use();
         return child;
       }

@@ -111,6 +111,18 @@ export function shuffleArray<T>(array: T[]): T[] {
   return shuffledArray;
 }
 
+export async function shuffleEachArray<T>(
+  array: T[],
+  cb: (v: T) => Promise<void>,
+) {
+  let idx = Math.floor(Math.random() * array.length);
+  // 从idx开始遍历完整个数组
+  for (let i = idx; i < array.length; i++) {
+    const v = array[(i + idx) % array.length];
+    await cb(v);
+  }
+}
+
 export type ErrorData = { error: string; message?: string; status?: number };
 export type MessageData = {
   content: string;
@@ -1024,6 +1036,7 @@ export async function parseFileToText(filePath: string) {
 
 let sensitiveWords: string[] = [];
 let mint: Mint | undefined;
+
 export function checkSensitiveWords(text: string) {
   if (sensitiveWords.length === 0) {
     sensitiveWords = require('../run/sensitive.json');
