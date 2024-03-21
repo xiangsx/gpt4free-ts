@@ -127,11 +127,10 @@ class Child extends ComChild<Account> {
       return;
     }
     try {
-      await page.waitForSelector(
-        '.grow > .items-center > .relative:nth-child(1)',
-        { timeout: 3000 },
-      );
-      await page.click('.grow > .items-center > .relative:nth-child(1)');
+      await page.waitForSelector('div:nth-child(1) > div > a > div > div', {
+        timeout: 3000,
+      });
+      await page.click('div:nth-child(1) > div > a > div > div');
       await sleep(1000);
     } catch (e) {
       await page.goto('https://www.perplexity.ai');
@@ -177,6 +176,8 @@ class Child extends ComChild<Account> {
       'Network.webSocketFrameReceived',
       async ({ response }) => {
         try {
+          // 获取code
+          const code = response.payloadData.match(/^(\d+(\.\d+)?)/)[0];
           const dataStr = response.payloadData
             .replace(/^(\d+(\.\d+)?)/, '')
             .trim();
@@ -187,17 +188,27 @@ class Child extends ComChild<Account> {
           if (data.length !== 2) {
             return;
           }
-          const [ansType, textObj] = data;
-          const text = (textObj as any).text;
-          const ansObj = parseJSON<{ answer: string; web_results: any[] }>(
-            text,
-            {
-              answer: '',
-              web_results: [],
-            },
-          );
-          this.refresh?.();
-          this.cb?.(ansType, ansObj);
+          switch (code) {
+            case 42:
+              const [ansType, textObj] = data;
+              const text = (textObj as any).text;
+              const ansObj = parseJSON<{ answer: string; web_results: any[] }>(
+                text,
+                {
+                  answer: '',
+                  web_results: [],
+                },
+              );
+              this.refresh?.();
+              this.cb?.(ansType, ansObj);
+              break;
+            case 431:
+              const [v] = data as { status: string }[];
+              this.cb?.(v.status, { answer: '', web_results: [] });
+              break;
+            default:
+              break;
+          }
         } catch (e) {
           this.logger.warn('parse failed, ', e);
         }
@@ -223,7 +234,7 @@ class Child extends ComChild<Account> {
       const delay = setTimeout(() => {
         try {
           this.cb = undefined;
-          if (!this.page.close()) {
+          if (!this.page.isClosed()) {
             this.goHome();
             this.changeMode(t);
           }
@@ -232,7 +243,7 @@ class Child extends ComChild<Account> {
         } catch (e) {
           this.logger.error('timeout failed, ', e);
         }
-      }, 10 * 1000);
+      }, 20 * 1000);
       this.cb = cb;
       await this.page.waitForSelector(this.InputSelector, {
         timeout: 3 * 1000,
@@ -427,12 +438,13 @@ export class Perplexity extends Chat {
         req.model.indexOf('net') > -1 ? FocusType.All : FocusType.Writing,
         req.prompt,
         async (ansType, ansObj) => {
+          this.logger.debug(`recv msg ${ansType} ${ansObj}`);
           if (ansObj.query_str) {
             return;
           }
           try {
             switch (ansType) {
-              case 'query_answered':
+              case 'completed':
                 child.update({ failedCnt: 0 });
                 if (ansObj.answer.length > old.length) {
                   const newContent = ansObj.answer.substring(old.length);
