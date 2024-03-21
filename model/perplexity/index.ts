@@ -20,13 +20,13 @@ enum FocusType {
 
 const ModelMap: Partial<Record<ModelType, string>> = {
   [ModelType.GPT3p5Turbo]:
-    '#__next > main > div.flex.justify-center.items-center > div > div > div > div > div > div:nth-child(1)',
-  [ModelType.GPT4]:
-    '#__next > main > div.flex.justify-center.items-center > div > div > div > div > div > div:nth-child(3)',
-  [ModelType.Claude2]:
-    '#__next > main > div.flex.justify-center.items-center > div > div > div > div > div > div:nth-child(4)',
-  [ModelType.GeminiPro]:
-    '#__next > main > div.flex.justify-center.items-center > div > div > div > div > div > div:nth-child(5)',
+    'div.flex.justify-center.items-center > div > div > div > div > div > div:nth-child(0)',
+  [ModelType.GPT4TurboPreview]:
+    'div.flex.justify-center.items-center > div > div > div > div > div > div:nth-child(2)',
+  [ModelType.Claude3Sonnet20240229]:
+    'div.flex.justify-center.items-center > div > div > div > div > div > div:nth-child(3)',
+  [ModelType.Claude3Opus20240229]:
+    'div.flex.justify-center.items-center > div > div > div > div > div > div:nth-child(4)',
 };
 
 interface Account extends ComInfo {
@@ -75,11 +75,11 @@ class Child extends ComChild<Account> {
     try {
       await page.goto('https://www.perplexity.ai/settings');
       await page.waitForSelector(
-        'div > div:nth-child(4) > div:nth-child(2) > div:nth-child(2) > div > button > div > svg',
+        'div > div:nth-child(6) > div:nth-child(2) > div:nth-child(2) > span > button',
         { timeout: 3000 },
       );
       await page.click(
-        'div > div:nth-child(4) > div:nth-child(2) > div:nth-child(2) > div > button > div > svg',
+        'div > div:nth-child(6) > div:nth-child(2) > div:nth-child(2) > span > button',
       );
       const selector = ModelMap[model];
       if (!selector) {
@@ -149,19 +149,14 @@ class Child extends ComChild<Account> {
       return false;
     }
     try {
-      await page.waitForSelector(
-        'div.grow > div > div > div > div:nth-child(1) > div > button',
-        {
-          timeout: 2 * 1000,
-          visible: true,
-        },
-      );
-      await page.click(
-        'div.grow > div > div > div > div:nth-child(1) > div > button',
-      );
+      await page.waitForSelector('svg[data-icon="bars-filter"]', {
+        timeout: 2 * 1000,
+        visible: true,
+      });
+      await page.click('svg[data-icon="bars-filter"]');
 
       await sleep(100);
-      const selector = `#__next > main > div.flex.justify-center.items-center > div > div > div > div > div > div:nth-child(${t}) > div`;
+      const selector = `svg[data-icon="pencil"]`;
       await page.waitForSelector(selector, {
         timeout: 2 * 1000,
         visible: true,
@@ -319,10 +314,12 @@ class Child extends ComChild<Account> {
 
   destroy(options?: DestroyOptions) {
     super.destroy(options);
-    this.page
-      ?.browser?.()
-      .close?.()
-      .catch((e) => this.logger.error(e.message));
+    if (!this.page.isClosed()) {
+      this.page
+        ?.browser?.()
+        .close?.()
+        .catch((e) => this.logger.error(e.message));
+    }
   }
 
   async isPro(page: Page) {
