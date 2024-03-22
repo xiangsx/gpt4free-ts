@@ -177,7 +177,8 @@ class Child extends ComChild<Account> {
       async ({ response }) => {
         try {
           // 获取code
-          const code = response.payloadData.match(/^(\d+(\.\d+)?)/)[0];
+          const code = +response.payloadData.match(/^(\d+(\.\d+)?)/)[0];
+          this.logger.debug(response.payloadData);
           const dataStr = response.payloadData
             .replace(/^(\d+(\.\d+)?)/, '')
             .trim();
@@ -202,11 +203,11 @@ class Child extends ComChild<Account> {
               this.refresh?.();
               this.cb?.(ansType, ansObj);
               break;
-            case 431:
-              const [v] = data as { status: string }[];
-              this.cb?.(v.status, { answer: '', web_results: [] });
-              break;
             default:
+              const [v] = data as { status: string }[];
+              if (v.status) {
+                this.cb?.(v.status, { answer: '', web_results: [] });
+              }
               break;
           }
         } catch (e) {
