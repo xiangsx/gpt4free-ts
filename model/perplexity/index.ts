@@ -177,16 +177,14 @@ class Child extends ComChild<Account> {
       async ({ response }) => {
         try {
           // 获取code
-          const code = +response.payloadData.match(/^(\d+(\.\d+)?)/)[0];
+          const code = +response.payloadData.match(/\d+/)[0];
           this.logger.debug(response.payloadData);
-          const dataStr = response.payloadData
-            .replace(/^(\d+(\.\d+)?)/, '')
-            .trim();
+          const dataStr = response.payloadData.replace(/\d+/, '').trim();
           if (!dataStr) {
             return;
           }
           const data = parseJSON(dataStr, []);
-          if (data.length !== 2) {
+          if (data.length < 1) {
             return;
           }
           switch (code) {
