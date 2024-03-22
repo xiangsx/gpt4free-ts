@@ -307,7 +307,10 @@ export class Pool<U extends Info, T extends PoolChild<U>> {
         return child;
       }
     }
-    throw new ComError('No valid connect', ComError.Status.RequestTooMany);
+    throw new ComError(
+      '当前模型负载较高，请稍候重试，或者切换其他模型',
+      ComError.Status.RequestTooMany,
+    );
   }
 
   async popIf(condition: (v: U) => boolean) {
@@ -326,6 +329,9 @@ export class Pool<U extends Info, T extends PoolChild<U>> {
         return child;
       }
     }
-    throw new ComError('No valid connect', ComError.Status.RequestTooMany);
+    throw new ComError(
+      '当前模型负载较高，请稍候重试，或者切换其他模型',
+      ComError.Status.RequestTooMany,
+    );
   }
 }
