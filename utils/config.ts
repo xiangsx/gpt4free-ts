@@ -178,6 +178,7 @@ interface ConfigData {
     system?: string;
     sleep_interval?: number; // 429之后睡眠多久
     accounts: { email: string; password: string }[];
+    del_accounts?: { email: string; password: string }[];
     clear_history?: boolean;
     file_num_limit?: number;
     ban_msg?: string[];
