@@ -166,10 +166,18 @@ export class ClaudeAuto extends Chat {
             child.update({ low_credit: true });
             child.destroy({ delFile: true, delMem: true });
           }
+          if (msg.indexOf('This organization has been disabled') > -1) {
+            child.update({ banned: true });
+            child.destroy({ delFile: true, delMem: true });
+          }
         });
       }
       stream.write(Event.error, { error: e.message, status: e.status });
       stream.end();
+      if (e.response && e.response.status === 401) {
+        child.update({ banned: true });
+        child.destroy({ delFile: true, delMem: true });
+      }
       if (e.response && e.response.status === 429) {
         child.destroy({ delFile: false, delMem: true });
         child.update({ refresh_unix: moment().unix() + 30 });
