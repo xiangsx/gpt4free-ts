@@ -520,7 +520,7 @@ export class WebFetchWithPage {
     const data = (await this.page.evaluate(
       (id, url, init) => {
         return new Promise((resolve, reject) => {
-          fetch(url, init)
+          fetch(url, { ...init, redirect: 'error' })
             .then((response) => {
               if (!response.body) {
                 resolve({ status: 500 });
@@ -574,7 +574,7 @@ export class WebFetchWithPage {
             })
             .catch((err) => {
               console.error(err);
-              reject(err);
+              resolve({ status: err.response.status, message: err.message });
             });
         });
       },
@@ -583,6 +583,7 @@ export class WebFetchWithPage {
       init,
     )) as { status: number; [key: string]: any };
     if (data.status !== 200) {
+      console.log(`fetch failed ${JSON.stringify(data)}`);
       throw new ComError(
         `fetch failed ${JSON.stringify(data)}`,
         data.status,
