@@ -398,6 +398,10 @@ export class Perplexity extends Chat {
         return 3900;
       case ModelType.GPT3p5Turbo:
         return 3900;
+      case ModelType.GPT4TurboPreview:
+        return 3900;
+      case ModelType.Claude3Opus20240229:
+        return 3900;
       case ModelType.NetGpt3p5:
         return 3900;
       default:
