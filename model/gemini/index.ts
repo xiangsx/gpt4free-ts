@@ -30,9 +30,11 @@ import { v4 } from 'uuid';
 import es from 'event-stream';
 import moment from 'moment';
 import { GeminiRequest } from './define';
+import { AwsLambda } from 'elastic-apm-node/types/aws-lambda';
 
 interface Account extends ComInfo {
   apikey: string;
+  refresh_unix: number;
 }
 
 class Child extends ComChild<Account> {
@@ -43,7 +45,8 @@ class Child extends ComChild<Account> {
     { proxy: getRandomOne(Config.config.proxy_pool.stable_proxy_list) },
   );
 
-  init(): Promise<void> {
+  async init(): Promise<void> {
+    await this.checkChat();
     return Promise.resolve();
   }
 
@@ -57,6 +60,32 @@ class Child extends ComChild<Account> {
   getMimeTypeFromBase64(base64: string) {
     const base64Str = base64.split(';base64,')[0];
     return base64Str.split(':')[1];
+  }
+
+  async checkChat() {
+    try {
+      const res = await this.client.post(
+        `/v1beta/models/${ModelType.GeminiPro}:generateContent?key=${this.info.apikey}`,
+        {
+          contents: [
+            {
+              parts: [
+                {
+                  text: '你好',
+                },
+              ],
+            },
+          ],
+        },
+      );
+    } catch (e: any) {
+      if (e.response.data.error.message.indexOf(`Quota exceeded`) > -1) {
+        this.update({ refresh_unix: moment().add(1, 'm').unix() });
+        throw new ComError('Quota exceeded');
+      }
+      throw new ComError(e.message);
+    }
+    this.logger.info('check chat success');
   }
 
   async messageToContent(
@@ -236,6 +265,9 @@ export class Gemini extends Chat {
     },
     (v) => {
       if (!v.apikey) {
+        return false;
+      }
+      if (moment().unix() < v.refresh_unix) {
         return false;
       }
       return true;
