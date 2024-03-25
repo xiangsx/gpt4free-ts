@@ -31,6 +31,7 @@ export class Child extends ComChild<Account> {
         'x-api-key': this.info.apikey,
         'anthropic-version': '2023-06-01',
       },
+      timeout: 30 * 1000,
     } as CreateAxiosDefaults,
     {
       proxy: getRandomOne(Config.config.claudeauto!.proxy_list),
