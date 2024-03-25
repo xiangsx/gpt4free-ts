@@ -186,6 +186,7 @@ interface ConfigData {
     max_continue_times?: number;
     handle_login_turnstile?: boolean;
     ask_sleep?: number; // 对话之后睡眠多久
+    emulate?: boolean;
   };
   stack: {
     size: number;
