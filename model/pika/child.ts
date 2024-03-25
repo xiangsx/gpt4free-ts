@@ -1,5 +1,10 @@
 import { ComChild } from '../../utils/pool';
-import { Account, GenerationResponse, GenRequestOptions } from './define';
+import {
+  Account,
+  GenerationResponse,
+  GenRequestOptions,
+  LibraryVideo,
+} from './define';
 import { AxiosInstance } from 'axios';
 import { CreateNewAxios, CreateNewPage } from '../../utils/proxyAgent';
 import FormData from 'form-data';
@@ -142,7 +147,7 @@ export class Child extends ComChild<Account> {
     let [_, info] = result?.split('\n');
     info = info.replace('1:', '');
 
-    return parseJSON(info, {});
+    return parseJSON<LibraryVideo | undefined>(info, undefined);
   }
 
   async fetch<T>(path: string, requestInit: RequestInit): Promise<T> {

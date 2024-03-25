@@ -68,3 +68,49 @@ export interface GenerationResponse {
     };
   };
 }
+
+export interface LibraryVideo {
+  success: boolean;
+  data: {
+    results: Array<{
+      id: string;
+      promptText: string;
+      params: {
+        options: {
+          aspectRatio: number;
+          frameRate: number;
+          camera: {
+            zoom: null | number;
+            pan: null | number;
+            tilt: null | number;
+            rotate: null | number;
+          };
+          parameters: {
+            motion: number;
+            guidanceScale: number;
+            negativePrompt: string;
+            seed: null | number;
+          };
+          extend: boolean;
+        };
+        userId: string;
+        promptText: string;
+        sfx: false;
+      };
+      adjusted: boolean;
+      upscaled: false;
+      extended: number;
+      videos: Array<{
+        id: string;
+        status: string;
+        progress: number;
+        seed?: number; // Optional to accommodate for different states
+        resultUrl?: string;
+        videoPoster?: string;
+        imageThumb?: string;
+        duration?: number;
+        feedback?: number;
+      }>;
+    }>;
+  };
+}

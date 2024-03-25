@@ -1,4 +1,4 @@
-import { Chat, ChatOptions } from '../base';
+import { Chat, ChatOptions, ChatRequest, ModelType } from '../base';
 import { Pool } from '../../utils/pool';
 import { Account } from './define';
 import { Child } from './child';
@@ -6,6 +6,8 @@ import { Config } from '../../utils/config';
 import Application from 'koa';
 import { CreateVideoTaskRequest, QueryVideoTaskRequest } from '../define';
 import { v4 } from 'uuid';
+import { downloadAndUploadCDN, Event, EventStream } from '../../utils';
+import { clearInterval } from 'timers';
 
 export class Pika extends Chat {
   constructor(options?: ChatOptions) {
@@ -47,6 +49,68 @@ export class Pika extends Chat {
       },
     },
   );
+
+  support(model: ModelType): number {
+    switch (model) {
+      case ModelType.PikaTextToVideo:
+        return 1000;
+      default:
+        return 0;
+    }
+  }
+
+  async askStream(req: ChatRequest, stream: EventStream): Promise<void> {
+    switch (req.model) {
+      case ModelType.PikaTextToVideo:
+        return this.textToVideo(req, stream);
+    }
+  }
+
+  async textToVideo(req: ChatRequest, stream: EventStream) {
+    const child = await this.pool.pop();
+    const id = await child.generate(req.prompt);
+    const [cid, vid] = id.split('|');
+    stream.write(Event.message, {
+      content: `✅成功创建视频任务：${id}\n\n`,
+    });
+    stream.write(Event.message, {
+      content: `⌛️视频生成中...`,
+    });
+    const itl = setInterval(async () => {
+      const video = await child.myLibrary(vid);
+      if (!video) {
+        stream.write(Event.message, {
+          content: `.`,
+        });
+        return;
+      }
+      const v = video.data.results[0]?.videos[0];
+      if (!v) {
+        return;
+      }
+      if (v.status === 'pending') {
+        stream.write(Event.message, {
+          content: `.`,
+        });
+        return;
+      }
+      if (v.status === 'finished' && v.resultUrl) {
+        const local_url = await downloadAndUploadCDN(v.resultUrl);
+        stream.write(Event.message, {
+          content: `✅视频生成成功\n\n![${
+            req.prompt
+          }](${local_url})\n[⏬下载](${local_url.replace(
+            '/cdn/',
+            '/cdn/download/',
+          )})\n\n`,
+        });
+        clearInterval(itl);
+        stream.write(Event.done, { content: '' });
+        stream.end();
+        return;
+      }
+    }, 3000);
+  }
 
   async createVideoTask(
     ctx: Application.Context,
