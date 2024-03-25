@@ -326,7 +326,7 @@ export class Domo extends Chat {
       msg2.d.attachments?.[0]?.proxy_url,
     );
     stream.write(Event.message, {
-      content: `[${msg2.d.attachments?.[0].placeholder}](${local_url})\n`,
+      content: `[在线播放](${local_url})\n`,
     });
     stream.write(Event.message, {
       content: `⏬[下载](${local_url.replace('/cdn/', '/cdn/download/')})\n`,
