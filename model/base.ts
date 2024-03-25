@@ -155,6 +155,7 @@ export enum ModelType {
   Bing = 'bing',
   Whisper1 = 'whisper-1',
   PikaVideo = 'pika-video',
+  DomoImgToVideo = 'domo-img-to-video',
 }
 
 export enum Site {

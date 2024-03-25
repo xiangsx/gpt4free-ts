@@ -1,4 +1,11 @@
-import { Chat, ChatOptions, ChatRequest, ModelType, Site } from '../base';
+import {
+  Chat,
+  ChatOptions,
+  ChatRequest,
+  contentToString,
+  ModelType,
+  Site,
+} from '../base';
 import { Pool } from '../../utils/pool';
 import { Child } from './child';
 import {
@@ -7,7 +14,6 @@ import {
   AIActionType,
   ComponentLabelMap,
   DomoSpeedMode,
-  getProgress,
 } from './define';
 import { Config } from '../../utils/config';
 import { v4 } from 'uuid';
@@ -16,6 +22,7 @@ import {
   downloadAndUploadCDN,
   Event,
   EventStream,
+  extractHttpImageFileURLs,
   extractJSON,
   MessageData,
   ThroughEventStream,
@@ -25,11 +32,9 @@ import { clearInterval } from 'timers';
 import { MJPrompt } from './prompt';
 import {
   GatewayDMessageCreate,
+  GatewayEventName,
   getAllComponents,
-  MessageFlags,
 } from '../discord/define';
-import Application from 'koa';
-import { CreateVideoTaskRequest } from '../define';
 
 export class Domo extends Chat {
   private pool = new Pool<Account, Child>(
@@ -90,6 +95,8 @@ export class Domo extends Chat {
 
   support(model: ModelType): number {
     switch (model) {
+      case ModelType.DomoImgToVideo:
+        return 300;
       case ModelType.DomoChatGen:
         return 28000;
       case ModelType.DomoChatAnimate:
@@ -189,6 +196,9 @@ export class Domo extends Chat {
   }
 
   async askStream(req: ChatRequest, stream: EventStream): Promise<void> {
+    if (req.model === ModelType.DomoImgToVideo) {
+      return this.imgToVideo(req, stream);
+    }
     const child = await this.pool.pop();
     try {
       const auto = chatModel.get(Site.Auto);
@@ -264,11 +274,65 @@ export class Domo extends Chat {
     }
   }
 
-  async createVideoTask(
-    ctx: Application.Context,
-    req: CreateVideoTaskRequest,
-  ): Promise<void> {
+  async imgToVideo(req: ChatRequest, stream: EventStream): Promise<void> {
+    const image = extractHttpImageFileURLs(
+      contentToString(req.messages[req.messages.length - 1].content),
+    )?.[0];
+    if (!image) {
+      throw new ComError('no image url');
+    }
+
     const child = await this.pool.pop();
-    ctx.body = await child.createVideo({ image_url: req.image });
+    const msg1 = await child.animate(image);
+    stream.write(Event.message, { content: '✅已接收到参数\n' });
+    const componentStyle = getAllComponents(msg1.d.components).find((v) =>
+      v.label?.includes('Intensity: low'),
+    );
+    if (!componentStyle) {
+      throw new Error('no component');
+    }
+    await child.doComponent(msg1.d.id, componentStyle);
+    stream.write(Event.message, { content: '✅已设置变化强度：low\n' });
+    const componentTime = getAllComponents(msg1.d.components).find((v) =>
+      v.label?.includes('Gen 5s'),
+    );
+    if (!componentTime) {
+      throw new Error('no component');
+    }
+    await child.doComponent(msg1.d.id, componentTime);
+    stream.write(Event.message, { content: '✅已设置生成时长：5s\n' });
+    const componentStart = getAllComponents(msg1.d.components).find((v) =>
+      v.label?.includes('Start'),
+    );
+    if (!componentStart) {
+      throw new Error('no component');
+    }
+    await child.doComponent(msg1.d.id, componentStart);
+    stream.write(Event.message, { content: '⏳生成中，请稍等...' });
+    const placeholder = msg1.d.attachments?.[0].placeholder;
+    const itl = setInterval(() => {
+      stream.write(Event.message, { content: '.' });
+    }, 3000);
+    const msg2 = await child.waitGatewayEventNameAsync<GatewayDMessageCreate>(
+      GatewayEventName.MESSAGE_UPDATE,
+      (v) => {
+        this.logger.info('======', v.d.attachments?.[1]?.placeholder);
+        return v.d.attachments?.[1]?.placeholder === placeholder;
+      },
+      { timeout: 10 * 60 * 1000 },
+    );
+    stream.write(Event.message, { content: '\n✅生成完成\n' });
+    const local_url = await downloadAndUploadCDN(
+      msg2.d.attachments?.[0]?.proxy_url,
+    );
+    stream.write(Event.message, {
+      content: `[${msg2.d.attachments?.[0].placeholder}](${local_url})\n`,
+    });
+    stream.write(Event.message, {
+      content: `⏬[下载](${local_url.replace('/cdn/', '/cdn/download/')})\n`,
+    });
+    stream.write(Event.done, { content: '' });
+    stream.end();
+    clearInterval(itl);
   }
 }

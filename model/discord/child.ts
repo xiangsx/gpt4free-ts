@@ -2,22 +2,19 @@ import { ComChild, DestroyOptions } from '../../utils/pool';
 import {
   DiscordAccount,
   GatewayDHello,
-  GatewayDMessageCreate,
-  GatewayDMessageUpdate,
   GatewayEventName,
   GatewayEventPayload,
   GatewayEvents,
   GatewayHandler,
-  GatewayMessageType,
+  GatewayMessage,
   InteractionPayload,
   InteractionType,
-  MessageSubComponent,
   UploadedFileData,
   UploadFileInfo,
 } from './define';
 import { CreateNewAxios, WSS } from '../../utils/proxyAgent';
 import { AxiosInstance } from 'axios';
-import { downloadFile, parseJSON, randomNonce, randomStr } from '../../utils';
+import { downloadFile, parseJSON, randomStr } from '../../utils';
 import moment from 'moment';
 import fs from 'fs';
 
@@ -43,6 +40,8 @@ export class DiscordChild<
       >
     >
   > = {};
+  protected his_messages!: GatewayMessage[];
+  protected msg_updater!: NodeJS.Timer;
 
   sendEvent(e: GatewayEventPayload) {
     this.ws.send(JSON.stringify(e));
@@ -89,6 +88,17 @@ export class DiscordChild<
       },
     });
     return { file_name, upload_filename: file.upload_filename };
+  }
+
+  async getMessages() {
+    try {
+      const res = await this.client.get(
+        `/channels/${this.info.channel_id}/messages?limit=50`,
+      );
+      return res.data as GatewayMessage[];
+    } catch (e) {
+      return this.his_messages || [];
+    }
   }
 
   async waitGatewayEventName<T>(
@@ -276,6 +286,9 @@ export class DiscordChild<
       { proxy: true },
     );
     await this.initWS();
+    this.msg_updater = setInterval(async () => {
+      this.his_messages = await this.getMessages();
+    }, 3000);
   }
 
   initFailed(e?: Error) {

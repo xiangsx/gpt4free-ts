@@ -253,7 +253,16 @@ export class Child extends DiscordChild<Account> {
         throw new Error('no component');
       }
       await this.doComponent(msg1.d.id, componentStart);
-      return msg1;
+      const placeholder = msg1.d.attachments?.[0].placeholder;
+      const msg2 = await this.waitGatewayEventNameAsync<GatewayDMessageCreate>(
+        GatewayEventName.MESSAGE_UPDATE,
+        (v) => {
+          this.logger.info('======', v.d.attachments?.[1]?.placeholder);
+          return v.d.attachments?.[1]?.placeholder === placeholder;
+        },
+        { timeout: 10 * 60 * 1000 },
+      );
+      return msg2;
     }
   }
 }
