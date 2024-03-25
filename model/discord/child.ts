@@ -49,7 +49,14 @@ export class DiscordChild<
   }
 
   async interact(d: InteractionPayload<InteractionType>) {
-    return this.client.post('/interactions', d);
+    try {
+      await this.client.post('/interactions', d);
+    } catch (e: any) {
+      const errMsg = `interact error: ${e.message} req:${JSON.stringify(
+        d,
+      )} res:${JSON.stringify(e.response.data)}`;
+      throw new Error(errMsg);
+    }
   }
 
   async upload(url: string) {

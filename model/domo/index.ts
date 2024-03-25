@@ -28,6 +28,8 @@ import {
   getAllComponents,
   MessageFlags,
 } from '../discord/define';
+import Application from 'koa';
+import { CreateVideoTaskRequest } from '../define';
 
 export class Domo extends Chat {
   private pool = new Pool<Account, Child>(
@@ -95,76 +97,6 @@ export class Domo extends Chat {
       default:
         return 0;
     }
-  }
-
-  async doComponents(
-    action: AIAction,
-    child: Child,
-    stream: EventStream,
-    onEnd: () => void,
-  ) {
-    let itl: NodeJS.Timeout;
-    if (!action.component_type || !action.message_id || !action.custom_id) {
-      stream.write(Event.message, { content: 'Invalid component action' });
-      stream.write(Event.done, { content: '' });
-      stream.end();
-      onEnd();
-      return;
-    }
-    await child.doComponent(
-      action.reference_prompt!,
-      action.message_id,
-      {
-        component_type: action.component_type,
-        custom_id: action.custom_id,
-      },
-      {
-        onStart: (e) => {
-          stream.write(Event.message, { content: '> 开始绘制' });
-          itl = setInterval(() => {
-            stream.write(Event.message, { content: '.' });
-          }, 3000);
-        },
-        onUpdate: async (e) => {
-          if (e.attachments[0]?.url) {
-            stream.write(Event.message, {
-              content: `[${getProgress(
-                e.content,
-              )}%](${await downloadAndUploadCDN(e.attachments[0]?.url)})`,
-            });
-          }
-        },
-        onEnd: async (e) => {
-          clearInterval(itl);
-          const url = await downloadAndUploadCDN(e.attachments[0]?.url);
-          stream.write(Event.message, {
-            content: `[100%](${url})\n\n`,
-          });
-          stream.write(Event.message, {
-            content: `![${action.prompt}](${url})\n[⏬下载](${url.replace(
-              '/cdn/',
-              '/cdn/download/',
-            )})\n\n`,
-          });
-          stream.write(Event.message, {
-            content: `> reference_prompt: ${action.reference_prompt}\n\n`,
-          });
-          await this.handleComponents(e, child, stream);
-          stream.write(Event.done, { content: '' });
-          stream.end();
-          onEnd();
-        },
-        onError: (e) => {
-          clearInterval(itl);
-          stream.write(Event.message, {
-            content: e.message,
-          });
-          stream.write(Event.done, { content: '' });
-          stream.end();
-          onEnd();
-        },
-      },
-    );
   }
 
   async handleComponents(
@@ -256,61 +188,6 @@ export class Domo extends Chat {
     });
   }
 
-  async animate(
-    action: AIAction,
-    child: Child,
-    stream: EventStream,
-    onEnd: () => void,
-  ) {
-    let itl: NodeJS.Timeout;
-    await child.animate(action.image_url!, {
-      model: action.model,
-      onStart: (e) => {
-        stream.write(Event.message, { content: '> 开始绘制' });
-        itl = setInterval(() => {
-          stream.write(Event.message, { content: `.` });
-        }, 3000);
-      },
-      onEnd: async (e) => {
-        clearInterval(itl);
-        const url = await downloadAndUploadCDN(e.attachments[0]?.url);
-        stream.write(Event.message, {
-          content: `[100%](${url})\n\n`,
-        });
-        stream.write(Event.message, {
-          content: `![${action.prompt}](${url})\n[⏬下载](${url.replace(
-            '/cdn/',
-            '/cdn/download/',
-          )})\n\n`,
-        });
-        stream.write(Event.message, {
-          content: `\`\`\`\n${JSON.stringify({
-            flags: e.flags,
-            message_id: e.id,
-            channel_id: child.info.channel_id,
-            reference_prompt: action.reference_prompt,
-          })}\n\`\`\`\n\n`,
-        });
-        await this.handleComponents(e, child, stream);
-        stream.write(Event.message, {
-          content: '\n **接下来你可以直接对我说命令，例如：帮我放大第一张图**',
-        });
-        stream.write(Event.done, { content: '' });
-        stream.end();
-        onEnd();
-      },
-      onError: (e) => {
-        clearInterval(itl);
-        stream.write(Event.message, {
-          content: e.message,
-        });
-        stream.write(Event.done, { content: '' });
-        stream.end();
-        onEnd();
-      },
-    });
-  }
-
   async askStream(req: ChatRequest, stream: EventStream): Promise<void> {
     const child = await this.pool.pop();
     try {
@@ -347,9 +224,6 @@ export class Domo extends Chat {
                   const newChild = await this.pool.popIf(
                     (v) => v.channel_id === action.channel_id,
                   );
-                  await this.doComponents(action, newChild, stream, () =>
-                    child.release(),
-                  );
                 } catch (e) {
                   stream.write(Event.message, {
                     content: '该图像处理服务器已掉线',
@@ -362,9 +236,6 @@ export class Domo extends Chat {
                 await this.gen(action, child, stream, () => child.release());
                 return;
               case AIActionType.Animate:
-                await this.animate(action, child, stream, () =>
-                  child.release(),
-                );
                 return;
               default:
                 stream.write(Event.done, { content: '' });
@@ -391,5 +262,13 @@ export class Domo extends Chat {
       child.release();
       throw new ComError(e.message);
     }
+  }
+
+  async createVideoTask(
+    ctx: Application.Context,
+    req: CreateVideoTaskRequest,
+  ): Promise<void> {
+    const child = await this.pool.pop();
+    ctx.body = await child.createVideo({ image_url: req.image });
   }
 }

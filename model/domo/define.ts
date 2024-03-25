@@ -4,6 +4,7 @@ import {
   MessageFlags,
   DiscordAccount,
 } from '../discord/define';
+import exp from 'constants';
 
 export interface Account extends DiscordAccount {
   mode: DomoSpeedMode;

@@ -1,16 +1,17 @@
 import {
   Account,
+  AnimateCommand,
   DomoApplicationID,
+  DomoProfileInfo,
   GenCommand,
   InfoCommand,
-  DomoProfileInfo,
   parseMJProfile,
-  AnimateCommand,
 } from './define';
 import { randomNonce } from '../../utils';
 import { DiscordChild } from '../discord/child';
 import {
   ApplicationCommandOptionType,
+  GatewayDInteractionSuccess,
   GatewayDMessageCreate,
   GatewayDMessageUpdate,
   GatewayEventName,
@@ -18,60 +19,32 @@ import {
   getAllComponents,
   InteractionPayload,
   InteractionType,
-  MessageFlags,
   MessageSubComponent,
 } from '../discord/define';
 
 export class Child extends DiscordChild<Account> {
   protected application_id = DomoApplicationID;
-  async doComponent(
-    prompt: string,
-    message_id: string,
-    info: MessageSubComponent,
-    options: {
-      onStart: (msg: GatewayDMessageCreate) => void;
-      onUpdate: (msg: GatewayDMessageUpdate) => void;
-      onEnd: (msg: GatewayDMessageCreate) => void;
-      onError: (error: Error) => void;
-    },
-  ) {
+
+  async doComponent(message_id: string, info: MessageSubComponent) {
     const nonce = randomNonce(19);
     await this.interact({
       type: InteractionType.MESSAGE_COMPONENT,
       nonce: nonce,
       guild_id: this.info.server_id,
       channel_id: this.info.channel_id,
-      message_flags: 0,
+      message_flags: 64,
       message_id: message_id,
       application_id: this.application_id,
       session_id: this.session_id,
       data: {
-        component_type: info.component_type,
+        component_type: info.type,
         custom_id: info.custom_id,
       },
     });
-    const { onStart, onError, onEnd, onUpdate } = options;
-    const mCreate = await this.waitGatewayEventNameAsync(
-      GatewayEventName.MESSAGE_CREATE,
-      (e: GatewayEventPayload<GatewayDMessageCreate>) =>
-        e.d.content.indexOf(prompt) > -1,
+    await this.waitGatewayEventNameAsync<GatewayDInteractionSuccess>(
+      GatewayEventName.INTERACTION_SUCCESS,
+      (v) => v.d.nonce === nonce,
       {},
-    );
-    onStart(mCreate.d);
-    const removeEnd = await this.waitGatewayEventName(
-      GatewayEventName.MESSAGE_UPDATE,
-      (e: GatewayEventPayload<GatewayDMessageCreate>) =>
-        e.d.content.indexOf(prompt) > -1,
-      {
-        onTimeout: () => {
-          removeEnd();
-          onError(new Error(`do component timeout...`));
-        },
-        onEvent: (e) => {
-          removeEnd();
-          onEnd(e.d);
-        },
-      },
     );
   }
 
@@ -149,16 +122,7 @@ export class Child extends DiscordChild<Account> {
     );
   }
 
-  async animate(
-    image_url: string,
-    options: {
-      model?: number;
-      onStart: (msg: GatewayDMessageCreate) => void;
-      onEnd: (msg: GatewayDMessageCreate) => void;
-      onError: (error: Error) => void;
-    },
-  ) {
-    const { onStart, onError, onEnd, model } = options;
+  async animate(image_url: string) {
     const nonce = randomNonce(19);
     const data: InteractionPayload<InteractionType.APPLICATION_COMMAND> = {
       type: InteractionType.APPLICATION_COMMAND,
@@ -195,30 +159,12 @@ export class Child extends DiscordChild<Account> {
       (e: GatewayEventPayload<GatewayDMessageCreate>) => e.d.nonce === nonce,
       {},
     );
-    onStart(mCreate.d);
-    const mCreateEnd = await this.waitGatewayEventNameAsync(
+    return await this.waitGatewayEventNameAsync(
       GatewayEventName.MESSAGE_UPDATE,
       (e: GatewayEventPayload<GatewayDMessageCreate>) =>
         e.d.id === mCreate.d.id,
       {},
     );
-    const custom_id = getAllComponents(mCreateEnd.d.components).find(
-      (v) => v.label === 'Start',
-    )?.custom_id!;
-    await this.interact({
-      type: InteractionType.MESSAGE_COMPONENT,
-      nonce: nonce,
-      guild_id: this.info.server_id,
-      channel_id: this.info.channel_id,
-      message_flags: MessageFlags.EPHEMERAL,
-      message_id: mCreateEnd.d.id,
-      application_id: this.application_id,
-      session_id: this.session_id,
-      data: {
-        component_type: 2,
-        custom_id,
-      },
-    });
   }
 
   async getInfo(): Promise<DomoProfileInfo> {
@@ -264,7 +210,10 @@ export class Child extends DiscordChild<Account> {
     const info = await this.getInfo();
     this.logger.info(`got profile info: ${JSON.stringify(info)}`);
     this.update({ profile: info });
-    if (this.info.mode !== 'relax' && info.subscriptionCreditsBalance === 0) {
+    if (
+      this.info.mode !== 'relax' &&
+      info.subscriptionCreditsBalance + info.paidCreditsBalance === 0
+    ) {
       this.destroy({ delFile: false, delMem: true });
       throw new Error('fast time remaining 0');
     }
@@ -274,5 +223,37 @@ export class Child extends DiscordChild<Account> {
   async init(): Promise<void> {
     await super.init();
     await this.updateInfo();
+  }
+
+  async createVideo(options: { image_url?: string; video_url?: string }) {
+    const { image_url, video_url } = options || {};
+    if (!image_url && !video_url) {
+      throw new Error('no image_url or video_url');
+    }
+    if (image_url) {
+      const msg1 = await this.animate(image_url);
+      const componentStyle = getAllComponents(msg1.d.components).find((v) =>
+        v.label?.includes('Intensity: low'),
+      );
+      if (!componentStyle) {
+        throw new Error('no component');
+      }
+      await this.doComponent(msg1.d.id, componentStyle);
+      const componentTime = getAllComponents(msg1.d.components).find((v) =>
+        v.label?.includes('Gen 5s'),
+      );
+      if (!componentTime) {
+        throw new Error('no component');
+      }
+      await this.doComponent(msg1.d.id, componentTime);
+      const componentStart = getAllComponents(msg1.d.components).find((v) =>
+        v.label?.includes('Start'),
+      );
+      if (!componentStart) {
+        throw new Error('no component');
+      }
+      await this.doComponent(msg1.d.id, componentStart);
+      return msg1;
+    }
   }
 }
