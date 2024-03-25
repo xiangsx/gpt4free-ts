@@ -97,7 +97,7 @@ export class Pika extends Chat {
       if (v.status === 'finished' && v.resultUrl) {
         const local_url = await downloadAndUploadCDN(v.resultUrl);
         stream.write(Event.message, {
-          content: `✅视频生成成功\n\n![${
+          content: `✅视频生成成功\n\n[${
             req.prompt
           }](${local_url})\n[⏬下载](${local_url.replace(
             '/cdn/',
