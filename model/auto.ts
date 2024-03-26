@@ -234,7 +234,9 @@ export class Auto extends Chat {
       if (!searchRes.content) {
         return req;
       }
-      let searchParsed = parseJSON<any[]>(searchRes.content || '', []);
+      let searchParsed = parseJSON<
+        { title: string; link: string; description: string }[]
+      >(searchRes.content || '', []);
       if (searchParsed.length === 0) {
         return req;
       }
@@ -247,7 +249,10 @@ export class Auto extends Chat {
         });
       }
       const searchResStr = searchParsed
-        .map((item) => item.description)
+        .map(
+          (item) =>
+            `<link title='${item.title}' href='${item.link}'>${item.description}</link>`,
+        )
         .join('\n');
       const urlParse = await this.ask({
         model: ModelType.URL,
@@ -265,7 +270,7 @@ export class Auto extends Chat {
           role: 'user',
           content: `I need you to act as an intelligent assistant, refer to the search results I provided, and ignore some search content that does not relate to my question, then summarize, and answer my question in detail. \n\nCurrent Date:${moment().format(
             TimeFormat,
-          )}\n\nMy question is:${searchStr}\n\n The search results are:${searchResStr}\n${urlContent} \n\n The answer is as follows(The most important, the language of the answer must be the same of my question's language.):`,
+          )}\n\nMy question is:<question>${searchStr}</question>\n\n The search results are:\n<search>${searchResStr}</search>\n<firstsearchlink>${urlContent}</firstsearchlink> \n\n The answer is as follows(The most important, the language of the answer must be the same of my question's language.):`,
         },
       ];
     }

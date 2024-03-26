@@ -15,6 +15,7 @@ import moment from 'moment/moment';
 import { Config } from '../../utils/config';
 
 puppeteer.use(StealthPlugin());
+
 interface Account extends ComInfo {}
 
 class Child extends ComChild<Account> {
@@ -31,6 +32,10 @@ class Child extends ComChild<Account> {
         simplify: true,
         recognize: true,
         protocolTimeout: 5000,
+        cookies: [
+          { name: 'l', value: 'cn-zh', domain: 'duckduckgo.com' },
+          { name: 'ah', value: 'cn-zh%2Cau-en', domain: 'duckduckgo.com' },
+        ],
       },
     );
   }
