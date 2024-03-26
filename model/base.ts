@@ -244,6 +244,7 @@ export interface ChatRequest {
   secret?: string;
   images?: { width: number; height: number; url?: string }[];
   prompt_tokens?: number;
+  prompt_length?: number;
   response_format?: {
     type: 'json_object' | 'text';
   };

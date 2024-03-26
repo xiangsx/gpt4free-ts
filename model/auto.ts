@@ -8,6 +8,7 @@ import {
   Site,
   SpeechRequest,
   TextEmbeddingRequest,
+  messagesToPrompt,
 } from './base';
 import {
   ComError,
@@ -98,8 +99,12 @@ export class Auto extends Chat {
     return this.claudeAIChatMap.get(key) as ClaudeAPI;
   };
 
-  getRandomModel(req: { model: ModelType; prompt_tokens?: number }): Chat {
-    const { model, prompt_tokens } = req;
+  getRandomModel(req: {
+    model: ModelType;
+    prompt_tokens?: number;
+    prompt_length?: number;
+  }): Chat {
+    const { model, prompt_tokens, prompt_length } = req;
     const list: SiteCfg[] = [];
     for (const m in Config.config.site_map) {
       const v = Config.config.site_map[m as ModelType] || [];
@@ -275,6 +280,7 @@ export class Auto extends Chat {
     }
     // auto站点不处理
     // req.prompt_tokens = countMessagesToken(req.messages);
+    req.prompt_length = messagesToPrompt(req.messages).length;
     return req;
   }
 
