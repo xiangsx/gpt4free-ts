@@ -261,16 +261,15 @@ export class Auto extends Chat {
         max_tokens: 1000,
       });
       const urlContent = urlParse.content;
-      if (!urlContent) {
-        return req;
-      }
       req.messages = [
         ...req.messages.slice(0, -1),
         {
           role: 'user',
           content: `I need you to act as an intelligent assistant, refer to the search results I provided, and ignore some search content that does not relate to my question, then summarize, and answer my question in detail. \n\nCurrent Date:${moment().format(
             TimeFormat,
-          )}\n\nMy question is:<question>${searchStr}</question>\n\n The search results are:\n<search>${searchResStr}</search>\n<firstsearchlink>${urlContent}</firstsearchlink> \n\n The answer is as follows(The most important, the language of the answer must be the same of my question's language.):`,
+          )}\n\nMy question is:<question>${searchStr}</question>\n\n The search results are:\n<search>${searchResStr}</search>\n<firstsearchlink>${
+            urlContent || ''
+          }</firstsearchlink> \n\n The answer is as follows(The most important, the language of the answer must be the same of my question's language.):`,
         },
       ];
     }
