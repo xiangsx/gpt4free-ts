@@ -92,7 +92,7 @@ export class ComChild<T extends ComInfo> implements PoolChild<T> {
     this.options?.onRelease();
   }
 
-  public initFailed(): void {
+  public initFailed(e?: Error): void {
     this.options?.onInitFailed({ delFile: false, delMem: true });
   }
 }

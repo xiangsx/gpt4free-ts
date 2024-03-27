@@ -1,13 +1,12 @@
-import { Chat, ChatOptions, ChatRequest, ModelType } from '../base';
+import { Chat, ChatOptions, ChatRequest, ModelType, Site } from '../base';
 import { Pool } from '../../utils/pool';
-import { Account } from './define';
+import { Account, Clip, SongOptions } from './define';
 import { Child } from './child';
 import { Config } from '../../utils/config';
-import Application from 'koa';
-import { CreateVideoTaskRequest, QueryVideoTaskRequest } from '../define';
 import { v4 } from 'uuid';
-import { downloadAndUploadCDN, Event, EventStream } from '../../utils';
-import { clearInterval } from 'timers';
+import { ComError, Event, EventStream, extractJSON, sleep } from '../../utils';
+import { chatModel } from '../index';
+import { prompt } from './prompt';
 
 export class Suno extends Chat {
   constructor(options?: ChatOptions) {
@@ -19,21 +18,19 @@ export class Suno extends Chat {
     () => Config.config.suno?.size || 0,
     (info, options) => new Child(this.options?.name || 'suno', info, options),
     (info) => {
-      if (!info.email || !info.password) {
+      if (!info.token) {
         return false;
       }
       return true;
     },
     {
       preHandleAllInfos: async (allInfos) => {
-        const oldset = new Set(allInfos.map((v) => v.email));
-        for (const v of Config.config.suno?.accounts || []) {
-          if (!oldset.has(v.email)) {
+        const oldset = new Set(allInfos.map((v) => v.token));
+        for (const v of Config.config.suno?.tokens || []) {
+          if (!oldset.has(v)) {
             allInfos.push({
               id: v4(),
-              email: v.email,
-              password: v.password,
-              recovery: v.recovery,
+              token: v,
             } as Account);
           }
         }
@@ -42,7 +39,7 @@ export class Suno extends Chat {
       delay: 3000,
       serial: Config.config.suno?.serial || 1,
       needDel: (info) => {
-        if (!info.email || !info.password) {
+        if (!info.token) {
           return true;
         }
         return false;
@@ -52,81 +49,69 @@ export class Suno extends Chat {
 
   support(model: ModelType): number {
     switch (model) {
-      case ModelType.PikaTextToVideo:
-        return 1000;
+      case ModelType.SunoV3:
+        return 10000;
+      case ModelType.SunoV2:
+        return 10000;
       default:
         return 0;
     }
   }
 
   async askStream(req: ChatRequest, stream: EventStream): Promise<void> {
-    switch (req.model) {
-      case ModelType.PikaTextToVideo:
-        return this.textToVideo(req, stream);
+    const child = await this.pool.pop();
+    const auto = chatModel.get(Site.Auto);
+    const res = await auto?.ask({
+      model: Config.config.suno?.model || ModelType.GPT4_32k,
+      messages: [{ role: 'system', content: prompt }, ...req.messages],
+    } as ChatRequest);
+    if (!res?.content) {
+      throw new ComError('Song prompt gen failed', ComError.Status.BadRequest);
     }
-  }
-
-  async textToVideo(req: ChatRequest, stream: EventStream) {
-    const child = await this.pool.pop();
-    const id = await child.generate(req.prompt);
-    const [cid, vid] = id.split('|');
+    const options = extractJSON<SongOptions>(res.content);
+    if (!options) {
+      throw new ComError('Song prompt gen failed', ComError.Status.BadRequest);
+    }
     stream.write(Event.message, {
-      content: `✅成功创建视频任务：${id}\n\n`,
+      content: `##### 🎵${options.title}\n\n*${options.tags}*\n\n---\n\n${options.prompt}\n\n`,
     });
+    const song = await child.createSong(options);
     stream.write(Event.message, {
-      content: `⌛️视频生成中...`,
+      content: `> id\n>${song.id}\n\n生成中: 🎵`,
     });
-    const itl = setInterval(async () => {
-      const video = await child.myLibrary(vid);
-      if (!video) {
-        stream.write(Event.message, {
-          content: `.`,
-        });
-        return;
+    const completeSongs: Clip[] = [];
+    let ids = song.clips.map((v) => v.id);
+    for (let i = 0; i < 100; i++) {
+      const clips = await child.feedSong(ids).catch((e) => {
+        this.logger.error(e.message);
+      });
+      if (!clips) {
+        await sleep(1000);
+        continue;
       }
-      const v = video.data.results[0]?.videos[0];
-      if (!v) {
-        return;
+      completeSongs.push(
+        ...clips.filter((v) => v.status === 'complete' && v.audio_url),
+      );
+      if (clips.every((v) => v.status === 'complete')) {
+        break;
       }
-      if (v.status === 'pending') {
-        stream.write(Event.message, {
-          content: `.`,
-        });
-        return;
-      }
-      if (v.status === 'finished' && v.resultUrl) {
-        const local_url = await downloadAndUploadCDN(v.resultUrl);
-        stream.write(Event.message, {
-          content: `✅视频生成成功\n\n[${
-            req.prompt
-          }](${local_url})\n[⏬下载](${local_url.replace(
-            '/cdn/',
-            '/cdn/download/',
-          )})\n\n`,
-        });
-        clearInterval(itl);
-        stream.write(Event.done, { content: '' });
-        stream.end();
-        return;
-      }
-    }, 3000);
-  }
-
-  async createVideoTask(
-    ctx: Application.Context,
-    req: CreateVideoTaskRequest,
-  ): Promise<void> {
-    const child = await this.pool.pop();
-    const id = await child.generate(req.prompt || '');
-    ctx.body = { id };
-  }
-
-  async queryVideoTask(
-    ctx: Application.Context,
-    req: QueryVideoTaskRequest,
-  ): Promise<void> {
-    const [child_id, id] = req.id.split('|');
-    const child = await this.pool.popIf((v) => v.id === child_id);
-    ctx.body = { url: await child.myLibrary(id) };
+      ids = clips.filter((v) => v.status !== 'complete').map((v) => v.id);
+      stream.write(Event.message, {
+        content: `🎵`,
+      });
+      this.logger.debug(
+        `waiting for clips: ${clips
+          .map((v) => `${v.id}: ${v.status}`)
+          .join(',')}`,
+      );
+      await sleep(5 * 1000);
+    }
+    for (const v of completeSongs) {
+      stream.write(Event.message, {
+        content: `\n${v.title}\n![image](${v.image_url})\n音频🎧：[点击播放](${v.audio_url})\n视频🖥: [点击播放](${v.video_url})\n`,
+      });
+    }
+    stream.write(Event.done, { content: '' });
+    stream.end();
   }
 }

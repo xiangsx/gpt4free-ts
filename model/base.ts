@@ -157,6 +157,8 @@ export enum ModelType {
   PikaVideo = 'pika-video',
   DomoImgToVideo = 'domo-img-to-video',
   PikaTextToVideo = 'pika-text-to-video',
+  SunoV3 = 'suno-v3',
+  SunoV2 = 'suno-v2',
 }
 
 export enum Site {

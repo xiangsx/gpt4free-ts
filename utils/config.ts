@@ -86,7 +86,8 @@ interface ConfigData {
     accounts: GoogleMailAccount[];
   };
   suno?: SizeCfg & {
-    accounts: GoogleMailAccount[];
+    tokens: string[];
+    model: ModelType;
   };
   midjourney: SizeCfg & {
     accounts: (DiscordAccount & {

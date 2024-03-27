@@ -1044,3 +1044,32 @@ export function checkSensitiveWords(text: string) {
   }
   return !mint?.verify(text);
 }
+
+export function decodeJwt(token: string): { header: any; payload: any } {
+  // 分割 JWT 为 Header, Payload, Signature
+  const parts = token.split('.');
+  if (parts.length !== 3) {
+    throw new Error('JWT 格式错误');
+  }
+
+  const [headerB64, payloadB64] = parts;
+
+  // Base64 解码
+  const decodeBase64 = (str: string) => {
+    // 将 Base64URL 转换为 Base64
+    const base64 = str.replace(/-/g, '+').replace(/_/g, '/');
+    // 对 Base64 字符串解码并转换为 UTF-8 字符串
+    return decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join(''),
+    );
+  };
+
+  // 解码 Header 和 Payload
+  const header = JSON.parse(decodeBase64(headerB64));
+  const payload = JSON.parse(decodeBase64(payloadB64));
+
+  return { header, payload };
+}
