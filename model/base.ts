@@ -231,6 +231,7 @@ export enum Site {
   FreeGPT4 = 'freegpt4',
   Domo = 'domo',
   Pika = 'pika',
+  Suno = 'suno',
   BingCopilot = 'bingcopilot',
   ClaudeAuto = 'claudeauto',
 }

@@ -85,6 +85,9 @@ interface ConfigData {
   pika?: SizeCfg & {
     accounts: GoogleMailAccount[];
   };
+  suno?: SizeCfg & {
+    accounts: GoogleMailAccount[];
+  };
   midjourney: SizeCfg & {
     accounts: (DiscordAccount & {
       mode: 'relax' | 'fast' | 'turbo';

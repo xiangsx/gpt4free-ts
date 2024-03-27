@@ -310,6 +310,23 @@ export async function loginGoogle(
   await page.keyboard.press('Enter');
   await sleep(3000);
   await checkRecoveryMail(page, recovery_email);
+  // await checkGmailContinue(page);
+}
+
+export async function checkGmailContinue(page: Page) {
+  for (let i = 0; i < 3; i++) {
+    try {
+      await page.waitForSelector(
+        'c-wiz > div > div > div > div > div:nth-child(2)',
+        {
+          timeout: 2000,
+        },
+      );
+      await page.click('c-wiz > div > div > div > div > div:nth-child(2)');
+    } catch (e) {
+      continue;
+    }
+  }
 }
 
 export async function checkRecoveryMail(page: Page, email: string) {
