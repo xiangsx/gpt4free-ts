@@ -73,7 +73,7 @@ export class Suno extends Chat {
       throw new ComError('Song prompt gen failed', ComError.Status.BadRequest);
     }
     stream.write(Event.message, {
-      content: `##### 🎵${options.title}\n\n*${options.tags}*\n\n---\n\n${options.prompt}\n\n`,
+      content: `#### 🎵${options.title}\n\n*${options.tags}*\n\n---\n\n${options.prompt}\n\n`,
     });
     const song = await child.createSong(options);
     stream.write(Event.message, {
