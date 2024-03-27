@@ -93,8 +93,8 @@ function replaceConsoleWithWinston(): void {
   console.debug = (...msg) => logger.debug(format(...msg));
 }
 
-export function newLogger(site?: string) {
-  const log = logger.child({ site });
+export function newLogger(site?: string, extra?: Record<string, string>) {
+  const log = logger.child({ site, ...extra });
   log.exitOnError = false;
   return log;
 }
