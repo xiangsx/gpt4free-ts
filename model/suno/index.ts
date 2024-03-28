@@ -4,7 +4,15 @@ import { Account, Clip, SongOptions } from './define';
 import { Child } from './child';
 import { Config } from '../../utils/config';
 import { v4 } from 'uuid';
-import { ComError, Event, EventStream, extractJSON, sleep } from '../../utils';
+import {
+  ComError,
+  Event,
+  EventStream,
+  extractJSON,
+  MessageData,
+  sleep,
+  ThroughEventStream,
+} from '../../utils';
 import { chatModel } from '../index';
 import { prompt } from './prompt';
 
@@ -58,60 +66,131 @@ export class Suno extends Chat {
     }
   }
 
+  extractContent(key: string, str: string) {
+    const regex = new RegExp(`"${key}": "([^"]*)"`);
+    const match = str.match(regex);
+
+    if (match) {
+      return match[1]; // 返回匹配到的引号内文本
+    } else {
+      return null; // 如果没有找到匹配项，返回 null
+    }
+  }
+
   async askStream(req: ChatRequest, stream: EventStream): Promise<void> {
     const child = await this.pool.pop();
     const auto = chatModel.get(Site.Auto);
-    const res = await auto?.ask({
-      model: Config.config.suno?.model || ModelType.GPT4_32k,
-      messages: [{ role: 'system', content: prompt }, ...req.messages],
-    } as ChatRequest);
-    if (!res?.content) {
-      throw new ComError('Song prompt gen failed', ComError.Status.BadRequest);
-    }
-    const options = extractJSON<SongOptions>(res.content);
-    if (!options) {
-      throw new ComError('Song prompt gen failed', ComError.Status.BadRequest);
-    }
-    stream.write(Event.message, {
-      content: `#### 🎵${options.title}\n\n*${options.tags}*\n\n---\n\n${options.prompt}\n\n`,
-    });
-    const song = await child.createSong(options);
-    stream.write(Event.message, {
-      content: `> id\n>${song.id}\n\n生成中: 🎵`,
-    });
-    const completeSongs: Clip[] = [];
-    let ids = song.clips.map((v) => v.id);
-    for (let i = 0; i < 100; i++) {
-      const clips = await child.feedSong(ids).catch((e) => {
-        this.logger.error(e.message);
-      });
-      if (!clips) {
-        await sleep(1000);
-        continue;
-      }
-      completeSongs.push(
-        ...clips.filter((v) => v.status === 'complete' && v.audio_url),
-      );
-      if (clips.every((v) => v.status === 'complete')) {
-        break;
-      }
-      ids = clips.filter((v) => v.status !== 'complete').map((v) => v.id);
-      stream.write(Event.message, {
-        content: `🎵`,
-      });
-      this.logger.debug(
-        `waiting for clips: ${clips
-          .map((v) => `${v.id}: ${v.status}`)
-          .join(',')}`,
-      );
-      await sleep(5 * 1000);
-    }
-    for (const v of completeSongs) {
-      stream.write(Event.message, {
-        content: `\n${v.title}\n![image](${v.image_url})\n音频🎧：[点击播放](${v.audio_url})\n视频🖥: [点击播放](${v.video_url})\n`,
-      });
-    }
-    stream.write(Event.done, { content: '' });
-    stream.end();
+    let old = '';
+    let lastLength = 0;
+    let titleOK = false;
+    let title = '';
+    let tagsOK = false;
+    let tags = '';
+    let lyricsOK = false;
+    let lyrics = '';
+    const pt = new ThroughEventStream(
+      (event, data) => {
+        if ((data as MessageData).content) {
+          old += (data as MessageData).content;
+        }
+
+        if (!titleOK) {
+          const t = `#### 🎵${this.extractContent('title', old + `"`) || ''}`;
+          stream.write(Event.message, { content: t.substring(title.length) });
+          title = t;
+          if (/"title": "([^"]*)"/.test(old)) {
+            titleOK = true;
+            stream.write(Event.message, { content: '\n\n' });
+          }
+        } else if (!tagsOK) {
+          const t = `*${this.extractContent('tags', old + `"`) || ''}`;
+          stream.write(Event.message, { content: t.substring(tags.length) });
+          tags = t;
+          if (/"tags": "([^"]*)"/.test(old)) {
+            tagsOK = true;
+            stream.write(Event.message, { content: '*\n\n---\n\n' });
+          }
+        } else if (!lyricsOK) {
+          const t = this.extractContent('prompt', old + `"`) || '';
+          if (!t.endsWith(`\\`) && !t.endsWith(`\\\\`)) {
+            let content = t.substring(lyrics.length);
+            // 处理换行
+            content = content.replace(/\\n/g, '\n');
+            stream.write(Event.message, {
+              content,
+            });
+            lyrics = t;
+          } else {
+            console.log(`lyrics: ${lyrics}`);
+          }
+          if (/"prompt": "([^"]*)"/.test(old)) {
+            lyricsOK = true;
+            stream.write(Event.message, { content: '\n\n---\n\n' });
+          }
+        }
+      },
+      async () => {
+        try {
+          let options = extractJSON<SongOptions>(old || '');
+          if (!options) {
+            options = {
+              title,
+              tags,
+              prompt: lyrics,
+              mv: 'chirp-v3-0',
+              continue_clip_id: null,
+              continue_at: null,
+            };
+          }
+          const song = await child.createSong(options);
+          stream.write(Event.message, {
+            content: `> id\n>${song.id}\n\n生成中: 🎵`,
+          });
+          const completeSongs: Clip[] = [];
+          let ids = song.clips.map((v) => v.id);
+          for (let i = 0; i < 100; i++) {
+            const clips = await child.feedSong(ids).catch((e) => {
+              this.logger.error(e.message);
+            });
+            if (!clips) {
+              await sleep(1000);
+              continue;
+            }
+            completeSongs.push(
+              ...clips.filter((v) => v.status === 'complete' && v.audio_url),
+            );
+            if (clips.every((v) => v.status === 'complete')) {
+              break;
+            }
+            ids = clips.filter((v) => v.status !== 'complete').map((v) => v.id);
+            stream.write(Event.message, {
+              content: `🎵`,
+            });
+            this.logger.debug(
+              `waiting for clips: ${clips
+                .map((v) => `${v.id}: ${v.status}`)
+                .join(',')}`,
+            );
+            await sleep(5 * 1000);
+          }
+          for (const v of completeSongs) {
+            stream.write(Event.message, {
+              content: `\n${v.title}\n![image](${v.image_url})\n音频🎧：[点击播放](${v.audio_url})\n视频🖥: [点击播放](${v.video_url})\n`,
+            });
+          }
+          stream.write(Event.done, { content: '' });
+          stream.end();
+        } catch (e: any) {
+          this.logger.error(`wtf error:${e.message}`);
+        }
+      },
+    );
+    await auto?.askStream(
+      {
+        model: Config.config.suno?.model || ModelType.GPT4_32k,
+        messages: [{ role: 'system', content: prompt }, ...req.messages],
+      } as ChatRequest,
+      pt,
+    );
   }
 }
