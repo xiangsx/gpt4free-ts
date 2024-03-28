@@ -1,4 +1,4 @@
-import { ComChild } from '../../utils/pool';
+import { ComChild, DestroyOptions } from '../../utils/pool';
 import {
   Account,
   BillInfo,
@@ -8,17 +8,16 @@ import {
   SongOptions,
 } from './define';
 import { AxiosInstance } from 'axios';
-import { CreateNewAxios, CreateNewPage } from '../../utils/proxyAgent';
-import FormData from 'form-data';
-import { Page, Protocol } from 'puppeteer';
+import { CreateNewAxios } from '../../utils/proxyAgent';
+import { Page } from 'puppeteer';
 import moment from 'moment';
-import { loginGoogle } from '../../utils/puppeteer';
-import { decodeJwt, parseJSON, randomUserAgent, sleep } from '../../utils';
+import { randomUserAgent } from '../../utils';
 
 export class Child extends ComChild<Account> {
   private client!: AxiosInstance;
   private sessClient!: AxiosInstance;
   private page!: Page;
+  itl?: NodeJS.Timer;
 
   async init() {
     if (!this.info.token) {
@@ -41,7 +40,7 @@ export class Child extends ComChild<Account> {
     await this.updateSID();
     await this.updateToken();
     await this.updateCredit();
-    setInterval(async () => {
+    this.itl = setInterval(async () => {
       try {
         await this.updateToken();
         await this.updateCredit();
@@ -151,5 +150,12 @@ export class Child extends ComChild<Account> {
       lastUseTime: moment().unix(),
       useCount: (this.info.useCount || 0) + 1,
     });
+  }
+  destroy(options?: DestroyOptions) {
+    super.destroy(options);
+    if (this.itl) {
+      // @ts-ignore
+      clearInterval(this.itl);
+    }
   }
 }
