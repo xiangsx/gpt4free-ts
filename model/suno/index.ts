@@ -175,7 +175,7 @@ export class Suno extends Chat {
           }
           for (const v of completeSongs) {
             stream.write(Event.message, {
-              content: `\n${v.title}\n![image](${v.image_url})\n音频🎧：[点击播放](${v.audio_url})\n视频🖥: [点击播放](${v.video_url})\n`,
+              content: `\n${v.title}\n![image](${v.image_url})\n音频🎧: [点击播放](${v.audio_url})\n视频🖥: [点击播放](${v.video_url})\n`,
             });
           }
           stream.write(Event.done, { content: '' });
