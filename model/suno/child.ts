@@ -154,6 +154,7 @@ export class Child extends ComChild<Account> {
   destroy(options?: DestroyOptions) {
     super.destroy(options);
     if (this.itl) {
+      this.logger.debug('clear update token timer');
       // @ts-ignore
       clearInterval(this.itl);
     }
