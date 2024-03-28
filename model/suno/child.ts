@@ -48,7 +48,7 @@ export class Child extends ComChild<Account> {
       } catch (e) {
         this.destroy({ delMem: true, delFile: false });
       }
-    }, 60 * 1000);
+    }, 50 * 1000);
   }
 
   async updateSID() {
@@ -99,6 +99,10 @@ export class Child extends ComChild<Account> {
   async updateCredit() {
     const bill = await this.queryBill();
     this.update({ credit_left: bill.total_credits_left });
+    if (bill.total_credits_left < 10) {
+      this.update({ refresh_time: moment().add(1, 'd').unix() });
+      throw new Error(`credit left:${bill.total_credits_left} not enough`);
+    }
     this.logger.info(`update credit ok: ${bill.total_credits_left}`);
   }
 

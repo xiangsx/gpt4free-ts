@@ -7,6 +7,8 @@ export interface Account extends ComInfo {
   sid?: string;
   ua?: string;
   credit_left?: number;
+  // 刷新时间
+  refresh_time?: number;
 }
 
 export interface BillInfo {

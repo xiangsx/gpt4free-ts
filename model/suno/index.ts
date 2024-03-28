@@ -15,6 +15,7 @@ import {
 } from '../../utils';
 import { chatModel } from '../index';
 import { prompt } from './prompt';
+import moment from 'moment';
 
 export class Suno extends Chat {
   constructor(options?: ChatOptions) {
@@ -27,6 +28,9 @@ export class Suno extends Chat {
     (info, options) => new Child(this.options?.name || 'suno', info, options),
     (info) => {
       if (!info.token) {
+        return false;
+      }
+      if (info.refresh_time && moment().unix() < info.refresh_time) {
         return false;
       }
       return true;
@@ -178,6 +182,7 @@ export class Suno extends Chat {
           }
           stream.write(Event.done, { content: '' });
           stream.end();
+          await child.updateCredit();
         } catch (e: any) {
           this.logger.error(`wtf error:${e.message}`);
         }
