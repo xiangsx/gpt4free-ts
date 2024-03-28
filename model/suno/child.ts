@@ -41,10 +41,13 @@ export class Child extends ComChild<Account> {
     await this.updateSID();
     await this.updateToken();
     await this.updateCredit();
-    setInterval(() => {
-      this.updateToken().catch((err) =>
-        this.destroy({ delMem: true, delFile: false }),
-      );
+    setInterval(async () => {
+      try {
+        await this.updateToken();
+        await this.updateCredit();
+      } catch (e) {
+        this.destroy({ delMem: true, delFile: false });
+      }
     }, 60 * 1000);
   }
 

@@ -120,8 +120,6 @@ export class Suno extends Chat {
               content,
             });
             lyrics = t;
-          } else {
-            console.log(`lyrics: ${lyrics}`);
           }
           if (/"prompt": "([^"]*)"/.test(old)) {
             lyricsOK = true;
