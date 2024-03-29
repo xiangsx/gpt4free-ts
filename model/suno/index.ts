@@ -182,26 +182,24 @@ export class Suno extends Chat {
             await sleep(5 * 1000);
           }
           for (const v of completeSongs) {
-            for (const v of completeSongs) {
-              switch (v.status) {
-                case 'complete':
-                  stream.write(Event.message, {
-                    content: `\n${v.title}\n![image](${v.image_url})\n音频🎧: [点击播放](${v.audio_url})\n视频🖥: [点击播放](${v.video_url})\n`,
-                  });
-                  break;
-                case 'error':
-                  stream.write(Event.message, {
-                    content: `\n${v.title}\n生成失败\n`,
-                  });
-                  break;
-                case 'streaming':
-                  stream.write(Event.message, {
-                    content: `\n${v.title}\n生成超时\n`,
-                  });
-                  break;
-                default:
-                  break;
-              }
+            switch (v.status) {
+              case 'complete':
+                stream.write(Event.message, {
+                  content: `\n${v.title}\n![image](${v.image_url})\n音频🎧: [点击播放](${v.audio_url})\n视频🖥: [点击播放](${v.video_url})\n`,
+                });
+                break;
+              case 'error':
+                stream.write(Event.message, {
+                  content: `\n${v.title}\n生成失败\n`,
+                });
+                break;
+              case 'streaming':
+                stream.write(Event.message, {
+                  content: `\n${v.title}\n生成超时\n`,
+                });
+                break;
+              default:
+                break;
             }
           }
           stream.write(Event.done, { content: '' });
