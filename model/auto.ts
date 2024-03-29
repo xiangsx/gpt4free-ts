@@ -4,11 +4,11 @@ import {
   ChatRequest,
   contentToString,
   ImageGenerationRequest,
+  messagesToPrompt,
   ModelType,
   Site,
   SpeechRequest,
   TextEmbeddingRequest,
-  messagesToPrompt,
 } from './base';
 import {
   ComError,
@@ -331,9 +331,9 @@ export class Auto extends Chat {
 
   async feedSong(
     ctx: Application.Context,
-    req: { ids: string[]; server_id: string; mv: ModelType },
+    req: { ids: string[]; server_id: string },
   ) {
-    const chat = this.getRandomModel({ model: req.mv });
+    const chat = this.getRandomModel({ model: ModelType.ChirpV3_0 });
     await chat.feedSong(ctx, req);
   }
 }

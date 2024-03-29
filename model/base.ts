@@ -589,7 +589,7 @@ export class Chat {
 
   public async feedSong(
     ctx: Context,
-    req: { ids: string[]; server_id: string; mv: ModelType },
+    req: { ids: string[]; server_id: string },
   ) {
     throw new ComError('not implement', ComError.Status.InternalServerError);
   }

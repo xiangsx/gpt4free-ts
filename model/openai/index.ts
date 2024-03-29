@@ -245,7 +245,7 @@ export class OpenAI extends Chat {
 
   async feedSong(
     ctx: Application.Context,
-    req: { ids: string[]; server_id: string; mv: ModelType },
+    req: { ids: string[]; server_id: string },
   ) {
     const res = await this.client.get('/v1/song/feed', { params: req });
     ctx.body = res.data;
