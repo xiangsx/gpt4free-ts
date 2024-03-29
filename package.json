@@ -78,7 +78,6 @@
     "string-similarity": "^4.0.4",
     "textract": "^2.5.0",
     "tiktoken": "^1.0.13",
-    "tls-client": "^0.0.5",
     "turndown": "^7.1.2",
     "user-agents": "^1.0.1367",
     "uuid": "^9.0.0",
