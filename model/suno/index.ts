@@ -144,6 +144,7 @@ export class Suno extends Chat {
               continue_at: null,
             };
           }
+          await child.updateToken();
           const song = await child.createSong(options);
           stream.write(Event.message, {
             content: `> id\n>${song.id}\n\n生成中: 🎵`,
@@ -173,6 +174,9 @@ export class Suno extends Chat {
                 .map((v) => `${v.id}: ${v.status}`)
                 .join(',')}`,
             );
+            if (i > 50) {
+              this.logger.warn(`wtf ${i}/100,clips:${JSON.stringify(clips)}`);
+            }
             await sleep(5 * 1000);
           }
           for (const v of completeSongs) {
