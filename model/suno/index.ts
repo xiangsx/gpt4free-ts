@@ -151,7 +151,7 @@ export class Suno extends Chat {
           });
           const completeSongs: Clip[] = [];
           let ids = song.clips.map((v) => v.id);
-          for (let i = 0; i < 100; i++) {
+          for (let i = 0; i < 120; i++) {
             const clips = await child.feedSong(ids).catch((e) => {
               this.logger.error(e.message);
             });
@@ -159,10 +159,12 @@ export class Suno extends Chat {
               await sleep(1000);
               continue;
             }
-            completeSongs.push(
-              ...clips.filter((v) => v.status === 'complete' && v.audio_url),
-            );
-            if (clips.every((v) => v.status === 'complete')) {
+            completeSongs.push(...clips.filter((v) => v.status === 'complete'));
+            if (
+              clips.every(
+                (v) => v.status === 'complete' || v.status === 'error',
+              )
+            ) {
               break;
             }
             ids = clips.filter((v) => v.status !== 'complete').map((v) => v.id);
@@ -180,9 +182,27 @@ export class Suno extends Chat {
             await sleep(5 * 1000);
           }
           for (const v of completeSongs) {
-            stream.write(Event.message, {
-              content: `\n${v.title}\n![image](${v.image_url})\n音频🎧: [点击播放](${v.audio_url})\n视频🖥: [点击播放](${v.video_url})\n`,
-            });
+            for (const v of completeSongs) {
+              switch (v.status) {
+                case 'complete':
+                  stream.write(Event.message, {
+                    content: `\n${v.title}\n![image](${v.image_url})\n音频🎧: [点击播放](${v.audio_url})\n视频🖥: [点击播放](${v.video_url})\n`,
+                  });
+                  break;
+                case 'error':
+                  stream.write(Event.message, {
+                    content: `\n${v.title}\n生成失败\n`,
+                  });
+                  break;
+                case 'streaming':
+                  stream.write(Event.message, {
+                    content: `\n${v.title}\n生成超时\n`,
+                  });
+                  break;
+                default:
+                  break;
+              }
+            }
           }
           stream.write(Event.done, { content: '' });
           stream.end();

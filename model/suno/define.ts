@@ -214,7 +214,7 @@ export interface Clip {
   is_trashed: boolean;
   reaction: null;
   created_at: string;
-  status: 'queued' | 'streaming' | 'complete' | 'failed';
+  status: 'queued' | 'streaming' | 'complete' | 'error';
   title: string;
   play_count: number;
   upvote_count: number;
