@@ -227,7 +227,7 @@ export class Suno extends Chat {
 
   async feedSong(
     ctx: Application.Context,
-    req: { ids: string[]; server_id: string; mv: ModelType },
+    req: { ids: string[]; server_id: string },
   ) {
     const child = await this.pool.popIf((v) => v.id === req.server_id);
     ctx.body = await child.feedSong(req.ids);
