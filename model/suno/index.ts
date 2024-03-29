@@ -5,7 +5,6 @@ import { Child } from './child';
 import { Config } from '../../utils/config';
 import { v4 } from 'uuid';
 import {
-  ComError,
   Event,
   EventStream,
   extractJSON,
@@ -16,6 +15,7 @@ import {
 import { chatModel } from '../index';
 import { prompt } from './prompt';
 import moment from 'moment';
+import Application from 'koa';
 
 export class Suno extends Chat {
   constructor(options?: ChatOptions) {
@@ -139,7 +139,7 @@ export class Suno extends Chat {
               title,
               tags,
               prompt: lyrics,
-              mv: 'chirp-v3-0',
+              mv: ModelType.ChirpV3_0,
               continue_clip_id: null,
               continue_at: null,
             };
@@ -217,5 +217,19 @@ export class Suno extends Chat {
       } as ChatRequest,
       pt,
     );
+  }
+
+  async createSong(ctx: Application.Context, req: SongOptions) {
+    const child = await this.pool.pop();
+    const res = await child.createSong(req);
+    ctx.body = { server_id: child.info.id, ...res };
+  }
+
+  async feedSong(
+    ctx: Application.Context,
+    req: { ids: string[]; server_id: string; mv: ModelType },
+  ) {
+    const child = await this.pool.popIf((v) => v.id === req.server_id);
+    ctx.body = await child.feedSong(req.ids);
   }
 }

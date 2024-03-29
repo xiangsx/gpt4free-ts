@@ -369,6 +369,33 @@ const audioHandle: Middleware = async (ctx, next) => {
   await chat.speech(ctx, req);
 };
 
+const songCreateHandle: Middleware = async (ctx, next) => {
+  const { site, ...req } = {
+    ...(ctx.query as any),
+    ...(ctx.request.body as any),
+    ...(ctx.params as any),
+  } as any;
+  const chat = chatModel.get(site);
+  if (!chat) {
+    throw new ComError(`not support site: ${site} `, ComError.Status.NotFound);
+  }
+  await chat.createSong(ctx, req);
+};
+
+const songFeedHandle: Middleware = async (ctx, next) => {
+  const { site, ...req } = {
+    ...(ctx.query as any),
+    ...(ctx.request.body as any),
+    ...(ctx.params as any),
+  } as any;
+  const chat = chatModel.get(site);
+  if (!chat) {
+    throw new ComError(`not support site: ${site} `, ComError.Status.NotFound);
+  }
+  req.ids = req.ids.split(',');
+  await chat.feedSong(ctx, req);
+};
+
 const audioTransHandle: Middleware = async (ctx, next) => {
   const { site, ...req } = {
     ...(ctx.query as any),
@@ -501,6 +528,10 @@ export const registerApp = () => {
   router.get('/:site/v1/video/query', queryVideoTaskHandle);
   router.post('/:site/v1/audio/transcriptions', audioTransHandle);
   router.post('/v1/audio/transcriptions', audioTransHandle);
+  router.post('/v1/song/create', songCreateHandle);
+  router.post('/:site/v1/song/create', songCreateHandle);
+  router.get('/v1/song/feed', songFeedHandle);
+  router.get('/:site/v1/song/feed', songFeedHandle);
 
   app.use(router.routes());
   const port = +(process.env.PORT || 3000);

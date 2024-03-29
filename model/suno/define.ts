@@ -1,6 +1,7 @@
 import { ComInfo } from '../../utils/pool';
 import { Protocol } from 'puppeteer';
 import exp from 'constants';
+import { ModelType } from '../base';
 
 export interface Account extends ComInfo {
   token: string;
@@ -184,8 +185,10 @@ export const SongThemes = [
 export interface SongOptions {
   prompt: string;
   tags: string;
-  mv: string;
+  mv: ModelType;
   title: string;
+  make_instrumental?: boolean;
+  gpt_description_prompt?: string;
   continue_clip_id: null | string;
   continue_at: null | string;
 }

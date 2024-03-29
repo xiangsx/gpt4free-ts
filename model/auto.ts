@@ -30,6 +30,7 @@ import {
   QueryVideoTaskRequest,
   TranscriptionRequest,
 } from './define';
+import { SongOptions } from './suno/define';
 
 interface AutoOptions extends ChatOptions {
   ModelMap: Map<Site, Chat>;
@@ -321,5 +322,18 @@ export class Auto extends Chat {
   ): Promise<void> {
     const chat = this.getRandomModel(req);
     await chat.queryVideoTask(ctx, req);
+  }
+
+  async createSong(ctx: Application.Context, req: SongOptions) {
+    const chat = this.getRandomModel({ model: req.mv });
+    await chat.createSong(ctx, req);
+  }
+
+  async feedSong(
+    ctx: Application.Context,
+    req: { ids: string[]; server_id: string; mv: ModelType },
+  ) {
+    const chat = this.getRandomModel({ model: req.mv });
+    await chat.feedSong(ctx, req);
   }
 }

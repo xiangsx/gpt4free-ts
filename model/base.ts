@@ -17,6 +17,7 @@ import {
   CreateVideoTaskRequest,
   QueryVideoTaskRequest,
 } from './define';
+import { SongOptions } from './suno/define';
 
 export interface ChatOptions {
   name: string;
@@ -159,6 +160,8 @@ export enum ModelType {
   PikaTextToVideo = 'pika-text-to-video',
   SunoV3 = 'suno-v3',
   SunoV2 = 'suno-v2',
+  ChirpV2XXLAlpha = 'chirp-v2-xxl-alpha',
+  ChirpV3_0 = 'chirp-v3-0',
 }
 
 export enum Site {
@@ -577,6 +580,17 @@ export class Chat {
   }
 
   public async queryVideoTask(ctx: Context, req: QueryVideoTaskRequest) {
+    throw new ComError('not implement', ComError.Status.InternalServerError);
+  }
+
+  public async createSong(ctx: Context, req: SongOptions) {
+    throw new ComError('not implement', ComError.Status.InternalServerError);
+  }
+
+  public async feedSong(
+    ctx: Context,
+    req: { ids: string[]; server_id: string; mv: ModelType },
+  ) {
     throw new ComError('not implement', ComError.Status.InternalServerError);
   }
 }

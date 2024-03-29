@@ -23,6 +23,8 @@ import {
   QueryVideoTaskRequest,
   TranscriptionRequest,
 } from '../define';
+import { SongOptions } from '../suno/define';
+import { AwsLambda } from 'elastic-apm-node/types/aws-lambda';
 
 interface RealReq extends ChatRequest {
   functions?: {
@@ -233,6 +235,19 @@ export class OpenAI extends Chat {
     req: QueryVideoTaskRequest,
   ): Promise<void> {
     const res = await this.client.get('/v1/video/query', { params: req });
+    ctx.body = res.data;
+  }
+
+  async createSong(ctx: Application.Context, req: SongOptions) {
+    const res = await this.client.post('/v1/song/create', req);
+    ctx.body = res.data;
+  }
+
+  async feedSong(
+    ctx: Application.Context,
+    req: { ids: string[]; server_id: string; mv: ModelType },
+  ) {
+    const res = await this.client.get('/v1/song/feed', { params: req });
     ctx.body = res.data;
   }
 }
