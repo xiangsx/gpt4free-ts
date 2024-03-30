@@ -106,5 +106,7 @@ export class Child extends ComChild<Account> {
         return;
       }
     }
+    this.destroy({ delFile: false, delMem: true });
+    this.logger.error(e.error.message);
   }
 }
