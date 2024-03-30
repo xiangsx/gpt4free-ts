@@ -91,7 +91,7 @@ export class Child extends ComChild<Account> {
       },
     ],
     [
-      (e) => e.error.message.indexOf('requests per min') > -1,
+      (e) => e.error.message.indexOf('requests per day') > -1,
       () => {
         this.update({ refresh_unix: moment().add(30, 'm').unix() });
         this.destroy({ delFile: false, delMem: true });
