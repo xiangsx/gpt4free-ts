@@ -90,6 +90,13 @@ export class Child extends ComChild<Account> {
         this.destroy({ delFile: false, delMem: true });
       },
     ],
+    [
+      (e) => e.error.message.indexOf('requests per min') > -1,
+      () => {
+        this.update({ refresh_unix: moment().add(30, 'm').unix() });
+        this.destroy({ delFile: false, delMem: true });
+      },
+    ],
   ];
 
   async handleError(e: { error: { message: string } }) {
