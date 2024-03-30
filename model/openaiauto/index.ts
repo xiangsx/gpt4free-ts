@@ -133,6 +133,7 @@ export class OpenAIAuto extends Chat {
             return;
           }
           if (dataStr === '[DONE]') {
+            this.logger.info(`${req.model} recv ok`);
             return;
           }
           const data = parseJSON(dataStr, {} as any);
