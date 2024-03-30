@@ -5,6 +5,7 @@ import { Child } from './child';
 import { Config } from '../../utils/config';
 import { v4 } from 'uuid';
 import {
+  downloadAndUploadCDN,
   Event,
   EventStream,
   extractJSON,
@@ -125,7 +126,7 @@ export class Suno extends Chat {
             });
             lyrics = t;
           }
-          if (/"prompt": "([^"]*)"/.test(old)) {
+          if (/"prompt"\s*:\s*"([^"]*)"/.test(old)) {
             lyricsOK = true;
             stream.write(Event.message, { content: '\n\n---\n\n' });
           }
@@ -184,8 +185,13 @@ export class Suno extends Chat {
           for (const v of completeSongs) {
             switch (v.status) {
               case 'complete':
+                const [image_url, audio_url, video_url] = await Promise.all(
+                  [v.image_url, v.audio_url, v.video_url].map(async (url) =>
+                    url ? await downloadAndUploadCDN(url) : url,
+                  ),
+                );
                 stream.write(Event.message, {
-                  content: `\n${v.title}\n![image](${v.image_url})\n音频🎧: [点击播放](${v.audio_url})\n视频🖥: [点击播放](${v.video_url})\n`,
+                  content: `\n${v.title}\n![image](${image_url})\n音频🎧: [点击播放](${audio_url})\n视频🖥: [点击播放](${video_url})\n`,
                 });
                 break;
               case 'error':
