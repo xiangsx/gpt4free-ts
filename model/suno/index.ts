@@ -71,7 +71,7 @@ export class Suno extends Chat {
   }
 
   extractContent(key: string, str: string) {
-    const regex = new RegExp(`"${key}": "([^"]*)"`);
+    const regex = new RegExp(`"${key}"\\s*:\\s*"([^"]*)"`);
     const match = str.match(regex);
 
     if (match) {
