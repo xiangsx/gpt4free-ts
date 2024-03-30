@@ -239,6 +239,7 @@ export enum Site {
   Suno = 'suno',
   BingCopilot = 'bingcopilot',
   ClaudeAuto = 'claudeauto',
+  OpenAIAuto = 'openaiauto',
 }
 
 export interface ChatRequest {

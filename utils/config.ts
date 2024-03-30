@@ -65,6 +65,10 @@ interface ConfigData {
     apikey_list: string[];
     proxy_list: string[];
   };
+  openaiauto?: SizeCfg & {
+    apikey_list: string[];
+    limit_token_map: Record<ModelType, number>;
+  };
   freegpt4: SizeCfg & MailCfg;
   bingcopilot: SizeCfg;
   gmail_list: { email: string; password: string; recovery_email: string }[];
