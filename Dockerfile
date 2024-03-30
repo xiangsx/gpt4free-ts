@@ -1,4 +1,4 @@
-FROM zenika/alpine-chrome:with-puppeteer
+FROM xiangsx/chrome:118.0.5993.70
 
 USER root
 
