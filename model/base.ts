@@ -142,6 +142,8 @@ export enum ModelType {
   Claude3Haiku20240229 = 'claude-3-haiku-20240307',
   Claude3Sonnet = 'claude-3-sonnet',
   Claude3Opus = 'claude-3-opus',
+  Claude3Haiku = 'claude-3-haiku',
+  Claude3Haiku200k = 'claude-3-haiku-200k',
   Claude3Sonnet200k = 'claude-3-sonnet-200k',
   Claude3Opus200k = 'claude-3-opus-200k',
   GetGizmoInfo = 'get-gizmo-info',

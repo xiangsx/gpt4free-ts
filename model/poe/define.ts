@@ -31,6 +31,8 @@ export const PoePointsMap: Partial<Record<ModelType, number>> = {
   [ModelType.Claude3Opus]: 750,
   [ModelType.Claude3Opus200k]: 1875,
   [ModelType.Gemma7bFW]: 5,
+  [ModelType.Claude3Haiku]: 30,
+  [ModelType.Claude3Sonnet200k]: 200,
 };
 
 export const PoeModelMap: Partial<Record<ModelType, any>> = {
@@ -60,9 +62,11 @@ export const PoeModelMap: Partial<Record<ModelType, any>> = {
   [ModelType.PlaygroundV2]: 'Playground-v2',
   [ModelType.GeminiProVision]: 'Gemini-Pro',
   [ModelType.Mixtral8x7BChat]: 'Mixtral-8x7B-Chat',
-  [ModelType.Claude3Sonnet]: 'Claude-3-Sonnet',
   [ModelType.Claude3Opus]: 'Claude-3-Opus',
-  [ModelType.Claude3Sonnet200k]: 'Claude-3-Sonnet-200k',
   [ModelType.Claude3Opus200k]: 'Claude-3-Opus-200k',
+  [ModelType.Claude3Sonnet]: 'Claude-3-Sonnet',
+  [ModelType.Claude3Sonnet200k]: 'Claude-3-Sonnet-200k',
+  [ModelType.Claude3Haiku]: 'Claude-3-Haiku',
+  [ModelType.Claude3Haiku200k]: 'Claude-3-Haiku-200k',
   [ModelType.Gemma7bFW]: 'Gemma-7b-FW',
 };
