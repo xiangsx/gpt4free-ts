@@ -168,7 +168,6 @@ export class OpenAI extends Chat {
         e.message = await new Promise((resolve, reject) => {
           e.response.data.on('data', (chunk: any) => {
             const content = chunk.toString();
-            this.logger.error(content);
             resolve(
               parseJSON<{ error?: { message?: string } }>(content, {})?.error
                 ?.message || content,
