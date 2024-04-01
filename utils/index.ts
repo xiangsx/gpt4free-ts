@@ -934,7 +934,16 @@ export async function downloadFile(fileUrl: string): Promise<{
           ok = true;
         },
         3,
-        { label: 'downloadFile' },
+        {
+          label: 'downloadFile',
+          skip: (e) => {
+            return (
+              e.message.indexOf('aborted') > -1 ||
+              e.message.indexOf('timeout') > -1 ||
+              e.message.indexOf('404') > -1
+            );
+          },
+        },
       );
       if (!ok) {
         throw new ComError(`download failed`, ComError.Status.BadRequest);
