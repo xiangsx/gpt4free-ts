@@ -139,7 +139,7 @@ export enum ModelType {
   MistralMedium = 'mistral-medium',
   Claude3Opus20240229 = 'claude-3-opus-20240229',
   Claude3Sonnet20240229 = 'claude-3-sonnet-20240229',
-  Claude3Haiku20240229 = 'claude-3-haiku-20240307',
+  Claude3Haiku20240307 = 'claude-3-haiku-20240307',
   Claude3Sonnet = 'claude-3-sonnet',
   Claude3Opus = 'claude-3-opus',
   Claude3Haiku = 'claude-3-haiku',

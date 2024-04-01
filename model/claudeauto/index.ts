@@ -78,7 +78,7 @@ export class ClaudeAuto extends Chat {
         return 150 * 1000;
       case ModelType.Claude3Sonnet20240229:
         return 150 * 1000;
-      case ModelType.Claude3Haiku20240229:
+      case ModelType.Claude3Haiku20240307:
         return 150 * 1000;
       default:
         return 0;
