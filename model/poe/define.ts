@@ -32,7 +32,7 @@ export const PoePointsMap: Partial<Record<ModelType, number>> = {
   [ModelType.Claude3Opus200k]: 1875,
   [ModelType.Gemma7bFW]: 5,
   [ModelType.Claude3Haiku]: 30,
-  [ModelType.Claude3Sonnet200k]: 200,
+  [ModelType.Claude3Haiku200k]: 200,
 };
 
 export const PoeModelMap: Partial<Record<ModelType, any>> = {
