@@ -159,6 +159,7 @@ export enum ModelType {
   Whisper1 = 'whisper-1',
   PikaVideo = 'pika-video',
   DomoImgToVideo = 'domo-img-to-video',
+  DomoVideoToVideo = 'domo-video-to-video',
   PikaTextToVideo = 'pika-text-to-video',
   SunoV3 = 'suno-v3',
   SunoV2 = 'suno-v2',

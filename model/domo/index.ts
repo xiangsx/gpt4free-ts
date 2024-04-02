@@ -23,6 +23,7 @@ import {
   Event,
   EventStream,
   extractHttpImageFileURLs,
+  extractHttpVideoFileURLs,
   extractJSON,
   MessageData,
   ThroughEventStream,
@@ -96,7 +97,9 @@ export class Domo extends Chat {
   support(model: ModelType): number {
     switch (model) {
       case ModelType.DomoImgToVideo:
-        return 300;
+        return 1000;
+      case ModelType.DomoVideoToVideo:
+        return 1000;
       case ModelType.DomoChatGen:
         return 28000;
       case ModelType.DomoChatAnimate:
@@ -199,6 +202,9 @@ export class Domo extends Chat {
     if (req.model === ModelType.DomoImgToVideo) {
       return this.imgToVideo(req, stream);
     }
+    if (req.model === ModelType.DomoVideoToVideo) {
+      return this.videoToVideo(req, stream);
+    }
     const child = await this.pool.pop();
     try {
       const auto = chatModel.get(Site.Auto);
@@ -284,6 +290,68 @@ export class Domo extends Chat {
 
     const child = await this.pool.pop();
     const msg1 = await child.animate(image);
+    stream.write(Event.message, { content: '✅已接收到参数\n' });
+    const componentStyle = getAllComponents(msg1.d.components).find((v) =>
+      v.label?.includes('Intensity: low'),
+    );
+    if (!componentStyle) {
+      throw new Error('no component');
+    }
+    await child.doComponent(msg1.d.id, componentStyle);
+    stream.write(Event.message, { content: '✅已设置变化强度：low\n' });
+    const componentTime = getAllComponents(msg1.d.components).find((v) =>
+      v.label?.includes('Gen 5s'),
+    );
+    if (!componentTime) {
+      throw new Error('no component');
+    }
+    await child.doComponent(msg1.d.id, componentTime);
+    stream.write(Event.message, { content: '✅已设置生成时长：5s\n' });
+    const componentStart = getAllComponents(msg1.d.components).find((v) =>
+      v.label?.includes('Start'),
+    );
+    if (!componentStart) {
+      throw new Error('no component');
+    }
+    await child.doComponent(msg1.d.id, componentStart);
+    stream.write(Event.message, { content: '⏳生成中，请稍等...' });
+    const placeholder = msg1.d.attachments?.[0].placeholder;
+    const itl = setInterval(() => {
+      stream.write(Event.message, { content: '.' });
+    }, 3000);
+    const msg2 = await child.waitGatewayEventNameAsync<GatewayDMessageCreate>(
+      GatewayEventName.MESSAGE_UPDATE,
+      (v) => {
+        this.logger.info('======', v.d.attachments?.[1]?.placeholder);
+        return v.d.attachments?.[1]?.placeholder === placeholder;
+      },
+      { timeout: 10 * 60 * 1000 },
+    );
+    stream.write(Event.message, { content: '\n✅生成完成\n' });
+    const local_url = await downloadAndUploadCDN(
+      msg2.d.attachments?.[0]?.proxy_url,
+    );
+    stream.write(Event.message, {
+      content: `[在线播放](${local_url})\n`,
+    });
+    stream.write(Event.message, {
+      content: `⏬[下载](${local_url.replace('/cdn/', '/cdn/download/')})\n`,
+    });
+    stream.write(Event.done, { content: '' });
+    stream.end();
+    clearInterval(itl);
+  }
+
+  async videoToVideo(req: ChatRequest, stream: EventStream): Promise<void> {
+    const video_url = extractHttpVideoFileURLs(
+      contentToString(req.messages[req.messages.length - 1].content),
+    )?.[0];
+    if (!video_url) {
+      throw new ComError('no image url');
+    }
+
+    const child = await this.pool.pop();
+    const msg1 = await child.video(video_url, 'green background');
     stream.write(Event.message, { content: '✅已接收到参数\n' });
     const componentStyle = getAllComponents(msg1.d.components).find((v) =>
       v.label?.includes('Intensity: low'),

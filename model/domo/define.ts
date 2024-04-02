@@ -27,6 +27,38 @@ export const InfoCommand: ApplicationCommand = {
   name_localized: 'info',
 };
 
+export const VideoCommand: ApplicationCommand = {
+  id: '1184104236766740522',
+  type: ApplicationCommandType.CHAT_INPUT,
+  application_id: DomoApplicationID,
+  version: '1187394288963829810',
+  name: 'video',
+  description: 'Turn video into video.',
+  options: [
+    {
+      type: 11,
+      name: 'video',
+      description: 'Upload the original video for generation.',
+      required: true,
+      description_localized: 'Upload the original video for generation.',
+      name_localized: 'video',
+    },
+    {
+      type: 3,
+      name: 'prompt',
+      description: 'The prompt to generate.',
+      required: true,
+      description_localized: 'The prompt to generate.',
+      name_localized: 'prompt',
+    },
+  ],
+  dm_permission: true,
+  integration_types: [0],
+  global_popularity_rank: 1,
+  description_localized: 'Turn video into video.',
+  name_localized: 'video',
+};
+
 export const AnimateCommand: ApplicationCommand = {
   id: '1164545300099239957',
   type: ApplicationCommandType.CHAT_INPUT,

@@ -6,6 +6,7 @@ import {
   GenCommand,
   InfoCommand,
   parseMJProfile,
+  VideoCommand,
 } from './define';
 import { randomNonce } from '../../utils';
 import { DiscordChild } from '../discord/child';
@@ -143,6 +144,57 @@ export class Child extends DiscordChild<Account> {
       analytics_location: 'slash_ui',
     };
     const file = await this.upload(image_url);
+    data.data.options.push({
+      type: ApplicationCommandOptionType.ATTACHMENT,
+      name: `image`,
+      value: 0,
+    });
+    data.data.attachments!.push({
+      id: `0`,
+      filename: file.file_name,
+      uploaded_filename: file.upload_filename,
+    });
+    await this.interact(data);
+    const mCreate = await this.waitGatewayEventNameAsync(
+      GatewayEventName.MESSAGE_CREATE,
+      (e: GatewayEventPayload<GatewayDMessageCreate>) => e.d.nonce === nonce,
+      {},
+    );
+    return await this.waitGatewayEventNameAsync(
+      GatewayEventName.MESSAGE_UPDATE,
+      (e: GatewayEventPayload<GatewayDMessageCreate>) =>
+        e.d.id === mCreate.d.id,
+      {},
+    );
+  }
+
+  async video(video_url: string, prompt: string) {
+    const nonce = randomNonce(19);
+    const data: InteractionPayload<InteractionType.APPLICATION_COMMAND> = {
+      type: InteractionType.APPLICATION_COMMAND,
+      application_id: this.application_id,
+      guild_id: this.info.server_id,
+      channel_id: this.info.channel_id,
+      session_id: this.session_id,
+      data: {
+        version: VideoCommand.version,
+        id: VideoCommand.id,
+        name: VideoCommand.name,
+        type: VideoCommand.type,
+        options: [
+          {
+            type: ApplicationCommandOptionType.STRING,
+            name: 'prompt',
+            value: prompt,
+          },
+        ],
+        application_command: VideoCommand,
+        attachments: [],
+      },
+      nonce,
+      analytics_location: 'slash_ui',
+    };
+    const file = await this.upload(video_url);
     data.data.options.push({
       type: ApplicationCommandOptionType.ATTACHMENT,
       name: `image`,

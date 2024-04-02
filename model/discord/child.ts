@@ -286,9 +286,9 @@ export class DiscordChild<
       { proxy: true },
     );
     await this.initWS();
-    this.msg_updater = setInterval(async () => {
-      this.his_messages = await this.getMessages();
-    }, 3000);
+    // this.msg_updater = setInterval(async () => {
+    //   this.his_messages = await this.getMessages();
+    // }, 3000);
   }
 
   initFailed(e?: Error) {

@@ -260,6 +260,7 @@ export interface ApplicationCommand {
   options: ApplicationCommandOption[];
   application_id?: string;
   description?: string;
+  dm_permission?: boolean;
   integration_types?: number[];
   global_popularity_rank?: number;
   description_localized?: string;

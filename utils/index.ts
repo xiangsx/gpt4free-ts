@@ -631,6 +631,13 @@ export function extractHttpImageFileURLs(text: string): string[] {
   return text.match(urlRegex) || [];
 }
 
+export function extractHttpVideoFileURLs(text: string): string[] {
+  // 正则表达式匹配以 "https" 开头，并在空格、"]"、或 ")" 之前结束的 带有视频文件后缀的 URL
+  const urlRegex =
+    /https?:\/\/[^\s\]\)]*\.(avi|mp4|mpeg|mpg|mov|mkv|webm|flv|f4v|ogv|3gp|3g2|wmv|ts|mts|m2ts|m4v|vob|divx|asf|rm|rmvb|dat|swf|nsv)(?=\s|\]|\)|\n|\t|$)/g;
+  return text.match(urlRegex) || [];
+}
+
 export function isImageURL(url: string): boolean {
   const imageExtensions = [
     'bmp',
