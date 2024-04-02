@@ -416,9 +416,19 @@ export class Perplexity extends Chat {
       countPrompt: true,
       forceRemove: true,
     });
-    reqH.prompt =
-      reqH.messages.map((v) => `${v.role}_role: ${v.content}`).join('\n') +
-      '\nassistant_role: ';
+    if (req.model.indexOf('claude') > -1) {
+      reqH.prompt =
+        reqH.messages
+          .map(
+            (v) =>
+              `${v.role === 'assistant' ? 'Assistant' : 'Human'}: ${v.content}`,
+          )
+          .join('\n') + '\nAssistant: ';
+    } else {
+      reqH.prompt =
+        reqH.messages.map((v) => `${v.role}_role: ${v.content}`).join('\n') +
+        '\nassistant_role: ';
+    }
     if (Config.config.perplexity.system) {
       reqH.prompt =
         Config.config.perplexity.system.replace(/\%s/g, req.model) +
