@@ -474,7 +474,7 @@ export class Perplexity extends Chat {
                 this.logger.info('Recv msg ok');
                 break;
               case 'query_progress':
-                if (!old && ansObj.answer.startsWith(':')) {
+                if (!old && ansObj.answer?.startsWith(':')) {
                   ansObj.answer = ansObj.answer.slice(1);
                 }
                 if (
