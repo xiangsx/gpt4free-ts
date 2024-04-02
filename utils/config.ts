@@ -99,6 +99,7 @@ interface ConfigData {
     })[];
   };
   domo: SizeCfg & {
+    model?: ModelType;
     accounts: (DiscordAccount & {
       mode: 'relax' | 'fast';
     })[];

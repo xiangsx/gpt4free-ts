@@ -91,6 +91,7 @@ interface Embed {
 export interface MessageSubComponent {
   type?: number;
   style?: number;
+  placeholder?: string;
   label?: string;
   name?: string;
   custom_id: string;

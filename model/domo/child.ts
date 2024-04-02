@@ -38,6 +38,8 @@ export class Child extends DiscordChild<Account> {
       application_id: this.application_id,
       session_id: this.session_id,
       data: {
+        type: info.type,
+        values: info.values,
         component_type: info.type,
         custom_id: info.custom_id,
       },
@@ -181,13 +183,7 @@ export class Child extends DiscordChild<Account> {
         id: VideoCommand.id,
         name: VideoCommand.name,
         type: VideoCommand.type,
-        options: [
-          {
-            type: ApplicationCommandOptionType.STRING,
-            name: 'prompt',
-            value: prompt,
-          },
-        ],
+        options: [],
         application_command: VideoCommand,
         attachments: [],
       },
@@ -195,11 +191,18 @@ export class Child extends DiscordChild<Account> {
       analytics_location: 'slash_ui',
     };
     const file = await this.upload(video_url);
-    data.data.options.push({
-      type: ApplicationCommandOptionType.ATTACHMENT,
-      name: `image`,
-      value: 0,
-    });
+    data.data.options.push(
+      {
+        type: ApplicationCommandOptionType.ATTACHMENT,
+        name: `video`,
+        value: 0,
+      },
+      {
+        type: ApplicationCommandOptionType.STRING,
+        name: 'prompt',
+        value: prompt,
+      },
+    );
     data.data.attachments!.push({
       id: `0`,
       filename: file.file_name,

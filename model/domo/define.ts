@@ -331,3 +331,69 @@ export enum DomoSpeedMode {
   Relax = 'relax',
   Fast = 'fast',
 }
+
+enum ArtStyle {
+  // Fusion Style v1 - 可通过提示定义任意风格
+  FusionStyleV1 = '15014',
+  // Anime v1.1 - 平面色彩动漫风格 2.0
+  AnimeV11FlatColor = '15017',
+  // Anime v4.1 - 中国水墨画风格 2.0
+  AnimeV41ChineseInkPainting = '15018',
+  // Anime v5.1 - 日本动漫风格 2.1
+  AnimeV51JapaneseAnime = '15016',
+  // Anime v6 - 详细动漫风格 2.0
+  AnimeV6DetailAnimeStyle = '15015',
+  // Illustration v1.1 - 3D 卡通风格 2.0
+  IllustrationV11Cartoon3D = '15019',
+  // Illustration v3.1 - 像素风格 2.0
+  IllustrationV31PixelStyle = '15020',
+  // Illustration v7.1 - 纸艺风格 2.0
+  IllustrationV71PaperArt = '15021',
+  // Anime v1 - 平面色彩动漫风格
+  AnimeV1FlatColor = '15001',
+  // Anime v2 - 日本动漫风格
+  AnimeV2JapaneseAnime = '15005',
+  // Anime v3 - 实景动漫风格
+  AnimeV3LiveAnime = '15006',
+  // Anime v4 - 中国水墨画风格
+  AnimeV4ChineseInkPainting = '15010',
+  // Illustration v1 - 3D 卡通风格
+  IllustrationV1Cartoon3D = '15002',
+  // Illustration v2 - 漫画风格
+  IllustrationV2ComicStyle = '15003',
+  // Illustration v3 - 像素风格
+  IllustrationV3PixelStyle = '15004',
+  // Illustration v4 - 绘本卡通
+  IllustrationV4StorybookCartoon = '15007',
+  // Illustration v5 - 彩色插画
+  IllustrationV5ColorIllustration = '15008',
+  // Illustration v6 - 大盗游戏风格
+  IllustrationV6GrandTheftGame = '15009',
+  // Illustration v7 - 纸艺风格
+  IllustrationV7PaperArt = '15011',
+  // Illustration v8 - 梵高风格
+  IllustrationV8VanGoghStyle = '15012',
+}
+
+export const ArtStyleDescriptions: { [key: string]: string } = {
+  '15014': '可通过提示定义任意风格',
+  '15017': '平面色彩动漫风格 2.0',
+  '15018': '中国水墨画风格 2.0',
+  '15016': '日本动漫风格 2.1',
+  '15015': '详细动漫风格 2.0',
+  '15019': '3D 卡通风格 2.0',
+  '15020': '像素风格 2.0',
+  '15021': '纸艺风格 2.0',
+  '15001': '平面色彩动漫风格',
+  '15005': '日本动漫风格',
+  '15006': '实景动漫风格',
+  '15010': '中国水墨画风格',
+  '15002': '3D 卡通风格',
+  '15003': '漫画风格',
+  '15004': '像素风格',
+  '15007': '绘本卡通',
+  '15008': '彩色插画',
+  '15009': '大盗游戏风格',
+  '15011': '纸艺风格',
+  '15012': '梵高风格',
+};
