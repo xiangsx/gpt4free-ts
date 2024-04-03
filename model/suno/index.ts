@@ -134,6 +134,9 @@ export class Suno extends Chat {
       },
       async () => {
         try {
+          if (!lyrics) {
+            this.logger.warn(`lyrics is empty: ${old}`);
+          }
           let options = extractJSON<SongOptions>(old || '');
           if (!options) {
             options = {
