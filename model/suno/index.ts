@@ -83,6 +83,7 @@ export class Suno extends Chat {
   }
 
   async askStream(req: ChatRequest, stream: EventStream): Promise<void> {
+    req.messages = req.messages.filter((v) => v.role !== 'system');
     const child = await this.pool.pop();
     const auto = chatModel.get(Site.Auto);
     let old = '';
