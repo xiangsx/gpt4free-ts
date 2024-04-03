@@ -151,7 +151,7 @@ export class Suno extends Chat {
           await child.updateToken();
           const song = await child.createSong(options);
           stream.write(Event.message, {
-            content: `> id\n>${song.id}\n\n生成中: 🎵`,
+            content: `\n> id\n>${song.id}\n\n生成中: 🎵`,
           });
           const completeSongs: Clip[] = [];
           let ids = song.clips.map((v) => v.id);
