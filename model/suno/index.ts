@@ -104,7 +104,7 @@ export class Suno extends Chat {
           const t = `#### 🎵${this.extractContent('title', old + `"`) || ''}`;
           stream.write(Event.message, { content: t.substring(title.length) });
           title = t;
-          if (/"title": "([^"]*)"/.test(old)) {
+          if (/"title"\s*:\s*"([^"]*)"/.test(old)) {
             titleOK = true;
             stream.write(Event.message, { content: '\n\n' });
           }
@@ -112,7 +112,7 @@ export class Suno extends Chat {
           const t = `*${this.extractContent('tags', old + `"`) || ''}`;
           stream.write(Event.message, { content: t.substring(tags.length) });
           tags = t;
-          if (/"tags": "([^"]*)"/.test(old)) {
+          if (/"tags"\s*:\s*"([^"]*)"/.test(old)) {
             tagsOK = true;
             stream.write(Event.message, { content: '*\n\n---\n\n' });
           }
@@ -148,6 +148,11 @@ export class Suno extends Chat {
               continue_clip_id: null,
               continue_at: null,
             };
+          }
+          if (!lyrics) {
+            stream.write(Event.message, {
+              content: `\n${options.prompt}\n---\n`,
+            });
           }
           await child.updateToken();
           const song = await child.createSong(options);
