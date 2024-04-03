@@ -947,6 +947,7 @@ export async function downloadFile(fileUrl: string): Promise<{
             return (
               e.message.indexOf('aborted') > -1 ||
               e.message.indexOf('timeout') > -1 ||
+              e.message.indexOf('403') > -1 ||
               e.message.indexOf('404') > -1
             );
           },
