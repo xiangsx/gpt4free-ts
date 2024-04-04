@@ -7,7 +7,6 @@ import { randomUUID } from 'node:crypto';
 import { ChatRequest } from '../base';
 import es from 'event-stream';
 import moment from 'moment/moment';
-import { clearInterval } from 'timers';
 
 export class Child extends ComChild<Account> {
   private client: AxiosInstance = CreateNewAxios(

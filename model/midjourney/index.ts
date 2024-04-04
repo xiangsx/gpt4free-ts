@@ -21,7 +21,6 @@ import {
   ThroughEventStream,
 } from '../../utils';
 import { chatModel } from '../index';
-import { clearInterval } from 'timers';
 import { MJPrompt } from './prompt';
 import { GatewayDMessageCreate, getAllComponents } from '../discord/define';
 

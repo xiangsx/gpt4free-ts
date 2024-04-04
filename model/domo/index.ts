@@ -30,7 +30,6 @@ import {
   ThroughEventStream,
 } from '../../utils';
 import { chatModel } from '../index';
-import { clearInterval } from 'timers';
 import {
   GatewayDMessageCreate,
   GatewayEventName,

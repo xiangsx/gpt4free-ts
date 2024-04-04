@@ -7,7 +7,6 @@ import Application from 'koa';
 import { CreateVideoTaskRequest, QueryVideoTaskRequest } from '../define';
 import { v4 } from 'uuid';
 import { downloadAndUploadCDN, Event, EventStream } from '../../utils';
-import { clearInterval } from 'timers';
 
 export class Pika extends Chat {
   constructor(options?: ChatOptions) {
