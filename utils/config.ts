@@ -70,6 +70,7 @@ interface ConfigData {
     limit_token_map: Record<ModelType, number>;
   };
   freegpt4: SizeCfg & MailCfg;
+  freegpt35?: SizeCfg;
   bingcopilot: SizeCfg;
   gmail_list: { email: string; password: string; recovery_email: string }[];
   hypotenuse: MailCfg & SizeCfg;

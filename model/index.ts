@@ -67,6 +67,7 @@ import { Pika } from './pika';
 import { ClaudeAuto } from './claudeauto';
 import { Suno } from './suno';
 import { OpenAIAuto } from './openaiauto';
+import { FreeGPT35 } from './freegpt35';
 
 export class ChatModelFactory {
   private readonly modelMap: Map<Site, Chat>;
@@ -160,6 +161,7 @@ export class ChatModelFactory {
     this.modelMap.set(Site.Domo, new Domo({ name: Site.Domo }));
     this.modelMap.set(Site.Pika, new Pika({ name: Site.Pika }));
     this.modelMap.set(Site.Suno, new Suno({ name: Site.Suno }));
+    this.modelMap.set(Site.FreeGPT35, new FreeGPT35({ name: Site.FreeGPT35 }));
     this.modelMap.set(
       Site.OpenAIAuto,
       new OpenAIAuto({ name: Site.OpenAIAuto }),
