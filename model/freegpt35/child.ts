@@ -1,12 +1,11 @@
 import { ComChild, DestroyOptions } from '../../utils/pool';
-import { Account } from './define';
+import { Account, Conversation } from './define';
 import { AxiosInstance } from 'axios';
 import { CreateNewAxios } from '../../utils/proxyAgent';
 import { Event, EventStream, parseJSON, randomUserAgent } from '../../utils';
 import { randomUUID } from 'node:crypto';
 import { ChatRequest } from '../base';
 import es from 'event-stream';
-import { Conversation } from '../openchat4';
 import moment from 'moment/moment';
 import { clearInterval } from 'timers';
 
