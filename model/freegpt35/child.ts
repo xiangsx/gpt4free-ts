@@ -26,7 +26,7 @@ export class Child extends ComChild<Account> {
         'user-agent': randomUserAgent(),
       },
     },
-    { proxy: 'http://192.168.0.160:10811' },
+    { proxy: true },
   );
   private oaiDid!: string;
   private token!: any;
