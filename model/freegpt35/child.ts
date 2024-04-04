@@ -1,4 +1,4 @@
-import { ComChild } from '../../utils/pool';
+import { ComChild, DestroyOptions } from '../../utils/pool';
 import { Account } from './define';
 import { AxiosInstance } from 'axios';
 import { CreateNewAxios } from '../../utils/proxyAgent';
@@ -8,6 +8,7 @@ import { ChatRequest } from '../base';
 import es from 'event-stream';
 import { Conversation } from '../openchat4';
 import moment from 'moment/moment';
+import { clearInterval } from 'timers';
 
 export class Child extends ComChild<Account> {
   private client: AxiosInstance = CreateNewAxios(
@@ -30,6 +31,7 @@ export class Child extends ComChild<Account> {
   );
   private oaiDid!: string;
   private token!: any;
+  private itl?: NodeJS.Timer;
 
   constructor(label: string, info: Account, options?: any) {
     super(label, info, options);
@@ -106,8 +108,12 @@ export class Child extends ComChild<Account> {
 
   async init() {
     await this.updateSessionID();
-    setInterval(() => {
-      this.updateSessionID().catch(this.logger.error);
+    this.itl = setInterval(() => {
+      this.updateSessionID().catch((e) => {
+        this.logger.error(e.message);
+        this.destroy({ delMem: true, delFile: true });
+        clearInterval(this.itl);
+      });
     }, 60 * 1000);
   }
 
@@ -116,5 +122,10 @@ export class Child extends ComChild<Account> {
       lastUseTime: moment().unix(),
       useCount: (this.info.useCount || 0) + 1,
     });
+  }
+  destroy(options?: DestroyOptions) {
+    if (this.itl) {
+      clearInterval(this.itl);
+    }
   }
 }
