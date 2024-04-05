@@ -3,10 +3,10 @@ import { Account, Conversation } from './define';
 import { AxiosInstance } from 'axios';
 import { CreateNewAxios } from '../../utils/proxyAgent';
 import { Event, EventStream, parseJSON, randomUserAgent } from '../../utils';
-import { randomUUID } from 'node:crypto';
 import { ChatRequest } from '../base';
 import es from 'event-stream';
 import moment from 'moment/moment';
+import { v4 } from 'uuid';
 
 export class Child extends ComChild<Account> {
   private client: AxiosInstance = CreateNewAxios(
@@ -36,7 +36,7 @@ export class Child extends ComChild<Account> {
   }
 
   async updateSessionID() {
-    this.oaiDid = randomUUID();
+    this.oaiDid = v4();
     const response = await this.client.post(
       `/backend-anon/sentinel/chat-requirements`,
       {},
@@ -54,13 +54,13 @@ export class Child extends ComChild<Account> {
         author: { role: v.role },
         content: { content_type: 'text', parts: [v.content] },
       })),
-      parent_message_id: randomUUID(),
+      parent_message_id: v4(),
       model: 'text-davinci-002-render-sha',
       timezone_offset_min: -180,
       suggestions: [],
       history_and_training_disabled: true,
       conversation_mode: { kind: 'primary_assistant' },
-      websocket_request_id: randomUUID(),
+      websocket_request_id: v4(),
     };
     const response = await this.client
       .post('/backend-api/conversation', body, {
