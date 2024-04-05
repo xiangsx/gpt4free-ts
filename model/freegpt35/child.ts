@@ -91,7 +91,10 @@ export class Child extends ComChild<Account> {
           return;
         }
         const data = parseJSON<Conversation>(dataStr, {} as Conversation);
-        if (data.message.author.role === 'user') {
+        if (data.message.author.role !== 'assistant') {
+          return;
+        }
+        if (data.message.status === 'finished_successfully') {
           return;
         }
         const content = (data.message?.content?.parts?.[0] as string) || '';

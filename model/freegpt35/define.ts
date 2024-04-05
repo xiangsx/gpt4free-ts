@@ -16,6 +16,18 @@ interface Author {
   metadata: Record<string, any>;
 }
 
+interface Metadata {
+  message_type: string;
+  model_slug: string;
+  parent_id: string;
+  is_complete: boolean;
+  timestamp_: string;
+  recipient: string;
+  finish_details?: {
+    type?: 'max_tokens';
+  };
+}
+
 interface Message {
   id: string;
   author: Author;
@@ -25,6 +37,7 @@ interface Message {
   status: string;
   end_turn: null | any;
   weight: number;
+  metadata: Metadata;
   recipient: string;
 }
 
