@@ -91,6 +91,9 @@ export class Child extends ComChild<Account> {
           return;
         }
         const data = parseJSON<Conversation>(dataStr, {} as Conversation);
+        if (data.message.author.role === 'user') {
+          return;
+        }
         const content = (data.message?.content?.parts?.[0] as string) || '';
         stream.write(Event.message, { content: content.substring(old.length) });
         old = content;

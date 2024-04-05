@@ -10,9 +10,15 @@ interface MessageContent {
   url?: string;
   title?: string;
 }
+interface Author {
+  role: string;
+  name: null | string;
+  metadata: Record<string, any>;
+}
 
 interface Message {
   id: string;
+  author: Author;
   create_time: number;
   update_time: null | number;
   content: MessageContent;
