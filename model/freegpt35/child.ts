@@ -29,7 +29,7 @@ export class Child extends ComChild<Account> {
   );
   private oaiDid!: string;
   private token!: any;
-  private itl?: NodeJS.Timer;
+  private itl?: any;
 
   constructor(label: string, info: Account, options?: any) {
     super(label, info, options);
