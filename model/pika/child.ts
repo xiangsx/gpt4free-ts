@@ -11,7 +11,7 @@ import FormData from 'form-data';
 import { Page, Protocol } from 'puppeteer';
 import moment from 'moment';
 import { loginGoogle } from '../../utils/puppeteer';
-import { parseJSON, randomUserAgent } from '../../utils';
+import { parseJSON, randomUserAgent, sleep } from '../../utils';
 
 export class Child extends ComChild<Account> {
   private client!: AxiosInstance;
@@ -44,6 +44,8 @@ export class Child extends ComChild<Account> {
       );
     }
     this.page = page;
+    await sleep(3000);
+    await page.reload();
     // 保存cookies
     const cookies = await page.cookies('https://pika.art');
     this.update({ cookies });
@@ -62,13 +64,19 @@ export class Child extends ComChild<Account> {
   }
 
   saveToken() {
-    let login = this.info.cookies.find(
-      (v) => v.name === 'sb-login-auth-token',
+    let login0 = this.info.cookies.find(
+      (v) => v.name === 'sb-login-auth-token.0',
     )?.value;
-    if (!login) {
-      throw new Error('login token not found');
+    if (!login0) {
+      throw new Error('login0 token not found');
     }
-    login = decodeURIComponent(login);
+    const login1 = this.info.cookies.find(
+      (v) => v.name === 'sb-login-auth-token.1',
+    )?.value;
+    if (!login1) {
+      throw new Error('login1 token not found');
+    }
+    const login = decodeURIComponent(login0) + decodeURIComponent(login1);
     const loginInfo = parseJSON<{
       access_token?: string;
       user?: { id: string };
