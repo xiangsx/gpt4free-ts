@@ -183,6 +183,7 @@ interface ConfigData {
     keep_arkose_refresh?: boolean;
     upload_url: string;
     download_proxy: string;
+    history_and_training_disabled?: boolean;
     download_map?: Record<string, string>;
     prompt_map?: Record<string, string>;
     system?: string;

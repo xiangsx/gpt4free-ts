@@ -11,7 +11,7 @@ import FormData from 'form-data';
 import { Page, Protocol } from 'puppeteer';
 import moment from 'moment';
 import { loginGoogle } from '../../utils/puppeteer';
-import { parseJSON } from '../../utils';
+import { parseJSON, randomUserAgent } from '../../utils';
 
 export class Child extends ComChild<Account> {
   private client!: AxiosInstance;
@@ -54,6 +54,7 @@ export class Child extends ComChild<Account> {
         baseURL: 'https://api.pika.art/',
         headers: {
           Authorization: `Bearer ${this.info.token}`,
+          'User-Agent': randomUserAgent(),
         },
       },
       { proxy: true },
@@ -116,7 +117,14 @@ export class Child extends ComChild<Account> {
     const res: { data: GenerationResponse } = await this.client.post(
       '/generate',
       formData,
-      { ...formData.getHeaders() },
+      {
+        ...formData.getHeaders(),
+        headers: {
+          authority: 'api.pika.art',
+          Origin: 'https://pika.art',
+          Referer: 'https://pika.art/',
+        },
+      },
     );
     if (res.data.data.generation.id) {
     }
