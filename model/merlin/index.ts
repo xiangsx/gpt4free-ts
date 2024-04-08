@@ -35,7 +35,6 @@ interface Account extends ComInfo {
   left: number;
   useOutTime: number;
   accessToken: string;
-  refreshToken: string;
   tokenGotTime: number;
 }
 class Child extends ComChild<Account> {
@@ -45,7 +44,7 @@ class Child extends ComChild<Account> {
     super(label, info, options);
     this.client = CreateAxiosProxy(
       {
-        baseURL: 'https://merlin-uam-yak3s7dv3a-ue.a.run.app',
+        baseURL: 'https://uam.getmerlin.in',
       },
       false,
     );
@@ -89,7 +88,15 @@ class Child extends ComChild<Account> {
         await page.keyboard.type(password);
         this.update({ password });
 
-        await page.keyboard.press('Enter');
+        await page.waitForSelector('button[type="submit"]');
+        await page.click('button[type="submit"]');
+        await sleep(10000);
+
+        const resendbutton = "div > main > div > div > div > div > button";
+        await page.waitForSelector(resendbutton);
+        await page.click(resendbutton);
+        await sleep(5000);
+
         for (const v of await mailbox.waitMails()) {
           let verifyUrl = v.content.match(/href=["'](.*?)["']/i)?.[1] || '';
           if (!verifyUrl) {
@@ -140,17 +147,41 @@ class Child extends ComChild<Account> {
 
   async getLoginStatus(page: Page) {
     try {
-      page.reload();
+      page.goto("https://www.getmerlin.in/zh-CN/chat");
       const req = await page.waitForResponse(
         (req) =>
-          req.url().indexOf('status') > -1 &&
+          req.url().indexOf('getAstroProfiles') > -1 &&
           req.request().method().toUpperCase() === 'GET',
       );
-      const url = new URLSearchParams(req.url().split('?')[1]);
-      const token = url.get('firebaseToken');
-      const status: { data: { user: { used: number; limit: number } } } =
-        await req.json();
-      return { token, left: status.data.user.limit - status.data.user.used };
+      function removeRepeats(num: number): number {
+        const str = num.toString();
+
+        if (str.length <= 2) {
+          return num;
+        }
+
+        const repeatPattern = /^(\d+?)\1+$/;
+        const match = str.match(repeatPattern);
+
+        if (match) {
+          return parseInt(match[1], 10);
+        }
+
+        return num;
+      }
+
+      const token = req.url().split('token=')[1].split('&')[0];
+      this.logger.info(`get login status token: ${token}`);
+      const element = await page.$('span.text-cornblue-700');
+      const textContent = await page.evaluate(el => el?.textContent, element);
+      const match = textContent?.match(/(\d+)\s*queries\s*left/);
+      let left = 0;
+      if (match) {
+        left = Number(match[1]);
+        left = removeRepeats(left);
+      }
+      this.logger.info(`get login status left: ${left}`);
+      return { token, left: left };
     } catch (e) {
       this.logger.error('getLoginStatus failed, ', e);
       return undefined;
@@ -171,28 +202,13 @@ class Child extends ComChild<Account> {
   }
 
   async getSession(token: string) {
-    const res = await this.client.post('/session/get', { token });
-    const session: { accessToken: string; refreshToken: string } =
-      res.data.data;
-    if (!session.accessToken || !session.refreshToken) {
-      throw new Error('get session failed');
-    }
     this.update({
-      accessToken: session.accessToken,
-      refreshToken: session.refreshToken,
+      accessToken: token,
+
     });
+    return token;
   }
 
-  async refreshToken(refreshToken: string) {
-    const res = await this.client.post(
-      '/session/refresh?&source=USE_SSE_HOOK',
-      {
-        refreshToken,
-      },
-    );
-    const session: { accessToken: string } = res.data;
-    return session.accessToken;
-  }
 
   use(): void {
     this.update({
@@ -262,20 +278,28 @@ export class Merlin extends Chat {
       return;
     }
     try {
-      if (moment().unix() - child.info.tokenGotTime > 3600) {
-        child.update({
-          accessToken: await child.refreshToken(child.info.refreshToken),
-        });
-      }
       const res = await child.client.post(
-        '/chat/merlin?customJWT=true',
+        '/thread/unified?customJWT=true&version=1.1',
         {
+          action: {
+            message: {
+              attachments: [],
+              content: req.prompt,
+              metadata: {
+                context: ""
+              },
+              parentId: "root",
+              role: "user"
+            },
+            type: "NEW"
+          },
+          activeThreadSnippet: [],
           chatId: v4(),
-          context: null,
-          language: 'AUTO',
+          language: "AUTO",
+          metadata: null,
+          mode: "VANILLA_CHAT",
           model: ModelMap[req.model],
-          query: req.prompt,
-          persona: null,
+          personaConfig: {}
         },
         {
           headers: {
