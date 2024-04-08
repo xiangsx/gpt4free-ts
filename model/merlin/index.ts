@@ -16,7 +16,7 @@ import {
 } from '../../utils/pool';
 import { Config } from '../../utils/config';
 import { CreateAxiosProxy, CreateNewPage } from '../../utils/proxyAgent';
-import { CreateEmail } from '../../utils/emailFactory';
+import { CreateEmail, TempEmailType } from '../../utils/emailFactory';
 import moment from 'moment/moment';
 import { v4 } from 'uuid';
 import { Page } from 'puppeteer';
@@ -35,122 +35,159 @@ interface Account extends ComInfo {
   left: number;
   useOutTime: number;
   accessToken: string;
-  refreshToken: string;
   tokenGotTime: number;
 }
+
 class Child extends ComChild<Account> {
   public client: AxiosInstance;
   public page?: Page;
+
   constructor(label: string, info: any, options?: ChildOptions) {
     super(label, info, options);
     this.client = CreateAxiosProxy(
       {
-        baseURL: 'https://merlin-uam-yak3s7dv3a-ue.a.run.app',
+        baseURL: 'https://uam.getmerlin.in',
       },
       false,
     );
   }
+
   async init(): Promise<void> {
-    try {
-      let page;
-      if (this.info.accessToken) {
-        this.logger.info('login with token ...');
-        page = await CreateNewPage('https://app.getmerlin.in/login');
-        this.page = page;
-        await page.setUserAgent(randomUserAgent());
-        await page.waitForSelector('#email');
-        await page.click('#email');
-        await page.keyboard.type(this.info.email);
+    let page;
+    if (this.info.accessToken) {
+      this.logger.info('login with token ...');
+      page = await CreateNewPage('https://app.getmerlin.in/login', {
+        recognize: true,
+      });
+      this.page = page;
+      await page.setUserAgent(randomUserAgent());
+      await page.waitForSelector('#email');
+      await page.click('#email');
+      await page.keyboard.type(this.info.email);
 
-        await page.waitForSelector('#password');
-        await page.click('#password');
-        await page.keyboard.type(this.info.password);
-        await page.keyboard.press('Enter');
-      } else {
-        this.logger.info('register new account ...');
-        page = await CreateNewPage('https://app.getmerlin.in/register');
-        this.page = page;
-        await page.waitForSelector('#name');
-        await page.click('#name');
-        let username = randomStr(10).replace(/\d/g, '');
-        await page.keyboard.type(username);
-        this.update({ username });
+      await page.waitForSelector('#password');
+      await page.click('#password');
+      await page.keyboard.type(this.info.password);
+      await page.keyboard.press('Enter');
+    } else {
+      this.logger.info('register new account ...');
+      page = await CreateNewPage('https://app.getmerlin.in/register');
+      this.page = page;
+      await page.waitForSelector('#name');
+      await page.click('#name');
+      let username = randomStr(10).replace(/\d/g, '');
+      await page.keyboard.type(username);
+      this.update({ username });
 
-        await page.waitForSelector('#email');
-        await page.click('#email');
-        const mailbox = CreateEmail(Config.config.merlin.mailType);
-        const email = await mailbox.getMailAddress();
-        await page.keyboard.type(email);
-        this.update({ email });
+      const mailbox = CreateEmail(
+        Config.config.merlin?.mail_type || TempEmailType.TempEmail44,
+      );
+      const email = await mailbox.getMailAddress();
+      await page.waitForSelector('#email');
+      await page.click('#email');
+      await page.keyboard.type(email);
+      this.update({ email });
 
-        await page.waitForSelector('#password');
-        await page.click('#password');
-        const password = randomStr(20);
-        await page.keyboard.type(password);
-        this.update({ password });
+      await page.waitForSelector('#password');
+      await page.click('#password');
+      const password = randomStr(20);
+      await page.keyboard.type(password);
+      this.update({ password });
 
-        await page.keyboard.press('Enter');
-        for (const v of await mailbox.waitMails()) {
-          let verifyUrl = v.content.match(/href=["'](.*?)["']/i)?.[1] || '';
-          if (!verifyUrl) {
-            throw new Error('verifyUrl not found');
-          }
-          verifyUrl = verifyUrl.replace(/&amp;/g, '&');
-          const vPage = await page.browser().newPage();
-          await vPage.goto(verifyUrl);
+      await page.waitForSelector('button[type="submit"]');
+      await page.click('button[type="submit"]');
+      await sleep(10000);
+
+      const resendbutton = 'div > main > div > div > div > div > button';
+      await page.waitForSelector(resendbutton);
+      await page.click(resendbutton);
+      await sleep(5000);
+
+      for (const v of await mailbox.waitMails()) {
+        let verifyUrl = v.content.match(/href=["'](.*?)["']/i)?.[1] || '';
+        if (!verifyUrl) {
+          throw new Error('verifyUrl not found');
         }
+        verifyUrl = verifyUrl.replace(/&amp;/g, '&');
+        const vPage = await page.browser().newPage();
+        await vPage.goto(verifyUrl);
       }
-
-      await sleep(3000);
-      await page.bringToFront();
-      await page.reload();
-      await sleep(2000);
-      this.logger.info('get loginToken ...');
-      const loginStatus = await this.getLoginStatus(page);
-      if (!loginStatus || !loginStatus.token) {
-        throw new Error('get login status failed');
-      }
-      if (!loginStatus.left || loginStatus.left < 10) {
-        this.update({ left: loginStatus.left || 0 });
-        throw new Error(`left size:${loginStatus.left} < 10`);
-      }
-      await sleep(2000);
-      this.logger.info('get session ...');
-      await this.getSession(loginStatus.token);
-      this.update({
-        left: loginStatus.left,
-        tokenGotTime: moment().unix(),
-      });
-      page.browser().close();
-    } catch (e) {
-      this.page?.browser().close();
-      this.update({ left: 0, useOutTime: moment().unix() });
-      this.options?.onInitFailed({
-        delFile: false,
-        delMem: true,
-      });
-      throw e;
     }
+
+    await sleep(3000);
+    await page.bringToFront();
+    await page.reload();
+    await sleep(2000);
+    this.logger.info('get loginToken ...');
+    const loginStatus = await this.getLoginStatus(page);
+    if (!loginStatus || !loginStatus.token) {
+      throw new Error('get login status failed');
+    }
+    if (!loginStatus.left || loginStatus.left < 10) {
+      this.update({ left: loginStatus.left || 0 });
+      throw new Error(`left size:${loginStatus.left} < 10`);
+    }
+    await sleep(2000);
+    this.logger.info('get session ...');
+    await this.getSession(loginStatus.token);
+    this.update({
+      left: loginStatus.left,
+      tokenGotTime: moment().unix(),
+    });
+    await this.page?.browser().close();
+  }
+
+  initFailed(e?: Error) {
+    super.initFailed(e);
+    this.update({ left: 0, useOutTime: moment().unix() });
+    this.page
+      ?.browser()
+      .close()
+      .catch((err) => this.logger.error(err.message));
   }
 
   destroy(options?: DestroyOptions) {
     super.destroy(options);
-    this.page?.browser()?.close();
   }
 
   async getLoginStatus(page: Page) {
     try {
-      page.reload();
+      page.goto('https://www.getmerlin.in/zh-CN/chat');
       const req = await page.waitForResponse(
         (req) =>
-          req.url().indexOf('status') > -1 &&
+          req.url().indexOf('getAstroProfiles') > -1 &&
           req.request().method().toUpperCase() === 'GET',
       );
-      const url = new URLSearchParams(req.url().split('?')[1]);
-      const token = url.get('firebaseToken');
-      const status: { data: { user: { used: number; limit: number } } } =
-        await req.json();
-      return { token, left: status.data.user.limit - status.data.user.used };
+
+      function removeRepeats(num: number): number {
+        const str = num.toString();
+
+        if (str.length <= 2) {
+          return num;
+        }
+
+        const repeatPattern = /^(\d+?)\1+$/;
+        const match = str.match(repeatPattern);
+
+        if (match) {
+          return parseInt(match[1], 10);
+        }
+
+        return num;
+      }
+
+      const token = req.url().split('token=')[1].split('&')[0];
+      this.logger.info(`get login status token: ${token}`);
+      const element = await page.$('span.text-cornblue-700');
+      const textContent = await page.evaluate((el) => el?.textContent, element);
+      const match = textContent?.match(/(\d+)\s*queries\s*left/);
+      let left = 0;
+      if (match) {
+        left = Number(match[1]);
+        left = removeRepeats(left);
+      }
+      this.logger.info(`get login status left: ${left}`);
+      return { token, left: left };
     } catch (e) {
       this.logger.error('getLoginStatus failed, ', e);
       return undefined;
@@ -171,27 +208,10 @@ class Child extends ComChild<Account> {
   }
 
   async getSession(token: string) {
-    const res = await this.client.post('/session/get', { token });
-    const session: { accessToken: string; refreshToken: string } =
-      res.data.data;
-    if (!session.accessToken || !session.refreshToken) {
-      throw new Error('get session failed');
-    }
     this.update({
-      accessToken: session.accessToken,
-      refreshToken: session.refreshToken,
+      accessToken: token,
     });
-  }
-
-  async refreshToken(refreshToken: string) {
-    const res = await this.client.post(
-      '/session/refresh?&source=USE_SSE_HOOK',
-      {
-        refreshToken,
-      },
-    );
-    const session: { accessToken: string } = res.data;
-    return session.accessToken;
+    return token;
   }
 
   use(): void {
@@ -205,7 +225,7 @@ class Child extends ComChild<Account> {
 export class Merlin extends Chat {
   private pool: Pool<Account, Child> = new Pool(
     this.options?.name || '',
-    () => Config.config.merlin.size,
+    () => Config.config.merlin?.size || 0,
     (info, options) => {
       return new Child(this.options?.name || '', info, options);
     },
@@ -223,10 +243,11 @@ export class Merlin extends Chat {
     },
     {
       delay: 1000,
-      serial: () => Config.config.merlin.serial || 1,
+      serial: () => Config.config.merlin?.serial || 1,
       needDel: (v) => !v.accessToken,
     },
   );
+
   constructor(options?: ChatOptions) {
     super(options);
   }
@@ -253,6 +274,7 @@ export class Merlin extends Chat {
       reqH.prompt;
     return reqH;
   }
+
   async askStream(req: ChatRequest, stream: EventStream): Promise<void> {
     const child = await this.pool.pop();
     if (!child) {
@@ -262,20 +284,28 @@ export class Merlin extends Chat {
       return;
     }
     try {
-      if (moment().unix() - child.info.tokenGotTime > 3600) {
-        child.update({
-          accessToken: await child.refreshToken(child.info.refreshToken),
-        });
-      }
       const res = await child.client.post(
-        '/chat/merlin?customJWT=true',
+        '/thread/unified?customJWT=true&version=1.1',
         {
+          action: {
+            message: {
+              attachments: [],
+              content: req.prompt,
+              metadata: {
+                context: '',
+              },
+              parentId: 'root',
+              role: 'user',
+            },
+            type: 'NEW',
+          },
+          activeThreadSnippet: [],
           chatId: v4(),
-          context: null,
           language: 'AUTO',
+          metadata: null,
+          mode: 'VANILLA_CHAT',
           model: ModelMap[req.model],
-          query: req.prompt,
-          persona: null,
+          personaConfig: {},
         },
         {
           headers: {

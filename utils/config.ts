@@ -211,7 +211,7 @@ interface ConfigData {
     }[];
   };
   mixer: { size: number; mailType: TempEmailType; serial: number };
-  merlin: { size: number; mailType: TempEmailType; serial: number };
+  merlin?: SizeCfg & MailCfg;
   takeoff: { size: number; mailType: TempEmailType; serial: number };
   askx: { size: number; mailType: TempEmailType; serial: number };
   td: {
@@ -320,11 +320,6 @@ class BaseConfig {
       accounts: [],
     },
     takeoff: {
-      size: 0,
-      serial: 0,
-      mailType: TempEmailType.TempMailLOL,
-    },
-    merlin: {
       size: 0,
       serial: 0,
       mailType: TempEmailType.TempMailLOL,
