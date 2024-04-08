@@ -91,6 +91,9 @@ export class Child extends ComChild<Account> {
           return;
         }
         const data = parseJSON<Conversation>(dataStr, {} as Conversation);
+        if (!data.message) {
+          return;
+        }
         if (data.message.author.role !== 'assistant') {
           return;
         }
@@ -105,6 +108,7 @@ export class Child extends ComChild<Account> {
       }
     });
     ss.on('close', () => {
+      this.logger.info('recv ok');
       stream.write(Event.done, { content: '' });
       stream.end();
     });
