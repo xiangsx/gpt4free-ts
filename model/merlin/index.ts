@@ -161,16 +161,18 @@ class Child extends ComChild<Account> {
 
       function removeRepeats(num: number): number {
         const str = num.toString();
+        const len = str.length;
 
-        if (str.length <= 2) {
+        if (len % 2 !== 0 || len === 1) {
           return num;
         }
 
-        const repeatPattern = /^(\d+?)\1+$/;
-        const match = str.match(repeatPattern);
+        const mid = len / 2;
+        const part1 = str.slice(0, mid);
+        const part2 = str.slice(mid);
 
-        if (match) {
-          return parseInt(match[1], 10);
+        if (part1 === part2) {
+          return parseInt(part1, 10);
         }
 
         return num;
