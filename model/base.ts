@@ -165,6 +165,8 @@ export enum ModelType {
   SunoV2 = 'suno-v2',
   ChirpV2XXLAlpha = 'chirp-v2-xxl-alpha',
   ChirpV3_0 = 'chirp-v3-0',
+  Sonar = 'sonar',
+  MistralLarge = 'mistral-large',
 }
 
 export enum Site {
@@ -240,6 +242,7 @@ export enum Site {
   Domo = 'domo',
   Pika = 'pika',
   Suno = 'suno',
+  PerAuto = 'perauto',
   BingCopilot = 'bingcopilot',
   ClaudeAuto = 'claudeauto',
   OpenAIAuto = 'openaiauto',

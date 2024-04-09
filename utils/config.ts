@@ -118,6 +118,11 @@ interface ConfigData {
   };
   www: SizeCfg;
   ddg: SizeCfg;
+  perauto?: SizeCfg & {
+    accounts: GoogleMailAccount[];
+    system?: string;
+    model?: ModelType;
+  };
   perplexity: {
     size: number;
     tokens: string[];

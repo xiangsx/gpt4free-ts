@@ -127,7 +127,10 @@ export function CreateAxiosProxy(
 
 let globalBrowser: Browser;
 
-export async function CreateNewPage(
+export async function CreateNewPage<
+  Params extends unknown[],
+  Func extends (...args: Params) => unknown = (...args: Params) => unknown,
+>(
   url: string,
   options?: {
     emulate?: Device | boolean;
@@ -143,6 +146,7 @@ export async function CreateNewPage(
     protocolTimeout?: number;
     recognize?: boolean;
     block_google_analysis?: boolean;
+    inject_js?: [(...args: Params) => unknown, ...Params][];
   },
 ) {
   const {
@@ -159,6 +163,7 @@ export async function CreateNewPage(
     recognize = true,
     block_google_analysis = false,
     emulate = false,
+    inject_js = [],
   } = options || {};
   const launchOpt: PuppeteerLaunchOptions = {
     headless: process.env.DEBUG === '1' ? false : 'new',
@@ -219,6 +224,11 @@ export async function CreateNewPage(
         await page.emulate(emulate);
       } else {
         await page.emulate(getRandomDevice());
+      }
+    }
+    if (inject_js.length) {
+      for (const js of inject_js) {
+        await page.evaluateOnNewDocument(...js);
       }
     }
     await page.goto(url);

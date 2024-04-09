@@ -258,6 +258,8 @@ export class Merlin extends Chat {
         return 5800;
       case ModelType.GPT3p5Turbo:
         return 2500;
+      case ModelType.Claude3Opus20240229:
+        return 20000;
       default:
         return 0;
     }
