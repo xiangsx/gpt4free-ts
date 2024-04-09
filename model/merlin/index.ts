@@ -154,21 +154,29 @@ class Child extends ComChild<Account> {
           req.request().method().toUpperCase() === 'GET',
       );
       function removeRepeats(num: number): number {
-        const str = num.toString();
 
-        if (str.length <= 2) {
+        const str = num.toString();
+        const len = str.length;
+
+
+        if (len % 2 !== 0 || len === 1) {
           return num;
         }
 
-        const repeatPattern = /^(\d+?)\1+$/;
-        const match = str.match(repeatPattern);
+        const mid = len / 2;
+        const part1 = str.slice(0, mid);
+        const part2 = str.slice(mid);
 
-        if (match) {
-          return parseInt(match[1], 10);
+
+        if (part1 === part2) {
+          return parseInt(part1, 10);
         }
+
 
         return num;
       }
+
+
 
       const token = req.url().split('token=')[1].split('&')[0];
       this.logger.info(`get login status token: ${token}`);
