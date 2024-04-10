@@ -226,6 +226,7 @@ export class Suno extends Chat {
               e.response?.data && JSON.stringify(e.response.data)
             }`,
           });
+          stream.write(Event.done, { content: '' });
           this.logger.error(
             `wtf error:${e.message} ${
               e.response?.data && JSON.stringify(e.response.data)
