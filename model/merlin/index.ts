@@ -136,7 +136,10 @@ class Child extends ComChild<Account> {
       left: loginStatus.left,
       tokenGotTime: moment().unix(),
     });
-    await this.page?.browser().close();
+    this.page
+      ?.browser()
+      .close()
+      .catch((err) => this.logger.error(err.message));
   }
 
   initFailed(e?: Error) {
