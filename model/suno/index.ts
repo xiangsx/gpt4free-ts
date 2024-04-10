@@ -221,12 +221,13 @@ export class Suno extends Chat {
           stream.end();
           await child.updateCredit();
         } catch (e: any) {
-          stream.write(Event.error, {
-            error: `${e.message}: ${
+          stream.write(Event.message, {
+            content: `${e.message}: ${
               e.response?.data && JSON.stringify(e.response.data)
             }`,
           });
           stream.write(Event.done, { content: '' });
+          stream.end();
           this.logger.error(
             `wtf error:${e.message} ${
               e.response?.data && JSON.stringify(e.response.data)
