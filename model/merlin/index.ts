@@ -55,6 +55,9 @@ class Child extends ComChild<Account> {
   }
 
   async init(): Promise<void> {
+    if (!this.info.email) {
+      throw new Error('email is required');
+    }
     let page;
     if (this.info.accessToken) {
       this.logger.info('login with token ...');
