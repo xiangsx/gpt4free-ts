@@ -27,14 +27,14 @@ export class Child extends ComChild<Account> {
       this.update({ ua: randomUserAgent() });
     }
     this.sessClient = CreateNewAxios({
-      baseURL: 'https://clerk.suno.ai',
+      baseURL: 'https://clerk.suno.com',
       headers: {
-        authority: 'clerk.suno.ai',
+        authority: 'clerk.suno.com',
         'User-Agent': this.info.ua,
         Cookie: `__client=${this.info.token};`,
         pragma: 'no-cache',
-        Origin: 'https://app.suno.ai',
-        Referer: 'https://app.suno.ai/create/',
+        Origin: 'https://suno.com',
+        Referer: 'https://suno.com/create/',
       },
     });
     await this.updateSID();
@@ -75,8 +75,8 @@ export class Child extends ComChild<Account> {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
-          Origin: 'https://app.suno.ai',
-          Referer: 'https://app.suno.ai/create/',
+          Origin: 'https://suno.com',
+          Referer: 'https://suno.com/create/',
         },
       },
     );
@@ -90,8 +90,8 @@ export class Child extends ComChild<Account> {
         authority: 'studio-api.suno.ai',
         Authorization: `Bearer ${jwt}`,
         'User-Agent': this.info.ua,
-        Origin: 'https://app.suno.ai',
-        Referer: 'https://app.suno.ai/create/',
+        Origin: 'https://suno.com',
+        Referer: 'https://suno.com/create/',
       },
     });
     this.logger.info(`update token ok`);
