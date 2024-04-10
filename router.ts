@@ -506,7 +506,7 @@ export const registerApp = () => {
   );
   const router = new Router();
   app.use(errorHandler);
-  app.use(bodyParser({ jsonLimit: '10mb' }));
+  app.use(bodyParser({ jsonLimit: '20mb' }));
   app.use(checkApiKey);
   router.get('/supports', supportsHandler);
   router.get('/ask', AskHandle);
