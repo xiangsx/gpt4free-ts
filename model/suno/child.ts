@@ -57,7 +57,9 @@ export class Child extends ComChild<Account> {
           sessions: { id: string }[];
         };
       };
-    } = await this.sessClient.get('/v1/client?_clerk_js_version=4.70.5');
+    } = await this.sessClient.get(
+      '/v1/client?_clerk_js_version=4.72.0-snapshot.vc141245',
+    );
     const sid = res.data?.response?.sessions?.[0]?.id;
     if (!sid) {
       throw new Error('sid not found');
@@ -68,7 +70,7 @@ export class Child extends ComChild<Account> {
 
   async updateToken() {
     let res: { data: { jwt: string } } = await this.sessClient.post(
-      `/v1/client/sessions/${this.info.sid}/tokens/api?_clerk_js_version=4.70.5`,
+      `/v1/client/sessions/${this.info.sid}/tokens/api?_clerk_js_version=4.72.0-snapshot.vc141245`,
       {
         method: 'POST',
         headers: {

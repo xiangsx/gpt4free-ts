@@ -312,8 +312,9 @@ export class Child extends ComChild<Account> {
       .catch((e) => this.logger.error(e.message));
   }
 
-  destroy(options?: DestroyOptions) {
+  async destroy(options?: DestroyOptions) {
     super.destroy(options);
+    await sleep(2 * 60 * 1000);
     if (!this.page.isClosed()) {
       this.page
         ?.browser?.()
