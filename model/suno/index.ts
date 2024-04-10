@@ -221,7 +221,11 @@ export class Suno extends Chat {
           stream.end();
           await child.updateCredit();
         } catch (e: any) {
-          this.logger.error(`wtf error:${e.message}`);
+          this.logger.error(
+            `wtf error:${e.message} ${
+              e.response?.data && JSON.stringify(e.response.data)
+            }`,
+          );
         }
       },
     );
