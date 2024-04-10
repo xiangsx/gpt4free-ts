@@ -146,12 +146,12 @@ class Child extends ComChild<Account> {
   }
 
   initFailed(e?: Error) {
-    super.initFailed(e);
     this.update({ left: 0, useOutTime: moment().unix() });
     this.page
       ?.browser()
       .close()
       .catch((err) => this.logger.error(err.message));
+    this.destroy({ delFile: !this.info.email, delMem: true });
   }
 
   destroy(options?: DestroyOptions) {
@@ -254,7 +254,7 @@ export class Merlin extends Chat {
     {
       delay: 1000,
       serial: () => Config.config.merlin?.serial || 1,
-      needDel: (v) => !v.accessToken,
+      needDel: (v) => !v.email,
     },
   );
 
