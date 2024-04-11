@@ -97,6 +97,13 @@ export class Child extends ComChild<Account> {
         this.destroy({ delFile: false, delMem: true });
       },
     ],
+    [
+      (e) => e.error.message.indexOf('You exceeded your current quota') > -1,
+      () => {
+        this.update({ low_credit: true });
+        this.destroy({ delFile: false, delMem: true });
+      },
+    ],
   ];
 
   async handleError(e: { error: { message: string } }) {
