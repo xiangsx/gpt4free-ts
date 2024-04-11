@@ -42,8 +42,8 @@ export class Child extends ComChild<Account> {
     }
   }
 
-  initFailed(e?: Error) {
-    this.handleError(err.response?.data);
+  initFailed(e?: any) {
+    this.handleError(e.response?.data);
   }
 
   use(): void {
