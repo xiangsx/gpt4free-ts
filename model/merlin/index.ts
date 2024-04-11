@@ -28,6 +28,9 @@ const ModelMap: Partial<Record<ModelType, string>> = {
   [ModelType.GPT3p5Turbo]: 'GPT 3',
   [ModelType.Claude3Opus20240229]: 'claude-3-opus',
   [ModelType.Claude3Opus]: 'claude-3-opus',
+  [ModelType.Claude3Haiku]: 'claude-3-haiku',
+  [ModelType.Claude3Haiku20240307]: 'claude-3-haiku',
+  [ModelType.Claude3Haiku200k]: 'claude-3-haiku',
 };
 
 interface Account extends ComInfo {
@@ -155,6 +158,39 @@ class Child extends ComChild<Account> {
     super.destroy(options);
   }
 
+  async genSignImage(contentType: string[] = [], numOfImages: number = 1) {
+    fetch(
+      'https://uam.getmerlin.in/user/generateSignedUrlImages?&customJWT=true',
+      {
+        headers: {
+          accept: '*/*',
+          'accept-language': 'en-US,en;q=0.9',
+          authorization:
+            'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkZXRhaWxzIjp7Im5hbWUiOiJhc2FieGtoNzQxODMwNDggbHpnZmU5NDgxIiwicGljdHVyZSI6Imh0dHBzOi8vbGgzLmdvb2dsZXVzZXJjb250ZW50LmNvbS9hL0FDZzhvY0pieXcwNEZDTmdWY29fclZZZng4VWJEX3l2RUhDSzBRcjZaUXhTaW9hTU9OSml6QT1zOTYtYyIsImlzcyI6Imh0dHBzOi8vc2VjdXJldG9rZW4uZ29vZ2xlLmNvbS9mb3llci13b3JrIiwiYXVkIjoiZm95ZXItd29yayIsImF1dGhfdGltZSI6MTcxMjc0ODIzNywidXNlcl9pZCI6ImF2RjBVV0lQejBaTVhEd3UzcUhGaVhDN1ZvUzIiLCJzdWIiOiJhdkYwVVdJUHowWk1YRHd1M3FIRmlYQzdWb1MyIiwiaWF0IjoxNzEyNzQ4MjM3LCJleHAiOjE3MTI3NTE4MzcsImVtYWlsIjoienkxMTA0MTk5MTkzMEBia2xlLnVrIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImZpcmViYXNlIjp7ImlkZW50aXRpZXMiOnsiZ29vZ2xlLmNvbSI6WyIxMDYyMjU3MjM5MDYzMzMyNDc2MjkiXSwiZW1haWwiOlsienkxMTA0MTk5MTkzMEBia2xlLnVrIl19LCJzaWduX2luX3Byb3ZpZGVyIjoiZ29vZ2xlLmNvbSJ9LCJ1aWQiOiJhdkYwVVdJUHowWk1YRHd1M3FIRmlYQzdWb1MyIn0sImlhdCI6MTcxMjc0ODI0MCwiZXhwIjoxNzE3OTMyMjQwfQ.FTuvvtm1g9a1hioddkx3fv6sPoORvNP71s2lAqG2KQM',
+          'cache-control': 'no-cache',
+          'content-type': 'application/json',
+          pragma: 'no-cache',
+          'sec-ch-ua':
+            '"Not_A Brand";v="8", "Chromium";v="120", "Microsoft Edge";v="120"',
+          'sec-ch-ua-mobile': '?0',
+          'sec-ch-ua-platform': '"macOS"',
+          'sec-fetch-dest': 'empty',
+          'sec-fetch-mode': 'cors',
+          'sec-fetch-site': 'same-site',
+          'x-merlin-version': 'extension-null',
+          Referer: 'https://www.getmerlin.in/',
+          'Referrer-Policy': 'strict-origin-when-cross-origin',
+        },
+        body: '{"contentType":["image/jpeg"],"numOfImages":1}',
+        method: 'POST',
+      },
+    );
+    this.client.post('/user/generateSignedUrlImages?&customJWT=true', {
+      contentType,
+      numOfImages,
+    });
+  }
+
   async getLoginStatus(page: Page) {
     try {
       page.goto('https://www.getmerlin.in/zh-CN/chat');
@@ -268,6 +304,12 @@ export class Merlin extends Chat {
       case ModelType.Claude3Opus20240229:
         return 20000;
       case ModelType.Claude3Opus:
+        return 20000;
+      case ModelType.Claude3Haiku:
+        return 20000;
+      case ModelType.Claude3Haiku200k:
+        return 20000;
+      case ModelType.Claude3Haiku20240307:
         return 20000;
       default:
         return 0;
