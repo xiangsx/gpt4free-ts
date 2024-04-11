@@ -16,6 +16,7 @@ export type SiteCfg = {
 type SizeCfg = {
   size: number;
   serial: number;
+  delay?: number;
 };
 
 type MailCfg = {
@@ -118,6 +119,7 @@ interface ConfigData {
   };
   www: SizeCfg;
   ddg: SizeCfg;
+  perlabs?: SizeCfg;
   perauto?: SizeCfg & {
     accounts: GoogleMailAccount[];
     system?: string;

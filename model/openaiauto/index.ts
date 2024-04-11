@@ -58,7 +58,7 @@ export class OpenAIAuto extends Chat {
       return true;
     },
     {
-      delay: 1000,
+      delay: Config.config.openaiauto?.delay || 1000,
       serial: () => Config.config.openaiauto?.serial || 1,
       needDel: (info) => !info.apikey || !!info.banned || !!info.low_credit,
       preHandleAllInfos: async (allInfos) => {
