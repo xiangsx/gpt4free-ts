@@ -37,30 +37,13 @@ export class Child extends ComChild<Account> {
       this.logger.error(
         `init error: ${err.message} ${JSON.stringify(err.response?.data)}`,
       );
-      if (
-        err.response?.data?.error?.message?.indexOf?.(
-          'Your credit balance is too low',
-        ) > -1
-      ) {
-        this.update({ low_credit: true });
-      }
-      if (
-        err.response?.data?.error?.message?.indexOf?.(
-          'This organization has been disabled',
-        ) > -1
-      ) {
-        this.update({ banned: true });
-      }
-      if (err?.response?.status === 401) {
-        this.update({ banned: true });
-      }
 
       throw err;
     }
   }
 
   initFailed(e?: Error) {
-    this.destroy({ delFile: !this.info.apikey, delMem: true });
+    this.handleError(err.response?.data);
   }
 
   use(): void {
