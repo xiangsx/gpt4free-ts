@@ -167,6 +167,19 @@ export enum ModelType {
   ChirpV3_0 = 'chirp-v3-0',
   Sonar = 'sonar',
   MistralLarge = 'mistral-large',
+  SonalSmallOnline = 'sonar-small-online',
+  SonalMediumOnline = 'sonar-medium-online',
+  SonalSmallChat = 'sonar-small-chat',
+  SonalMediumChat = 'sonar-medium-chat',
+  DbrxInstruct = 'dbrx-instruct',
+  Codellama70bInstruct = 'codellama-70b-instruct',
+  Mistral7bInstruct = 'mistral-7b-instruct',
+  LlavaV15_7b = 'llava-v1.5-7b-wrapper',
+  LlavaV16_34b = 'llava-v1.6-34b',
+  Mixtral8x7bInstruct = 'mixtral-8x7b-instruct',
+  Mixtral8x22b = 'mixtral-8x22b',
+  Gemma2bIt = 'gemma-2b-it',
+  Gemma7bIt = 'gemma-7b-it',
 }
 
 export enum Site {
@@ -247,6 +260,7 @@ export enum Site {
   ClaudeAuto = 'claudeauto',
   OpenAIAuto = 'openaiauto',
   FreeGPT35 = 'freegpt35',
+  PerLabs = 'perlabs',
 }
 
 export interface ChatRequest {

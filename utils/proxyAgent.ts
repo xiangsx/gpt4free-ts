@@ -34,8 +34,10 @@ import { FingerprintGenerator } from 'fingerprint-generator';
 import path from 'path';
 import fs, { createWriteStream } from 'fs';
 import fileType from 'file-type';
-import sizeOf from 'image-size';
 import { promisify } from 'util';
+import { io } from 'socket.io-client';
+import { ManagerOptions } from 'socket.io-client/build/esm/manager';
+import { Socket, SocketOptions } from 'socket.io-client/build/esm/socket';
 
 export const getProxy = () => {
   let proxy = '';
@@ -798,4 +800,28 @@ export async function downloadImageToBase64(fileUrl: string): Promise<{
     console.error(e.message);
     throw e;
   }
+}
+
+export function CreateSocketIO(
+  url: string,
+  options?: Partial<
+    ManagerOptions & SocketOptions & { proxy?: boolean | string }
+  >,
+): Socket {
+  const { proxy, ...opts } = options || {};
+
+  const opt = {
+    transports: ['websocket'],
+    ...opts,
+  };
+  if (proxy) {
+    if (typeof proxy === 'string') {
+      // @ts-ignore
+      opt.agent = HttpsProxyAgent(proxy);
+    } else {
+      // @ts-ignore
+      opt.agent = HttpsProxyAgent(getProxy());
+    }
+  }
+  return io(url, opt);
 }

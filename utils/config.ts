@@ -16,7 +16,6 @@ export type SiteCfg = {
 type SizeCfg = {
   size: number;
   serial: number;
-  delay?: number;
 };
 
 type MailCfg = {

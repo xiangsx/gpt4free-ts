@@ -75,6 +75,7 @@
     "puppeteer": "^20.1.2",
     "puppeteer-extra": "^3.3.6",
     "puppeteer-extra-plugin-stealth": "^2.11.2",
+    "socket.io-client": "^4.7.5",
     "string-similarity": "^4.0.4",
     "textract": "^2.5.0",
     "tiktoken": "^1.0.13",
