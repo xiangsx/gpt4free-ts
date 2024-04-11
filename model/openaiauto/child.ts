@@ -43,7 +43,11 @@ export class Child extends ComChild<Account> {
   }
 
   initFailed(e?: any) {
-    this.handleError(e.response?.data);
+    if (e.response?.data) {
+      this.handleError(e.response?.data);
+      return;
+    }
+    super.initFailed(e);
   }
 
   use(): void {
