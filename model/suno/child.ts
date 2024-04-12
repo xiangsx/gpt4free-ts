@@ -117,7 +117,7 @@ export class Child extends ComChild<Account> {
   }
 
   async createSong(options: SongOptions) {
-    options.prompt = options.prompt.slice(0, 1250);
+    options.prompt = options.prompt?.slice(0, 1250);
     const res: { data: CreateSongRes } = await this.client.post(
       '/generate/v2/',
       options,
