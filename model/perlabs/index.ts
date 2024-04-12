@@ -13,13 +13,16 @@ export class PerLabs extends Chat {
       return new Child(this.options?.name || '', info, options);
     },
     (v) => {
+      if (!v.proxy) {
+        return false;
+      }
       return true;
     },
     {
       delay: 500,
       serial: () => Config.config.perlabs?.serial || 1,
       needDel: (info) => {
-        return true;
+        return !info.proxy;
       },
     },
   );

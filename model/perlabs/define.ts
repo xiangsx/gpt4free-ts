@@ -1,7 +1,9 @@
 import { ComInfo } from '../../utils/pool';
 import { Message, ModelType } from '../base';
 
-export interface Account extends ComInfo {}
+export interface Account extends ComInfo {
+  proxy?: string;
+}
 
 export interface MessageReq {
   version: string;

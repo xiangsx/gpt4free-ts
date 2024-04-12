@@ -91,6 +91,13 @@ export class Child extends ComChild<Account> {
         this.destroy({ delFile: false, delMem: true });
       },
     ],
+    [
+      (e) => e.error.message.indexOf('Incorrect API key provided') > -1,
+      () => {
+        this.update({ banned: true });
+        this.destroy({ delFile: false, delMem: true });
+      },
+    ],
   ];
 
   async handleError(e: { error: { message: string } }) {

@@ -1,12 +1,13 @@
 import { ComChild, DestroyOptions } from '../../utils/pool';
 import { Account, MessageReq, MessageRes, PerLabEvents } from './define';
-import { CreateSocketIO } from '../../utils/proxyAgent';
+import { CreateSocketIO, getProxy } from '../../utils/proxyAgent';
 import { Socket } from 'socket.io-client';
 import { Event, EventStream, sleep } from '../../utils';
 import { Message, ModelType } from '../base';
 
 export class Child extends ComChild<Account> {
   client!: Socket;
+  proxy: string = this.info.proxy || getProxy();
 
   async init(): Promise<void> {
     this.client = CreateSocketIO('wss://labs-api.perplexity.ai', {
@@ -36,9 +37,14 @@ export class Child extends ComChild<Account> {
       });
     });
     this.client.on('disconnect', (reason, description) => {
-      this.logger.error(`disconnect: ${reason} ${description}`);
+      this.logger.error(`disconnect: ${reason} ${JSON.stringify(description)}`);
       this.destroy({ delFile: true, delMem: true });
     });
+    this.update({ proxy: this.proxy });
+  }
+
+  initFailed(e?: Error) {
+    this.destroy({ delFile: true, delMem: true });
   }
 
   async destroy(options?: DestroyOptions) {
@@ -67,10 +73,19 @@ export class Child extends ComChild<Account> {
       timezone: 'Asia/Shanghai',
     };
     let old = '';
+    const delay = setTimeout(() => {
+      this.logger.warn('timeout');
+      stream.write(Event.error, { error: 'timeout' });
+      stream.write(Event.done, { content: '' });
+      stream.end();
+      this.destroy({ delFile: false, delMem: true });
+    }, 5000);
     this.client.onAny((event, data: MessageRes) => {
       if (event.indexOf(PerLabEvents.QueryProgress) === -1) {
+        this.logger.warn(`unknown event! ${event}:${data}`);
         return;
       }
+      delay.refresh();
       stream.write(Event.message, {
         content: data.output.substring(old.length),
       });
