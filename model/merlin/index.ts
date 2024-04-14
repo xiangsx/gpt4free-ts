@@ -322,6 +322,11 @@ export class Merlin extends Chat {
       countPrompt: true,
       forceRemove: true,
     });
+    if (reqH.model.indexOf('claude') > -1) {
+      reqH.prompt = reqH.prompt
+        .replace(/user:/g, 'Human:')
+        .replace(/assistant/g, 'Assistant:');
+    }
     return reqH;
   }
 
