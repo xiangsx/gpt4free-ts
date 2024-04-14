@@ -596,6 +596,10 @@ export function TWToCN(str: string) {
 }
 
 export function matchPattern(pattern: string, str: string): boolean {
+  if (pattern.indexOf('|') > 0) {
+    const patterns = pattern.split('|');
+    return patterns.some((p) => matchPattern(p, str));
+  }
   // First, escape special characters except for '*' and '?'
   const escapedPattern = pattern.replace(/[-\/\\^$+.()|[\]{}]/g, '\\$&');
 
