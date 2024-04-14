@@ -79,7 +79,7 @@ class Child extends ComChild<Account> {
         },
       );
     } catch (e: any) {
-      if (e.response?.data.error.message.indexOf(`Quota exceeded`) > -1) {
+      if (e.response?.data?.error?.message.indexOf(`Quota exceeded`) > -1) {
         this.update({ refresh_unix: moment().add(1, 'm').unix() });
         throw new ComError('Quota exceeded');
       }
