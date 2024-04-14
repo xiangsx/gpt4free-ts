@@ -89,10 +89,12 @@ export class Child extends ComChild<Account> {
       stream.write(Event.message, {
         content: data.output.substring(old.length),
       });
+      old = data.output;
       if (data.final) {
         stream.write(Event.done, { content: '' });
         stream.end();
         this.release();
+        clearTimeout(delay);
         return;
       }
     });
