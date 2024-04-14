@@ -357,7 +357,7 @@ export class Gemini extends Chat {
       });
       response.on('error', this.logger.error);
     } catch (e: any) {
-      e.response.data.on('data', (chunk: any) =>
+      e.response?.data.on('data', (chunk: any) =>
         this.logger.error(chunk.toString()),
       );
       console.error(e.message);
