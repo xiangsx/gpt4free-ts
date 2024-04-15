@@ -295,21 +295,23 @@ export async function loginGoogle(
   page: Page,
   email: string,
   password: string,
-  recovery_email: string,
+  recovery_email?: string,
 ) {
   await page.waitForSelector('#identifierId', { timeout: 10 * 60 * 1000 });
   await sleep(2000);
   await page.click('#identifierId');
   await page.keyboard.type(email);
   await page.keyboard.press('Enter');
-  await sleep(2000);
+  await sleep(3000);
 
   await page.waitForSelector('input[type="password"]');
   await page.click('input[type="password"]');
   await page.keyboard.type(password);
   await page.keyboard.press('Enter');
   await sleep(3000);
-  await checkRecoveryMail(page, recovery_email);
+  if (recovery_email) {
+    await checkRecoveryMail(page, recovery_email);
+  }
   // await checkGmailContinue(page);
 }
 

@@ -70,6 +70,7 @@ import { OpenAIAuto } from './openaiauto';
 import { FreeGPT35 } from './freegpt35';
 import { PerAuto } from './perauto';
 import { PerLabs } from './perlabs';
+import { MerlinGmail } from './merlingmail';
 
 export class ChatModelFactory {
   private readonly modelMap: Map<Site, Chat>;
@@ -113,6 +114,10 @@ export class ChatModelFactory {
     // this.modelMap.set(Site.Poef, new Poef({ name: Site.Poef }));
     this.modelMap.set(Site.PoeAuto, new PoeAuto({ name: Site.PoeAuto }));
     this.modelMap.set(Site.PoeVIP, new PoeVIP({ name: Site.PoeVIP }));
+    this.modelMap.set(
+      Site.MerlinGmail,
+      new MerlinGmail({ name: Site.MerlinGmail }),
+    );
     this.modelMap.set(
       Site.ClaudeChat,
       new ClaudeChat({ name: Site.ClaudeChat }),

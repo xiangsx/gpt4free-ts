@@ -262,6 +262,7 @@ export enum Site {
   OpenAIAuto = 'openaiauto',
   FreeGPT35 = 'freegpt35',
   PerLabs = 'perlabs',
+  MerlinGmail = 'merlingmail',
 }
 
 export interface ChatRequest {

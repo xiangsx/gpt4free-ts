@@ -1,36 +1,63 @@
 import { Chat, ChatOptions, ChatRequest, ModelType } from '../base';
-import { Event, EventStream, parseJSON } from '../../utils';
-import { Pool } from '../../utils/pool';
+import {
+  Event,
+  EventStream,
+  parseJSON,
+  randomStr,
+  randomUserAgent,
+  sleep,
+} from '../../utils';
+import {
+  ChildOptions,
+  ComChild,
+  ComInfo,
+  DestroyOptions,
+  Pool,
+} from '../../utils/pool';
 import { Config } from '../../utils/config';
+import { CreateAxiosProxy, CreateNewPage } from '../../utils/proxyAgent';
+import { CreateEmail, TempEmailType } from '../../utils/emailFactory';
 import moment from 'moment/moment';
 import { v4 } from 'uuid';
+import { Page } from 'puppeteer';
+import { AxiosInstance } from 'axios';
 import es from 'event-stream';
-import { Account, ModelMap } from './define';
-import { Child } from './child';
+import { MerlinGmailChild } from './child';
+import { Account, ModelMap } from '../merlin/define';
 
-export class Merlin extends Chat {
-  private pool: Pool<Account, Child> = new Pool(
+export class MerlinGmail extends Chat {
+  private pool: Pool<Account, MerlinGmailChild> = new Pool(
     this.options?.name || '',
-    () => Config.config.merlin?.size || 0,
+    () => Config.config.merlingmail?.size || 0,
     (info, options) => {
-      return new Child(this.options?.name || '', info, options);
+      return new MerlinGmailChild(this.options?.name || '', info, options);
     },
     (v) => {
-      if (!v.accessToken) {
-        return false;
-      }
-      if (!v.left && !v.useOutTime) {
-        return false;
-      }
-      if (v.left < 10 && moment().unix() - v.useOutTime < 24 * 60 * 60) {
-        return false;
-      }
       return true;
     },
     {
-      delay: 1000,
-      serial: () => Config.config.merlin?.serial || 1,
-      needDel: (v) => !v.email || !v.accessToken || !v.password,
+      delay: 2000,
+      serial: () => Config.config.merlingmail?.serial || 1,
+      preHandleAllInfos: async (allInfos) => {
+        const oldset = new Set(allInfos.map((v) => v.email));
+        for (const v of Config.config.merlingmail?.accounts || []) {
+          if (!oldset.has(v.email)) {
+            allInfos.push({
+              id: v4(),
+              email: v.email,
+              password: v.password,
+              recovery: v.recovery,
+            } as Account);
+          }
+        }
+        return allInfos;
+      },
+      needDel: (info) => {
+        if (!info.email || !info.password) {
+          return true;
+        }
+        return false;
+      },
     },
   );
 

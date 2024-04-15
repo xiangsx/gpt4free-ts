@@ -119,6 +119,9 @@ interface ConfigData {
   www: SizeCfg;
   ddg: SizeCfg;
   perlabs?: SizeCfg;
+  merlingmail?: SizeCfg & {
+    accounts: GoogleMailAccount[];
+  };
   perauto?: SizeCfg & {
     accounts: GoogleMailAccount[];
     system?: string;
