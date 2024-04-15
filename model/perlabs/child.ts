@@ -2,7 +2,7 @@ import { ComChild, DestroyOptions } from '../../utils/pool';
 import { Account, MessageReq, MessageRes, PerLabEvents } from './define';
 import { CreateSocketIO, getProxy } from '../../utils/proxyAgent';
 import { Socket } from 'socket.io-client';
-import { Event, EventStream, sleep } from '../../utils';
+import { Event, EventStream, randomUserAgent, sleep } from '../../utils';
 import { Message, ModelType } from '../base';
 
 export class Child extends ComChild<Account> {
@@ -15,15 +15,11 @@ export class Child extends ComChild<Account> {
       extraHeaders: {
         Pragma: 'no-cache',
         'Cache-Control': 'no-cache',
-        'User-Agent':
-          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0',
+        'User-Agent': randomUserAgent(),
         Origin: 'https://labs.perplexity.ai',
         'Sec-WebSocket-Version': '13',
         'Accept-Encoding': 'gzip, deflate, br',
         'Accept-Language': 'en-US,en;q=0.9,zh-CN;q=0.8,zh;q=0.7,en-GB;q=0.6',
-        'Sec-WebSocket-Key': 'ZT7/mH3h607VU5MyIYIzdQ==',
-        'Sec-WebSocket-Extensions':
-          'permessage-deflate; client_max_window_bits',
       },
     });
 
