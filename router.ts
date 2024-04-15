@@ -458,6 +458,19 @@ const imageGenHandle: Middleware = async (ctx, next) => {
   await chat.generations(ctx, req);
 };
 
+const imagesEditsHandle: Middleware = async (ctx, next) => {
+  const { site, ...req } = {
+    ...(ctx.query as any),
+    ...(ctx.request.body as any),
+    ...(ctx.params as any),
+  } as any;
+  const chat = chatModel.get(site);
+  if (!chat) {
+    throw new ComError(`not support site: ${site} `, ComError.Status.NotFound);
+  }
+  await chat.generations(ctx, req);
+};
+
 const tokenizerHandle: Middleware = async (ctx, next) => {
   const params: { prompt: string } = {
     ...(ctx.query as any),

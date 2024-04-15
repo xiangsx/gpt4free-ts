@@ -16,6 +16,7 @@ import {
   TranscriptionRequest,
   CreateVideoTaskRequest,
   QueryVideoTaskRequest,
+  ImageEditRequest,
 } from './define';
 import { SongOptions } from './suno/define';
 
@@ -582,6 +583,10 @@ export class Chat {
   }
 
   public async speech(ctx: Context, req: SpeechRequest) {
+    throw new ComError('not implement', ComError.Status.InternalServerError);
+  }
+
+  public async ImagesEdits(ctx: Context, req: ImageEditRequest) {
     throw new ComError('not implement', ComError.Status.InternalServerError);
   }
 

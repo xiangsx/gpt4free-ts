@@ -27,6 +27,7 @@ import Application, { Context } from 'koa';
 import { GLM } from './glm';
 import {
   CreateVideoTaskRequest,
+  ImageEditRequest,
   QueryVideoTaskRequest,
   TranscriptionRequest,
 } from './define';
@@ -335,5 +336,13 @@ export class Auto extends Chat {
   ) {
     const chat = this.getRandomModel({ model: ModelType.ChirpV3_0 });
     await chat.feedSong(ctx, req);
+  }
+
+  async ImagesEdits(
+    ctx: Application.Context,
+    req: ImageEditRequest,
+  ): Promise<void> {
+    const chat = this.getRandomModel({ model: req.model || ModelType.DallE2 });
+    await chat.ImagesEdits(ctx, req);
   }
 }
