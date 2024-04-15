@@ -231,8 +231,8 @@ class Child extends ComChild<Account> {
       }
       this.logger.info(`get login status left: ${left}`);
       return { token, left: left };
-    } catch (e) {
-      this.logger.error('getLoginStatus failed, ', e);
+    } catch (e: any) {
+      this.logger.error(`getLoginStatus failed, ${e.message}`);
       return undefined;
     }
   }
@@ -400,8 +400,8 @@ export class Merlin extends Chat {
               default:
                 return;
             }
-          } catch (e) {
-            this.logger.error('parse data failed, ', e);
+          } catch (e: any) {
+            this.logger.error(`parse data failed, ${e.message}`);
           }
         }),
       );
@@ -415,7 +415,7 @@ export class Merlin extends Chat {
         }
       });
     } catch (e: any) {
-      this.logger.error('ask failed, ', e);
+      this.logger.error(`ask failed, ${e.message}`);
       child.update({
         left: child.info.left - 10,
         useOutTime: moment().unix(),
