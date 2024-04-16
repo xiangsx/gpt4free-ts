@@ -85,6 +85,10 @@ export class Child extends ComChild<Account> {
         this.logger.warn(`unknown event! ${event}:${data}`);
         return;
       }
+      if (!data.output) {
+        this.logger.warn(`no output! ${event}:${data}`);
+        return;
+      }
       delay.refresh();
       stream.write(Event.message, {
         content: data.output.substring(old.length),
