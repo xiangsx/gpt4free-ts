@@ -8,6 +8,7 @@ export interface Account extends ComInfo {
   password: string;
   recovery: string;
   proxy?: string;
+  visitor_id: string;
   login_time?: string;
   last_use_time?: string;
   token: string;
@@ -59,6 +60,11 @@ export interface PerEventReq {
   source: 'default';
 }
 
+export const DefaultPerEventReq: PerEventReq = {
+  version: '2.5',
+  source: 'default',
+};
+
 export interface UserSettings extends PerEventReq {
   default_copilot: boolean;
 }
@@ -99,7 +105,7 @@ export interface PerAsk extends PerEventReq {
   timezone: string;
   search_focus: PerAskSearchFocus;
   frontend_uuid: string;
-  mode: string;
+  mode: PerAskMode;
   is_related_query: boolean;
   is_default_related_query: boolean;
   visitor_id: string;
@@ -108,7 +114,7 @@ export interface PerAsk extends PerEventReq {
   query_source: string;
 }
 
-interface MessageResponse {
+export interface PerMessageResponse {
   status: string;
   uuid: string;
   read_write_token: string;

@@ -1,8 +1,19 @@
 import { ComChild, DestroyOptions } from '../../utils/pool';
-import { Account, FocusType, ModelMap } from './define';
-import { CDPSession, Page } from 'puppeteer';
-import { ModelType } from '../base';
-import { parseJSON, randomUserAgent, sleep } from '../../utils';
+import {
+  Account,
+  DefaultPerEventReq,
+  FocusType,
+  ModelMap,
+  PerAsk,
+  PerAskMode,
+  PerAskSearchFocus,
+  PerEvents,
+  PerMessageResponse,
+  UserSettings,
+} from './define';
+import { Page } from 'puppeteer';
+import { ChatRequest, ModelType } from '../base';
+import { EventStream, randomUserAgent, sleep } from '../../utils';
 import {
   CreateNewPage,
   CreateSocketIO,
@@ -12,6 +23,7 @@ import { handleCF, ifCF } from '../../utils/captcha';
 import { loginGoogle } from '../../utils/puppeteer';
 import { Config } from '../../utils/config';
 import { Socket } from 'socket.io-client';
+import { v4 } from 'uuid';
 
 export class Child extends ComChild<Account> {
   private page!: Page;
@@ -33,7 +45,7 @@ export class Child extends ComChild<Account> {
   private InputSelector = 'textarea';
   private UserName = `a[href="/settings/account"]`;
 
-  private async closeCopilot(page: Page) {
+  private async set(page: Page) {
     try {
       await page.waitForSelector(
         '.text-super > .flex > div > .rounded-full > .relative',
@@ -45,27 +57,11 @@ export class Child extends ComChild<Account> {
     }
   }
 
-  async setModel(page: Page, model: ModelType) {
-    try {
-      await page.goto('https://www.perplexity.ai/settings');
-      await page.waitForSelector(
-        'div > div:nth-child(6) > div:nth-child(2) > div:nth-child(2) > span > button',
-        { timeout: 3000 },
-      );
-      await page.click(
-        'div > div:nth-child(6) > div:nth-child(2) > div:nth-child(2) > span > button',
-      );
-      await sleep(1000);
-      const selector = ModelMap[model];
-      if (!selector) {
-        throw new Error('model not support');
-      }
-      await page.waitForSelector(selector, { timeout: 3000 });
-      await page.click(selector);
-      this.logger.info('set model ok');
-    } catch (e) {
-      this.logger.error('set model failed', e);
-    }
+  async setCopilot(open: boolean) {
+    this.io.emit(PerEvents.SaveUserSettings, {
+      ...DefaultPerEventReq,
+      default_copilot: open,
+    } as UserSettings);
   }
 
   async listenTokenChange() {
@@ -144,14 +140,18 @@ export class Child extends ComChild<Account> {
     }
   }
 
-  async startListener() {
-    this.io = CreateSocketIO('wss://labs-api.perplexity.ai', {
-      proxy: true,
+  async initIO() {
+    this.io = CreateSocketIO('wss://www.perplexity.ai', {
+      proxy: this.proxy,
       extraHeaders: {
         Pragma: 'no-cache',
         'Cache-Control': 'no-cache',
-        'User-Agent': randomUserAgent(),
-        Origin: 'https://labs.perplexity.ai',
+        'User-Agent':
+          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0',
+        Cookie: (await this.page.cookies())
+          .map((v) => `${v.name}=${v.value}`)
+          .join('; '),
+        Origin: 'https://www.perplexity.ai',
         'Sec-WebSocket-Version': '13',
         'Accept-Encoding': 'gzip, deflate, br',
         'Accept-Language': 'en-US,en;q=0.9,zh-CN;q=0.8,zh;q=0.7,en-GB;q=0.6',
@@ -169,9 +169,17 @@ export class Child extends ComChild<Account> {
     });
     this.io.on('disconnect', (reason, description) => {
       this.logger.error(`disconnect: ${reason} ${JSON.stringify(description)}`);
-      this.destroy({ delFile: true, delMem: true });
+      this.destroy({ delFile: false, delMem: true });
     });
-    this.update({ proxy: this.proxy });
+  }
+
+  async updateVisitorID() {
+    const cookies = await this.page.cookies('https://www.perplexity.ai');
+    const visitor_id = cookies.find((v) => v.name === 'pplx.visitor-id')?.value;
+    if (!visitor_id) {
+      throw new Error('visitor_id is empty');
+    }
+    this.update({ visitor_id });
   }
 
   async init(): Promise<void> {
@@ -221,6 +229,7 @@ export class Child extends ComChild<Account> {
       this.update({ invalid: true });
       throw new Error(`account:${this.info.id}, no login status`);
     }
+    this.update({ proxy: this.proxy });
     if (Config.config.perauto?.model !== ModelType.GPT3p5Turbo) {
       if (!(await this.isPro(page))) {
         this.update({ invalid: true });
@@ -229,18 +238,8 @@ export class Child extends ComChild<Account> {
       }
     }
 
-    await this.closeCopilot(page);
-    await this.setModel(
-      page,
-      Config.config.perauto?.model || ModelType.GPT3p5Turbo,
-    );
-
-    await this.startListener();
-    this.logger.info('start listener ok');
-    await this.goHome();
-    this.logger.info('go home ok');
-    await this.changeMode(this.focusType);
-    this.logger.info('change mode ok');
+    await this.initIO();
+    await this.setCopilot(true);
     this.listenTokenChange();
   }
 
@@ -265,5 +264,25 @@ export class Child extends ComChild<Account> {
 
   async isPro(page: Page) {
     return (await page.$('.fill-super')) !== null;
+  }
+
+  async askForStream(req: ChatRequest, stream: EventStream) {
+    this.io.on('query_progress', (data: PerMessageResponse) => {});
+    this.io.emit(PerEvents.PerplexityAsk, req.prompt, {
+      version: '2.5',
+      source: 'default',
+      attachments: [],
+      language: 'en-US',
+      timezone: 'Asia/Shanghai',
+      search_focus: PerAskSearchFocus.Writing,
+      frontend_uuid: v4(),
+      mode: PerAskMode.Concise,
+      is_related_query: false,
+      is_default_related_query: false,
+      visitor_id: this.info.visitor_id,
+      frontend_context_uuid: v4(),
+      prompt_source: 'user',
+      query_source: 'home',
+    } as PerAsk);
   }
 }
