@@ -10,7 +10,7 @@ export class Child extends ComChild<Account> {
   proxy: string = this.info.proxy || getProxy();
 
   async init(): Promise<void> {
-    this.client = CreateSocketIO('wss://labs-api.perplexity.ai', {
+    this.client = CreateSocketIO('wss://www.perplexity.ai', {
       proxy: true,
       extraHeaders: {
         Pragma: 'no-cache',

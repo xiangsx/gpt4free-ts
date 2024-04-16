@@ -2,18 +2,24 @@ import { ComChild, DestroyOptions } from '../../utils/pool';
 import { Account, FocusType, ModelMap } from './define';
 import { CDPSession, Page } from 'puppeteer';
 import { ModelType } from '../base';
-import { parseJSON, sleep } from '../../utils';
-import { CreateNewPage } from '../../utils/proxyAgent';
+import { parseJSON, randomUserAgent, sleep } from '../../utils';
+import {
+  CreateNewPage,
+  CreateSocketIO,
+  getProxy,
+} from '../../utils/proxyAgent';
 import { handleCF, ifCF } from '../../utils/captcha';
 import { loginGoogle } from '../../utils/puppeteer';
 import { Config } from '../../utils/config';
+import { Socket } from 'socket.io-client';
 
 export class Child extends ComChild<Account> {
   private page!: Page;
   private focusType: FocusType = FocusType.Writing;
   private cb?: (ansType: string, ansObj: any) => void;
   private refresh?: () => void;
-  private client!: CDPSession;
+  io!: Socket;
+  proxy: string = this.info.proxy || getProxy();
 
   async isLogin(page: Page) {
     try {
@@ -139,100 +145,33 @@ export class Child extends ComChild<Account> {
   }
 
   async startListener() {
-    const client = await this.page.target().createCDPSession();
-    this.client = client;
-    await client.send('Network.enable');
-    const et = client.on(
-      'Network.webSocketFrameReceived',
-      async ({ response }) => {
-        try {
-          // 获取code
-          const code = +response.payloadData.match(/\d+/)[0];
-          this.logger.debug(response.payloadData);
-          const dataStr = response.payloadData.replace(/\d+/, '').trim();
-          if (!dataStr) {
-            return;
-          }
-          const data = parseJSON(dataStr, []);
-          if (data.length < 1) {
-            return;
-          }
-          switch (code) {
-            case 42:
-              const [ansType, textObj] = data;
-              const text = (textObj as any).text;
-              const ansObj = parseJSON<{ answer: string; web_results: any[] }>(
-                text,
-                {
-                  answer: '',
-                  web_results: [],
-                },
-              );
-              this.refresh?.();
-              this.cb?.(ansType, ansObj);
-              break;
-            default:
-              const [v] = data as { status: string }[];
-              if (v.status) {
-                this.cb?.(v.status, { answer: '', web_results: [] });
-              }
-              break;
-          }
-        } catch (e) {
-          this.logger.warn('parse failed, ', e);
-        }
+    this.io = CreateSocketIO('wss://labs-api.perplexity.ai', {
+      proxy: true,
+      extraHeaders: {
+        Pragma: 'no-cache',
+        'Cache-Control': 'no-cache',
+        'User-Agent': randomUserAgent(),
+        Origin: 'https://labs.perplexity.ai',
+        'Sec-WebSocket-Version': '13',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Accept-Language': 'en-US,en;q=0.9,zh-CN;q=0.8,zh;q=0.7,en-GB;q=0.6',
       },
-    );
-    return client;
-  }
+    });
 
-  async sendMsg(
-    t: FocusType,
-    prompt: string,
-    cb: (
-      ansType: string,
-      ansObj: { answer: string; web_results: any[]; query_str: string },
-    ) => void,
-    onTimeOut: () => void,
-  ) {
-    try {
-      if (t !== this.focusType) {
-        await this.changeMode(t);
-        this.focusType = t;
-      }
-      const delay = setTimeout(() => {
-        try {
-          this.cb = undefined;
-          if (!this.page.isClosed()) {
-            this.goHome();
-            this.changeMode(t);
-          }
-          clearTimeout(delay);
-          onTimeOut();
-        } catch (e) {
-          this.logger.error('timeout failed, ', e);
-        }
-      }, 20 * 1000);
-      this.cb = cb;
-      await this.page.waitForSelector(this.InputSelector, {
-        timeout: 3 * 1000,
+    await new Promise<void>((resolve, reject) => {
+      this.io.on('connect', () => {
+        this.logger.info('connect');
+        resolve();
       });
-      await this.page.click(this.InputSelector);
-      await this.client.send('Input.insertText', { text: prompt });
-      this.logger.info('find input ok');
-      await this.page.keyboard.press('Enter');
-      this.logger.info('send msg ok!');
-      this.refresh = () => delay.refresh();
-      return async () => {
-        this.cb = undefined;
-        await this.goHome();
-        await this.changeMode(t);
-        clearTimeout(delay);
-      };
-    } catch (e) {
-      this.logger.error(e);
-      throw e;
-    }
+      this.io.on('connect_error', (err) => {
+        reject(err);
+      });
+    });
+    this.io.on('disconnect', (reason, description) => {
+      this.logger.error(`disconnect: ${reason} ${JSON.stringify(description)}`);
+      this.destroy({ delFile: true, delMem: true });
+    });
+    this.update({ proxy: this.proxy });
   }
 
   async init(): Promise<void> {
@@ -289,6 +228,7 @@ export class Child extends ComChild<Account> {
         throw new Error('not pro');
       }
     }
+
     await this.closeCopilot(page);
     await this.setModel(
       page,
