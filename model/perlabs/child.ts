@@ -21,7 +21,7 @@ export class Child extends ComChild<Account> {
         'Sec-WebSocket-Version': '13',
         'Accept-Encoding': 'gzip, deflate, br',
         'Accept-Language': 'en-US,en;q=0.9,zh-CN;q=0.8,zh;q=0.7,en-GB;q=0.6',
-        'Sec-WebSocket-Key': 'ZT7/mH3h607VU5MyIYIzdQ==',
+        'Sec-WebSocket-Key': 'Q86A6uxijFOUouPweggX+Q==',
         'Sec-WebSocket-Extensions':
           'permessage-deflate; client_max_window_bits',
       },
