@@ -181,6 +181,8 @@ export enum ModelType {
   Mixtral8x22b = 'mixtral-8x22b',
   Gemma2bIt = 'gemma-2b-it',
   Gemma7bIt = 'gemma-7b-it',
+  GPT4Turbo = 'gpt-4-turbo',
+  GPT4Turbo20240409 = 'gpt-4-turbo-2024-04-09',
 }
 
 export enum Site {
