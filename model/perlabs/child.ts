@@ -82,11 +82,11 @@ export class Child extends ComChild<Account> {
     }, 5000);
     this.client.onAny((event, data: MessageRes) => {
       if (event.indexOf(PerLabEvents.QueryProgress) === -1) {
-        this.logger.warn(`unknown event! ${event}:${data}`);
+        this.logger.warn(`unknown event! ${event}:${JSON.stringify(data)}`);
         return;
       }
       if (!data.output) {
-        this.logger.warn(`no output! ${event}:${data}`);
+        this.logger.warn(`no output! ${event}:${JSON.stringify(data)}`);
         return;
       }
       delay.refresh();
