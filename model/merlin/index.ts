@@ -66,9 +66,15 @@ export class Merlin extends Chat {
       forceRemove: true,
     });
     if (reqH.model.indexOf('claude') > -1) {
-      reqH.prompt = reqH.prompt
-        .replace(/user:/g, 'Human:')
-        .replace(/assistant/g, 'Assistant:');
+      const historyMsgs = req.messages.slice(0, req.messages.length - 1);
+      const newMsg = req.messages[req.messages.length - 1];
+      req.prompt = `<history>${req.messages.map((v) => {
+        const role = v.role === 'assistant' ? 'Assistant' : 'Human';
+        return `<${role}>${v.content}</${role}>`;
+      })}</history>
+      
+${newMsg}
+`;
     }
     return reqH;
   }
@@ -88,7 +94,7 @@ export class Merlin extends Chat {
           action: {
             message: {
               attachments: [],
-              content: req.prompt,
+              content: `<history></history>`,
               metadata: {
                 context: '',
               },
