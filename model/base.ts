@@ -97,6 +97,7 @@ export enum ModelType {
   GPT4V = 'gpt-4-v',
   GPT4All = 'gpt-4-all',
   GPT4Dalle = 'gpt-4-dalle',
+  GPT4DalleEdit = 'gpt-4-dalle-edit',
   GPT4Gizmo = 'gpt-4-gizmo',
   GPT4AllSource = 'gpt-4-all-source',
   GPT4VisionPreview = 'gpt-4-vision-preview',

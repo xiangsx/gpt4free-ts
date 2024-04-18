@@ -80,12 +80,13 @@ export interface QueryVideoTaskRequest {
 }
 
 export interface ImageEditRequest {
+  form: FormData;
   /**
    * The image to edit. This should be a valid PNG file, less than 4MB in size,
    * and square in dimension. Transparency in the image will be used as the mask
    * if no separate mask is provided.
    */
-  image: File;
+  image: string;
 
   /**
    * A text description of the desired image edit. The description should be
@@ -98,7 +99,7 @@ export interface ImageEditRequest {
    * during editing. This should be a valid PNG file, less than 4MB in size,
    * and have the same dimensions as the `image` field.
    */
-  mask?: File;
+  mask: string;
 
   /**
    * The model used for image generation. Currently, only `dall-e-2` is supported.

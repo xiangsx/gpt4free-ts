@@ -28,6 +28,8 @@ import apm from 'elastic-apm-node';
 import Busboy from 'busboy';
 import { PassThrough, Stream } from 'stream';
 import FormData from 'form-data';
+import fs from 'fs';
+import { v4 } from 'uuid';
 
 const supportsHandler = async (ctx: Context) => {
   const result: Support[] = [];
@@ -422,9 +424,11 @@ const audioTransHandle: Middleware = async (ctx, next) => {
         file: Stream,
         fileinfo: { filename: string; encoding: string; mimeType: string },
       ) => {
-        file.pipe(pt);
+        const filePath = `run/${v4()}_${fileinfo.filename}`;
+        file.pipe(fs.createWriteStream(filePath));
+        fields[fieldname] = filePath;
         // 直接将文件流导向 passThrough，以便可以透传
-        formData.append(fieldname, pt, {
+        formData.append(fieldname, fs.createReadStream(filePath), {
           filename: fileinfo.filename,
           contentType: fileinfo.mimeType,
         });
@@ -464,11 +468,49 @@ const imagesEditsHandle: Middleware = async (ctx, next) => {
     ...(ctx.request.body as any),
     ...(ctx.params as any),
   } as any;
+
+  const fields: Record<string, any> = {}; // 用于存储需要解析的字段
+  const formData = new FormData();
+  await new Promise((resolve, reject) => {
+    const busboy = Busboy({ headers: ctx.req.headers });
+
+    busboy.on('field', (fieldname: string, val: string) => {
+      // 假设我们只需要解析特定的字段
+      fields[fieldname] = val;
+      formData.append(fieldname, val);
+    });
+
+    busboy.on(
+      'file',
+      async (
+        fieldname: string,
+        file: Stream,
+        fileinfo: { filename: string; encoding: string; mimeType: string },
+      ) => {
+        const filePath = `run/${v4()}_${fileinfo.filename}`;
+        file.pipe(fs.createWriteStream(filePath));
+        fields[fieldname] = filePath;
+        // 直接将文件流导向 passThrough，以便可以透传
+        formData.append(fieldname, fs.createReadStream(filePath), {
+          filename: fileinfo.filename,
+          contentType: fileinfo.mimeType,
+        });
+      },
+    );
+
+    busboy.on('error', reject);
+    busboy.on('finish', resolve);
+    busboy.on('close', resolve);
+    ctx.req.pipe(busboy);
+  });
+
+  // @ts-ignore
   const chat = chatModel.get(site);
   if (!chat) {
     throw new ComError(`not support site: ${site} `, ComError.Status.NotFound);
   }
-  await chat.generations(ctx, req);
+
+  await chat.ImagesEdits(ctx, { ...req, ...fields, form: formData });
 };
 
 const tokenizerHandle: Middleware = async (ctx, next) => {
@@ -533,6 +575,8 @@ export const registerApp = () => {
   router.post('/v1/audio/speech', audioHandle);
   router.post('/:site/v1/audio/speech', audioHandle);
   router.post('/:site/v1/images/generations', imageGenHandle);
+  router.post('/:site/v1/images/edits', imagesEditsHandle);
+  router.post('/v1/images/edits', imagesEditsHandle);
   router.get('/v1/tokenizer', tokenizerHandle);
   router.post('/v1/tokenizer', tokenizerHandle);
   router.post('/v1/video/create', createVideoTaskHandle);
