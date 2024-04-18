@@ -179,6 +179,7 @@ export enum ModelType {
   LlavaV15_7b = 'llava-v1.5-7b-wrapper',
   LlavaV16_34b = 'llava-v1.6-34b',
   Mixtral8x7bInstruct = 'mixtral-8x7b-instruct',
+  Mixtral8x22bInstruct = 'mixtral-8x22b-instruct',
   Mixtral8x22b = 'mixtral-8x22b',
   Gemma2bIt = 'gemma-2b-it',
   Gemma7bIt = 'gemma-7b-it',
