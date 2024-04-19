@@ -42,6 +42,7 @@ interface Account extends ComInfo {
 class Child extends ComChild<Account> {
   public client: AxiosInstance;
   public page?: Page;
+
   constructor(label: string, info: any, options?: ChildOptions) {
     super(label, info, options);
     this.client = CreateAxiosProxy(
@@ -51,6 +52,7 @@ class Child extends ComChild<Account> {
       false,
     );
   }
+
   async init(): Promise<void> {
     try {
       if (this.info.cookies) {
@@ -59,6 +61,7 @@ class Child extends ComChild<Account> {
         let page;
         page = await CreateNewPage(
           'https://chatgate.ai/login?redirect_to=https%3A%2F%2Fchatgate.ai%2F',
+          { simplify: false },
         );
         this.page = page;
         await page.waitForSelector(
@@ -78,41 +81,40 @@ class Child extends ComChild<Account> {
         await page.click('input[type="email"]');
         await page.keyboard.type(email);
         await page.keyboard.press('Enter');
-        let cookies;
         for (const v of await mailbox.waitMails()) {
           let verifyUrl = v.content.match(/href=["'](.*?)["']/i)?.[1] || '';
           if (!verifyUrl) {
             throw new Error('verifyUrl not found');
           }
           verifyUrl = verifyUrl.replace(/&amp;/g, '&');
-          const vPage = await page.browser().newPage();
-          await vPage.goto(verifyUrl);
-          await sleep(15000);
+          await page.goto(verifyUrl, {
+            waitUntil: 'networkidle2',
+            timeout: 60 * 10000,
+          });
         }
+        await sleep(10 * 6 * 1000);
         await page.goto('https://chatgate.ai/gpt4/');
-        cookies = await page.cookies();
-        const cookieString = cookies
-          ?.map((cookie) => `${cookie.name}=${cookie.value}`)
-          .join('; ');
-        this.update({
-          cookies: cookieString,
-        });
-        this.logger.info(`cookies: ${cookieString}`);
-        await page.reload();
-        const req = await page.waitForResponse(
+        await sleep(5 * 1000);
+        const req = await page.waitForRequest(
           (req) =>
-            req.url().indexOf('discussions') > -1 &&
-            req.request().method().toUpperCase() === 'POST',
+            req
+              .url()
+              .indexOf(
+                'https://chatgate.ai/wp-json/mwai-ui/v1/discussions/list',
+              ) > -1,
         );
         this.logger.info(`req: ${req.url()}`);
-        const headers = req.request().headers();
+        const headers = req.headers();
         this.logger.info(`headers: ${JSON.stringify(headers)}`);
         const XWPNonce = headers['x-wp-nonce'];
+        const cookies = (await page.cookies('https://chatgate.ai'))
+          .map((v) => `${v.name}=${v.value}`)
+          .join('; ');
         this.logger.info(`XWPNonce: ${XWPNonce}`);
         this.update({
           XWPNonce: XWPNonce,
+          cookies,
         });
-        await page.browser().close();
       }
     } catch (e) {
       this.logger.error('init failed, ', e);
@@ -156,6 +158,7 @@ export class Chatgateai extends Chat {
       needDel: (v) => !v.cookies,
     },
   );
+
   constructor(options?: ChatOptions) {
     super(options);
   }
@@ -179,6 +182,7 @@ export class Chatgateai extends Chat {
     });
     return reqH;
   }
+
   async askStream(req: ChatRequest, stream: EventStream): Promise<void> {
     const child = await this.pool.pop();
     if (!child) {
@@ -191,6 +195,10 @@ export class Chatgateai extends Chat {
       const url = 'https://chatgate.ai/wp-json/mwai-ui/v1/chats/submit';
       const headers = {
         'Content-Type': 'application/json',
+        authority: 'chatgate.ai',
+        origin: 'https://chatgate.ai',
+        referer: 'https://chatgate.ai/gpt4/',
+        pragma: 'no-cache',
         'X-WP-Nonce': child.info.XWPNonce,
         'User-Agent':
           'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36 Edg/123.0.0.0',

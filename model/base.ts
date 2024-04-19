@@ -19,6 +19,7 @@ import {
   ImageEditRequest,
 } from './define';
 import { SongOptions } from './suno/define';
+import { Chatgateai } from './chatgateai';
 
 export interface ChatOptions {
   name: string;
@@ -269,6 +270,7 @@ export enum Site {
   FreeGPT35 = 'freegpt35',
   PerLabs = 'perlabs',
   MerlinGmail = 'merlingmail',
+  Chatgateai = 'chatgateai',
 }
 
 export interface ChatRequest {
