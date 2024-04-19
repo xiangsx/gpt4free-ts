@@ -289,6 +289,7 @@ export interface ApplicationCommandOption {
   value?: string | number;
   description?: string;
   required?: boolean;
+  autocomplete?: boolean;
   description_localized?: string;
   name_localized?: string;
   choices?: ChoiceItem[];
