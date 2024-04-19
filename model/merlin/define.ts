@@ -7,6 +7,7 @@ export interface Account extends ComInfo {
   recovery?: string;
   password: string;
   left: number;
+  login_failed?: number;
   useOutTime: number;
   accessToken: string;
   tokenGotTime: number;

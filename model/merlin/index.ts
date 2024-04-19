@@ -22,6 +22,9 @@ export class Merlin extends Chat {
       if (!v.left && !v.useOutTime) {
         return false;
       }
+      if (v.login_failed && v.login_failed > 3) {
+        return false;
+      }
       if (v.left < 10 && moment().unix() - v.useOutTime < 24 * 60 * 60) {
         return false;
       }

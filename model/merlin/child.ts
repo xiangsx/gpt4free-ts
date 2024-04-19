@@ -107,6 +107,7 @@ export class Child extends ComChild<Account> {
     this.update({
       left: loginStatus.left,
       tokenGotTime: moment().unix(),
+      login_failed: 0,
     });
     this.page
       ?.browser()
@@ -115,7 +116,11 @@ export class Child extends ComChild<Account> {
   }
 
   initFailed(e?: Error) {
-    this.update({ left: 0, useOutTime: moment().unix() });
+    this.update({
+      left: 0,
+      useOutTime: moment().unix(),
+      login_failed: this.info.login_failed ? this.info.login_failed + 1 : 1,
+    });
     this.page
       ?.browser()
       .close()
