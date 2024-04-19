@@ -185,6 +185,8 @@ export enum ModelType {
   Gemma7bIt = 'gemma-7b-it',
   GPT4Turbo = 'gpt-4-turbo',
   GPT4Turbo20240409 = 'gpt-4-turbo-2024-04-09',
+  Llama3_8bInstruct = 'llama-3-8b-instruct',
+  Llama3_70bInstruct = 'llama-3-70b-instruct',
 }
 
 export enum Site {

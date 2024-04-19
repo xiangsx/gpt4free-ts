@@ -39,7 +39,8 @@ export enum PerLabsModelEnum {
   MistralMedium = 'mistral-medium',
   Gemma2bIt = 'gemma-2b-it',
   Gemma7bIt = 'gemma-7b-it',
-  Related = 'related',
+  Llama3_8bInstruct = 'llama-3-8b-instruct',
+  Llama3_70bInstruct = 'llama-3-70b-instruct',
 }
 
 export const PerLabsModelExistedMap: Partial<Record<ModelType, boolean>> = {
@@ -59,6 +60,8 @@ export const PerLabsModelExistedMap: Partial<Record<ModelType, boolean>> = {
   [PerLabsModelEnum.MistralMedium]: true,
   [PerLabsModelEnum.Gemma2bIt]: true,
   [PerLabsModelEnum.Gemma7bIt]: true,
+  [PerLabsModelEnum.Llama3_8bInstruct]: true,
+  [PerLabsModelEnum.Llama3_70bInstruct]: true,
 };
 
 export enum PerLabEvents {
