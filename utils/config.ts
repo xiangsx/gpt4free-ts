@@ -56,6 +56,7 @@ interface ConfigData {
     chrome_path: string;
     download_map?: Record<string, string>;
   };
+  chatgateai?: SizeCfg & MailCfg;
   proxy_pool: {
     enable: boolean;
     stable_proxy_list: string[];
