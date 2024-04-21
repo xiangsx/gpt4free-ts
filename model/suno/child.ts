@@ -21,7 +21,7 @@ export class Child extends ComChild<Account> {
 
   async init() {
     if (!this.info.token) {
-      throw new Error('email is required');
+      throw new Error('token is required');
     }
     if (!this.info.ua) {
       this.update({ ua: randomUserAgent() });
@@ -142,7 +142,7 @@ export class Child extends ComChild<Account> {
 
   initFailed(e: any) {
     this.logger.error(e.message);
-    super.initFailed();
+    this.destroy({ delMem: true, delFile: !this.info.token });
     if (this.page) {
       this.page.browser().close();
     }
