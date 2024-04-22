@@ -95,6 +95,7 @@ export class Child extends ComChild<Account> {
       });
       old = data.output;
       if (data.final) {
+        this.logger.info('Recv msg ok');
         stream.write(Event.done, { content: '' });
         stream.end();
         this.release();
