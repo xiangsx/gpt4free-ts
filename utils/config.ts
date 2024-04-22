@@ -83,6 +83,7 @@ interface ConfigData {
     mail_type: TempEmailType;
   };
   openai: {
+    max_tokens?: { [key: string]: number };
     token_limit: { [key: string]: number };
   };
   glm?: {

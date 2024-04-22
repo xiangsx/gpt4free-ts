@@ -114,6 +114,8 @@ export class OpenAI extends Chat {
   public async askStream(req: ChatRequest, stream: EventStream) {
     const data: RealReq = {
       ...req,
+      max_tokens:
+        req.max_tokens || Config.config.openai.max_tokens?.[req.model],
       messages: req.messages,
       model: req.model,
       stream: true,
