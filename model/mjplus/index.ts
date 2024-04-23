@@ -1,6 +1,7 @@
 import { Chat, ChatRequest, ModelType, Site } from '../base';
 import {
   ComError,
+  downloadAndUploadCDN,
   Event,
   EventStream,
   extractJSON,
@@ -89,9 +90,10 @@ export class MJPlus extends Chat {
         last_process = v.progress;
       }
       if (v.status === 'SUCCESS') {
+        const localUrl = await downloadAndUploadCDN(v.imageUrl);
         stream.write(Event.message, {
           content: `
-![${req.prompt}](${v.imageUrl})`,
+![${req.prompt}](${localUrl})`,
         });
         stream.write(Event.message, {
           content: `\n\n|name|label|type|custom_id|\n|---|---|---|---|\n`,
@@ -133,9 +135,10 @@ export class MJPlus extends Chat {
         last_process = v.progress;
       }
       if (v.status === 'SUCCESS') {
+        const localUrl = await downloadAndUploadCDN(v.imageUrl);
         stream.write(Event.message, {
           content: `
-![${req.prompt}](${v.imageUrl})`,
+![${req.prompt}](${localUrl})`,
         });
         stream.write(Event.message, {
           content: `\n\n|name|label|type|custom_id|\n|---|---|---|---|\n`,
