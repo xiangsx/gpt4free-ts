@@ -190,11 +190,10 @@ export class MJPlus extends Chat {
                 await this.actionStream(child, action as ActionTool, stream);
                 break;
               default:
-                stream.write(Event.done, { content: '' });
-                stream.end();
-                child.release();
                 break;
             }
+            stream.write(Event.done, { content: '' });
+            stream.end();
           } catch (e: any) {
             stream.write(Event.error, { error: e.message });
             stream.write(Event.done, { content: '' });
