@@ -91,9 +91,9 @@ export interface BlendRequest {
 export interface ActionRequest {
   customId: string;
   taskId: string;
-  accountFilter: AccountFilter;
-  notifyHook: string;
-  state: string;
+  accountFilter?: AccountFilter;
+  notifyHook?: string;
+  state?: string;
 }
 
 export interface SwapFaceRequest {

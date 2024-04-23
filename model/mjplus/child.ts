@@ -11,6 +11,7 @@ import {
 } from './define';
 import { AxiosInstance } from 'axios';
 import { CreateNewAxios } from '../../utils/proxyAgent';
+import moment from 'moment/moment';
 
 export class Child extends ComChild<Account> {
   client!: AxiosInstance;
@@ -26,6 +27,13 @@ export class Child extends ComChild<Account> {
       headers: {
         Authorization: this.info.api_key,
       },
+    });
+  }
+
+  use() {
+    this.update({
+      lastUseTime: moment().unix(),
+      useCount: (this.info.useCount || 0) + 1,
     });
   }
 

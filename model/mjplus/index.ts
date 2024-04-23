@@ -1,4 +1,4 @@
-import { Chat, ChatOptions, ChatRequest, ModelType, Site } from '../base';
+import { Chat, ChatRequest, ModelType, Site } from '../base';
 import {
   ComError,
   Event,
@@ -10,7 +10,14 @@ import {
 } from '../../utils';
 import { chatModel } from '../index';
 import { MJPlusPrompt } from './prompt';
-import { Account, BotType, ImageTool, ToolInfo, ToolType } from './define';
+import {
+  Account,
+  ActionTool,
+  BotType,
+  ImageTool,
+  ToolInfo,
+  ToolType,
+} from './define';
 import { Child } from './child';
 import { Pool } from '../../utils/pool';
 import { Config } from '../../utils/config';
@@ -103,6 +110,50 @@ export class MJPlus extends Chat {
       await sleep(3000);
     }
   }
+  async actionStream(child: Child, req: ActionTool, stream: EventStream) {
+    const res = await child.action({
+      taskId: req.task_id,
+      customId: req.custom_id,
+    });
+    stream.write(Event.message, {
+      content: `> 提交任务✅ \n> task_id: \`${res.result}\`\n> 生成中.`,
+    });
+    let last_process: string = '';
+    for (let i = 0; i < 100; i++) {
+      const v = await child.fetchTask(res.result);
+      if (!v.progress) {
+        stream.write(Event.message, { content: '.' });
+        sleep(3000);
+        continue;
+      }
+      if (v.progress === last_process) {
+        stream.write(Event.message, { content: '.' });
+      } else {
+        stream.write(Event.message, { content: `${v.progress}` });
+        last_process = v.progress;
+      }
+      if (v.status === 'SUCCESS') {
+        stream.write(Event.message, {
+          content: `
+![${req.prompt}](${v.imageUrl})`,
+        });
+        stream.write(Event.message, {
+          content: `\n\n|name|label|type|custom_id|\n|---|---|---|---|\n`,
+        });
+        for (const b of v.buttons) {
+          const label = b.label || b.emoji;
+          if (b.type === 2 && label && ComponentLabelMap[label]) {
+            stream.write(Event.message, {
+              content: `|${ComponentLabelMap[label]}|${label}|${b.type}|${b.customId}|\n`,
+            });
+          }
+        }
+        break;
+      }
+
+      await sleep(3000);
+    }
+  }
 
   async askStream(req: ChatRequest, stream: EventStream): Promise<void> {
     const child = await this.pool.pop();
@@ -131,6 +182,9 @@ export class MJPlus extends Chat {
             switch (action?.type) {
               case ToolType.Imagine:
                 await this.imageStream(child, action as ImageTool, stream);
+                break;
+              case ToolType.Action:
+                await this.actionStream(child, action as ActionTool, stream);
                 break;
               default:
                 stream.write(Event.done, { content: '' });
