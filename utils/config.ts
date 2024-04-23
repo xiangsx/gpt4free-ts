@@ -96,6 +96,10 @@ interface ConfigData {
     tokens: string[];
     model: ModelType;
   };
+  mjplus?: SizeCfg & {
+    model: ModelType;
+    accounts: { base_url: string; api_key: string }[];
+  };
   midjourney: SizeCfg & {
     accounts: (DiscordAccount & {
       mode: 'relax' | 'fast' | 'turbo';

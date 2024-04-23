@@ -20,6 +20,7 @@ import {
 } from './define';
 import { SongOptions } from './suno/define';
 import { Chatgateai } from './chatgateai';
+import { MJPlus } from './mjplus';
 
 export interface ChatOptions {
   name: string;
@@ -271,6 +272,7 @@ export enum Site {
   PerLabs = 'perlabs',
   MerlinGmail = 'merlingmail',
   Chatgateai = 'chatgateai',
+  MJPlus = 'mjplus',
 }
 
 export interface ChatRequest {
@@ -505,7 +507,7 @@ export class Chat {
   protected options?: ChatOptions;
   protected logger: winston.Logger;
 
-  protected constructor(options?: ChatOptions) {
+  constructor(options?: ChatOptions) {
     this.options = options;
     this.logger = newLogger(options?.name);
   }
