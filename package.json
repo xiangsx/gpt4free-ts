@@ -64,6 +64,7 @@
     "https-proxy-agent": "^5.0.1",
     "image-size": "^1.0.2",
     "ioredis": "^5.3.2",
+    "js-sha3": "^0.9.3",
     "jsonwebtoken": "^9.0.2",
     "koa": "^2.14.2",
     "koa-bodyparser": "^4.4.0",
