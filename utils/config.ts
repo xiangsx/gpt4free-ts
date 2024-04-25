@@ -214,6 +214,31 @@ interface ConfigData {
     ask_sleep?: number; // 对话之后睡眠多久
     emulate?: boolean;
   };
+  findplus: {
+    size: number;
+    serial: number;
+    allow_3: boolean;
+    must_all_tools: boolean;
+    must_plus: boolean;
+    keep_arkose_refresh?: boolean;
+    upload_url: string;
+    download_proxy: string;
+    history_and_training_disabled?: boolean;
+    download_map?: Record<string, string>;
+    prompt_map?: Record<string, string>;
+    system?: string;
+    sleep_interval?: number; // 429之后睡眠多久
+    accounts: { email: string; password: string }[];
+    del_accounts?: { email: string; password: string }[];
+    clear_history?: boolean;
+    file_num_limit?: number;
+    ban_msg?: string[];
+    max_retry_times?: number;
+    max_continue_times?: number;
+    handle_login_turnstile?: boolean;
+    ask_sleep?: number; // 对话之后睡眠多久
+    emulate?: boolean;
+  };
   stack: {
     size: number;
     serial: number;
@@ -399,6 +424,18 @@ class BaseConfig {
       accounts: [],
     },
     openchat4: {
+      size: 0,
+      serial: 0,
+      allow_3: false,
+      must_plus: false,
+      must_all_tools: false,
+      accounts: [],
+      keep_arkose_refresh: false,
+      upload_url: '',
+      download_proxy: '',
+      download_map: {},
+    },
+    findplus: {
       size: 0,
       serial: 0,
       allow_3: false,

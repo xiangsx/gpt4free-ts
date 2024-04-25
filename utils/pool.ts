@@ -334,4 +334,12 @@ export class Pool<U extends Info, T extends PoolChild<U>> {
       ComError.Status.RequestTooMany,
     );
   }
+
+  getValidInfos() {
+    return this.allInfos.filter((info) => this.isInfoValid(info));
+  }
+
+  getAllInfos() {
+    return this.allInfos;
+  }
 }

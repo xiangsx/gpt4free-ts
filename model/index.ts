@@ -73,6 +73,7 @@ import { PerLabs } from './perlabs';
 import { MerlinGmail } from './merlingmail';
 import { Chatgateai } from './chatgateai';
 import { MJPlus } from './mjplus';
+import { FindPlus } from './findplus';
 
 export class ChatModelFactory {
   private readonly modelMap: Map<Site, Chat>;
@@ -174,6 +175,7 @@ export class ChatModelFactory {
     this.modelMap.set(Site.FreeGPT35, new FreeGPT35({ name: Site.FreeGPT35 }));
     this.modelMap.set(Site.PerLabs, new PerLabs({ name: Site.PerLabs }));
     this.modelMap.set(Site.MJPlus, new MJPlus({ name: Site.MJPlus }));
+    this.modelMap.set(Site.FindPlus, new FindPlus({ name: Site.FindPlus }));
     this.modelMap.set(
       Site.Chatgateai,
       new Chatgateai({ name: Site.Chatgateai }),

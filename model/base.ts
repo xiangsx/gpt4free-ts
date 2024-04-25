@@ -273,6 +273,7 @@ export enum Site {
   MerlinGmail = 'merlingmail',
   Chatgateai = 'chatgateai',
   MJPlus = 'mjplus',
+  FindPlus = 'findplus',
 }
 
 export interface ChatRequest {
