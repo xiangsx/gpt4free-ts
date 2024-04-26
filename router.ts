@@ -424,7 +424,7 @@ const audioTransHandle: Middleware = async (ctx, next) => {
         file: Stream,
         fileinfo: { filename: string; encoding: string; mimeType: string },
       ) => {
-        const filePath = `run/${v4()}_${fileinfo.filename}`;
+        const filePath = `run/file/${v4()}_${fileinfo.filename}`;
         file.pipe(fs.createWriteStream(filePath));
         fields[fieldname] = filePath;
         // 直接将文件流导向 passThrough，以便可以透传
@@ -487,7 +487,7 @@ const imagesEditsHandle: Middleware = async (ctx, next) => {
         file: Stream,
         fileinfo: { filename: string; encoding: string; mimeType: string },
       ) => {
-        const filePath = `run/${v4()}_${fileinfo.filename}`;
+        const filePath = `run/file/${v4()}_${fileinfo.filename}`;
         file.pipe(fs.createWriteStream(filePath));
         fields[fieldname] = filePath;
         // 直接将文件流导向 passThrough，以便可以透传
