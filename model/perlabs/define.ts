@@ -27,7 +27,7 @@ export const PerLabsModelExistedMap: Partial<Record<ModelType, boolean>> = {
   [ModelType.Llama3SonarSmall32kOnline]: true,
   [ModelType.Llama3SonarSmall32kChat]: true,
   [ModelType.DbrxInstruct]: true,
-  [ModelType.Claude3Haiku]: true,
+  [ModelType.Claude3Haiku20240307]: true,
   [ModelType.Codellama70bInstruct]: true,
   [ModelType.Mistral7bInstruct]: true,
   [ModelType.LlavaV15_7b]: true,
