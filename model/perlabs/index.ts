@@ -1,7 +1,7 @@
 import { Chat, ChatOptions, ChatRequest, ModelType } from '../base';
 import { Pool } from '../../utils/pool';
 import { Config } from '../../utils/config';
-import { Account, PerLabsModelEnum, PerLabsModelExistedMap } from './define';
+import { Account, PerLabsModelExistedMap } from './define';
 import { Child } from './child';
 import { EventStream } from '../../utils';
 

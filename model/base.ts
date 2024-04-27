@@ -189,6 +189,10 @@ export enum ModelType {
   GPT4Turbo20240409 = 'gpt-4-turbo-2024-04-09',
   Llama3_8bInstruct = 'llama-3-8b-instruct',
   Llama3_70bInstruct = 'llama-3-70b-instruct',
+  Llama3SonarLarge32kOnline = 'llama-3-sonar-large-32k-online',
+  Llama3SonarSmall32kOnline = 'llama-3-sonar-small-32k-online',
+  Llama3SonarLarge32kChat = 'llama-3-sonar-large-32k-chat',
+  Llama3SonarSmall32kChat = 'llama-3-sonar-small-32k-chat',
 }
 
 export enum Site {
