@@ -115,6 +115,7 @@ interface ConfigData {
     size: number;
     max_pool_size: number;
     gen_interval: number;
+    max_gen?: number;
     serial: number;
     allow_3: boolean;
     must_all_tools: boolean;
