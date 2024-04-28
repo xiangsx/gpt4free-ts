@@ -38,6 +38,7 @@ import { promisify } from 'util';
 import { io } from 'socket.io-client';
 import { ManagerOptions } from 'socket.io-client/build/esm/manager';
 import { Socket, SocketOptions } from 'socket.io-client/build/esm/socket';
+import { puppeteerUserDirPool } from './pool';
 
 export const getProxy = () => {
   let proxy = '';
@@ -242,6 +243,148 @@ export async function CreateNewPage<
   } catch (e) {
     console.error(e);
     await browser.close();
+    throw e;
+  }
+}
+
+export async function CreateNewCachePage<
+  Params extends unknown[],
+  Func extends (...args: Params) => unknown = (...args: Params) => unknown,
+>(
+  url: string,
+  options?: {
+    emulate?: Device | boolean;
+    stealth?: boolean;
+    allowExtensions?: boolean;
+    proxy?: string;
+    args?: string[];
+    simplify?: boolean;
+    user_agent?: string;
+    cookies?: Protocol.Network.CookieParam[];
+    devtools?: boolean;
+    fingerprint_inject?: boolean;
+    protocolTimeout?: number;
+    recognize?: boolean;
+    block_google_analysis?: boolean;
+    enable_user_cache?: boolean;
+    inject_js?: [(...args: Params) => unknown, ...Params][];
+  },
+): Promise<{ page: Page; release: () => void }> {
+  const {
+    allowExtensions = false,
+    proxy = getProxy(),
+    args = [],
+    simplify = true,
+    cookies = [],
+    user_agent = '',
+    devtools = false,
+    fingerprint_inject = false,
+    protocolTimeout,
+    stealth = true,
+    recognize = true,
+    block_google_analysis = false,
+    emulate = false,
+    inject_js = [],
+    enable_user_cache = false,
+  } = options || {};
+  const launchOpt: PuppeteerLaunchOptions = {
+    headless: process.env.DEBUG === '1' ? false : 'new',
+    devtools,
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-background-timer-throttling',
+      '--disable-backgrounding-occluded-windows',
+      ...args,
+    ],
+  };
+  if (enable_user_cache) {
+    const host = new URL(url).host;
+    if (host) {
+      launchOpt.userDataDir = puppeteerUserDirPool.popUserDir(host);
+    }
+  }
+  if (protocolTimeout) {
+    launchOpt.protocolTimeout = protocolTimeout;
+  }
+  launchOpt.args?.push(`--proxy-server=${proxy || getProxy()}`);
+  let p = puppeteer;
+  if (stealth) {
+    p = p.use(StealthPlugin());
+  }
+  let browser: Browser | BrowserContext;
+  if (recognize) {
+    if (!globalBrowser || !globalBrowser.isConnected()) {
+      globalBrowser = await p.launch(launchOpt);
+    }
+    browser = await globalBrowser.createIncognitoBrowserContext({
+      proxyServer: proxy || getProxy(),
+    });
+  } else {
+    browser = await p.launch(launchOpt);
+  }
+  try {
+    const gen = new FingerprintGenerator();
+    let page: Page;
+    if (fingerprint_inject) {
+      page = await newInjectedPage(browser as any);
+    } else {
+      page = await browser.newPage();
+    }
+    if (user_agent) {
+      await page.setUserAgent(user_agent);
+    }
+    if (simplify) {
+      await simplifyPage(page);
+    }
+    if (block_google_analysis) {
+      await blockGoogleAnalysis(page);
+    }
+    // 先清除cookie
+    await page.deleteCookie();
+    if (cookies.length > 0) {
+      await page.setCookie(...cookies);
+    }
+    await page.setViewport({
+      width: 1000 + Math.floor(Math.random() * 1000),
+      height: 1080,
+    });
+    if (emulate) {
+      if (typeof emulate === 'object' && user_agent in emulate) {
+        await page.emulate(emulate);
+      } else {
+        await page.emulate(getRandomDevice());
+      }
+    }
+    if (inject_js.length) {
+      for (const js of inject_js) {
+        await page.evaluateOnNewDocument(...js);
+      }
+    }
+    await page.goto(url);
+    if (recognize) {
+      // @ts-ignore
+      page.browser = page.browserContext;
+    }
+
+    return {
+      page,
+      release: () => {
+        page
+          .browser()
+          .close()
+          .catch((err) => console.error(err.message));
+        if (launchOpt.userDataDir) {
+          puppeteerUserDirPool.releaseUserDir(launchOpt.userDataDir);
+        }
+      },
+    };
+  } catch (e) {
+    console.error(e);
+    await browser.close();
+    if (launchOpt.userDataDir) {
+      puppeteerUserDirPool.releaseUserDir(launchOpt.userDataDir);
+    }
     throw e;
   }
 }

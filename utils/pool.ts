@@ -343,3 +343,60 @@ export class Pool<U extends Info, T extends PoolChild<U>> {
     return this.allInfos;
   }
 }
+
+class PuppeteerUserDirPool {
+  static SiteDir = './run/site';
+  private siteMap: Record<string, string[]> = {};
+  private using: Set<string> = new Set();
+
+  constructor() {
+    this.readOldSite();
+  }
+
+  private readOldSite() {
+    const siteDir = PuppeteerUserDirPool.SiteDir;
+    if (!fs.existsSync(siteDir)) {
+      fs.mkdirSync(siteDir, { recursive: true });
+    }
+    const sites = fs.readdirSync(siteDir);
+    for (const site of sites) {
+      const sitePath = path.join(siteDir, site);
+      const list = fs.readdirSync(sitePath);
+      this.siteMap[site] = list;
+    }
+  }
+
+  popUserDir(site: string) {
+    let siteUserDirs = this.siteMap[site];
+    let id: string;
+    if (!siteUserDirs) {
+      siteUserDirs = [];
+      this.siteMap[site] = siteUserDirs;
+      fs.mkdirSync(path.join(PuppeteerUserDirPool.SiteDir, site), {
+        recursive: true,
+      });
+    }
+    for (const user of siteUserDirs) {
+      if (!this.using.has(user)) {
+        this.using.add(user);
+        const p = path.join(PuppeteerUserDirPool.SiteDir, site, user);
+        fs.rmSync(path.join(p, 'SingletonLock'), {
+          force: true,
+          recursive: true,
+        });
+        return p;
+      }
+    }
+    id = v4();
+    siteUserDirs.push(id);
+    this.using.add(id);
+    return path.join(PuppeteerUserDirPool.SiteDir, site, id);
+  }
+
+  releaseUserDir(userDir: string) {
+    const id = path.basename(userDir);
+    this.using.delete(id);
+  }
+}
+
+export const puppeteerUserDirPool = new PuppeteerUserDirPool();
