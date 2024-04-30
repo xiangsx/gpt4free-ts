@@ -58,6 +58,7 @@ export class MJPlus extends Chat {
       },
     },
   );
+
   support(model: ModelType): number {
     switch (model) {
       case ModelType.MJChat:
@@ -90,7 +91,7 @@ export class MJPlus extends Chat {
         last_process = v.progress;
       }
       if (v.status === 'SUCCESS') {
-        const localUrl = await downloadAndUploadCDN(v.imageUrl);
+        const localUrl = v.imageUrl;
         stream.write(Event.message, {
           content: `
 ![${req.prompt}](${localUrl})`,
@@ -112,6 +113,7 @@ export class MJPlus extends Chat {
       await sleep(3000);
     }
   }
+
   async actionStream(child: Child, req: ActionTool, stream: EventStream) {
     const res = await child.action({
       taskId: req.task_id,
@@ -135,7 +137,7 @@ export class MJPlus extends Chat {
         last_process = v.progress;
       }
       if (v.status === 'SUCCESS') {
-        const localUrl = await downloadAndUploadCDN(v.imageUrl);
+        const localUrl = v.imageUrl;
         stream.write(Event.message, {
           content: `
 ![${req.prompt}](${localUrl})`,
