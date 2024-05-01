@@ -58,7 +58,7 @@ export class Child extends ComChild<Account> {
 
   async blend(req: BlendRequest): Promise<ComReturn<DiscordProperties>> {
     const res: { data: ComReturn } = await this.client.post(
-      '/mj/submit/imagine',
+      '/mj/submit/blend',
       req,
     );
     if (res.data.code > 1) {

@@ -83,9 +83,9 @@ export interface BlendRequest {
   botType: BotType;
   base64Array: string[];
   dimensions: string;
-  accountFilter: AccountFilter;
-  notifyHook: string;
-  state: string;
+  accountFilter?: AccountFilter;
+  notifyHook?: string;
+  state?: string;
 }
 
 export interface ActionRequest {

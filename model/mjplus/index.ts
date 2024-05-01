@@ -14,6 +14,7 @@ import { MJPlusPrompt } from './prompt';
 import {
   Account,
   ActionTool,
+  BlendTool,
   BotType,
   ImageTool,
   ToolInfo,
@@ -24,6 +25,7 @@ import { Pool } from '../../utils/pool';
 import { Config } from '../../utils/config';
 import { v4 } from 'uuid';
 import { ComponentLabelMap } from '../midjourney/define';
+import { downloadImageToBase64 } from '../../utils/proxyAgent';
 
 export class MJPlus extends Chat {
   private pool = new Pool<Account, Child>(
@@ -112,6 +114,61 @@ export class MJPlus extends Chat {
       await sleep(3000);
     }
   }
+
+  async blendStream(child: Child, req: BlendTool, stream: EventStream) {
+    const res = await child.blend({
+      botType: BotType.MID_JOURNEY,
+      base64Array: await Promise.all<string>(
+        req.image_urls.map((v) => {
+          return new Promise(async (resolve) => {
+            const { base64Data, mimeType } = await downloadImageToBase64(v);
+            resolve(`data:${mimeType};base64,${base64Data}`);
+          });
+        }),
+      ),
+      dimensions: req.dimensions,
+    });
+    stream.write(Event.message, {
+      content: `> 提交任务✅ \n> task_id: \`${res.result}\`\n> 生成中.`,
+    });
+    let last_process: string = '';
+    for (let i = 0; i < 100; i++) {
+      const v = await child.fetchTask(res.result);
+      if (!v.progress) {
+        stream.write(Event.message, { content: '.' });
+        sleep(3000);
+        continue;
+      }
+      if (v.progress === last_process) {
+        stream.write(Event.message, { content: '.' });
+      } else {
+        stream.write(Event.message, { content: `${v.progress}` });
+        last_process = v.progress;
+      }
+      if (v.status === 'SUCCESS') {
+        const localUrl = await downloadAndUploadCDN(v.imageUrl);
+        stream.write(Event.message, {
+          content: `
+![${req.prompt}](${localUrl})`,
+        });
+        stream.write(Event.message, {
+          content: `\n\n|name|label|type|custom_id|\n|---|---|---|---|\n`,
+        });
+        for (const b of v.buttons) {
+          const label = b.label || b.emoji;
+          if (b.type === 2 && label && ComponentLabelMap[label]) {
+            stream.write(Event.message, {
+              content: `|${ComponentLabelMap[label]}|${label}|${b.type}|${b.customId}|\n`,
+            });
+          }
+        }
+        break;
+      }
+
+      await sleep(3000);
+    }
+  }
+
   async actionStream(child: Child, req: ActionTool, stream: EventStream) {
     const res = await child.action({
       taskId: req.task_id,
@@ -188,6 +245,9 @@ export class MJPlus extends Chat {
                 break;
               case ToolType.Action:
                 await this.actionStream(child, action as ActionTool, stream);
+                break;
+              case ToolType.Blend:
+                await this.blendStream(child, action as BlendTool, stream);
                 break;
               default:
                 break;
