@@ -16,6 +16,7 @@ import {
   OpenaiEventStream,
   parseJSON,
   randomStr,
+  sleep,
   ThroughEventStream,
 } from './utils';
 import moment from 'moment/moment';
@@ -57,12 +58,21 @@ const errorHandler = async (ctx: Context, next: Next) => {
     ctx.logger = new TraceLogger();
     await next();
   } catch (err: any) {
-    ctx.logger?.info(`err handle:${err.message}`, {
-      trace_label: 'error',
-      ...(ctx.query as any),
-      ...(ctx.request.body as any),
-      ...(ctx.params as any),
-    });
+    if (err.response?.data) {
+      ctx.logger?.info(`err handle:${JSON.stringify(err.response.data)}`, {
+        trace_label: 'error',
+        ...(ctx.query as any),
+        ...(ctx.request.body as any),
+        ...(ctx.params as any),
+      });
+    } else {
+      ctx.logger?.info(`err handle:${err.message}`, {
+        trace_label: 'error',
+        ...(ctx.query as any),
+        ...(ctx.request.body as any),
+        ...(ctx.params as any),
+      });
+    }
     ctx.body = { error: { message: err.message } };
     ctx.status = err.status || ComError.Status.InternalServerError;
   }
@@ -419,13 +429,18 @@ const audioTransHandle: Middleware = async (ctx, next) => {
 
     busboy.on(
       'file',
-      (
+      async (
         fieldname: string,
         file: Stream,
         fileinfo: { filename: string; encoding: string; mimeType: string },
       ) => {
         const filePath = `run/file/${v4()}_${fileinfo.filename}`;
         file.pipe(fs.createWriteStream(filePath));
+        await new Promise((resolve, reject) => {
+          file.on('end', resolve);
+          file.on('error', reject);
+        });
+        await sleep(500);
         fields[fieldname] = filePath;
         // 直接将文件流导向 passThrough，以便可以透传
         formData.append(fieldname, fs.createReadStream(filePath), {
