@@ -251,6 +251,9 @@ export async function simplifyPage(page: Page) {
     'cspviolationreport',
   ]);
   page.on('request', (req) => {
+    if (req.isInterceptResolutionHandled()) {
+      return;
+    }
     if (blockTypes.has(req.resourceType())) {
       req.abort();
     } else {
