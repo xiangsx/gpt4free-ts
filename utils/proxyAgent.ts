@@ -218,10 +218,10 @@ export async function CreateNewPage<
     if (cookies.length > 0) {
       await page.setCookie(...cookies);
     }
-    // await page.setViewport({
-    //   width: 1000 + Math.floor(Math.random() * 1000),
-    //   height: 1080,
-    // });
+    await page.setViewport({
+      width: 1000 + Math.floor(Math.random() * 1000),
+      height: 1080,
+    });
     if (emulate) {
       if (typeof emulate === 'object' && user_agent in emulate) {
         await page.emulate(emulate);
