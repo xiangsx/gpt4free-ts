@@ -89,7 +89,7 @@ export async function getCaptchaCode(base64: string) {
 
 export async function ifCF(page: Page) {
   try {
-    await page.waitForSelector('#challenge-stage > div', { timeout: 3 * 1000 });
+    await page.waitForSelector('#challenge-stage > div', { timeout: 5 * 1000 });
     return true;
   } catch (e) {
     console.log('no cf');
