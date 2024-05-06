@@ -203,6 +203,7 @@ interface ConfigData {
     download_map?: Record<string, string>;
     prompt_map?: Record<string, string>;
     system?: string;
+    not_need_check_chat?: boolean;
     sleep_interval?: number; // 429之后睡眠多久
     accounts: { email: string; password: string }[];
     del_accounts?: { email: string; password: string }[];
