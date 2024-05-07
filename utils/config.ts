@@ -214,6 +214,7 @@ interface ConfigData {
     max_retry_times?: number;
     max_continue_times?: number;
     handle_login_turnstile?: boolean;
+    close_delay?: number; // 延迟关闭时间
     ask_sleep?: number; // 对话之后睡眠多久
     emulate?: boolean;
   };
