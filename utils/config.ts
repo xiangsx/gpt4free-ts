@@ -85,6 +85,7 @@ interface ConfigData {
   openai: {
     max_tokens?: { [key: string]: number };
     token_limit: { [key: string]: number };
+    stream_timeout?: number;
   };
   glm?: {
     token_limit: { [key: string]: number };
