@@ -98,6 +98,9 @@ export class MJPlus extends Chat {
 ![${req.prompt}](${localUrl})`,
         });
         stream.write(Event.message, {
+          content: `\n[下载⏬](${localUrl.replace('/cdn/', '/cdn/download/')})`,
+        });
+        stream.write(Event.message, {
           content: `\n\n|name|label|type|custom_id|\n|---|---|---|---|\n`,
         });
         for (const b of v.buttons) {
@@ -152,6 +155,9 @@ export class MJPlus extends Chat {
 ![${req.prompt}](${localUrl})`,
         });
         stream.write(Event.message, {
+          content: `\n[下载⏬](${localUrl.replace('/cdn/', '/cdn/download/')})`,
+        });
+        stream.write(Event.message, {
           content: `\n\n|name|label|type|custom_id|\n|---|---|---|---|\n`,
         });
         for (const b of v.buttons) {
@@ -196,6 +202,9 @@ export class MJPlus extends Chat {
         stream.write(Event.message, {
           content: `
 ![${req.prompt}](${localUrl})`,
+        });
+        stream.write(Event.message, {
+          content: `\n[下载⏬](${localUrl.replace('/cdn/', '/cdn/download/')})`,
         });
         stream.write(Event.message, {
           content: `\n\n|name|label|type|custom_id|\n|---|---|---|---|\n`,
