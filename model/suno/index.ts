@@ -34,6 +34,9 @@ export class Suno extends Chat {
       if (info.refresh_time && moment().unix() < info.refresh_time) {
         return false;
       }
+      if (info.need_pay) {
+        return false;
+      }
       return true;
     },
     {
