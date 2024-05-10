@@ -94,8 +94,7 @@ export class MJPlus extends Chat {
       if (v.status === 'SUCCESS') {
         const localUrl = await downloadAndUploadCDN(v.imageUrl);
         stream.write(Event.message, {
-          content: `
-![${req.prompt}](${localUrl})`,
+          content: `\n\n![${req.prompt}](${localUrl})`,
         });
         stream.write(Event.message, {
           content: `\n[下载⏬](${localUrl.replace('/cdn/', '/cdn/download/')})`,
@@ -151,8 +150,7 @@ export class MJPlus extends Chat {
       if (v.status === 'SUCCESS') {
         const localUrl = await downloadAndUploadCDN(v.imageUrl);
         stream.write(Event.message, {
-          content: `
-![${req.prompt}](${localUrl})`,
+          content: `\n\n![${req.prompt}](${localUrl})`,
         });
         stream.write(Event.message, {
           content: `\n[下载⏬](${localUrl.replace('/cdn/', '/cdn/download/')})`,
@@ -200,8 +198,7 @@ export class MJPlus extends Chat {
       if (v.status === 'SUCCESS') {
         const localUrl = await downloadAndUploadCDN(v.imageUrl);
         stream.write(Event.message, {
-          content: `
-![${req.prompt}](${localUrl})`,
+          content: `\n\n![${req.prompt}](${localUrl})`,
         });
         stream.write(Event.message, {
           content: `\n[下载⏬](${localUrl.replace('/cdn/', '/cdn/download/')})`,

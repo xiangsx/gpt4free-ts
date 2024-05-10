@@ -443,7 +443,7 @@ const audioTransHandle: Middleware = async (ctx, next) => {
         await sleep(500);
         fields[fieldname] = filePath;
         // 直接将文件流导向 passThrough，以便可以透传
-        formData.append(fieldname, fs.createReadStream(filePath), {
+        formData.append('file', fs.createReadStream(filePath), {
           filename: fileinfo.filename,
           contentType: fileinfo.mimeType,
         });
@@ -460,7 +460,7 @@ const audioTransHandle: Middleware = async (ctx, next) => {
   if (!chat) {
     throw new ComError(`not support site: ${site} `, ComError.Status.NotFound);
   }
-
+  await sleep(3000);
   await chat.transcriptions(ctx, { ...req, ...fields, form: formData });
 };
 
