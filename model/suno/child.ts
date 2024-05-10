@@ -118,11 +118,20 @@ export class Child extends ComChild<Account> {
 
   async createSong(options: SongOptions) {
     options.prompt = options.prompt?.slice(0, 1250) || '';
-    const res: { data: CreateSongRes } = await this.client.post(
-      '/generate/v2/',
-      options,
-    );
-    return res.data;
+    try {
+      const res: { data: CreateSongRes } = await this.client.post(
+        '/generate/v2/',
+        options,
+      );
+      return res.data;
+    } catch (e: any) {
+      if (e.response?.status === 402) {
+        this.update({ need_pay: true });
+        this.destroy({ delMem: true, delFile: false });
+        throw new Error('account credits use out, need pay');
+      }
+      throw e;
+    }
   }
 
   async feedSong(ids: string[]) {

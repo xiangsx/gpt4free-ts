@@ -10,6 +10,7 @@ export interface Account extends ComInfo {
   credit_left?: number;
   // 刷新时间
   refresh_time?: number;
+  need_pay?: boolean;
 }
 
 export interface BillInfo {
