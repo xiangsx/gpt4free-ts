@@ -1,4 +1,10 @@
-import { Chat, ChatOptions, ChatRequest, ModelType } from '../base';
+import {
+  Chat,
+  ChatOptions,
+  ChatRequest,
+  contentToString,
+  ModelType,
+} from '../base';
 import { Pool } from '../../utils/pool';
 import { Account } from './define';
 import { Child } from './child';
@@ -67,7 +73,10 @@ export class Pika extends Chat {
 
   async textToVideo(req: ChatRequest, stream: EventStream) {
     const child = await this.pool.pop();
-    const id = await child.generate(req.prompt);
+    const lastMsg = contentToString(
+      req.messages[req.messages.length - 1].content,
+    );
+    const id = await child.generate(lastMsg);
     const [cid, vid] = id.split('|');
     stream.write(Event.message, {
       content: `✅成功创建视频任务：${id}\n\n`,

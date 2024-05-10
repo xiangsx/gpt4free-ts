@@ -6,7 +6,11 @@ import {
   LibraryVideo,
 } from './define';
 import { AxiosInstance } from 'axios';
-import { CreateNewAxios, CreateNewPage } from '../../utils/proxyAgent';
+import {
+  CreateNewAxios,
+  CreateNewPage,
+  getProxy,
+} from '../../utils/proxyAgent';
 import FormData from 'form-data';
 import { Page, Protocol } from 'puppeteer';
 import moment from 'moment';
@@ -16,6 +20,7 @@ import { parseJSON, randomUserAgent, sleep } from '../../utils';
 export class Child extends ComChild<Account> {
   private client!: AxiosInstance;
   private page!: Page;
+  private proxy: string = getProxy();
 
   async init() {
     if (!this.info.email) {
@@ -26,15 +31,19 @@ export class Child extends ComChild<Account> {
       const cookies: Protocol.Network.CookieParam[] = [];
       page = await CreateNewPage('https://pika.art/my-library/', {
         simplify: true,
+        proxy: this.proxy,
         cookies: this.info.cookies,
+        protocolTimeout: 15 * 1000,
       });
     } else {
       page = await CreateNewPage('https://pika.art/login', {
         simplify: false,
+        proxy: this.proxy,
+        protocolTimeout: 15 * 1000,
       });
       // click login
-      await page.waitForSelector('form > div > button');
-      await page.click('form > div > button');
+      await page.waitForSelector('div > button:nth-child(1)');
+      await page.click('div > button:nth-child(1)');
 
       await loginGoogle(
         page,
@@ -59,7 +68,7 @@ export class Child extends ComChild<Account> {
           'User-Agent': randomUserAgent(),
         },
       },
-      { proxy: true },
+      { proxy: this.proxy },
     );
   }
 
@@ -68,6 +77,7 @@ export class Child extends ComChild<Account> {
       (v) => v.name === 'sb-login-auth-token.0',
     )?.value;
     if (!login0) {
+      this.destroy({ delFile: true, delMem: true });
       throw new Error('login0 token not found');
     }
     const login1 = this.info.cookies.find(
