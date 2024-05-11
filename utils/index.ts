@@ -9,7 +9,7 @@ import { get_encoding } from 'tiktoken';
 import chalk from 'chalk';
 import * as OpenCC from 'opencc-js';
 import { ModelType } from '../model/base';
-import moment, { max } from 'moment';
+import moment, { max, min } from 'moment';
 import { Config } from './config';
 import { v4 } from 'uuid';
 import fs, { createWriteStream } from 'fs';
@@ -912,7 +912,7 @@ export async function downloadFile(fileUrl: string): Promise<{
     let tempFilePath = path.join(Config.config.global.download.dir, v4());
     let filename!: string;
     let ext: string;
-    let mime: string;
+    let mime: string = '';
     if (fileUrl.startsWith('data:image/')) {
       // base64 写入文件
       const base64Data = fileUrl.replace(/^data:image\/\w+;base64,/, '');
@@ -940,6 +940,7 @@ export async function downloadFile(fileUrl: string): Promise<{
           );
           filename =
             filename || path.basename(response.request.path.split('?')[0]);
+          mime = response.headers['content-type'];
           let writer = createWriteStream(tempFilePath);
           await pipelinePromisified(response.data, writer);
           ok = true;
@@ -961,8 +962,11 @@ export async function downloadFile(fileUrl: string): Promise<{
       }
     }
 
-    ext = path.extname(filename).replace(/\./g, '').toLowerCase() || 'txt';
-    mime = extMimeMap.get(ext) || 'text/plain';
+    ext =
+      mimeExtMap.get(mime) ||
+      path.extname(filename).replace(/\./g, '').toLowerCase() ||
+      'txt';
+    mime = mime || extMimeMap.get(ext) || 'text/plain';
     let file_name = `${moment().format('YYYY-MM-DD-HH')}-${randomStr(
       20,
     )}.${ext}`;
