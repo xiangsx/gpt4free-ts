@@ -8,7 +8,7 @@ import UserAgent from 'user-agents';
 import { get_encoding } from 'tiktoken';
 import chalk from 'chalk';
 import * as OpenCC from 'opencc-js';
-import { ModelType } from '../model/base';
+import { Message, ModelType } from '../model/base';
 import moment, { max, min } from 'moment';
 import { Config } from './config';
 import { v4 } from 'uuid';
@@ -1143,4 +1143,25 @@ export function genPowToken(
     'wQ8Lk5FbGpA2NcR9dShT6gYjU7VxZ4D' +
     Buffer.from(`"${seed}"`).toString('base64')
   );
+}
+
+export function preOrderUserAssistant(messages: Message[]) {
+  const newMessages: Message[] = [];
+  for (let idx = 0; idx < messages.length; idx++) {
+    if (idx === 0) {
+      newMessages.push(messages[idx]);
+      continue;
+    }
+    const v = messages[idx];
+    const lastV = messages[idx - 1];
+    if (v.role === lastV.role) {
+      if (lastV.role === 'assistant') {
+        newMessages.push({ role: 'user', content: '..' });
+      } else {
+        newMessages.push({ role: 'assistant', content: '..' });
+      }
+    }
+    newMessages.push(v);
+  }
+  return newMessages;
 }

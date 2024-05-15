@@ -2,7 +2,7 @@ import { ComChild, DestroyOptions } from '../../utils/pool';
 import { Account, MessageReq, MessageRes, PerLabEvents } from './define';
 import { CreateSocketIO, getProxy } from '../../utils/proxyAgent';
 import { Socket } from 'socket.io-client';
-import { Event, EventStream, sleep } from '../../utils';
+import { Event, EventStream, preOrderUserAssistant, sleep } from '../../utils';
 import { contentToString, Message, ModelType } from '../base';
 
 export class Child extends ComChild<Account> {
@@ -64,10 +64,15 @@ export class Child extends ComChild<Account> {
       version: '2.9',
       source: 'default',
       model,
-      messages: messages.map((v) => {
+      messages: preOrderUserAssistant(
+        messages.map((v) => ({
+          ...v,
+          role: v.role === 'assistant' ? 'assistant' : 'user',
+        })),
+      ).map((v) => {
         return {
           content: contentToString(v.content),
-          role: v.role === 'assistant' ? 'assistant' : 'user',
+          role: v.role,
           priority: 0,
         };
       }),
