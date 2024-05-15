@@ -11,7 +11,7 @@ export class Child extends ComChild<Account> {
 
   async init(): Promise<void> {
     this.client = CreateSocketIO('wss://www.perplexity.ai', {
-      proxy: true,
+      proxy: this.proxy,
       extraHeaders: {
         Pragma: 'no-cache',
         'Cache-Control': 'no-cache',

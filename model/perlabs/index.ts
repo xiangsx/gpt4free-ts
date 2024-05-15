@@ -19,7 +19,7 @@ export class PerLabs extends Chat {
       return true;
     },
     {
-      delay: 500,
+      delay: 200,
       serial: () => Config.config.perlabs?.serial || 1,
       needDel: (info) => {
         return !info.proxy;
