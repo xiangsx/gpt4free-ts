@@ -3,7 +3,7 @@ import { Account, MessageReq, MessageRes, PerLabEvents } from './define';
 import { CreateSocketIO, getProxy } from '../../utils/proxyAgent';
 import { Socket } from 'socket.io-client';
 import { Event, EventStream, sleep } from '../../utils';
-import { Message, ModelType } from '../base';
+import { contentToString, Message, ModelType } from '../base';
 
 export class Child extends ComChild<Account> {
   client!: Socket;
@@ -66,7 +66,7 @@ export class Child extends ComChild<Account> {
       model,
       messages: messages.map((v) => {
         return {
-          ...v,
+          content: contentToString(v.content),
           role: v.role === 'assistant' ? 'assistant' : 'user',
           priority: 0,
         };
