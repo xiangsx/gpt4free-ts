@@ -14,9 +14,13 @@ import { spawn } from 'child_process';
 import WebSocket from 'ws';
 import moment from 'moment';
 import {
+  BlockGoogleAnalysis,
   blockGoogleAnalysis,
+  BlockPageSource,
   closeOtherPages,
   getRandomDevice,
+  InterceptHandler,
+  setPageInterception,
   simplifyPage,
 } from './puppeteer';
 import { v4 } from 'uuid';
@@ -149,6 +153,7 @@ export async function CreateNewPage<
     protocolTimeout?: number;
     recognize?: boolean;
     block_google_analysis?: boolean;
+    interception_handlers?: InterceptHandler[];
     inject_js?: [(...args: Params) => unknown, ...Params][];
   },
 ) {
@@ -167,6 +172,7 @@ export async function CreateNewPage<
     block_google_analysis = false,
     emulate = false,
     inject_js = [],
+    interception_handlers = [],
   } = options || {};
   const launchOpt: PuppeteerLaunchOptions = {
     headless: process.env.DEBUG === '1' ? false : 'new',
@@ -210,10 +216,13 @@ export async function CreateNewPage<
       await page.setUserAgent(user_agent);
     }
     if (simplify) {
-      await simplifyPage(page);
+      interception_handlers.push(BlockPageSource);
     }
     if (block_google_analysis) {
-      await blockGoogleAnalysis(page);
+      interception_handlers.push(BlockGoogleAnalysis);
+    }
+    if (interception_handlers.length) {
+      await setPageInterception(page, interception_handlers);
     }
     if (cookies.length > 0) {
       await page.setCookie(...cookies);

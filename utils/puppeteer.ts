@@ -1,5 +1,6 @@
 import normalPPT, {
   Browser,
+  HTTPRequest,
   KnownDevices,
   Page,
   PuppeteerLaunchOptions,
@@ -240,6 +241,49 @@ export async function closeOtherPages(browser: Browser, page: Page) {
     }
   }
 }
+
+export type InterceptHandler = (req: HTTPRequest) => boolean;
+
+export async function setPageInterception(
+  page: Page,
+  handlers: InterceptHandler[],
+) {
+  await page.setRequestInterception(true);
+  page.on('request', (req) => {
+    if (req.isInterceptResolutionHandled()) {
+      return;
+    }
+    for (const handler of handlers) {
+      if (handler(req)) {
+        return;
+      }
+    }
+    req.continue();
+  });
+}
+
+export const BlockPageSource: InterceptHandler = (req) => {
+  const blockTypes = new Set([
+    'image',
+    'media',
+    'font',
+    'ping',
+    'cspviolationreport',
+  ]);
+  if (blockTypes.has(req.resourceType())) {
+    req.abort();
+    return true;
+  }
+  return false;
+};
+
+export const BlockGoogleAnalysis: InterceptHandler = (req) => {
+  if (req.url().indexOf('googletagmanager') > -1) {
+    req.abort();
+    return true;
+  }
+  return false;
+};
 
 export async function simplifyPage(page: Page) {
   await page.setRequestInterception(true);
