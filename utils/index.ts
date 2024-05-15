@@ -17,7 +17,6 @@ import sizeOf from 'image-size';
 import { CreateNewAxios, getDownloadClient } from './proxyAgent';
 import { promisify } from 'util';
 import FormData from 'form-data';
-import textract from 'textract';
 import pdfParse from 'pdf-parse';
 import * as XLSX from 'xlsx';
 import path from 'path';
@@ -1123,7 +1122,9 @@ export function genPowToken(
     config[9] = Math.round(moment().valueOf() - start);
     const json = JSON.stringify(config);
     const base = Buffer.from(json).toString('base64');
-    const hash = sha3(seed + base);
+    const sha3 = crypto.createHash('sha3-512');
+    sha3.update(seed + base);
+    const hash = sha3.digest('hex');
 
     const v = hash.substring(0, diffLen);
     if (v <= diff) {
