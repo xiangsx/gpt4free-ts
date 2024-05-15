@@ -92,7 +92,9 @@ export class Child extends ComChild<Account> {
         return;
       }
       if (!data.output) {
-        this.logger.warn(`no output! ${event}:${JSON.stringify(data)}`);
+        this.logger.warn(
+          `no output! ${event}:${JSON.stringify({ data, model, messages })}`,
+        );
         return;
       }
       delay.refresh();
