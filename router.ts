@@ -12,6 +12,7 @@ import {
   ComError,
   Event,
   EventStream,
+  genPowToken,
   getTokenCount,
   OpenaiEventStream,
   parseJSON,
@@ -51,6 +52,12 @@ const supportsHandler = async (ctx: Context) => {
     result.push(support);
   }
   ctx.body = result;
+};
+
+const powHandler = async (ctx: Context) => {
+  const body: any = ctx.request.body;
+  const { config, prefix, seed, diff } = body;
+  ctx.body = genPowToken(config, prefix, seed, diff);
 };
 
 const errorHandler = async (ctx: Context, next: Next) => {
@@ -578,6 +585,7 @@ export const registerApp = () => {
   app.use(errorHandler);
   app.use(bodyParser({ jsonLimit: '20mb' }));
   app.use(checkApiKey);
+  router.post('/pow', powHandler);
   router.get('/supports', supportsHandler);
   router.get('/ask', AskHandle);
   router.post('/ask', AskHandle);

@@ -217,6 +217,7 @@ interface ConfigData {
     close_delay?: number; // 延迟关闭时间
     ask_sleep?: number; // 对话之后睡眠多久
     emulate?: boolean;
+    pow_server?: string[];
   };
   findplus: {
     size: number;

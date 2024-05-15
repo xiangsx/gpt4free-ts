@@ -22,6 +22,7 @@ import pdfParse from 'pdf-parse';
 import * as XLSX from 'xlsx';
 import path from 'path';
 import Mint from 'mint-filter';
+import { sha3_512 as sha3 } from 'js-sha3';
 
 const turndownService = new TurndownService({ codeBlockStyle: 'fenced' });
 
@@ -1106,4 +1107,39 @@ export function decodeJwt(token: string): { header: any; payload: any } {
   const payload = JSON.parse(decodeBase64(payloadB64));
 
   return { header, payload };
+}
+
+export function genPowToken(
+  config: any[],
+  prefix: 'gAAAAAB' | 'gAAAAAC',
+  seed: string,
+  diff: string,
+): string {
+  const start = moment().valueOf();
+  const diffLen = diff.length;
+
+  for (let i = 0; i < 5e5; i++) {
+    config[3] = i;
+    config[9] = Math.round(moment().valueOf() - start);
+    const json = JSON.stringify(config);
+    const base = Buffer.from(json).toString('base64');
+    const hash = sha3(seed + base);
+
+    const v = hash.substring(0, diffLen);
+    if (v <= diff) {
+      if (i > 10000) {
+        console.log(`diff: ${diff}, count:${i}, time:${config[9]}`);
+      }
+      const result = (prefix || 'gAAAAAB') + base;
+      return result;
+    }
+  }
+  console.log(
+    `pow fk failed: seed:[${seed}] diff:[${diff}] prefix:[${prefix}]`,
+  );
+  return (
+    (prefix || 'gAAAAAB') +
+    'wQ8Lk5FbGpA2NcR9dShT6gYjU7VxZ4D' +
+    Buffer.from(`"${seed}"`).toString('base64')
+  );
 }
