@@ -61,7 +61,7 @@ export class Child extends ComChild<Account> {
     stream: EventStream,
   ) {
     const msg: MessageReq = {
-      version: '2.5',
+      version: '2.9',
       source: 'default',
       model,
       messages: messages.map((v) => {
