@@ -74,7 +74,7 @@ export class Child extends ComChild<Account> {
     };
     let old = '';
     const delay = setTimeout(() => {
-      this.logger.warn('timeout');
+      this.logger.warn(`timeout, msg: ${JSON.stringify({ model, messages })}`);
       stream.write(Event.error, { error: 'timeout' });
       stream.write(Event.done, { content: '' });
       stream.end();
