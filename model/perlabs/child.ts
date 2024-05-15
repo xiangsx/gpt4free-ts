@@ -86,14 +86,11 @@ export class Child extends ComChild<Account> {
       stream.end();
       this.destroy({ delFile: false, delMem: true });
     }, 5000);
-    this.client.onAny((event, data: MessageRes) => {
-      if (event.indexOf(PerLabEvents.QueryProgress) === -1) {
-        this.logger.warn(`unknown event! ${event}:${JSON.stringify(data)}`);
-        return;
-      }
+    const event = `${model}_${PerLabEvents.QueryProgress}`;
+    this.client.on(event, (data: MessageRes) => {
       if (!data.output) {
         this.logger.warn(
-          `no output! ${event}:${JSON.stringify({ data, model, messages })}`,
+          `no output! ${JSON.stringify({ data, model, messages })}`,
         );
         return;
       }
@@ -106,6 +103,7 @@ export class Child extends ComChild<Account> {
         this.logger.info('Recv msg ok');
         stream.write(Event.done, { content: '' });
         stream.end();
+        this.client.removeListener(event);
         this.release();
         clearTimeout(delay);
         return;
