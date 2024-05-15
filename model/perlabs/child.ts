@@ -67,6 +67,7 @@ export class Child extends ComChild<Account> {
       messages: messages.map((v) => {
         return {
           ...v,
+          role: v.role === 'assistant' ? 'assistant' : 'user',
           priority: 0,
         };
       }),
