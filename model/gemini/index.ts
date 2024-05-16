@@ -6,7 +6,7 @@ import {
   Message,
   ModelType,
 } from '../base';
-import { AxiosInstance } from 'axios';
+import { AxiosInstance, options } from 'axios';
 import { CreateNewAxios, downloadImageToBase64 } from '../../utils/proxyAgent';
 import {
   ComError,
@@ -24,7 +24,7 @@ import {
   HarmCategory,
   Part,
 } from '@google/generative-ai';
-import { ComChild, ComInfo, Pool } from '../../utils/pool';
+import { ComChild, ComInfo, DestroyOptions, Pool } from '../../utils/pool';
 import { Config } from '../../utils/config';
 import { v4 } from 'uuid';
 import es from 'event-stream';
@@ -60,6 +60,10 @@ class Child extends ComChild<Account> {
   getMimeTypeFromBase64(base64: string) {
     const base64Str = base64.split(';base64,')[0];
     return base64Str.split(':')[1];
+  }
+
+  destroy(options?: DestroyOptions) {
+    super.destroy({ delFile: !this.info.apikey, delMem: true });
   }
 
   async checkChat() {
