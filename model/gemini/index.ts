@@ -6,7 +6,7 @@ import {
   Message,
   ModelType,
 } from '../base';
-import { AxiosInstance, options } from 'axios';
+import { AxiosInstance } from 'axios';
 import { CreateNewAxios, downloadImageToBase64 } from '../../utils/proxyAgent';
 import {
   ComError,
@@ -30,7 +30,6 @@ import { v4 } from 'uuid';
 import es from 'event-stream';
 import moment from 'moment';
 import { GeminiRequest } from './define';
-import { AwsLambda } from 'elastic-apm-node/types/aws-lambda';
 
 interface Account extends ComInfo {
   apikey: string;
