@@ -42,7 +42,7 @@ export const PoeModelMap: Partial<Record<ModelType, any>> = {
   [ModelType.StableDiffusion]: 'StableDiffusionXL',
   [ModelType.MistralMedium]: 'Mistral-Medium',
   [ModelType.Qwen72bChat]: 'Qwen-72b-Chat',
-  [ModelType.GeminiPro]: 'Gemini-Pro',
+  [ModelType.GeminiPro]: 'Gemini-1.0-Pro',
   [ModelType.GPT4]: 'GPT-4',
   [ModelType.GPT4o]: 'GPT-4o',
   [ModelType.GPT3p5_16k]: 'ChatGPT-16k',
