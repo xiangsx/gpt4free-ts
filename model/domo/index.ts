@@ -72,10 +72,12 @@ export class Domo extends Chat {
         const result: Account[] = allInfos;
         for (const info of Config.config.domo.accounts) {
           if (channelIDSet.has(info.channel_id)) {
-            Object.assign(
-              info,
-              allInfos.find((v) => v.channel_id === info.channel_id),
+            const oldInfo = allInfos.find(
+              (v) => v.channel_id === info.channel_id,
             );
+            if (oldInfo) {
+              Object.assign(oldInfo, info);
+            }
             continue;
           }
           result.push({
