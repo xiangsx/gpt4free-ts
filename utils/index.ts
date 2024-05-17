@@ -961,7 +961,9 @@ export async function downloadFile(fileUrl: string): Promise<{
         throw new ComError(`download failed`, ComError.Status.BadRequest);
       }
     }
-
+    if (mime === 'application/octet-stream') {
+      mime = '';
+    }
     ext =
       mimeExtMap.get(mime) ||
       path.extname(filename).replace(/\./g, '').toLowerCase() ||
