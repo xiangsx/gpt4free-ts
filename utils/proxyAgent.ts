@@ -731,6 +731,7 @@ export class WebFetchWithPage {
       url,
       init,
     )) as { status: number; [key: string]: any };
+    throw new ComError('failed 413', 413, { status: 413 });
     if (data.status !== 200) {
       const failedMsg = `fetch failed ${JSON.stringify({ url, init, data })}`;
       console.log(failedMsg);
