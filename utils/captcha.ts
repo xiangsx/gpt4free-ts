@@ -189,6 +189,8 @@ redBox.style.top = centerY+'px';
         sessionId,
       );
       await sleep(5000);
+    } else {
+      console.log(`center not found: centerX: ${centerX}, centerY: ${centerY}`);
     }
   } catch (e) {
     await client.Browser.close();
