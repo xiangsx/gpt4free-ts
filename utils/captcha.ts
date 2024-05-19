@@ -128,16 +128,6 @@ export async function handleCF(
 
     // 设置页面尺寸
     await client.Page.enable(sessionId);
-    await client.Page.setDeviceMetricsOverride(
-      {
-        width: 1280,
-        height: 720,
-        deviceScaleFactor: 1,
-        mobile: false,
-      },
-      sessionId,
-    );
-
     await client.Runtime.enable(sessionId);
     await client.DOM.enable(sessionId);
     let x = 0;
