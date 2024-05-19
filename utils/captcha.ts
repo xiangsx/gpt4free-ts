@@ -145,7 +145,7 @@ export async function handleCF(
     const { result } = await client.Runtime.evaluate(
       {
         expression: `
-            const element = document.querySelector("#challenge-stage > div").children[0].children[0];
+            const element = document.querySelector("#challenge-stage > div");
             const rect = element.getBoundingClientRect();
             const centerX = rect.left + rect.width / 2 - 120; 
             const centerY = rect.top + rect.height / 2;
