@@ -218,6 +218,7 @@ interface ConfigData {
     ask_sleep?: number; // 对话之后睡眠多久
     emulate?: boolean;
     pow_server?: string[];
+    failed_image?: boolean;
   };
   findplus: {
     size: number;

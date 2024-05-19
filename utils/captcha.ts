@@ -144,7 +144,6 @@ export async function handleCF(
       {
         expression: `
             const element = document.querySelector("#challenge-stage > div").children[0].children[0];
-            console.log(element)
             const rect = element.getBoundingClientRect();
             const centerX = rect.left + rect.width / 2 - 120; 
             const centerY = rect.top + rect.height / 2;
@@ -163,6 +162,9 @@ redBox.style.top = centerY+'px';
       sessionId,
     );
     const { centerX, centerY } = (result.value as any) || {};
+    if (!centerX || !centerY) {
+      throw new Error('not found center');
+    }
     await client.Input.dispatchMouseEvent(
       {
         type: 'mousePressed',
