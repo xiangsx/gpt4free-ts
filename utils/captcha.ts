@@ -140,9 +140,12 @@ export async function handleCF(
 
     await client.Runtime.enable(sessionId);
     await client.DOM.enable(sessionId);
-    const { result } = await client.Runtime.evaluate(
-      {
-        expression: `
+    let x = 0;
+    let y = 0;
+    for (let i = 0; i <= 5; i++) {
+      const { result } = await client.Runtime.evaluate(
+        {
+          expression: `
             const element = document.querySelector("#challenge-stage > div").children[0].children[0];
             const rect = element.getBoundingClientRect();
             const centerX = rect.left + rect.width / 2 - 120; 
@@ -157,35 +160,40 @@ redBox.style.top = centerY+'px';
 // document.body.appendChild(redBox);
             ({centerX, centerY});
         `,
-        returnByValue: true,
-      },
-      sessionId,
-    );
-    const { centerX, centerY } = (result.value as any) || {};
-    if (!centerX || !centerY) {
-      throw new Error('not found center');
+          returnByValue: true,
+        },
+        sessionId,
+      );
+      const { centerX, centerY } = (result.value as any) || {};
+      if (centerX && centerY) {
+        x = centerX;
+        y = centerY;
+
+        await client.Input.dispatchMouseEvent(
+          {
+            type: 'mousePressed',
+            x,
+            y,
+            button: 'left',
+            clickCount: 1,
+          },
+          sessionId,
+        );
+        await client.Input.dispatchMouseEvent(
+          {
+            type: 'mouseReleased',
+            x,
+            y,
+            button: 'left',
+            clickCount: 1,
+          },
+          sessionId,
+        );
+        await sleep(5000);
+        break;
+      }
+      await sleep(1000);
     }
-    await client.Input.dispatchMouseEvent(
-      {
-        type: 'mousePressed',
-        x: centerX,
-        y: centerY,
-        button: 'left',
-        clickCount: 1,
-      },
-      sessionId,
-    );
-    await client.Input.dispatchMouseEvent(
-      {
-        type: 'mouseReleased',
-        x: centerX,
-        y: centerY,
-        button: 'left',
-        clickCount: 1,
-      },
-      sessionId,
-    );
-    await sleep(5000);
   } catch (e) {
     await client.Browser.close();
     throw e;
