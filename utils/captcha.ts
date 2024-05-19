@@ -116,7 +116,7 @@ export async function handleCF(
   });
   try {
     const targets = await client.Target.getTargets();
-    await sleep(10000);
+    await sleep(5000);
     const target = targets.targetInfos.find((v) => v.url.indexOf(url) > -1);
     if (!target) {
       throw new Error('not found target');
@@ -193,7 +193,7 @@ redBox.style.top = centerY+'px';
       },
       sessionId,
     );
-    await sleep(10000);
+    await sleep(5000);
   } catch (e) {
     await client.Browser.close();
     throw e;
