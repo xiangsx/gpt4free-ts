@@ -175,16 +175,6 @@ redBox.style.top = centerY+'px';
     );
     await client.Input.dispatchMouseEvent(
       {
-        type: 'mousePressed',
-        x: centerX,
-        y: centerY,
-        button: 'left',
-        clickCount: 1,
-      },
-      sessionId,
-    );
-    await client.Input.dispatchMouseEvent(
-      {
         type: 'mouseReleased',
         x: centerX,
         y: centerY,
