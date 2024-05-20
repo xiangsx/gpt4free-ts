@@ -193,6 +193,7 @@ interface ConfigData {
   };
   openchat4: {
     size: number;
+    max_sential_pool_size?: number;
     serial: number;
     allow_3: boolean;
     must_all_tools: boolean;
