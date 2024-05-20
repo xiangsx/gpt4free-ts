@@ -211,7 +211,7 @@ export class Pool<U extends Info, T extends PoolChild<U>> {
         );
       })
       .catch((e) => {
-        this.logger.error(`create new child failed: ${e}`);
+        this.logger.error(`create new child failed: ${e.message}`);
         try {
           child.initFailed(e);
         } catch (e: any) {

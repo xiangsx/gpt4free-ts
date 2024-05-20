@@ -214,7 +214,7 @@ export class Auto extends Chat {
         return;
       }
       this.tryAskStream(req, stream, tried + 1).catch((e) =>
-        this.logger.error(`retry failed ${e}`),
+        this.logger.error(`retry failed ${e.message}`),
       );
     }
   }
