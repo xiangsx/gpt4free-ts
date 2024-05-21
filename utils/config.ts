@@ -66,6 +66,9 @@ interface ConfigData {
     apikey_list: string[];
     proxy_list: string[];
   };
+  doc2x?: SizeCfg & {
+    apikey_list: string[];
+  };
   openaiauto?: SizeCfg & {
     apikey_list: string[];
     limit_token_map: Record<ModelType, number>;

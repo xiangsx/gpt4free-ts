@@ -194,6 +194,12 @@ export enum ModelType {
   Llama3SonarSmall32kOnline = 'llama-3-sonar-small-32k-online',
   Llama3SonarLarge32kChat = 'llama-3-sonar-large-32k-chat',
   Llama3SonarSmall32kChat = 'llama-3-sonar-small-32k-chat',
+  Pdf2Text = 'pdf-to-text',
+  Pdf2TextOcr = 'pdf-to-text-ocr',
+  pdf2textProgress = 'pdf-to-text-progress',
+  pdf2textProgressOcr = 'pdf-to-text-progress-ocr',
+  Pdf2Json = 'pdf-to-json',
+  Pdf2JsonOCR = 'pdf-to-json-ocr',
 }
 
 export enum Site {
@@ -279,6 +285,7 @@ export enum Site {
   Chatgateai = 'chatgateai',
   MJPlus = 'mjplus',
   FindPlus = 'findplus',
+  Doc2x = 'doc2x',
 }
 
 export interface ChatRequest {
