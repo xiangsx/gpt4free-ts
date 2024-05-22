@@ -178,12 +178,16 @@ export class Auto extends Chat {
       (event, data) => {
         switch (event) {
           case Event.error:
+            this.logger.error(
+              `auto ask failed(${tried}), got error event: ${JSON.stringify(
+                data,
+              )}`,
+            );
             if (tried >= (Config.config.global.retry_max_times || 0)) {
               stream.write(event, data);
               return;
             }
             es.destroy();
-            this.logger.error(`auto ask failed, change site!`);
             this.tryAskStream(req, stream, tried + 1);
             break;
           default:
@@ -207,7 +211,7 @@ export class Auto extends Chat {
       await chat.preHandle(req, { stream });
       await chat.askStream(req, es);
     } catch (e: any) {
-      this.logger.error(`auto ask failed ${e.message}`);
+      this.logger.error(`auto ask failed(${tried}) ${e.message}`);
       if (tried >= (Config.config.global.retry_max_times || 0)) {
         stream.write(Event.error, { error: e.message });
         stream.end();

@@ -77,7 +77,11 @@ export class OpenAI extends Chat {
 
   constructor(options?: OpenAIChatOptions) {
     super(options);
-    this.client = CreateNewAxios(
+    this.client = this.newClient();
+  }
+
+  newClient() {
+    return CreateNewAxios(
       {
         baseURL: options?.base_url || 'https://api.openai.com/',
         headers: {
@@ -87,7 +91,7 @@ export class OpenAI extends Chat {
         timeout: 120 * 1000,
       } as CreateAxiosDefaults,
       {
-        proxy: options?.proxy,
+        proxy: this.options?.proxy,
       },
     );
   }
