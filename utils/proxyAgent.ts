@@ -134,9 +134,14 @@ export function CreateAxiosProxy(
 
 let globalBrowser: Browser;
 
+type CreateNewPageReturn<T> = T extends true
+  ? { page: Page; release: () => void }
+  : Page;
+
 export async function CreateNewPage<
   Params extends unknown[],
   Func extends (...args: Params) => unknown = (...args: Params) => unknown,
+  T extends boolean | undefined = undefined,
 >(
   url: string,
   options?: {
@@ -154,10 +159,12 @@ export async function CreateNewPage<
     recognize?: boolean;
     block_google_analysis?: boolean;
     interception_handlers?: InterceptHandler[];
+    enable_user_cache?: T;
     inject_js?: [(...args: Params) => unknown, ...Params][];
   },
-) {
+): Promise<CreateNewPageReturn<T>> {
   const {
+    enable_user_cache = false,
     allowExtensions = false,
     proxy = getProxy(),
     args = [],
@@ -185,6 +192,12 @@ export async function CreateNewPage<
       ...args,
     ],
   };
+  if (enable_user_cache) {
+    const host = new URL(url).host;
+    if (host) {
+      launchOpt.userDataDir = puppeteerUserDirPool.popUserDir(host);
+    }
+  }
   if (protocolTimeout) {
     launchOpt.protocolTimeout = protocolTimeout;
   }
@@ -243,12 +256,40 @@ export async function CreateNewPage<
         await page.evaluateOnNewDocument(...js);
       }
     }
-    await page.goto(url);
+    if (enable_user_cache) {
+      // 先清除cookie
+      await page.deleteCookie();
+      if (cookies.length > 0) {
+        await page.setCookie(...cookies);
+      }
+    }
+    try {
+      await page.goto(url);
+    } catch (e) {
+      if (enable_user_cache && launchOpt.userDataDir) {
+        puppeteerUserDirPool.releaseUserDir(launchOpt.userDataDir);
+      }
+      throw e;
+    }
     if (recognize) {
       // @ts-ignore
       page.browser = page.browserContext;
     }
-    return page;
+    if (enable_user_cache) {
+      return {
+        page,
+        release: () => {
+          page
+            .browser()
+            .close()
+            .catch((err) => console.error(err.message));
+          if (launchOpt.userDataDir) {
+            puppeteerUserDirPool.releaseUserDir(launchOpt.userDataDir);
+          }
+        },
+      } as any;
+    }
+    return page as any;
   } catch (e) {
     console.error(e);
     await browser.close();
