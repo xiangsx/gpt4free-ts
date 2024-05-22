@@ -86,7 +86,7 @@ export class OpenAI extends Chat {
         baseURL: options?.base_url || 'https://api.openai.com/',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${options?.api_key || ''}`,
+          Authorization: `Bearer ${this.options?.api_key || ''}`,
         },
         timeout: 120 * 1000,
       } as CreateAxiosDefaults,
