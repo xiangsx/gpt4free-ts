@@ -83,7 +83,7 @@ export class OpenAI extends Chat {
   newClient() {
     return CreateNewAxios(
       {
-        baseURL: options?.base_url || 'https://api.openai.com/',
+        baseURL: this.options?.base_url || 'https://api.openai.com/',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${this.options?.api_key || ''}`,
