@@ -199,15 +199,18 @@ export class Pool<U extends Info, T extends PoolChild<U>> {
     }
     this.children.push(child);
     this.childMap.set(child.info.id, child);
+    let start = Date.now();
     await child
       .init()
       .then(() => {
         child.update({ ready: true } as Partial<U>);
+        let init_time = Date.now() - start;
         this.logger.info(
-          `create new child ok, current ready size: ${this.children.reduce(
+          `[${init_time} ms] create new child ok, current ready size: ${this.children.reduce(
             (prev, cur) => prev + (cur.info.ready ? 1 : 0),
             0,
           )}/${this.maxsize()}`,
+          { init_time },
         );
       })
       .catch((e) => {
