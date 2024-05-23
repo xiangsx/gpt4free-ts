@@ -40,6 +40,7 @@ export class Child extends ComChild<Account> {
     const pt = await this.pdfToStream(form, stream);
     pt.on('data', (data: StatusData) => {
       if (data.status !== 'success') {
+        stream.write(Event.message, { content: '' });
         return;
       }
       const page = data.data.pages as PageData[];
