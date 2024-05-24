@@ -67,6 +67,45 @@ export class StringPool {
   }
 }
 
+export class MemoryStringPool {
+  private pool: Set<string> = new Set();
+
+  async add(value: string): Promise<number> {
+    this.pool.add(value);
+    return this.pool.size;
+  }
+
+  async remove(value: string): Promise<void> {
+    this.pool.delete(value);
+  }
+
+  async random(): Promise<string | null> {
+    const arr = Array.from(this.pool);
+    if (arr.length === 0) {
+      return null;
+    }
+    return arr[Math.floor(Math.random() * arr.length)];
+  }
+
+  async size(): Promise<number> {
+    return this.pool.size;
+  }
+
+  async clear(): Promise<void> {
+    this.pool.clear();
+  }
+
+  async pop(): Promise<string | null> {
+    const arr = Array.from(this.pool);
+    if (arr.length === 0) {
+      return null;
+    }
+    const v = arr[Math.floor(Math.random() * arr.length)];
+    this.pool.delete(v);
+    return v;
+  }
+}
+
 // string类型的key，传入初始化方法
 // 如果key不存在，会调用init方法初始化
 // key需要有过期时间
