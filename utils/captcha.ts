@@ -157,34 +157,30 @@ redBox.style.top = centerY+'px';
     if (!centerY || !centerX) {
       throw new Error('center not found');
     }
-    if (centerX && centerY) {
-      x = centerX;
-      y = centerY;
+    x = centerX;
+    y = centerY;
 
-      await client.Input.dispatchMouseEvent(
-        {
-          type: 'mousePressed',
-          x,
-          y,
-          button: 'left',
-          clickCount: 1,
-        },
-        sessionId,
-      );
-      await client.Input.dispatchMouseEvent(
-        {
-          type: 'mouseReleased',
-          x,
-          y,
-          button: 'left',
-          clickCount: 1,
-        },
-        sessionId,
-      );
-      await sleep(5000);
-    } else {
-      console.log(`center not found: centerX: ${centerX}, centerY: ${centerY}`);
-    }
+    await client.Input.dispatchMouseEvent(
+      {
+        type: 'mousePressed',
+        x,
+        y,
+        button: 'left',
+        clickCount: 1,
+      },
+      sessionId,
+    );
+    await client.Input.dispatchMouseEvent(
+      {
+        type: 'mouseReleased',
+        x,
+        y,
+        button: 'left',
+        clickCount: 1,
+      },
+      sessionId,
+    );
+    await sleep(5000);
   } catch (e) {
     await client.Browser.close();
     throw e;
