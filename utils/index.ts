@@ -624,7 +624,7 @@ export function extractHttpURLs(text: string): string[] {
 export function extractHttpFileURLs(text: string): string[] {
   // 正则表达式匹配以 "https" 开头，并在空格、"]"、或 ")" 之前结束的 带有文件后缀的 URL
   const urlRegex =
-    /https?:\/\/[^\s\]\)]*\.(aac|abw|arc|avif|avi|azw|bin|bmp|bz|bz2|cda|csh|css|csv|doc|docx|eot|epub|gz|gif|heic|heif|htm|html|ico|ics|jar|jpeg|jpg|js|json|jsonld|mid|midi|mjs|mp3|mp4|mpeg|mpkg|odp|ods|odt|oga|ogv|ogx|opus|otf|png|pdf|php|ppt|pptx|rar|rtf|sh|svg|swf|tar|tif|tiff|ts|ttf|txt|vsd|wav|weba|webm|webp|woff|woff2|xhtml|xls|xlsx|xml|xul|zip|7z|mkv|mov|msg)(?=\s|\]|\)|\n|\t|$)/g;
+    /https?:\/\/[^\s\]\)]*\.(aac|abw|arc|avif|avi|azw|bin|bmp|bz|bz2|cda|csh|css|csv|doc|docx|eot|epub|gz|gif|heic|heif|htm|html|nc|ico|ics|jar|jpeg|jpg|js|json|jsonld|mid|midi|mjs|mp3|mp4|mpeg|mpkg|odp|ods|odt|oga|ogv|ogx|opus|otf|png|pdf|php|ppt|pptx|rar|rtf|sh|svg|swf|tar|tif|tiff|ts|ttf|txt|vsd|wav|weba|webm|webp|woff|woff2|xhtml|xls|xlsx|xml|xul|zip|7z|mkv|mov|msg)(?=\s|\]|\)|\n|\t|$)/g;
   return text.match(urlRegex) || [];
 }
 

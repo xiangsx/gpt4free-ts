@@ -583,7 +583,7 @@ export const registerApp = () => {
   );
   const router = new Router();
   app.use(errorHandler);
-  app.use(bodyParser({ jsonLimit: '20mb' }));
+  app.use(bodyParser({ jsonLimit: '100mb' }));
   app.use(checkApiKey);
   router.post('/pow', powHandler);
   router.get('/supports', supportsHandler);
