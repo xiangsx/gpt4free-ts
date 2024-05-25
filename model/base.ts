@@ -138,6 +138,8 @@ export enum ModelType {
   Fw_mistral_7b = 'fw-mistral-7b',
   PlaygroundV2 = 'playground-v2',
   GeminiPro = 'gemini-pro',
+  Gemini1p5Pro = 'gemini-1.5-pro',
+  Gemini1p5Flash = 'gemini-1.5-flash',
   GeminiProVision = 'gemini-pro-vision',
   Qwen72bChat = 'qwen-72b',
   Mixtral8x7BChat = 'mixtral-8x7b',

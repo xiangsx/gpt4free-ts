@@ -12,6 +12,7 @@ import {
   ComError,
   Event,
   EventStream,
+  extractHttpFileURLs,
   extractHttpURLs,
   getRandomOne,
   parseJSON,
@@ -29,7 +30,7 @@ import { Config } from '../../utils/config';
 import { v4 } from 'uuid';
 import es from 'event-stream';
 import moment from 'moment';
-import { GeminiRequest } from './define';
+import { GeminiRequest, MaxOutputTokens } from './define';
 
 interface Account extends ComInfo {
   apikey: string;
@@ -125,7 +126,7 @@ class Child extends ComChild<Account> {
     const content = { role: 'user', parts: [] as Part[] } as Content;
     const imageUrls = [];
     if (typeof v.content === 'string') {
-      const urls = extractHttpURLs(v.content);
+      const urls = extractHttpFileURLs(v.content);
       imageUrls.push(...urls);
       for (const url of urls) {
         v.content = v.content.replace(url, '');
@@ -214,7 +215,7 @@ class Child extends ComChild<Account> {
       generationConfig: {
         // candidateCount:
         // stopSequences
-        maxOutputTokens: model === ModelType.GeminiProVision ? 2000 : 4000,
+        maxOutputTokens: MaxOutputTokens[model] || 2000,
         temperature,
         topP,
         topK,
@@ -223,7 +224,11 @@ class Child extends ComChild<Account> {
     } as GenerateContentRequest;
     let targetMessages = messages;
     let targetModel = model;
-    if (model === ModelType.GeminiProVision) {
+    if (
+      model === ModelType.GeminiProVision ||
+      model === ModelType.Gemini1p5Flash ||
+      model === ModelType.Gemini1p5Pro
+    ) {
       targetMessages = messages.slice(messages.length - 1, messages.length);
       const [content, hasImage] = await this.messageToContent(
         targetMessages[0],
@@ -308,6 +313,10 @@ export class Gemini extends Chat {
         return 30000;
       case ModelType.GeminiProVision:
         return 10000;
+      case ModelType.Gemini1p5Pro:
+        return 1000000;
+      case ModelType.Gemini1p5Flash:
+        return 1000000;
       default:
         return 0;
     }
