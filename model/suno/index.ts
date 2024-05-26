@@ -65,6 +65,8 @@ export class Suno extends Chat {
 
   support(model: ModelType): number {
     switch (model) {
+      case ModelType.SunoV3p5:
+        return 10000;
       case ModelType.SunoV3:
         return 10000;
       case ModelType.SunoV2:
@@ -147,7 +149,10 @@ export class Suno extends Chat {
               title,
               tags,
               prompt: lyrics,
-              mv: ModelType.ChirpV3_0,
+              mv:
+                req.model === ModelType.SunoV3p5
+                  ? ModelType.ChirpV3_5
+                  : ModelType.ChirpV3_0,
               continue_clip_id: null,
               continue_at: null,
             };
