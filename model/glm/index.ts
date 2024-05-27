@@ -11,6 +11,7 @@ import { AxiosInstance, AxiosRequestConfig, CreateAxiosDefaults } from 'axios';
 import { CreateAxiosProxy } from '../../utils/proxyAgent';
 import es from 'event-stream';
 import {
+  checkSensitiveWords,
   ComError,
   Event,
   EventStream,
@@ -124,6 +125,13 @@ export class GLM extends Chat {
   }
 
   public async askStream(req: ChatRequest, stream: EventStream) {
+    if (checkSensitiveWords(req.prompt)) {
+      stream.write(Event.error, {
+        error: 'got sensitive words, please check and replace these word',
+      });
+      stream.end();
+      return;
+    }
     const data: RealReq = {
       ...req,
       messages: req.messages,
