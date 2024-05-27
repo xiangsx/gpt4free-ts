@@ -79,38 +79,45 @@ export class MJPlus extends Chat {
     });
     let last_process: string = '';
     for (let i = 0; i < 100; i++) {
-      const v = await child.fetchTask(res.result);
-      if (!v.progress) {
-        stream.write(Event.message, { content: '.' });
-        sleep(3000);
-        continue;
-      }
-      if (v.progress === last_process) {
-        stream.write(Event.message, { content: '.' });
-      } else {
-        stream.write(Event.message, { content: `${v.progress}` });
-        last_process = v.progress;
-      }
-      if (v.status === 'SUCCESS') {
-        const localUrl = await downloadAndUploadCDN(v.imageUrl);
-        stream.write(Event.message, {
-          content: `\n\n![${req.prompt}](${localUrl})`,
-        });
-        stream.write(Event.message, {
-          content: `\n[下载⏬](${localUrl.replace('/cdn/', '/cdn/download/')})`,
-        });
-        stream.write(Event.message, {
-          content: `\n\n|name|label|type|custom_id|\n|---|---|---|---|\n`,
-        });
-        for (const b of v.buttons) {
-          const label = b.label || b.emoji;
-          if (b.type === 2 && label && ComponentLabelMap[label]) {
-            stream.write(Event.message, {
-              content: `|${ComponentLabelMap[label]}|${label}|${b.type}|${b.customId}|\n`,
-            });
-          }
+      try {
+        const v = await child.fetchTask(res.result);
+        if (!v.progress) {
+          stream.write(Event.message, { content: '.' });
+          sleep(3000);
+          continue;
         }
-        break;
+        if (v.progress === last_process) {
+          stream.write(Event.message, { content: '.' });
+        } else {
+          stream.write(Event.message, { content: `${v.progress}` });
+          last_process = v.progress;
+        }
+        if (v.status === 'SUCCESS') {
+          const localUrl = await downloadAndUploadCDN(v.imageUrl);
+          stream.write(Event.message, {
+            content: `\n\n![${req.prompt}](${localUrl})`,
+          });
+          stream.write(Event.message, {
+            content: `\n[下载⏬](${localUrl.replace(
+              '/cdn/',
+              '/cdn/download/',
+            )})`,
+          });
+          stream.write(Event.message, {
+            content: `\n\n|name|label|type|custom_id|\n|---|---|---|---|\n`,
+          });
+          for (const b of v.buttons) {
+            const label = b.label || b.emoji;
+            if (b.type === 2 && label && ComponentLabelMap[label]) {
+              stream.write(Event.message, {
+                content: `|${ComponentLabelMap[label]}|${label}|${b.type}|${b.customId}|\n`,
+              });
+            }
+          }
+          break;
+        }
+      } catch (e: any) {
+        this.logger.error(`imageStream failed, err: ${e.message}`);
       }
 
       await sleep(3000);
@@ -135,38 +142,45 @@ export class MJPlus extends Chat {
     });
     let last_process: string = '';
     for (let i = 0; i < 100; i++) {
-      const v = await child.fetchTask(res.result);
-      if (!v.progress) {
-        stream.write(Event.message, { content: '.' });
-        sleep(3000);
-        continue;
-      }
-      if (v.progress === last_process) {
-        stream.write(Event.message, { content: '.' });
-      } else {
-        stream.write(Event.message, { content: `${v.progress}` });
-        last_process = v.progress;
-      }
-      if (v.status === 'SUCCESS') {
-        const localUrl = await downloadAndUploadCDN(v.imageUrl);
-        stream.write(Event.message, {
-          content: `\n\n![${req.prompt}](${localUrl})`,
-        });
-        stream.write(Event.message, {
-          content: `\n[下载⏬](${localUrl.replace('/cdn/', '/cdn/download/')})`,
-        });
-        stream.write(Event.message, {
-          content: `\n\n|name|label|type|custom_id|\n|---|---|---|---|\n`,
-        });
-        for (const b of v.buttons) {
-          const label = b.label || b.emoji;
-          if (b.type === 2 && label && ComponentLabelMap[label]) {
-            stream.write(Event.message, {
-              content: `|${ComponentLabelMap[label]}|${label}|${b.type}|${b.customId}|\n`,
-            });
-          }
+      try {
+        const v = await child.fetchTask(res.result);
+        if (!v.progress) {
+          stream.write(Event.message, { content: '.' });
+          sleep(3000);
+          continue;
         }
-        break;
+        if (v.progress === last_process) {
+          stream.write(Event.message, { content: '.' });
+        } else {
+          stream.write(Event.message, { content: `${v.progress}` });
+          last_process = v.progress;
+        }
+        if (v.status === 'SUCCESS') {
+          const localUrl = await downloadAndUploadCDN(v.imageUrl);
+          stream.write(Event.message, {
+            content: `\n\n![${req.prompt}](${localUrl})`,
+          });
+          stream.write(Event.message, {
+            content: `\n[下载⏬](${localUrl.replace(
+              '/cdn/',
+              '/cdn/download/',
+            )})`,
+          });
+          stream.write(Event.message, {
+            content: `\n\n|name|label|type|custom_id|\n|---|---|---|---|\n`,
+          });
+          for (const b of v.buttons) {
+            const label = b.label || b.emoji;
+            if (b.type === 2 && label && ComponentLabelMap[label]) {
+              stream.write(Event.message, {
+                content: `|${ComponentLabelMap[label]}|${label}|${b.type}|${b.customId}|\n`,
+              });
+            }
+          }
+          break;
+        }
+      } catch (e: any) {
+        this.logger.error(`blendStream failed, err: ${e.message}`);
       }
 
       await sleep(3000);
@@ -183,38 +197,45 @@ export class MJPlus extends Chat {
     });
     let last_process: string = '';
     for (let i = 0; i < 100; i++) {
-      const v = await child.fetchTask(res.result);
-      if (!v.progress) {
-        stream.write(Event.message, { content: '.' });
-        sleep(3000);
-        continue;
-      }
-      if (v.progress === last_process) {
-        stream.write(Event.message, { content: '.' });
-      } else {
-        stream.write(Event.message, { content: `${v.progress}` });
-        last_process = v.progress;
-      }
-      if (v.status === 'SUCCESS') {
-        const localUrl = await downloadAndUploadCDN(v.imageUrl);
-        stream.write(Event.message, {
-          content: `\n\n![${req.prompt}](${localUrl})`,
-        });
-        stream.write(Event.message, {
-          content: `\n[下载⏬](${localUrl.replace('/cdn/', '/cdn/download/')})`,
-        });
-        stream.write(Event.message, {
-          content: `\n\n|name|label|type|custom_id|\n|---|---|---|---|\n`,
-        });
-        for (const b of v.buttons) {
-          const label = b.label || b.emoji;
-          if (b.type === 2 && label && ComponentLabelMap[label]) {
-            stream.write(Event.message, {
-              content: `|${ComponentLabelMap[label]}|${label}|${b.type}|${b.customId}|\n`,
-            });
-          }
+      try {
+        const v = await child.fetchTask(res.result);
+        if (!v.progress) {
+          stream.write(Event.message, { content: '.' });
+          sleep(3000);
+          continue;
         }
-        break;
+        if (v.progress === last_process) {
+          stream.write(Event.message, { content: '.' });
+        } else {
+          stream.write(Event.message, { content: `${v.progress}` });
+          last_process = v.progress;
+        }
+        if (v.status === 'SUCCESS') {
+          const localUrl = await downloadAndUploadCDN(v.imageUrl);
+          stream.write(Event.message, {
+            content: `\n\n![${req.prompt}](${localUrl})`,
+          });
+          stream.write(Event.message, {
+            content: `\n[下载⏬](${localUrl.replace(
+              '/cdn/',
+              '/cdn/download/',
+            )})`,
+          });
+          stream.write(Event.message, {
+            content: `\n\n|name|label|type|custom_id|\n|---|---|---|---|\n`,
+          });
+          for (const b of v.buttons) {
+            const label = b.label || b.emoji;
+            if (b.type === 2 && label && ComponentLabelMap[label]) {
+              stream.write(Event.message, {
+                content: `|${ComponentLabelMap[label]}|${label}|${b.type}|${b.customId}|\n`,
+              });
+            }
+          }
+          break;
+        }
+      } catch (e: any) {
+        this.logger.error(e.message);
       }
 
       await sleep(3000);
