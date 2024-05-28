@@ -92,6 +92,12 @@ export class MJPlus extends Chat {
           stream.write(Event.message, { content: `${v.progress}` });
           last_process = v.progress;
         }
+        if (v.status === 'FAILURE') {
+          stream.write(Event.message, {
+            content: `\n生成失败, 原因: ${v.failReason}`,
+          });
+          break;
+        }
         if (v.status === 'SUCCESS') {
           const localUrl = await downloadAndUploadCDN(v.imageUrl);
           stream.write(Event.message, {
@@ -155,6 +161,12 @@ export class MJPlus extends Chat {
           stream.write(Event.message, { content: `${v.progress}` });
           last_process = v.progress;
         }
+        if (v.status === 'FAILURE') {
+          stream.write(Event.message, {
+            content: `\n生成失败, 原因: ${v.failReason}`,
+          });
+          break;
+        }
         if (v.status === 'SUCCESS') {
           const localUrl = await downloadAndUploadCDN(v.imageUrl);
           stream.write(Event.message, {
@@ -209,6 +221,12 @@ export class MJPlus extends Chat {
         } else {
           stream.write(Event.message, { content: `${v.progress}` });
           last_process = v.progress;
+        }
+        if (v.status === 'FAILURE') {
+          stream.write(Event.message, {
+            content: `\n生成失败, 原因: ${v.failReason}`,
+          });
+          break;
         }
         if (v.status === 'SUCCESS') {
           const localUrl = await downloadAndUploadCDN(v.imageUrl);
