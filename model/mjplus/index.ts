@@ -124,9 +124,9 @@ export class MJPlus extends Chat {
         }
       } catch (e: any) {
         this.logger.error(`imageStream failed, err: ${e.message}`);
+      } finally {
+        await sleep(3000);
       }
-
-      await sleep(3000);
     }
   }
 
