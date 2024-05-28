@@ -192,3 +192,15 @@ redBox.style.top = centerY+'px';
     (v) => v.url().indexOf('blank') === -1,
   ) as Page;
 }
+
+export async function fuckCF(target: Page) {
+  let page = target;
+  for (let i = 0; i < 5; i++) {
+    page = await handleCF(page);
+    const gotCf = await ifCF(page);
+    if (!gotCf) {
+      return page;
+    }
+  }
+  throw new Error('fuck cf');
+}

@@ -290,6 +290,7 @@ export enum Site {
   MJPlus = 'mjplus',
   FindPlus = 'findplus',
   Doc2x = 'doc2x',
+  OpenchatGateway = 'openchatgateway',
 }
 
 export interface ChatRequest {

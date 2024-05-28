@@ -62,6 +62,7 @@ interface ConfigData {
     stable_proxy_list: string[];
     proxy_list: string[];
   };
+  openchatgateway?: SizeCfg;
   claudeauto?: SizeCfg & {
     apikey_list: string[];
     proxy_list: string[];

@@ -258,7 +258,7 @@ export async function CreateNewPage<
     }
     if (enable_user_cache) {
       // 先清除cookie
-      await page.deleteCookie();
+      await page.deleteCookie(...(await page.cookies(url)));
       if (cookies.length > 0) {
         await page.setCookie(...cookies);
       }
