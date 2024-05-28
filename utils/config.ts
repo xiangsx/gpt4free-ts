@@ -41,7 +41,7 @@ interface ConfigData {
     retry_max_times?: number;
     trace?: boolean;
     download: {
-      proxy?: string;
+      proxy_list?: string[];
       dir: string;
     };
     cdn: {

@@ -938,7 +938,16 @@ export function getDownloadClient(local: boolean) {
   if (local) {
     return CreateNewAxios({ timeout: 5 * 1000 }, { proxy: false });
   } else {
-    return CreateAxiosProxy({ timeout: 5 * 1000 }, false, true);
+    return CreateNewAxios(
+      { timeout: 5 * 1000 },
+      {
+        proxy:
+          getRandomOne(
+            Config.config.global.download.proxy_list ||
+              Config.config.proxy_pool.proxy_list,
+          ) || false,
+      },
+    );
   }
 }
 
