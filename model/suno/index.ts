@@ -17,6 +17,7 @@ import { chatModel } from '../index';
 import { prompt } from './prompt';
 import moment from 'moment';
 import Application from 'koa';
+import Router from 'koa-router';
 
 export class Suno extends Chat {
   constructor(options?: ChatOptions) {
@@ -265,5 +266,12 @@ export class Suno extends Chat {
   ) {
     const child = await this.pool.popIf((v) => v.id === req.server_id);
     ctx.body = await child.feedSong(req.ids);
+  }
+
+  dynamicRouter(router: Router) {
+    router.post('/generate', async (ctx) => {
+      ctx.body = 'hello';
+    });
+    return true;
   }
 }

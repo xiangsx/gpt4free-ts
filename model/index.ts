@@ -216,6 +216,10 @@ export class ChatModelFactory {
   get(model: Site): Chat | undefined {
     return this.modelMap.get(model);
   }
+
+  forEach(callbackfn: (value: Chat, key: Site, map: Map<Site, Chat>) => void) {
+    this.modelMap.forEach(callbackfn);
+  }
 }
 
 export const chatModel = new ChatModelFactory();

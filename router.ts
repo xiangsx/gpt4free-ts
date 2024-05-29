@@ -571,6 +571,16 @@ const queryVideoTaskHandle: Middleware = async (ctx, next) => {
   await chat.queryVideoTask(ctx, req);
 };
 
+function logRouters(router: Router) {
+  router.stack.forEach((r) => {
+    console.log(
+      `${r.methods.join(',').padEnd(10)}${r.path.padEnd(40)}${
+        r.opts?.name || ''
+      }`,
+    );
+  });
+}
+
 export const registerApp = () => {
   const app = new Koa();
   // 允许所有域名
@@ -612,8 +622,17 @@ export const registerApp = () => {
   router.post('/:site/v1/song/create', songCreateHandle);
   router.get('/v1/song/feed', songFeedHandle);
   router.get('/:site/v1/song/feed', songFeedHandle);
+  chatModel.forEach((chat, site) => {
+    // 增加前缀 dynamic/:site
+    const dynamicRouter = new Router({ prefix: `/dynamic/${site}` });
+    if (chat.dynamicRouter(dynamicRouter)) {
+      app.use(dynamicRouter.routes());
+      logRouters(dynamicRouter);
+    }
+  });
 
   app.use(router.routes());
+  logRouters(router);
   const port = +(process.env.PORT || 3000);
   const server = app.listen(port, () => {
     console.log(`Now listening: 127.0.0.1:${port}`);

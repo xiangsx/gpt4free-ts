@@ -21,6 +21,7 @@ import {
 import { SongOptions } from './suno/define';
 import { Chatgateai } from './chatgateai';
 import { MJPlus } from './mjplus';
+import Router from 'koa-router';
 
 export interface ChatOptions {
   name: string;
@@ -648,5 +649,9 @@ export class Chat {
     req: { ids: string[]; server_id: string },
   ) {
     throw new ComError('not implement', ComError.Status.InternalServerError);
+  }
+
+  public dynamicRouter(router: Router): boolean {
+    return false;
   }
 }
