@@ -731,7 +731,7 @@ export class WebFetchWithPage {
                 setTimeout(() => {
                   // @ts-ignore
                   window.onChunkError(id, 'timeout');
-                }, 30 * 1000);
+                }, 60 * 1000);
               let delay = newDelay();
               const refresh = () => {
                 clearTimeout(delay);
