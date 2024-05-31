@@ -9,7 +9,6 @@ output json interface define:
   "title": string, // 歌曲名
   "tags": string, // 歌曲类型
   "prompt": string, // 歌词（注意换行的时候保持json格式的正确性，用户不指定默认为中文歌）
-  "mv": "chirp-v3-0", // mv类型ID 固定
   "continue_clip_id": null | string, // 续写的歌曲id
   "continue_at": null | number, // 从哪里续写 单位秒
   "make_instrumental"?: boolean, // 是否只生成伴奏，是否是纯音乐, 默认不填
@@ -80,8 +79,6 @@ Feel the energy, we're soaring high (soaring high)
 We'll dance until the break of dawn, all through the night (all night)
 Under the neon lights (ooh-ooh-ooh)
 """
-
-## mv: The type of MV. (Fixed value)
 
 ## continue_clip_id: The id of the song to continue writing.
 

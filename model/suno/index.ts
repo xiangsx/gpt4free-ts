@@ -158,6 +158,10 @@ export class Suno extends Chat {
               continue_at: null,
             };
           }
+          options.mv =
+            req.model === ModelType.SunoV3p5
+              ? ModelType.ChirpV3_5
+              : ModelType.ChirpV3_0;
           if (!lyrics) {
             stream.write(Event.message, {
               content: `\n${options.prompt}\n---\n`,
