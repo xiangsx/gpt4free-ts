@@ -2,6 +2,8 @@ import { Page } from 'puppeteer';
 import { CreateNewPage } from '../../utils/proxyAgent';
 import { v4 } from 'uuid';
 import { fuckCF } from '../../utils/captcha';
+import { getRandomOne } from '../../utils';
+import { Config } from '../../utils/config';
 
 export class PagePool {
   private idle: Map<string, PageChild> = new Map();
@@ -38,12 +40,14 @@ export class PagePool {
 export class PageChild {
   public page!: Page;
   private releasePage: any;
+  public proxy = getRandomOne(Config.config.proxy_pool.proxy_list);
   constructor(public id: string, private url: string) {}
   async init(): Promise<boolean> {
     try {
       let { page, release } = await CreateNewPage(this.url, {
         enable_user_cache: true,
         recognize: false,
+        proxy: this.proxy,
       });
       page = await fuckCF(page);
       this.releasePage = release;
