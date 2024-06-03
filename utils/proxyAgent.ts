@@ -775,7 +775,7 @@ export class WebFetchWithPage {
     if (data.status !== 200) {
       const failedMsg = `fetch failed ${JSON.stringify({ url, init, data })}`;
       console.log(failedMsg);
-      throw new ComError(failedMsg, data.status, data);
+      throw new ComError(`fetch failed: ${url}`, data.status, data);
     }
 
     return stream;
