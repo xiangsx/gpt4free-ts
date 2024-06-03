@@ -14,7 +14,6 @@ import { PageChild, PagePool } from './cfpool';
 const pagePool = new PagePool();
 export class Child extends ComChild<Account> {
   client!: Socket;
-  proxy: string = this.info.proxy || getProxy();
 
   async init(): Promise<void> {
     const pageChild = await pagePool.pop();
@@ -22,8 +21,9 @@ export class Child extends ComChild<Account> {
     const cookies = await page.cookies();
     const useragent = await page.evaluate(() => window.navigator.userAgent);
     await pagePool.release(pageChild);
+    this.update({ proxy: pageChild.proxy });
     this.client = CreateSocketIO('wss://www.perplexity.ai', {
-      proxy: this.proxy,
+      proxy: pageChild.proxy,
       extraHeaders: {
         Pragma: 'no-cache',
         'Cache-Control': 'no-cache',
@@ -51,7 +51,6 @@ export class Child extends ComChild<Account> {
       this.logger.error(`disconnect: ${reason} ${JSON.stringify(description)}`);
       this.destroy({ delFile: true, delMem: true });
     });
-    this.update({ proxy: this.proxy });
   }
 
   initFailed(e?: Error) {

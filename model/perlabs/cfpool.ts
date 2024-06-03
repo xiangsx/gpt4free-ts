@@ -1,5 +1,5 @@
 import { Page } from 'puppeteer';
-import { CreateNewPage } from '../../utils/proxyAgent';
+import { CreateNewPage, getProxy } from '../../utils/proxyAgent';
 import { v4 } from 'uuid';
 import { fuckCF } from '../../utils/captcha';
 import { getRandomOne } from '../../utils';
@@ -40,7 +40,7 @@ export class PagePool {
 export class PageChild {
   public page!: Page;
   private releasePage: any;
-  public proxy = getRandomOne(Config.config.proxy_pool.proxy_list);
+  public proxy = getProxy();
   constructor(public id: string, private url: string) {}
   async init(): Promise<boolean> {
     try {
