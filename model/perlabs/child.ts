@@ -10,17 +10,19 @@ import { Event, EventStream, preOrderUserAssistant, sleep } from '../../utils';
 import { contentToString, Message, ModelType } from '../base';
 import { fuckCF } from '../../utils/captcha';
 import { PageChild, PagePool } from './cfpool';
+import { AwsLambda } from 'elastic-apm-node/types/aws-lambda';
 
 const pagePool = new PagePool();
 export class Child extends ComChild<Account> {
   client!: Socket;
+  private pageChild!: PageChild;
 
   async init(): Promise<void> {
     const pageChild = await pagePool.pop();
+    this.pageChild = pageChild;
     const page = pageChild.page;
     const cookies = await page.cookies();
     const useragent = await page.evaluate(() => window.navigator.userAgent);
-    await pagePool.release(pageChild);
     this.update({ proxy: pageChild.proxy });
     this.client = CreateSocketIO('wss://www.perplexity.ai', {
       proxy: pageChild.proxy,
@@ -51,9 +53,11 @@ export class Child extends ComChild<Account> {
       this.logger.error(`disconnect: ${reason} ${JSON.stringify(description)}`);
       this.destroy({ delFile: true, delMem: true });
     });
+    await pagePool.release(pageChild);
   }
 
-  initFailed(e?: Error) {
+  async initFailed(e?: Error) {
+    await pagePool.destroy(this.pageChild);
     this.destroy({ delFile: true, delMem: true });
   }
 
