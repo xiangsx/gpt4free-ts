@@ -897,6 +897,7 @@ export async function downloadFile(fileUrl: string): Promise<{
   outputFilePath: string;
   image: boolean;
 }> {
+  fileUrl = await downloadAndUploadCDN(fileUrl);
   let local = false;
   if (Config.config.global.download_map) {
     for (const old in Config.config.global.download_map) {
