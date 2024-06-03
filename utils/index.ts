@@ -22,6 +22,7 @@ import * as XLSX from 'xlsx';
 import path from 'path';
 import Mint from 'mint-filter';
 import { sha3_512 as sha3 } from 'js-sha3';
+import axios from 'axios';
 
 const turndownService = new TurndownService({ codeBlockStyle: 'fenced' });
 
@@ -1031,11 +1032,22 @@ export async function uploadFile(filePath: string): Promise<string> {
 }
 
 export async function downloadAndUploadCDN(url: string): Promise<string> {
+  if (url.indexOf('filesystem.site') > -1) {
+    return url;
+  }
   try {
-    const { outputFilePath } = await downloadFile(url);
-    const newURL = await uploadFile(outputFilePath);
-    return newURL || url;
-  } catch (e) {
+    const res: { data: { data: { url: string } } } = await axios.post(
+      'https://file-tran.davdu2479.workers.dev',
+      {
+        fileUrl: url,
+      },
+    );
+    console.log(`downloadAndUploadCDN: ${url} => ${res.data.data.url}`);
+    return res.data.data.url;
+  } catch (e: any) {
+    console.error(
+      `downloadAndUploadCDN failed, url:${url}, err = ${e.message}`,
+    );
     return url;
   }
 }
