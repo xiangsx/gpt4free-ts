@@ -22,7 +22,8 @@ import * as XLSX from 'xlsx';
 import path from 'path';
 import Mint from 'mint-filter';
 import { sha3_512 as sha3 } from 'js-sha3';
-import axios from 'axios';
+import axios, { AxiosRequestConfig } from 'axios';
+const tunnel = require('tunnel');
 
 const turndownService = new TurndownService({ codeBlockStyle: 'fenced' });
 
@@ -1032,16 +1033,48 @@ export async function uploadFile(filePath: string): Promise<string> {
   );
 }
 
+export async function getHostPortFromURL(
+  url: string,
+): Promise<[string, number]> {
+  const parsed = new URL(url);
+  return [parsed.hostname, parseInt(parsed.port || '80')];
+}
+
 export async function downloadAndUploadCDN(url: string): Promise<string> {
   if (url.indexOf('filesystem.site') > -1) {
     return url;
   }
   try {
+    const proxy =
+      getRandomOne(Config.config.proxy_pool.proxy_list) ||
+      process.env.http_proxy;
+    const options: AxiosRequestConfig = {
+      timeout: 30 * 1000,
+    };
+    if (proxy) {
+      const [host, port] = await getHostPortFromURL(proxy);
+      if (url.startsWith('https:')) {
+        options.httpsAgent = tunnel.httpsOverHttp({
+          proxy: {
+            host,
+            port,
+          },
+        });
+      } else {
+        options.httpAgent = tunnel.httpOverHttp({
+          proxy: {
+            host,
+            port,
+          },
+        });
+      }
+    }
     const res: { data: { data: { url: string } } } = await axios.post(
       'https://file-tran.davdu2479.workers.dev',
       {
         fileUrl: url,
       },
+      options,
     );
     console.log(`downloadAndUploadCDN: ${url} => ${res.data.data.url}`);
     return res.data.data.url;
