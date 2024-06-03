@@ -216,6 +216,12 @@ const AskStreamHandle: (ESType: new () => EventStream) => Middleware =
                     trace_label: 'error',
                   });
                   clearTimeout(timeout);
+                  if (ctx.body) {
+                    stream.write(event, data);
+                    stream.write(Event.done, { content: '' });
+                    stream.end();
+                    return;
+                  }
                   if (data instanceof ComError) {
                     reject(data);
                     return;

@@ -185,6 +185,8 @@ export class Auto extends Chat {
             );
             if (tried >= (Config.config.global.retry_max_times || 0)) {
               stream.write(event, data);
+              stream.write(Event.done, { content: '' });
+              stream.end();
               return;
             }
             es.destroy();
@@ -214,6 +216,7 @@ export class Auto extends Chat {
       this.logger.error(`auto ask failed(${tried}) ${e.message}`);
       if (tried >= (Config.config.global.retry_max_times || 0)) {
         stream.write(Event.error, { error: e.message });
+        stream.write(Event.done, { content: '' });
         stream.end();
         return;
       }
