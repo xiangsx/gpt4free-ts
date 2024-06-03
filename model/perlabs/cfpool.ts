@@ -31,6 +31,9 @@ export class PagePool {
   }
 
   async destroy(child: PageChild) {
+    if (!child) {
+      return;
+    }
     await child?.destroy?.();
     this.using.delete(child.id);
     this.idle.delete(child.id);
