@@ -9,21 +9,19 @@ import { Socket } from 'socket.io-client';
 import { Event, EventStream, preOrderUserAssistant, sleep } from '../../utils';
 import { contentToString, Message, ModelType } from '../base';
 import { fuckCF } from '../../utils/captcha';
+import { PageChild, PagePool } from './cfpool';
 
+const pagePool = new PagePool();
 export class Child extends ComChild<Account> {
   client!: Socket;
   proxy: string = this.info.proxy || getProxy();
 
   async init(): Promise<void> {
-    let { page, release } = await CreateNewPage('https://labs.perplexity.ai', {
-      proxy: this.proxy,
-      recognize: false,
-      enable_user_cache: true,
-    });
-    page = await fuckCF(page);
+    const pageChild = await pagePool.pop();
+    const page = pageChild.page;
     const cookies = await page.cookies();
     const useragent = await page.evaluate(() => window.navigator.userAgent);
-    release();
+    await pagePool.release(pageChild);
     this.client = CreateSocketIO('wss://www.perplexity.ai', {
       proxy: this.proxy,
       extraHeaders: {
