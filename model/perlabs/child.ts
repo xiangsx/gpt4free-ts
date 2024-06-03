@@ -15,14 +15,15 @@ export class Child extends ComChild<Account> {
   proxy: string = this.info.proxy || getProxy();
 
   async init(): Promise<void> {
-    let page = await CreateNewPage('https://labs.perplexity.ai', {
+    let { page, release } = await CreateNewPage('https://labs.perplexity.ai', {
       proxy: this.proxy,
       recognize: false,
+      enable_user_cache: true,
     });
     page = await fuckCF(page);
     const cookies = await page.cookies();
     const useragent = await page.evaluate(() => window.navigator.userAgent);
-    await page.close();
+    release();
     this.client = CreateSocketIO('wss://www.perplexity.ai', {
       proxy: this.proxy,
       extraHeaders: {
