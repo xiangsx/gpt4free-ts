@@ -99,6 +99,7 @@ export enum ModelType {
   GPT4 = 'gpt-4',
   GPT4V = 'gpt-4-v',
   GPT4o = 'gpt-4o',
+  GPT4oAll = 'gpt-4o-all',
   GPT4All = 'gpt-4-all',
   GPT4Dalle = 'gpt-4-dalle',
   GPT4DalleEdit = 'gpt-4-dalle-edit',
