@@ -14,7 +14,7 @@ import { Config } from './config';
 import { v4 } from 'uuid';
 import fs, { createWriteStream } from 'fs';
 import sizeOf from 'image-size';
-import { CreateNewAxios, getDownloadClient } from './proxyAgent';
+import { CreateNewAxios, getDownloadClient, getProxy } from './proxyAgent';
 import { promisify } from 'util';
 import FormData from 'form-data';
 import pdfParse from 'pdf-parse';
@@ -1044,10 +1044,8 @@ export async function downloadAndUploadCDN(url: string): Promise<string> {
   if (url.indexOf('filesystem.site') > -1) {
     return url;
   }
+  const proxy = getRandomOne(Config.config.proxy_pool.cf || []) || getProxy();
   try {
-    const proxy =
-      getRandomOne(Config.config.proxy_pool.proxy_list) ||
-      process.env.http_proxy;
     const options: AxiosRequestConfig = {
       timeout: 30 * 1000,
     };
@@ -1080,7 +1078,7 @@ export async function downloadAndUploadCDN(url: string): Promise<string> {
     return res.data.data.url;
   } catch (e: any) {
     console.error(
-      `downloadAndUploadCDN failed, url:${url}, err = ${e.message}`,
+      `downloadAndUploadCDN failed, url:${url}, proxy:${proxy}, err = ${e.message}`,
     );
     return url;
   }

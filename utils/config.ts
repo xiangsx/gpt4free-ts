@@ -59,6 +59,7 @@ interface ConfigData {
   chatgateai?: SizeCfg & MailCfg;
   proxy_pool: {
     enable: boolean;
+    cf?: string[];
     stable_proxy_list: string[];
     proxy_list: string[];
   };
