@@ -1051,21 +1051,12 @@ export async function downloadAndUploadCDN(url: string): Promise<string> {
     };
     if (proxy) {
       const [host, port] = await getHostPortFromURL(proxy);
-      if (url.startsWith('https:')) {
-        options.httpsAgent = tunnel.httpsOverHttp({
-          proxy: {
-            host,
-            port,
-          },
-        });
-      } else {
-        options.httpAgent = tunnel.httpOverHttp({
-          proxy: {
-            host,
-            port,
-          },
-        });
-      }
+      options.httpsAgent = tunnel.httpsOverHttp({
+        proxy: {
+          host,
+          port,
+        },
+      });
     }
     const res: { data: { data: { url: string } } } = await axios.post(
       'https://file-tran.davdu2479.workers.dev',
