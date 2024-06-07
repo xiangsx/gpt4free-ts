@@ -226,6 +226,7 @@ interface ConfigData {
     emulate?: boolean;
     pow_server?: string[];
     failed_image?: boolean;
+    disable_fk_low?: boolean;
   };
   findplus: {
     size: number;
