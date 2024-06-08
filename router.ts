@@ -8,6 +8,7 @@ import {
   Site,
 } from './model/base';
 import {
+  checkSensitiveWords,
   ClaudeEventStream,
   ComError,
   Event,
@@ -125,6 +126,12 @@ const AskHandle: Middleware = async (ctx) => {
   if (!chat) {
     throw new ComError(`not support site: ${site} `, ComError.Status.NotFound);
   }
+  if (checkSensitiveWords(prompt)) {
+    throw new ComError(
+      'Got sensitive words! Please check!!!',
+      ComError.Status.ParamsError,
+    );
+  }
   let req: ChatRequest = {
     ...rest,
     prompt,
@@ -168,6 +175,12 @@ const AskStreamHandle: (ESType: new () => EventStream) => Middleware =
       throw new ComError(
         `not support site: ${site} `,
         ComError.Status.NotFound,
+      );
+    }
+    if (checkSensitiveWords(prompt)) {
+      throw new ComError(
+        'Got sensitive words! Please check!!!',
+        ComError.Status.ParamsError,
       );
     }
     let req: ChatRequest = {
