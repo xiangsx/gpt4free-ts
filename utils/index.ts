@@ -1116,6 +1116,15 @@ export function checkSensitiveWords(text: string) {
   return !mint?.verify(text);
 }
 
+export function filterSensitiveWords(text: string) {
+  if (sensitiveWords.length === 0) {
+    sensitiveWords = require('../run/sensitive.json');
+    mint = new Mint(sensitiveWords);
+  }
+  const res = mint!.filter(text);
+  return res.text;
+}
+
 export function decodeJwt(token: string): { header: any; payload: any } {
   // 分割 JWT 为 Header, Payload, Signature
   const parts = token.split('.');

@@ -13,6 +13,7 @@ import {
   ComError,
   Event,
   EventStream,
+  filterSensitiveWords,
   genPowToken,
   getTokenCount,
   OpenaiEventStream,
@@ -110,7 +111,7 @@ async function checkApiKey(ctx: Context, next: Next) {
 }
 
 const AskHandle: Middleware = async (ctx) => {
-  const {
+  let {
     prompt,
     model = ModelType.GPT3p5Turbo,
     site = Site.You,
@@ -127,14 +128,8 @@ const AskHandle: Middleware = async (ctx) => {
   if (!chat) {
     throw new ComError(`not support site: ${site} `, ComError.Status.NotFound);
   }
-  if (
-    Config.config.global.enable_sensitive_check &&
-    checkSensitiveWords(prompt)
-  ) {
-    throw new ComError(
-      'Got sensitive words! Please check!!!',
-      ComError.Status.ParamsError,
-    );
+  if (Config.config.global.enable_sensitive_check) {
+    prompt = filterSensitiveWords(prompt);
   }
   let req: ChatRequest = {
     ...rest,
@@ -159,7 +154,7 @@ const AskHandle: Middleware = async (ctx) => {
 
 const AskStreamHandle: (ESType: new () => EventStream) => Middleware =
   (ESType) => async (ctx) => {
-    const {
+    let {
       prompt,
       model = ModelType.GPT3p5Turbo,
       site = Site.You,
@@ -181,14 +176,8 @@ const AskStreamHandle: (ESType: new () => EventStream) => Middleware =
         ComError.Status.NotFound,
       );
     }
-    if (
-      Config.config.global.enable_sensitive_check &&
-      checkSensitiveWords(prompt)
-    ) {
-      throw new ComError(
-        'Got sensitive words! Please check!!!',
-        ComError.Status.ParamsError,
-      );
+    if (Config.config.global.enable_sensitive_check) {
+      prompt = filterSensitiveWords(prompt);
     }
     let req: ChatRequest = {
       ...rest,
