@@ -210,7 +210,9 @@ export class Auto extends Chat {
       );
     }
     try {
-      await chat.preHandle(req, { stream });
+      if (tried === 0) {
+        await chat.preHandle(req, { stream });
+      }
       await chat.askStream(req, es);
     } catch (e: any) {
       this.logger.error(`auto ask failed(${tried}) ${e.message}`);
