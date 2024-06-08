@@ -1041,6 +1041,9 @@ export async function getHostPortFromURL(
 }
 
 export async function downloadAndUploadCDN(url: string): Promise<string> {
+  if (!url.startsWith('http')) {
+    return url;
+  }
   if (url.indexOf('filesystem.site') > -1) {
     return url;
   }
