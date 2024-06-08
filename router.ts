@@ -33,6 +33,7 @@ import { PassThrough, Stream } from 'stream';
 import FormData from 'form-data';
 import fs from 'fs';
 import { v4 } from 'uuid';
+import { Config } from './utils/config';
 
 const supportsHandler = async (ctx: Context) => {
   const result: Support[] = [];
@@ -126,7 +127,10 @@ const AskHandle: Middleware = async (ctx) => {
   if (!chat) {
     throw new ComError(`not support site: ${site} `, ComError.Status.NotFound);
   }
-  if (checkSensitiveWords(prompt)) {
+  if (
+    Config.config.global.enable_sensitive_check &&
+    checkSensitiveWords(prompt)
+  ) {
     throw new ComError(
       'Got sensitive words! Please check!!!',
       ComError.Status.ParamsError,
@@ -177,7 +181,10 @@ const AskStreamHandle: (ESType: new () => EventStream) => Middleware =
         ComError.Status.NotFound,
       );
     }
-    if (checkSensitiveWords(prompt)) {
+    if (
+      Config.config.global.enable_sensitive_check &&
+      checkSensitiveWords(prompt)
+    ) {
       throw new ComError(
         'Got sensitive words! Please check!!!',
         ComError.Status.ParamsError,
