@@ -1052,9 +1052,6 @@ export async function downloadAndUploadCDN(url: string): Promise<string> {
       const proxy =
         getRandomOne(Config.config.proxy_pool.cf || []) || getProxy();
       try {
-        if (Math.random() * 10 < 6) {
-          throw new Error('sdasd');
-        }
         const options: AxiosRequestConfig = {
           timeout: 30 * 1000,
         };
