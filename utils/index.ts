@@ -721,7 +721,7 @@ export function replaceStrInBuffer(
 export async function retryFunc<T>(
   func: (idx: number) => Promise<T>,
   maxRetry: number,
-  options: {
+  options?: {
     label?: string;
     delay?: number;
     defaultV?: T;
@@ -729,7 +729,7 @@ export async function retryFunc<T>(
     skip?: (e: any) => boolean;
   },
 ): Promise<T> {
-  const { skip, log = true, label, delay = 1000, defaultV } = options;
+  const { skip, log = true, label, delay = 1000, defaultV } = options || {};
   for (let i = 0; i < maxRetry; i++) {
     try {
       return await func(i);
@@ -749,7 +749,7 @@ export async function retryFunc<T>(
     }
   }
   if (defaultV === undefined) {
-    throw new Error(`${options.label ?? 'retryFunc'} failed after retry`);
+    throw new Error(`${label ?? 'retryFunc'} failed after retry`);
   }
   return defaultV;
 }
@@ -1047,35 +1047,45 @@ export async function downloadAndUploadCDN(url: string): Promise<string> {
   if (url.indexOf('filesystem.site') > -1) {
     return url;
   }
-  const proxy = getRandomOne(Config.config.proxy_pool.cf || []) || getProxy();
-  try {
-    const options: AxiosRequestConfig = {
-      timeout: 30 * 1000,
-    };
-    if (proxy) {
-      const [host, port] = await getHostPortFromURL(proxy);
-      options.httpsAgent = tunnel.httpsOverHttp({
-        proxy: {
-          host,
-          port,
-        },
-      });
-    }
-    const res: { data: { data: { url: string } } } = await axios.post(
-      'https://file-tran.davdu2479.workers.dev',
-      {
-        fileUrl: url,
-      },
-      options,
-    );
-    console.log(`downloadAndUploadCDN: ${url} => ${res.data.data.url}`);
-    return res.data.data.url;
-  } catch (e: any) {
-    console.error(
-      `downloadAndUploadCDN failed, url:${url}, proxy:${proxy}, err = ${e.message}`,
-    );
-    return url;
-  }
+  return retryFunc(
+    async () => {
+      const proxy =
+        getRandomOne(Config.config.proxy_pool.cf || []) || getProxy();
+      try {
+        if (Math.random() * 10 < 6) {
+          throw new Error('sdasd');
+        }
+        const options: AxiosRequestConfig = {
+          timeout: 30 * 1000,
+        };
+        if (proxy) {
+          const [host, port] = await getHostPortFromURL(proxy);
+          options.httpsAgent = tunnel.httpsOverHttp({
+            proxy: {
+              host,
+              port,
+            },
+          });
+        }
+        const res: { data: { data: { url: string } } } = await axios.post(
+          'https://file-tran.davdu2479.workers.dev',
+          {
+            fileUrl: url,
+          },
+          options,
+        );
+        console.log(`downloadAndUploadCDN: ${url} => ${res.data.data.url}`);
+        return res.data.data.url;
+      } catch (e: any) {
+        console.error(
+          `downloadAndUploadCDN failed, url:${url}, proxy:${proxy}, err = ${e.message}`,
+        );
+        throw new Error(e);
+      }
+    },
+    3,
+    { defaultV: url, label: 'downloadAndUploadCDN', delay: 100 },
+  );
 }
 
 export async function extractFileToText(fileURL: string) {
