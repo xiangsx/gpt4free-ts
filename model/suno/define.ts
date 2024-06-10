@@ -208,8 +208,8 @@ export interface Clip {
   id: string;
   video_url: string;
   audio_url: string;
-  image_url: null;
-  image_large_url: null;
+  image_url: string;
+  image_large_url: string;
   major_model_version: string;
   model_name: string;
   metadata: Metadata;

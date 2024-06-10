@@ -135,7 +135,7 @@ export class Suno extends Chat {
           }
           if (/"prompt"\s*:\s*"([^"]*)"/.test(old)) {
             lyricsOK = true;
-            stream.write(Event.message, { content: '\n\n---\n\n' });
+            stream.write(Event.message, { content: '\n\n' });
           }
         }
       },
@@ -170,16 +170,34 @@ export class Suno extends Chat {
           await child.updateToken();
           const song = await child.createSong(options);
           stream.write(Event.message, {
-            content: `\n> id\n>${song.id}\n\n生成中: 🎵`,
+            content: `\n> id\n>${song.id}\n等待中: 🎵`,
           });
           const completeSongs: Clip[] = [];
           let ids = song.clips.map((v) => v.id);
+          let streaming = false;
           for (let i = 0; i < 120; i++) {
             const clips = await child.feedSong(ids).catch((e) => {
               this.logger.error(e.message);
             });
             if (!clips) {
               await sleep(1000);
+              continue;
+            }
+            if (!streaming && clips.every((v) => v.status === 'streaming')) {
+              stream.write(Event.message, {
+                content: '\n\n***音乐正在生成中, 可以边播边生成***\n',
+              });
+              for (const i in clips) {
+                const v = clips[i];
+                const image_url = await downloadAndUploadCDN(v.image_url);
+                stream.write(Event.message, {
+                  content: `\n音频${+i + 1}🎧: [点击播放](${v.audio_url})\n`,
+                });
+              }
+              stream.write(Event.message, {
+                content: '\n> 等待完整音乐生成: 🎵',
+              });
+              streaming = true;
               continue;
             }
             completeSongs.push(...clips.filter((v) => v.status === 'complete'));
@@ -213,17 +231,17 @@ export class Suno extends Chat {
                   ),
                 );
                 stream.write(Event.message, {
-                  content: `\n${v.title}\n![image](${image_url})\n音频🎧: [点击播放](${audio_url})\n视频🖥: [点击播放](${video_url})\n`,
+                  content: `\n\n${v.title}\n![image](${image_url})\n音频🎧: [点击播放](${audio_url})\n视频🖥: [点击播放](${video_url})\n`,
                 });
                 break;
               case 'error':
                 stream.write(Event.message, {
-                  content: `\n${v.title}\n生成失败\n`,
+                  content: `\n\n${v.title}\n生成失败\n`,
                 });
                 break;
               case 'streaming':
                 stream.write(Event.message, {
-                  content: `\n${v.title}\n生成超时\n`,
+                  content: `\nn${v.title}\n生成超时\n`,
                 });
                 break;
               default:
