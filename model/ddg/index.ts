@@ -1,8 +1,14 @@
 import { Chat, ChatOptions, ChatRequest, ModelType } from '../base';
-import { Event, EventStream } from '../../utils';
+import {
+  ComError,
+  Event,
+  EventStream,
+  parseJSON,
+  randomUserAgent,
+} from '../../utils';
 import puppeteer from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
-import { CreateNewPage } from '../../utils/proxyAgent';
+import { CreateNewAxios, CreateNewPage } from '../../utils/proxyAgent';
 import { Page } from 'puppeteer';
 import {
   ChildOptions,
@@ -11,8 +17,9 @@ import {
   DestroyOptions,
   Pool,
 } from '../../utils/pool';
-import moment from 'moment/moment';
 import { Config } from '../../utils/config';
+import es from 'event-stream';
+import { ModelMap } from './define';
 
 puppeteer.use(StealthPlugin());
 
@@ -128,6 +135,14 @@ export class DDG extends Chat {
     switch (model) {
       case ModelType.Search:
         return 10000;
+      case ModelType.Claude3Haiku20240307:
+        return 150 * 1000;
+      case ModelType.GPT3p5Turbo0125:
+        return 150 * 1000;
+      case ModelType.LLama_3_70b_chat:
+        return 10000;
+      case ModelType.Mixtral8x7bInstruct:
+        return 10000;
       default:
         return 0;
     }
@@ -149,7 +164,7 @@ export class DDG extends Chat {
     });
   }
 
-  async askStream(req: ChatRequest, stream: EventStream): Promise<void> {
+  async searchStream(req: ChatRequest, stream: EventStream) {
     try {
       const child = await this.pool.pop();
       const result = await child.search(req.prompt);
@@ -159,6 +174,75 @@ export class DDG extends Chat {
     } finally {
       stream.write(Event.done, { content: '' });
       stream.end();
+    }
+  }
+
+  async chatStream(req: ChatRequest, stream: EventStream): Promise<void> {
+    try {
+      const useragent = randomUserAgent();
+      const client = CreateNewAxios(
+        {
+          baseURL: 'https://duckduckgo.com',
+          headers: { 'User-Agent': useragent },
+        },
+        { proxy: true },
+      );
+      const statusRes = await client.get('/duckchat/v1/status', {
+        headers: {
+          'x-vqd-accept': '1',
+          'cache-control': 'no-store',
+        },
+      });
+      const res = await client.post(
+        '/duckchat/v1/chat',
+        {
+          model: ModelMap[req.model] || req.model,
+          messages: req.messages,
+        },
+        {
+          responseType: 'stream',
+          headers: {
+            'x-vqd-4': statusRes.headers['x-vqd-4'],
+          },
+        },
+      );
+      const pt = res.data.pipe(es.split(/\r?\n\r?\n/)).pipe(
+        es.map(async (chunk: any, cb: any) => {
+          const res = chunk.toString();
+          if (!res) {
+            return;
+          }
+          const dataStr = res.replace('data: ', '');
+          const data = parseJSON<undefined | { role: string; message: string }>(
+            dataStr,
+            undefined,
+          );
+          if (dataStr === '[DONE]') {
+            pt.end();
+            pt.destroy();
+            return;
+          }
+          cb(null, data);
+        }),
+      );
+      pt.on('data', (data: any) => {
+        stream.write(Event.message, { content: data.message });
+      });
+      pt.on('close', () => {
+        stream.write(Event.done, { content: '' });
+        stream.end();
+      });
+    } catch (e: any) {
+      throw new ComError(e.message, ComError.Status.InternalServerError);
+    }
+  }
+
+  async askStream(req: ChatRequest, stream: EventStream): Promise<void> {
+    switch (req.model) {
+      case ModelType.Search:
+        return this.searchStream(req, stream);
+      default:
+        return this.chatStream(req, stream);
     }
   }
 }

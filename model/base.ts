@@ -93,6 +93,7 @@ export function getFilesFromContent(content: MessageContent): string[] {
 
 export enum ModelType {
   GPT3p5Turbo = 'gpt-3.5-turbo',
+  GPT3p5Turbo0125 = 'gpt-3.5-turbo-0125',
   Assistant = 'assistant',
   GPT3p5TurboInstruct = 'gpt-3.5-turbo-instruct',
   GPT3p5_16k = 'gpt-3.5-turbo-16k',
@@ -206,6 +207,7 @@ export enum ModelType {
   pdf2textProgressOcr = 'pdf-to-text-progress-ocr',
   Pdf2Json = 'pdf-to-json',
   Pdf2JsonOCR = 'pdf-to-json-ocr',
+  LLama_3_70b_chat = 'llama-3-70b-chat',
 }
 
 export enum Site {
