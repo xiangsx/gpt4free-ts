@@ -345,9 +345,10 @@ export async function loginGoogle(
   recovery_email?: string,
 ) {
   await page.waitForSelector('#identifierId', { timeout: 10 * 60 * 1000 });
-  await sleep(2000);
+  await sleep(1000);
   await page.click('#identifierId');
-  await page.keyboard.type(email);
+  await page.keyboard.type(email, { delay: 50 });
+  await sleep(2000);
   await page.keyboard.press('Enter');
   await sleep(3000);
 
@@ -359,11 +360,11 @@ export async function loginGoogle(
   if (recovery_email) {
     await checkRecoveryMail(page, recovery_email);
   }
-  // await checkGmailContinue(page);
+  await checkGmailContinue(page);
 }
 
 export async function checkGmailContinue(page: Page) {
-  for (let i = 0; i < 3; i++) {
+  for (let i = 0; i < 1; i++) {
     try {
       await page.waitForSelector(
         'c-wiz > div > div > div > div > div:nth-child(2)',

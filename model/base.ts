@@ -171,6 +171,7 @@ export enum ModelType {
   DomoImgToVideo = 'domo-img-to-video',
   DomoVideoToVideo = 'domo-video-to-video',
   PikaTextToVideo = 'pika-text-to-video',
+  LumaVideo = 'luma-video',
   SunoV3p5 = 'suno-v3.5',
   SunoV3 = 'suno-v3',
   SunoV2 = 'suno-v2',
@@ -295,6 +296,7 @@ export enum Site {
   FindPlus = 'findplus',
   Doc2x = 'doc2x',
   OpenchatGateway = 'openchatgateway',
+  Luma = 'luma',
 }
 
 export interface ChatRequest {

@@ -93,6 +93,7 @@ interface ConfigData {
     token_limit: { [key: string]: number };
     stream_timeout?: number;
   };
+  luma?: SizeCfg & { accounts: GoogleMailAccount[]; model: ModelType };
   glm?: {
     token_limit: { [key: string]: number };
   };

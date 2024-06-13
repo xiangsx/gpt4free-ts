@@ -76,6 +76,7 @@ import { MJPlus } from './mjplus';
 import { FindPlus } from './findplus';
 import { Doc2x } from './doc2x';
 import { OpenchatGateway } from './openchatgateway';
+import { Luma } from './luma';
 
 export class ChatModelFactory {
   private readonly modelMap: Map<Site, Chat>;
@@ -179,6 +180,7 @@ export class ChatModelFactory {
     this.modelMap.set(Site.MJPlus, new MJPlus({ name: Site.MJPlus }));
     this.modelMap.set(Site.FindPlus, new FindPlus({ name: Site.FindPlus }));
     this.modelMap.set(Site.Doc2x, new Doc2x({ name: Site.Doc2x }));
+    this.modelMap.set(Site.Luma, new Luma({ name: Site.Luma }));
     this.modelMap.set(
       Site.OpenchatGateway,
       new OpenchatGateway({ name: Site.OpenchatGateway }),
