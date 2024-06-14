@@ -126,7 +126,7 @@ export class Child extends ComChild<Account> {
       );
       return res.data;
     } catch (e: any) {
-      if (e.message.indexOf('timeout')) {
+      if (e.message.indexOf('timeout') > -1) {
         this.destroy({ delMem: true, delFile: false });
         throw new Error('timeout');
       }
