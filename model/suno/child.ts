@@ -16,7 +16,6 @@ import { randomUserAgent } from '../../utils';
 export class Child extends ComChild<Account> {
   private client!: AxiosInstance;
   private sessClient!: AxiosInstance;
-  private page!: Page;
   itl?: NodeJS.Timer;
 
   async init() {
@@ -153,10 +152,12 @@ export class Child extends ComChild<Account> {
 
   initFailed(e: any) {
     this.logger.error(e.message);
-    this.destroy({ delMem: true, delFile: !this.info.token });
-    if (this.page) {
-      this.page.browser().close();
+    if (e?.response?.status === 401) {
+      this.update({ credit_left: 0 });
+      this.destroy({ delMem: true, delFile: true });
+      return;
     }
+    this.destroy({ delMem: true, delFile: !this.info.token });
   }
 
   use() {
