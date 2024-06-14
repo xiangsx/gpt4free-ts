@@ -348,9 +348,9 @@ export async function loginGoogle(
   await sleep(1000);
   await page.click('#identifierId');
   await page.keyboard.type(email, { delay: 50 });
-  await sleep(2000);
-  await page.keyboard.press('Enter');
   await sleep(3000);
+  await page.keyboard.press('Enter');
+  await sleep(5000);
 
   await page.waitForSelector('input[type="password"]');
   await page.click('input[type="password"]');
@@ -369,9 +369,10 @@ export async function checkGmailContinue(page: Page) {
       await page.waitForSelector(
         'c-wiz > div > div > div > div > div:nth-child(2)',
         {
-          timeout: 2000,
+          timeout: 5000,
         },
       );
+      await sleep(1000);
       await page.click('c-wiz > div > div > div > div > div:nth-child(2)');
     } catch (e) {
       continue;
