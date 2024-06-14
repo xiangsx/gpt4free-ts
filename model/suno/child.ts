@@ -154,7 +154,7 @@ export class Child extends ComChild<Account> {
     this.logger.error(e.message);
     if (e?.response?.status === 401) {
       this.update({ credit_left: 0 });
-      this.destroy({ delMem: true, delFile: true });
+      this.destroy({ delMem: true, delFile: false });
       return;
     }
     this.destroy({ delMem: true, delFile: !this.info.token });
