@@ -83,8 +83,15 @@ class Child extends ComChild<Account> {
         },
       );
     } catch (e: any) {
+      if (e.response.status === 403) {
+        this.update({ refresh_unix: moment().add(1, 'd').unix() });
+        throw new ComError(
+          '当前模型负载较高，请稍后尝试',
+          ComError.Status.RequestTooMany,
+        );
+      }
       if (e.response?.data?.error?.message.indexOf(`Quota exceeded`) > -1) {
-        this.update({ refresh_unix: moment().add(1, 'm').unix() });
+        this.update({ refresh_unix: moment().add(1, 'h').unix() });
         throw new ComError('Quota exceeded');
       }
       throw new ComError(e.message);
