@@ -90,7 +90,7 @@ export class Child extends ComChild<Account> {
         Authorization: `Bearer ${jwt}`,
         'User-Agent': this.info.ua,
         Origin: 'https://suno.com',
-        Referer: 'https://suno.com/create/',
+        Referer: 'https://suno.com/',
       },
     });
     this.logger.info(`update token ok`);
@@ -126,6 +126,10 @@ export class Child extends ComChild<Account> {
       );
       return res.data;
     } catch (e: any) {
+      if (e.message.indexOf('timeout')) {
+        this.destroy({ delMem: true, delFile: false });
+        throw new Error('timeout');
+      }
       if (e.response?.status === 402) {
         this.update({ need_pay: true });
         this.destroy({ delMem: true, delFile: false });
