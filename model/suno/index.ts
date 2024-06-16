@@ -10,6 +10,7 @@ import {
   EventStream,
   extractJSON,
   MessageData,
+  retryFunc,
   sleep,
   ThroughEventStream,
 } from '../../utils';
@@ -168,7 +169,9 @@ export class Suno extends Chat {
             });
           }
           await child.updateToken();
-          const song = await child.createSong(options);
+          const song = await retryFunc(() => child.createSong(options!), 3, {
+            delay: 0,
+          });
           stream.write(Event.message, {
             content: `\n> id\n>${song.id}\n等待中: 🎵`,
           });

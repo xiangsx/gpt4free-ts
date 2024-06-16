@@ -138,6 +138,7 @@ export class Child extends ComChild<Account> {
       const res: { data: CreateSongRes } = await this.client.post(
         '/generate/v2/',
         options,
+        { timeout: 5 * 1000 },
       );
       return res.data;
     } catch (e: any) {
