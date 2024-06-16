@@ -102,7 +102,7 @@ export class Child extends ComChild<Account> {
               status: err.status,
             })}`,
           );
-          if (err.status === 401) {
+          if (err.message.indexOf('401') > -1) {
             this.destroy({ delFile: false, delMem: true });
           }
         },
