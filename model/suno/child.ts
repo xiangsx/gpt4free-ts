@@ -99,6 +99,7 @@ export class Child extends ComChild<Account> {
           this.logger.error(
             `client error:${JSON.stringify({
               message: err.message,
+              data: err?.response?.data,
               status: err.status,
             })}`,
           );
