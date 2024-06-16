@@ -83,16 +83,31 @@ export class Child extends ComChild<Account> {
     if (!jwt) {
       throw new Error('jwt not found');
     }
-    this.client = CreateNewAxios({
-      baseURL: 'https://studio-api.suno.ai/api/',
-      headers: {
-        authority: 'studio-api.suno.ai',
-        Authorization: `Bearer ${jwt}`,
-        'User-Agent': this.info.ua,
-        Origin: 'https://suno.com',
-        Referer: 'https://suno.com/',
+    this.client = CreateNewAxios(
+      {
+        baseURL: 'https://studio-api.suno.ai/api/',
+        headers: {
+          authority: 'studio-api.suno.ai',
+          Authorization: `Bearer ${jwt}`,
+          'User-Agent': this.info.ua,
+          Origin: 'https://suno.com',
+          Referer: 'https://suno.com/',
+        },
       },
-    });
+      {
+        errorHandler: (err) => {
+          this.logger.error(
+            `client error:${JSON.stringify({
+              message: err.message,
+              status: err.status,
+            })}`,
+          );
+          if (err.status === 401) {
+            this.destroy({ delFile: false, delMem: true });
+          }
+        },
+      },
+    );
     this.logger.info(`update token ok`);
   }
 

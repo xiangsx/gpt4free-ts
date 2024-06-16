@@ -1,4 +1,4 @@
-import axios, { AxiosInstance, CreateAxiosDefaults } from 'axios';
+import axios, { AxiosError, AxiosInstance, CreateAxiosDefaults } from 'axios';
 import HttpsProxyAgent from 'https-proxy-agent';
 import puppeteer from 'puppeteer-extra';
 import {
@@ -67,9 +67,12 @@ const reqProxy = (config: any) => {
 
 export function CreateNewAxios(
   config: CreateAxiosDefaults,
-  options?: { proxy: string | boolean | undefined },
+  options?: {
+    proxy?: string | boolean | undefined;
+    errorHandler?: (error: AxiosError) => void;
+  },
 ) {
-  const { proxy } = options || {};
+  const { proxy, errorHandler } = options || {};
   const createConfig: CreateAxiosDefaults = { timeout: 15 * 1000, ...config };
   createConfig.proxy = false;
   if (proxy) {
@@ -77,7 +80,19 @@ export function CreateNewAxios(
     createConfig.httpAgent = HttpsProxyAgent(realProxy);
     createConfig.httpsAgent = HttpsProxyAgent(realProxy);
   }
-  return axios.create(createConfig);
+  const instance = axios.create(createConfig);
+
+  if (errorHandler) {
+    instance.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        errorHandler(error);
+        return Promise.reject(error);
+      },
+    );
+  }
+
+  return instance;
 }
 
 export function CreateAxiosProxy(
