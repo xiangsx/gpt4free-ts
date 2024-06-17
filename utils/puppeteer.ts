@@ -360,6 +360,7 @@ export async function loginGoogle(
   if (recovery_email) {
     await checkRecoveryMail(page, recovery_email);
   }
+  await checkGmailIKnown(page);
   await checkGmailContinue(page);
 }
 
@@ -374,6 +375,19 @@ export async function checkGmailContinue(page: Page) {
       );
       await sleep(1000);
       await page.click('c-wiz > div > div > div > div > div:nth-child(2)');
+    } catch (e) {
+      continue;
+    }
+  }
+}
+export async function checkGmailIKnown(page: Page) {
+  for (let i = 0; i < 1; i++) {
+    try {
+      await page.waitForSelector('#confirm', {
+        timeout: 5000,
+      });
+      await sleep(1000);
+      await page.click('#confirm');
     } catch (e) {
       continue;
     }
