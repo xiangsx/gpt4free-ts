@@ -730,10 +730,12 @@ export async function retryFunc<T>(
   },
 ): Promise<T> {
   const { skip, log = true, label, delay = 1000, defaultV } = options || {};
+  let err: any = undefined;
   for (let i = 0; i < maxRetry; i++) {
     try {
       return await func(i);
     } catch (e: any) {
+      err = e;
       if (skip?.(e)) {
         console.error(`${label || 'retryFunc'} skip error: ${e.message}`);
         throw e;
@@ -749,7 +751,7 @@ export async function retryFunc<T>(
     }
   }
   if (defaultV === undefined) {
-    throw new Error(`${label ?? 'retryFunc'} failed after retry`);
+    throw err;
   }
   return defaultV;
 }
