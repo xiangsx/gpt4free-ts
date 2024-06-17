@@ -354,13 +354,16 @@ export async function loginGoogle(
 
   await page.waitForSelector('input[type="password"]');
   await page.click('input[type="password"]');
+  await sleep(3000);
   await page.keyboard.type(password);
   await page.keyboard.press('Enter');
   await sleep(3000);
   if (recovery_email) {
     await checkRecoveryMail(page, recovery_email);
   }
+  await sleep(3000);
   await checkGmailIKnown(page);
+  await sleep(3000);
   await checkGmailContinue(page);
 }
 
