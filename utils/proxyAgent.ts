@@ -27,6 +27,7 @@ import { v4 } from 'uuid';
 import { PassThrough, pipeline } from 'stream';
 import {
   ComError,
+  getHostPortFromURL,
   getRandomOne,
   randomStr,
   randomUserAgent,
@@ -43,6 +44,7 @@ import { io } from 'socket.io-client';
 import { ManagerOptions } from 'socket.io-client/build/esm/manager';
 import { Socket, SocketOptions } from 'socket.io-client/build/esm/socket';
 import { puppeteerUserDirPool } from './pool';
+const tunnel = require('tunnel');
 
 export const getProxy = () => {
   let proxy = '';
@@ -77,8 +79,19 @@ export function CreateNewAxios(
   createConfig.proxy = false;
   if (proxy) {
     const realProxy = proxy === true ? getProxy() : proxy;
-    createConfig.httpAgent = HttpsProxyAgent(realProxy);
-    createConfig.httpsAgent = HttpsProxyAgent(realProxy);
+    const [host, port] = getHostPortFromURL(realProxy);
+    createConfig.httpsAgent = tunnel.httpsOverHttp({
+      proxy: {
+        host,
+        port,
+      },
+    });
+    createConfig.httpAgent = tunnel.httpOverHttp({
+      proxy: {
+        host,
+        port,
+      },
+    });
   }
   const instance = axios.create(createConfig);
 

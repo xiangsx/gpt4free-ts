@@ -8,7 +8,7 @@ import {
   SongOptions,
 } from './define';
 import { AxiosInstance } from 'axios';
-import { CreateNewAxios } from '../../utils/proxyAgent';
+import { CreateNewAxios, getProxy } from '../../utils/proxyAgent';
 import { Page } from 'puppeteer';
 import moment from 'moment';
 import { randomUserAgent } from '../../utils';
@@ -17,6 +17,7 @@ export class Child extends ComChild<Account> {
   private client!: AxiosInstance;
   private sessClient!: AxiosInstance;
   itl?: NodeJS.Timer;
+  proxy = this.info.proxy || getProxy();
 
   async init() {
     if (!this.info.token) {
@@ -25,17 +26,22 @@ export class Child extends ComChild<Account> {
     if (!this.info.ua) {
       this.update({ ua: randomUserAgent() });
     }
-    this.sessClient = CreateNewAxios({
-      baseURL: 'https://clerk.suno.com',
-      headers: {
-        authority: 'clerk.suno.com',
-        'User-Agent': this.info.ua,
-        Cookie: `__client=${this.info.token};`,
-        pragma: 'no-cache',
-        Origin: 'https://suno.com',
-        Referer: 'https://suno.com/create/',
+    this.sessClient = CreateNewAxios(
+      {
+        baseURL: 'https://clerk.suno.com',
+        headers: {
+          'User-Agent': this.info.ua,
+          Cookie: `__client=${this.info.token};`,
+          pragma: 'no-cache',
+          Origin: 'https://suno.com',
+          Referer: 'https://suno.com/',
+        },
+        timeout: 30 * 1000,
       },
-    });
+      {
+        proxy: this.proxy,
+      },
+    );
     await this.updateSID();
     await this.updateToken();
     await this.updateCredit();
@@ -47,6 +53,7 @@ export class Child extends ComChild<Account> {
         this.destroy({ delMem: true, delFile: false });
       }
     }, 50 * 1000);
+    this.update({ proxy: this.proxy });
   }
 
   async updateSID() {
@@ -93,8 +100,10 @@ export class Child extends ComChild<Account> {
           Origin: 'https://suno.com',
           Referer: 'https://suno.com/',
         },
+        timeout: 30 * 1000,
       },
       {
+        proxy: this.proxy,
         errorHandler: (err) => {
           this.logger.error(
             `client error:${JSON.stringify({
@@ -139,7 +148,6 @@ export class Child extends ComChild<Account> {
       const res: { data: CreateSongRes } = await this.client.post(
         '/generate/v2/',
         options,
-        { timeout: 5 * 1000 },
       );
       return res.data;
     } catch (e: any) {
@@ -172,7 +180,7 @@ export class Child extends ComChild<Account> {
   }
 
   initFailed(e: any) {
-    this.logger.error(e.message);
+    this.logger.error(`${this.proxy} init failed, err: ${e.message}`);
     if (e?.response?.status === 401) {
       this.update({ credit_left: 0 });
       this.destroy({ delMem: true, delFile: false });

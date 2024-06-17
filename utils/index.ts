@@ -1033,9 +1033,7 @@ export async function uploadFile(filePath: string): Promise<string> {
   );
 }
 
-export async function getHostPortFromURL(
-  url: string,
-): Promise<[string, number]> {
+export function getHostPortFromURL(url: string): [string, number] {
   const parsed = new URL(url);
   return [parsed.hostname, parseInt(parsed.port || '80')];
 }
@@ -1056,7 +1054,7 @@ export async function downloadAndUploadCDN(url: string): Promise<string> {
           timeout: 30 * 1000,
         };
         if (proxy) {
-          const [host, port] = await getHostPortFromURL(proxy);
+          const [host, port] = getHostPortFromURL(proxy);
           options.httpsAgent = tunnel.httpsOverHttp({
             proxy: {
               host,

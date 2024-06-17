@@ -11,6 +11,7 @@ export interface Account extends ComInfo {
   // 刷新时间
   refresh_time?: number;
   need_pay?: boolean;
+  proxy?: string;
 }
 
 export interface BillInfo {
