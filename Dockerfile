@@ -1,4 +1,4 @@
-FROM ghcr.io/puppeteer/puppeteer:20.5.0
+FROM xiangsx/chrome:118.0.5993.117
 
 USER root
 
