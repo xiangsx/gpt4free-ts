@@ -22,6 +22,7 @@ import { AxiosInstance } from 'axios';
 
 export class Child extends ComChild<Account> {
   client!: AxiosInstance;
+
   async init(): Promise<void> {
     this.client = CreateNewAxios(
       {
@@ -37,6 +38,7 @@ export class Child extends ComChild<Account> {
   }
 
   async summary(req: SummaryReq) {
+    req.limitation = { maxDuration: 10 * 60 };
     const res: { data: SummaryRes } = await this.client.post('/', req);
     // 如果最后一行包含有bibigpt链接，则去掉最后一行
     const lastLine = res.data.summary.split('\n').pop();
