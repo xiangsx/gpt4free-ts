@@ -209,6 +209,7 @@ export enum ModelType {
   Pdf2Json = 'pdf-to-json',
   Pdf2JsonOCR = 'pdf-to-json-ocr',
   LLama_3_70b_chat = 'llama-3-70b-chat',
+  UrlAnalysis = 'url-analysis',
 }
 
 export enum Site {
@@ -297,6 +298,7 @@ export enum Site {
   Doc2x = 'doc2x',
   OpenchatGateway = 'openchatgateway',
   Luma = 'luma',
+  Bibi = 'bibi',
 }
 
 export interface ChatRequest {

@@ -72,6 +72,10 @@ interface ConfigData {
   doc2x?: SizeCfg & {
     apikey_list: string[];
   };
+  bibi?: SizeCfg & {
+    model: ModelType;
+    apikey_list: string[];
+  };
   openaiauto?: SizeCfg & {
     apikey_list: string[];
     limit_token_map: Record<ModelType, number>;
