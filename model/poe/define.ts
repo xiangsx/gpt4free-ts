@@ -217,12 +217,12 @@ export class Poe {
 
   async getCurrentModelName() {
     // document.querySelector("header > div > div > div > div > p").textContent
-    await this.page.waitForSelector('header > div > div > div > div > p');
-    return this.page.evaluate(() =>
-      // @ts-ignore
-      document
-        .querySelector('header > div > div > div > div > p')
-        .textContent.trim(),
+    return this.page.evaluate(
+      () =>
+        // @ts-ignore
+        document
+          .querySelector('header > div > div > div > div > p')
+          ?.textContent?.trim?.() || '',
     );
   }
   async closeSub() {
