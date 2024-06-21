@@ -89,7 +89,9 @@ export async function getCaptchaCode(base64: string) {
 
 export async function ifCF(page: Page) {
   try {
-    await page.waitForSelector('#challenge-stage > div', { timeout: 3 * 1000 });
+    await page.waitForSelector('#challenge-stage > div, #turnstile-wrapper', {
+      timeout: 3 * 1000,
+    });
     return true;
   } catch (e) {
     console.log('no cf');
@@ -104,7 +106,6 @@ export async function handleCF(
   if (!(await ifCF(page))) {
     return page;
   }
-  await page.waitForSelector('#challenge-stage > div');
   const browser = page.browser();
   const url = page.url();
   const pageIdx = (await browser.pages()).findIndex((v) => v === page);
@@ -135,7 +136,7 @@ export async function handleCF(
     const { result } = await client.Runtime.evaluate(
       {
         expression: `
-            const element = document.querySelector("#challenge-stage > div");
+            const element = document.querySelector("#challenge-stage > div, #turnstile-wrapper");
             const rect = element.getBoundingClientRect();
             const centerX = rect.left + rect.width / 2 - 120; 
             const centerY = rect.top + rect.height / 2;
