@@ -34,6 +34,12 @@ type GoogleMailAccount = {
   recovery: string;
 };
 
+export type PoeModelConfig = {
+  context_tokens: number;
+  key_name: string;
+  points: number;
+};
+
 // 首先定义配置的数据类型
 interface ConfigData {
   exit: boolean;
@@ -179,10 +185,9 @@ interface ConfigData {
   gemini: SizeCfg & {
     apikeys: string[];
   };
-  poeauto: {
-    size: number;
-    serial: number;
+  poeauto: SizeCfg & {
     mail_type: TempEmailType;
+    model_config?: Partial<Record<ModelType, PoeModelConfig>>;
   };
   poevip: {
     size: number;

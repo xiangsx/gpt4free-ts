@@ -150,6 +150,8 @@ export enum ModelType {
   Claude3Opus20240229 = 'claude-3-opus-20240229',
   Claude3Sonnet20240229 = 'claude-3-sonnet-20240229',
   Claude3Haiku20240307 = 'claude-3-haiku-20240307',
+  Claude3p5Sonnet20240620 = 'claude-3-5-sonnet-20240620',
+  Claude3p5Sonnet = 'claude-3-5-sonnet',
   Claude3Sonnet = 'claude-3-sonnet',
   Claude3Opus = 'claude-3-opus',
   Claude3Haiku = 'claude-3-haiku',
@@ -210,6 +212,12 @@ export enum ModelType {
   Pdf2JsonOCR = 'pdf-to-json-ocr',
   LLama_3_70b_chat = 'llama-3-70b-chat',
   UrlAnalysis = 'url-analysis',
+  Llama370BT = 'llama-3-70b-t',
+  DeepSeekLLM67BT = 'deepseek-llm-67b-t',
+  DeepSeekCoder33BT = 'deepseek-coder-33b-t',
+  Llama370BGroq = 'llama-3-70b-groq',
+  PlaygroundV2_5 = 'playground-v2.5',
+  StableDiffusion3_2B = 'stable-diffusion-3-2b',
 }
 
 export enum Site {

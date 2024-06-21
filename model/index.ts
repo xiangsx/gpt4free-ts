@@ -16,7 +16,6 @@ import { Ram } from './ram';
 import { Chur } from './chur';
 import { Xun } from './xun';
 import { VVM } from './vvm';
-import { Poef } from './poef';
 import { ClaudeChat } from './claude';
 import { Cursor } from './cursor';
 import { Auto } from './auto';
