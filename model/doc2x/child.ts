@@ -10,10 +10,23 @@ import { AxiosInstance } from 'axios';
 export class Child extends ComChild<Account> {
   client!: AxiosInstance;
   async init(): Promise<void> {
-    this.client = CreateNewAxios({
-      baseURL: 'https://api.doc2x.noedgeai.com',
-      headers: { Authorization: `Bearer ${this.info.apikey}` },
-    });
+    this.client = CreateNewAxios(
+      {
+        baseURL: 'https://api.doc2x.noedgeai.com',
+        headers: { Authorization: `Bearer ${this.info.apikey}` },
+      },
+      {
+        errorHandler: (err) => {
+          this.logger.error(
+            `client error:${JSON.stringify({
+              message: err.message,
+              data: err?.response?.data,
+              status: err.status,
+            })}`,
+          );
+        },
+      },
+    );
   }
 
   async pdfToStream(form: FormData, stream: EventStream) {
@@ -39,6 +52,13 @@ export class Child extends ComChild<Account> {
   async pdfToMDStream(form: FormData, stream: EventStream) {
     const pt = await this.pdfToStream(form, stream);
     pt.on('data', (data: StatusData) => {
+      if (data.status === 'pages limit exceeded') {
+        stream.write(Event.error, { error: 'pages limit exceeded' });
+        stream.write(Event.done, { content: '' });
+        stream.end();
+        pt.destroy();
+        return;
+      }
       if (data.status !== 'success') {
         stream.write(Event.message, { content: '' });
         return;
@@ -54,6 +74,13 @@ export class Child extends ComChild<Account> {
   async pdfToMDWithProgressStream(form: FormData, stream: EventStream) {
     const pt = await this.pdfToStream(form, stream);
     pt.on('data', (data: StatusData) => {
+      if (data.status === 'pages limit exceeded') {
+        stream.write(Event.error, { error: 'pages limit exceeded' });
+        stream.write(Event.done, { content: '' });
+        stream.end();
+        pt.destroy();
+        return;
+      }
       if (data.status !== 'success') {
         stream.write(Event.message, {
           content: `- 进度 ***${Math.floor(data.data.progress)}***\n`,
