@@ -897,6 +897,7 @@ export class YopMail extends BaseEmail {
     const response = await this.client.get('/ver/8.4/webmail.js', {
       headers: { Cookie: cookie },
     });
+    // @ts-ignore
     const match = response.data.match(/&yj=([^&]+)&v=/s);
     return match ? match[1] : null;
   }
