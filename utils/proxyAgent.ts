@@ -293,6 +293,11 @@ export async function CreateNewPage<
     }
     try {
       await page.goto(url);
+      for (let p of await browser.pages()) {
+        if (page !== p) {
+          await p.close();
+        }
+      }
     } catch (e) {
       if (enable_user_cache && launchOpt.userDataDir) {
         puppeteerUserDirPool.releaseUserDir(launchOpt.userDataDir);
