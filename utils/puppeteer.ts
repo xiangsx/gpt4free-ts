@@ -353,7 +353,7 @@ export async function loginGoogle(
   await sleep(5000);
 
   await page.waitForSelector('input[type="password"]');
-  await page.click('input[type="password"]');
+  await page.click('input[type="password"]', { delay: 50 });
   await sleep(3000);
   await page.keyboard.type(password);
   await page.keyboard.press('Enter');
@@ -383,6 +383,7 @@ export async function checkGmailContinue(page: Page) {
     }
   }
 }
+
 export async function checkGmailIKnown(page: Page) {
   for (let i = 0; i < 1; i++) {
     try {
