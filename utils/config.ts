@@ -139,6 +139,7 @@ interface ConfigData {
     must_all_tools: boolean;
     must_plus: boolean;
     keep_arkose_refresh?: boolean;
+    max_failed_times?: number;
     accounts: { email: string; password: string }[];
   };
   www: SizeCfg;
@@ -215,7 +216,6 @@ interface ConfigData {
     allow_3: boolean;
     must_all_tools: boolean;
     must_plus: boolean;
-    keep_arkose_refresh?: boolean;
     upload_url: string;
     download_proxy: string;
     history_and_training_disabled?: boolean;
@@ -238,6 +238,8 @@ interface ConfigData {
     pow_server?: string[];
     failed_image?: boolean;
     disable_fk_low?: boolean;
+    arkose_share?: boolean;
+    arkose_cache_first?: boolean;
   };
   findplus: {
     size: number;
@@ -455,7 +457,6 @@ class BaseConfig {
       must_plus: false,
       must_all_tools: false,
       accounts: [],
-      keep_arkose_refresh: false,
       upload_url: '',
       download_proxy: '',
       download_map: {},
