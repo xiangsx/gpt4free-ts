@@ -60,6 +60,7 @@ export class MJPlus extends Chat {
       },
     },
   );
+
   support(model: ModelType): number {
     switch (model) {
       case ModelType.MJChat:
@@ -300,7 +301,7 @@ export class MJPlus extends Chat {
             stream.write(Event.done, { content: '' });
             stream.end();
           } catch (e: any) {
-            stream.write(Event.error, { error: e.message });
+            stream.write(Event.message, { content: `mj failed: ${e.message}` });
             stream.write(Event.done, { content: '' });
             stream.end();
           }
