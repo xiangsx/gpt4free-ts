@@ -304,7 +304,7 @@ export class MJPlus extends Chat {
             this.logger.error(`mj failed: ${e.message} ${JSON.stringify(e?.response?.data)}`);
             stream.write(Event.message, {
               content: `\n> 生成失败，错误原因如下\n\n\`\`\`json\n${JSON.stringify({
-                message: e.message(),
+                message: e.message,
                 data: e?.response?.data,
               }, null, 2)}\n\`\`\``,
             });
