@@ -301,6 +301,7 @@ export class MJPlus extends Chat {
             stream.write(Event.done, { content: '' });
             stream.end();
           } catch (e: any) {
+            this.logger.error(`mj failed: ${e.message}`);
             stream.write(Event.message, { content: `mj failed: ${e.message}` });
             stream.write(Event.done, { content: '' });
             stream.end();
