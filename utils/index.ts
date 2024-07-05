@@ -890,6 +890,18 @@ const mimeExtMapList: [string, string][] = extMimeMapList.map(([ext, mime]) => [
 
 export const mimeExtMap = new Map(mimeExtMapList);
 
+export const replaceLocalUrl = (url: string) => {
+  let fileUrl = url;
+  if (Config.config.global.download_map) {
+    for (const old in Config.config.global.download_map) {
+      if (fileUrl.indexOf(old) > -1) {
+        fileUrl = fileUrl.replace(old, Config.config.global.download_map[old]);
+      }
+    }
+  }
+  return fileUrl;
+}
+
 export async function downloadFile(fileUrl: string): Promise<{
   file_name: string;
   file_size: number;
