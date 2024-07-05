@@ -161,3 +161,44 @@ export class CommCache<T> {
     await this.redis.del(this.key(subkey));
   }
 }
+
+export class StringCache<T> {
+  private redis: Redis;
+  private readonly _key: string;
+  private readonly expire: number;
+  private logger!: Logger;
+
+  constructor(
+    redis: Redis,
+    key: string,
+    expire: number,
+  ) {
+    this.redis = redis;
+    this._key = key;
+    this.expire = expire;
+    this.logger = newLogger(`${this._key}`);
+  }
+
+  key(subkey: string) {
+    return this._key + ':' + subkey;
+  }
+
+  async get(subkey: string): Promise<T | null> {
+    const v = await this.redis.get(this.key(subkey));
+    if (!v) {
+      return null;
+    }
+    this.logger.debug(`${subkey} cache got`);
+    return parseJSON<T | null>(v, v as T);
+  }
+
+  async set(subkey: string, value: string): Promise<void> {
+    this.logger.debug(`set ${value}`);
+    await this.redis.set(this.key(subkey), value, 'EX', this.expire);
+  }
+
+  async clear(subkey: string): Promise<void> {
+    this.logger.debug(`clear`);
+    await this.redis.del(this.key(subkey));
+  }
+}
