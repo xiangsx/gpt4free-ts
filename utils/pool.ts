@@ -345,6 +345,10 @@ export class Pool<U extends Info, T extends PoolChild<U>> {
   getAllInfos() {
     return this.allInfos;
   }
+
+  findOne(func: (v: U) => boolean) {
+    return this.allInfos.find(func);
+  }
 }
 
 class PuppeteerUserDirPool {
