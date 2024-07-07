@@ -111,7 +111,7 @@ export async function extractVideoLastFrame(videoUrl: string): Promise<string> {
       })
       .on('error', (err) => {
         console.error('提取最后一帧时出错:', err);
-        reject(err);
+        reject('extract last frame failed');
       })
       .run();
   });
@@ -137,7 +137,7 @@ async function getVideoInfo(videoPath: string): Promise<{
   return new Promise((resolve, reject) => {
     ffmpeg.ffprobe(videoPath, (err, metadata) => {
       if (err) {
-        return reject(err);
+        return reject('get video info failed');
       }
       const duration = metadata.format.duration!;
       const frameRate = eval(metadata.streams[0].r_frame_rate || '') || 0; // 计算帧率
@@ -182,7 +182,7 @@ async function convertVideoFormat(inputPath: string, codec: string, width: numbe
       })
       .on('error', (err) => {
         console.error(`转换视频格式时出错: ${err.message}`);
-        reject('video expand failed');
+        reject('video format convert failed');
       })
       .run();
   });
@@ -212,7 +212,7 @@ export async function mergeVideosExcludeLastFrame(video_url1: string, video_url2
       })
       .on('error', (err) => {
         console.error('合并视频时出错:', err);
-        reject(err);
+        reject('video merge failed');
       })
       .mergeToFile(outputVideoPath, path.join(__dirname, 'temp'));
   });
