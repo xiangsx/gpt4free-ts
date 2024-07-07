@@ -124,6 +124,71 @@ export async function extractVideoLastFrame(videoUrl: string): Promise<string> {
 }
 
 /**
+ * 获取视频的时长和帧率
+ * @param videoPath 视频文件路径
+ */
+async function getVideoInfo(videoPath: string): Promise<{
+  duration: number,
+  frameRate: number,
+  codec: string,
+  width: number,
+  height: number
+}> {
+  return new Promise((resolve, reject) => {
+    ffmpeg.ffprobe(videoPath, (err, metadata) => {
+      if (err) {
+        return reject(err);
+      }
+      const duration = metadata.format.duration!;
+      const frameRate = eval(metadata.streams[0].r_frame_rate || '') || 0; // 计算帧率
+      const codec = metadata.streams[0].codec_name!;
+      const width = metadata.streams[0].width!;
+      const height = metadata.streams[0].height!;
+      resolve({ duration, frameRate, codec, width, height });
+    });
+  });
+}
+
+/**
+ * 转换第一个视频为第二个视频的格式
+ * @param inputPath 输入视频文件路径
+ * @param outputPath 输出视频文件路径
+ * @param codec 编码格式
+ * @param width 视频宽度
+ * @param height 视频高度
+ * @param frameRate 视频帧率
+ */
+async function convertVideoFormat(inputPath: string, codec: string, width: number, height: number, frameRate: number): Promise<void> {
+  const tempOutputPath = `run/${v4()}.mp4`;
+
+  // 检测格式是不是已经是目标格式
+  const { codec: inputCodec, width: inputWidth, height: inputHeight } = await getVideoInfo(inputPath);
+  if (inputCodec === codec && inputWidth === width && inputHeight === height) {
+    return;
+  }
+
+  await new Promise<void>((resolve, reject) => {
+    ffmpeg(inputPath)
+      .size(`${width}x${height}`)
+      .fps(frameRate)
+      .aspect(`${width}:${height}`)
+      .autopad(true, 'black')
+      .output(tempOutputPath)
+      .noAudio()
+      .on('end', () => {
+        fs.renameSync(tempOutputPath, inputPath); // 用转换后的文件覆盖原始文件
+        console.log(`转换视频格式完成：${inputPath}`);
+        resolve();
+      })
+      .on('error', (err) => {
+        console.error(`转换视频格式时出错: ${err.message}`);
+        reject('video expand failed');
+      })
+      .run();
+  });
+}
+
+/**
  * 合并两个视频并剔除第一个视频的最后一帧
  * @param videoPath1 第一个视频文件路径
  * @param videoPath2 第二个视频文件路径
@@ -131,42 +196,15 @@ export async function extractVideoLastFrame(videoUrl: string): Promise<string> {
  */
 export async function mergeVideosExcludeLastFrame(video_url1: string, video_url2: string): Promise<string> {
   const [video1, video2] = await Promise.all([downloadFile(video_url1), downloadFile(video_url2)]);
-  const tempVideoPath1 = `run/${v4()}.mp4`;
   const outputVideoPath = `run/${v4()}.mp4`;
 
-  let frame_rate = 30;
-  // 获取第一个视频的时长
-  const videoDuration = await new Promise<number>((resolve, reject) => {
-    ffmpeg.ffprobe(video1.outputFilePath, (err, metadata) => {
-      if (err) {
-        return reject(err);
-      }
-      frame_rate = eval(metadata.streams[0].r_frame_rate || '30');
-      resolve(metadata.format.duration || 0);
-    });
-  });
-
-  // 剔除第一个视频的最后一帧
-  await new Promise<void>((resolve, reject) => {
-    ffmpeg(video1.outputFilePath)
-      .setStartTime('0')
-      .setDuration(videoDuration - 1 / 30) // 假设视频帧率为30fps，可以根据实际帧率调整
-      .output(tempVideoPath1)
-      .on('end', () => {
-        console.log(`剔除第一个视频的最后一帧完成：${tempVideoPath1}`);
-        resolve();
-      })
-      .on('error', (err) => {
-        console.error('剔除最后一帧时出错:', err);
-        reject(err);
-      })
-      .run();
-  });
+  const { duration, codec, width, height, frameRate } = await getVideoInfo(video2.outputFilePath);
+  await convertVideoFormat(video1.outputFilePath, codec, width, height, frameRate);
 
   // 合并两个视频
   await new Promise<void>((resolve, reject) => {
     ffmpeg()
-      .input(tempVideoPath1)
+      .input(video1.outputFilePath)
       .input(video2.outputFilePath)
       .on('end', () => {
         console.log(`视频合并完成：${outputVideoPath}`);
@@ -180,7 +218,6 @@ export async function mergeVideosExcludeLastFrame(video_url1: string, video_url2
   });
 
   // 删除临时视频文件
-  fs.unlinkSync(tempVideoPath1);
   const videoURL = await uploadFile(outputVideoPath);
   fs.unlinkSync(outputVideoPath);
   return videoURL;
