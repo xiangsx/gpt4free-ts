@@ -99,7 +99,6 @@ async function checkApiKey(ctx: Context, next: Next) {
   const authorStr =
     ctx.request.headers.authorization || ctx.request.headers['x-api-key'];
   secret = ((authorStr as string) || '').replace(/Bearer /, '');
-  ctx.query = { ...ctx.query, secret };
   if (!process.env.API_KEY) {
     await next();
     return;
