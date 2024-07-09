@@ -27,7 +27,7 @@ import cors from '@koa/cors';
 import Router from 'koa-router';
 import bodyParser from 'koa-bodyparser';
 import { chatModel } from './model';
-import { TraceLogger } from './utils/log';
+import { SaveMessagesToLogstash, TraceLogger } from './utils/log';
 import apm from 'elastic-apm-node';
 import Busboy from 'busboy';
 import { PassThrough, Stream } from 'stream';
@@ -146,6 +146,7 @@ const AskHandle: Middleware = async (ctx) => {
     ctx.status = 500;
   }
   req.messages.push({ role: 'assistant', content: data.content || '' });
+  SaveMessagesToLogstash(req);
   console.debug(req.messages);
   ctx.body = data;
   return req;
@@ -280,6 +281,7 @@ const AskStreamHandle: (ESType: new () => EventStream) => Middleware =
               }
               input.push({ role: 'assistant', content: output });
               delete (req as any).prompt;
+              SaveMessagesToLogstash(req);
               ctx.logger.info(JSON.stringify(req), {
                 model,
                 params: {

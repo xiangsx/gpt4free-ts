@@ -9,6 +9,7 @@ import moment from 'moment';
 import { Config } from './config';
 import { ecsFields, ecsFormat } from '@elastic/ecs-winston-format';
 import { colorLabel } from './index';
+import { ChatRequest } from '../model/base';
 
 let logger: Logger;
 
@@ -178,4 +179,32 @@ export class UDPTransport extends Transport {
     );
     /* eslint-enable @typescript-eslint/no-empty-function */
   }
+}
+
+let client: Socket | undefined;
+
+export async function SaveMessagesToLogstash(msg: ChatRequest) {
+  const { enable = false, host, port } = Config.config.global?.msg_saver || {};
+  if (!enable || !port || !host) {
+    return;
+  }
+  if (!client) {
+    client = dgram.createSocket('udp4');
+  }
+  return new Promise((resolve, reject) => {
+    const message = Buffer.from(JSON.stringify({
+      ...msg,
+      prompt: undefined,
+      type: 'chat',
+      '@timestamp': new Date().toISOString(),
+    }));
+    client?.send(message, port, host, (err) => {
+      if (err) {
+        console.error(`发送失败: ${err.message}`);
+        client?.close();
+        client = undefined;
+      }
+      resolve(null);
+    });
+  });
 }

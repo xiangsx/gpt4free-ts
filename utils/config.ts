@@ -54,6 +54,11 @@ interface ConfigData {
     cdn: {
       url: string;
     };
+    msg_saver?: {
+      enable: boolean;
+      host: string;
+      port: number;
+    };
     redis: {
       host: string;
       port: number;
