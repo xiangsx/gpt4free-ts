@@ -82,7 +82,7 @@ Each Discord message includes distinct components, and it's crucial to accuratel
 \`\`\`
 interface {
   type:"action",
-  task_id:string,
+  task_id:string, // 从用户的历史消息中获取，类似1720749379771111 这种数字
   custom_id:string // 以\`MJ::JOB\`开头的字符串，从用户的历史消息中获取
 }
 \`\`\`
