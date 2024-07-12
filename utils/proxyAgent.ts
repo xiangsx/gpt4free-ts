@@ -269,8 +269,8 @@ export async function CreateNewPage<
       await page.setCookie(...cookies);
     }
     await page.setViewport({
-      width: 1000 + Math.floor(Math.random() * 1000),
-      height: 1080,
+      width: 1280 + Math.floor(Math.random() * 640),
+      height: 720 + Math.floor(Math.random() * 360),
     });
     if (emulate) {
       if (typeof emulate === 'object' && user_agent in emulate) {
