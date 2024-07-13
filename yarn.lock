@@ -5049,10 +5049,10 @@ url-parse-lax@^1.0.0:
   dependencies:
     prepend-http "^1.0.1"
 
-user-agents@^1.1.262:
-  version "1.1.262"
-  resolved "https://registry.yarnpkg.com/user-agents/-/user-agents-1.1.262.tgz#3295845216d3895eab993af0ee7bfc5b34a721a2"
-  integrity sha512-eAGCA8Effmiq//PcIeL0ITw7+MtxTpMy+IEdMyoZZYhxY7Ok4al4O0fyZmgBzGUaUhd1ItzXmgA+fh1crcL9fg==
+user-agents@1.1.264:
+  version "1.1.264"
+  resolved "https://registry.yarnpkg.com/user-agents/-/user-agents-1.1.264.tgz#a9d6b84a6eff4c1788c840f22fc73131b4d7c85d"
+  integrity sha512-HdodThH2NaB2R9tiOHQjP/7AopnTZeNXfV/geJZWu0pF4b53C+hWMvivlaQ75GwS+0ZlZiZEXDiHm4JiyF6nwQ==
   dependencies:
     lodash.clonedeep "^4.5.0"
 

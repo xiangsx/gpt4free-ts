@@ -1182,12 +1182,12 @@ export function genPowToken(
   seed: string,
   diff: string,
 ): string {
-  const start = moment().valueOf();
+  const start = Date.now();
   const diffLen = diff.length;
 
   for (let i = 0; i < 5e5; i++) {
     config[3] = i;
-    config[9] = Math.round(moment().valueOf() - start);
+    config[9] = Math.round(Date.now() - start);
     const json = JSON.stringify(config);
     const base = Buffer.from(json).toString('base64');
     const sha3 = crypto.createHash('sha3-512');
