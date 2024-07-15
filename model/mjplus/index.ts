@@ -79,12 +79,12 @@ export class MJPlus extends Chat {
       content: `> 提交任务✅ \n> task_id: \`${res.result}\`\n> 生成中.`,
     });
     let last_process: string = '';
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < 200; i++) {
       try {
         const v = await child.fetchTask(res.result);
         if (!v.progress) {
           stream.write(Event.message, { content: '.' });
-          sleep(3000);
+          await sleep(3000);
           continue;
         }
         if (v.progress === last_process) {
@@ -125,9 +125,8 @@ export class MJPlus extends Chat {
         }
       } catch (e: any) {
         this.logger.error(`imageStream failed, err: ${e.message}`);
-      } finally {
-        await sleep(3000);
       }
+      await sleep(3000);
     }
   }
 
@@ -153,7 +152,7 @@ export class MJPlus extends Chat {
         const v = await child.fetchTask(res.result);
         if (!v.progress) {
           stream.write(Event.message, { content: '.' });
-          sleep(3000);
+          await sleep(3000);
           continue;
         }
         if (v.progress === last_process) {
@@ -214,7 +213,7 @@ export class MJPlus extends Chat {
         const v = await child.fetchTask(res.result);
         if (!v.progress) {
           stream.write(Event.message, { content: '.' });
-          sleep(3000);
+          await sleep(3000);
           continue;
         }
         if (v.progress === last_process) {
@@ -301,12 +300,18 @@ export class MJPlus extends Chat {
             stream.write(Event.done, { content: '' });
             stream.end();
           } catch (e: any) {
-            this.logger.error(`mj failed: ${e.message} ${JSON.stringify(e?.response?.data)}`);
+            this.logger.error(
+              `mj failed: ${e.message} ${JSON.stringify(e?.response?.data)}`,
+            );
             stream.write(Event.message, {
-              content: `\n> 生成失败，错误原因如下\n\n\`\`\`json\n${JSON.stringify({
-                message: e.message,
-                data: e?.response?.data,
-              }, null, 2)}\n\`\`\``,
+              content: `\n> 生成失败，错误原因如下\n\n\`\`\`json\n${JSON.stringify(
+                {
+                  message: e.message,
+                  data: e?.response?.data,
+                },
+                null,
+                2,
+              )}\n\`\`\``,
             });
             stream.write(Event.done, { content: '' });
             stream.end();
