@@ -99,7 +99,7 @@ export class MJPlus extends Chat {
           });
           break;
         }
-        if (v.status === 'SUCCESS') {
+        if (v.status === 'SUCCESS' && v.imageUrl) {
           const localUrl = await downloadAndUploadCDN(v.imageUrl);
           stream.write(Event.message, {
             content: `\n\n![${req.prompt}](${localUrl})`,
@@ -167,7 +167,7 @@ export class MJPlus extends Chat {
           });
           break;
         }
-        if (v.status === 'SUCCESS') {
+        if (v.status === 'SUCCESS' && v.imageUrl) {
           const localUrl = await downloadAndUploadCDN(v.imageUrl);
           stream.write(Event.message, {
             content: `\n\n![${req.prompt}](${localUrl})`,
@@ -228,7 +228,7 @@ export class MJPlus extends Chat {
           });
           break;
         }
-        if (v.status === 'SUCCESS') {
+        if (v.status === 'SUCCESS' && v.imageUrl) {
           const localUrl = await downloadAndUploadCDN(v.imageUrl);
           stream.write(Event.message, {
             content: `\n\n![${req.prompt}](${localUrl})`,
