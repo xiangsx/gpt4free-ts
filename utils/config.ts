@@ -108,7 +108,15 @@ interface ConfigData {
     token_limit: { [key: string]: number };
     stream_timeout?: number;
   };
-  luma?: SizeCfg & { accounts: GoogleMailAccount[]; model: ModelType, retry_times?: number };
+  luma?: SizeCfg & {
+    accounts: GoogleMailAccount[];
+    model: ModelType;
+    retry_times?: number;
+    login_any_time?: boolean;
+  };
+  groq?: SizeCfg & {
+    accounts: GoogleMailAccount[];
+  };
   glm?: {
     token_limit: { [key: string]: number };
   };
