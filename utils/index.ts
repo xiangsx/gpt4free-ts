@@ -23,6 +23,7 @@ import path from 'path';
 import Mint from 'mint-filter';
 import { sha3_512 as sha3 } from 'js-sha3';
 import axios, { AxiosRequestConfig } from 'axios';
+import { string } from 'joi';
 const tunnel = require('tunnel');
 
 const turndownService = new TurndownService({ codeBlockStyle: 'fenced' });
@@ -900,7 +901,7 @@ export const replaceLocalUrl = (url: string) => {
     }
   }
   return fileUrl;
-}
+};
 
 export async function downloadFile(fileUrl: string): Promise<{
   file_name: string;
@@ -1232,4 +1233,17 @@ export function preOrderUserAssistant(messages: Message[]) {
     newMessages.push(v);
   }
   return newMessages;
+}
+
+export function parseCookie(str: string): {
+  name: string;
+  value: string;
+  expires: number;
+} {
+  const [name, value, expires] = str.split(';')[0].split('=');
+  return {
+    name,
+    value,
+    expires: parseInt(expires),
+  };
 }

@@ -349,6 +349,14 @@ export class Pool<U extends Info, T extends PoolChild<U>> {
   findOne(func: (v: U) => boolean) {
     return this.allInfos.find(func);
   }
+
+  updateOneInfo(id: string, v: Partial<U>) {
+    const info = this.allInfos.find((v) => v.id === id);
+    if (info) {
+      Object.assign(info, v);
+      this.save();
+    }
+  }
 }
 
 class PuppeteerUserDirPool {

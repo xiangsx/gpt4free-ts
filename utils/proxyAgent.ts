@@ -44,6 +44,7 @@ import { io } from 'socket.io-client';
 import { ManagerOptions } from 'socket.io-client/build/esm/manager';
 import { Socket, SocketOptions } from 'socket.io-client/build/esm/socket';
 import { puppeteerUserDirPool } from './pool';
+import { AxiosInterceptorOptions, AxiosResponse } from 'axios/index';
 const tunnel = require('tunnel');
 
 export const getProxy = () => {
@@ -72,9 +73,10 @@ export function CreateNewAxios(
   options?: {
     proxy?: string | boolean | undefined;
     errorHandler?: (error: AxiosError) => void;
+    middleware?: (v: AxiosResponse) => AxiosResponse | Promise<AxiosResponse>;
   },
 ) {
-  const { proxy, errorHandler } = options || {};
+  const { proxy, errorHandler, middleware } = options || {};
   const createConfig: CreateAxiosDefaults = { timeout: 15 * 1000, ...config };
   createConfig.proxy = false;
   if (proxy) {
@@ -103,6 +105,9 @@ export function CreateNewAxios(
         return Promise.reject(error);
       },
     );
+  }
+  if (middleware) {
+    instance.interceptors.response.use(middleware);
   }
 
   return instance;
