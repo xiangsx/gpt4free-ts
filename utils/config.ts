@@ -109,7 +109,7 @@ interface ConfigData {
     stream_timeout?: number;
   };
   luma?: SizeCfg & {
-    accounts: GoogleMailAccount[];
+    accounts: (GoogleMailAccount & { luma_session?: string })[];
     model: ModelType;
     retry_times?: number;
     login_any_time?: boolean;
