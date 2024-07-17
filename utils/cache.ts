@@ -168,11 +168,7 @@ export class StringCache<T> {
   private readonly expire: number;
   private logger!: Logger;
 
-  constructor(
-    redis: Redis,
-    key: string,
-    expire: number,
-  ) {
+  constructor(redis: Redis, key: string, expire: number) {
     this.redis = redis;
     this._key = key;
     this.expire = expire;
@@ -192,9 +188,14 @@ export class StringCache<T> {
     return parseJSON<T | null>(v, v as T);
   }
 
-  async set(subkey: string, value: string): Promise<void> {
-    this.logger.debug(`set ${value}`);
-    await this.redis.set(this.key(subkey), value, 'EX', this.expire);
+  async set(subkey: string, value: T): Promise<void> {
+    this.logger.debug(`set ${subkey}:${value}`);
+    await this.redis.set(
+      this.key(subkey),
+      JSON.stringify(value),
+      'EX',
+      this.expire,
+    );
   }
 
   async clear(subkey: string): Promise<void> {
