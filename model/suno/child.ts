@@ -4,14 +4,26 @@ import {
   BillInfo,
   Clip,
   CreateSongRes,
+  LyricTaskRes,
   SessionInfo,
   SongOptions,
+  GetUploadTargetRes,
+  GetUploadFileRes,
 } from './define';
 import { AxiosInstance } from 'axios';
 import { CreateNewAxios, getProxy } from '../../utils/proxyAgent';
 import { Page } from 'puppeteer';
 import moment from 'moment';
-import { randomUserAgent } from '../../utils';
+import {
+  ComError,
+  downloadAndUploadCDN,
+  downloadFile,
+  randomUserAgent,
+  sleep,
+} from '../../utils';
+import FormData from 'form-data';
+import fs from 'fs';
+import { getAudioDuration } from '../../utils/file';
 
 export class Child extends ComChild<Account> {
   private client!: AxiosInstance;
@@ -165,13 +177,124 @@ export class Child extends ComChild<Account> {
   }
 
   async feedSong(ids: string[]) {
-    const res: { data: Clip[] } = await this.client.get(
-      'https://studio-api.suno.ai/api/feed/',
+    const res: { data: Clip[] } = await this.client.get('/feed/v2', {
+      params: { ids: ids.join(',') },
+    });
+    return res.data;
+  }
+
+  async lyrics(prompt: string) {
+    const res: { data: { id: string } } = await this.client.post(
+      '/generate/lyrics/',
       {
-        params: { ids: ids.join(',') },
+        params: { prompt },
+      },
+    );
+    if (!res.data.id) {
+      throw new ComError(
+        'lyrics not found',
+        ComError.Status.InternalServerError,
+      );
+    }
+    return res.data;
+  }
+
+  async lyricsTask(id: string) {
+    const res = await this.client.get<LyricTaskRes>(`/generate/lyrics/${id}/`);
+    return res.data;
+  }
+
+  async getUploadTarget(
+    extension: string = 'mp3',
+  ): Promise<GetUploadTargetRes> {
+    const res = await this.client.post<GetUploadTargetRes>('/uploads/audio/', {
+      extension,
+    });
+    return res.data;
+  }
+
+  async uploadFinish(id: string, file_name: string) {
+    await this.client.post(`/uploads/audio/${id}/upload-finish/`, {
+      upload_type: 'file_upload',
+      upload_filename: 'Endless Love.mp3',
+    });
+  }
+
+  async getUploadFileInfo(id: string): Promise<GetUploadFileRes> {
+    const res = await this.client.get<GetUploadFileRes>(
+      `/uploads/audio/${id}/`,
+    );
+    return res.data;
+  }
+
+  async initClip(id: string): Promise<string> {
+    //https://studio-api.suno.ai/api/uploads/audio/780cfb42-b343-4c6c-8f7d-aafa781b0c6d/initialize-clip/
+    const res = await this.client.post<{ clip_id: string }>(
+      `/uploads/audio/${id}/initialize-clip/`,
+    );
+    return res.data.clip_id;
+  }
+
+  async setMetadata(clip_id: string, image_url: string, title: string) {
+    // https://studio-api.suno.ai/api/gen/3a5480b7-d0ad-4fe8-89ae-208e23060f49/set_metadata/
+    const res = await this.client.post<{ id: string; title: string }>(
+      `/gen/${clip_id}/set_metadata/`,
+      {
+        image_url,
+        is_audio_upload_tos_accepted: true,
+        title,
       },
     );
     return res.data;
+  }
+
+  async uploadFile(file_url: string) {
+    const localFile = await downloadAndUploadCDN(file_url);
+    const { outputFilePath, file_name, ext, mime } = await downloadFile(
+      localFile,
+    );
+    const target = await this.getUploadTarget(ext);
+    const form = new FormData();
+    for (const key in target.fields) {
+      form.append(key, target.fields[key]);
+    }
+    form.append('file', fs.createReadStream(outputFilePath), {
+      filename: file_name,
+      contentType: mime,
+    });
+    const client = CreateNewAxios({}, { proxy: this.info.proxy });
+    this.logger.info(JSON.stringify(form.getHeaders()));
+    await client.post(target.url, form, {
+      headers: {
+        'User-Agent': this.info.ua,
+        Origin: 'https://suno.com',
+        Referer: 'https://suno.com/',
+        ...form.getHeaders(),
+      },
+    });
+    await this.uploadFinish(target.id, file_name);
+    let uploadedFile: GetUploadFileRes | null = null;
+    for (let i = 0; i < 10; i++) {
+      uploadedFile = await this.getUploadFileInfo(target.id);
+      if (uploadedFile.status === 'complete') {
+        break;
+      }
+      await sleep(5 * 1000);
+    }
+    if (!uploadedFile || uploadedFile?.status !== 'complete') {
+      throw new ComError(
+        `upload file failed: ${uploadedFile?.error_message}`,
+        ComError.Status.InternalServerError,
+      );
+    }
+    const clip_id = await this.initClip(target.id);
+    await this.setMetadata(
+      clip_id,
+      uploadedFile.image_url!,
+      uploadedFile.title!,
+    );
+    const duration = await getAudioDuration(outputFilePath);
+    return { clip_id, duration };
   }
 
   async queryBill() {
@@ -195,6 +318,7 @@ export class Child extends ComChild<Account> {
       useCount: (this.info.useCount || 0) + 1,
     });
   }
+
   destroy(options?: DestroyOptions) {
     super.destroy(options);
     if (this.itl) {

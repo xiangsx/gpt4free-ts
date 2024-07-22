@@ -2,6 +2,8 @@ import { ComInfo } from '../../utils/pool';
 import { Protocol } from 'puppeteer';
 import exp from 'constants';
 import { ModelType } from '../base';
+import { DefaultRedis, StringCache } from '../../utils/cache';
+import { string } from 'joi';
 
 export interface Account extends ComInfo {
   token: string;
@@ -186,13 +188,15 @@ export const SongThemes = [
 
 export interface SongOptions {
   prompt: string;
-  tags: string;
+  tags?: string;
   mv: ModelType;
-  title: string;
-  make_instrumental?: boolean;
+  title?: string;
+  continue_clip_id?: string | null;
+  continue_at?: number | null;
+  infill_start_s?: number | null;
+  infill_end_s?: number | null;
   gpt_description_prompt?: string;
-  continue_clip_id: null | string;
-  continue_at: null | string;
+  make_instrumental?: boolean;
 }
 
 export interface CreateSongRes {
@@ -239,4 +243,49 @@ interface Metadata {
   stream: boolean;
   error_type: null;
   error_message: null;
+}
+
+export interface GoAmzGenReq {
+  custom_mode: boolean;
+  mv: ModelType.ChirpV3_0 | ModelType.ChirpV3_5;
+  input: GoAmzGenInput;
+}
+
+export interface GoAmzGenInput {
+  prompt: string;
+  tags?: string;
+  title?: string;
+  continue_clip_id?: string | null;
+  continue_at?: number | null;
+  infill_start_s?: number | null;
+  infill_end_s?: number | null;
+  gpt_description_prompt?: string;
+  make_instrumental?: boolean;
+}
+
+export interface LyricTaskRes {
+  text: string;
+  title: string;
+  status: 'running' | 'complete';
+}
+
+export const SunoServerCache = new StringCache<string>(
+  DefaultRedis,
+  'suno_server_cache',
+  24 * 60 * 60,
+);
+
+export interface GetUploadTargetRes {
+  id: string;
+  url: string;
+  fields: Record<string, string>;
+}
+
+export interface GetUploadFileRes {
+  id: string;
+  status: 'passed_audio_processing' | 'passed_artist_moderation' | 'complete';
+  error_message: string | null;
+  s3_id: string | null;
+  title: string | null;
+  image_url: string | null;
 }

@@ -33,3 +33,19 @@ export const checkQuery = (
     await next();
   };
 };
+
+export const checkParams = (
+  schema: {
+    [key: string]: Joi.Schema;
+  },
+  options?: {} & ValidationOptions,
+) => {
+  return async (ctx: Context, next: Next) => {
+    const { params } = ctx;
+    const { error } = Joi.object(schema).validate(params, options);
+    if (error) {
+      throw new ComError(error.message, ComError.Status.ParamsError);
+    }
+    await next();
+  };
+}

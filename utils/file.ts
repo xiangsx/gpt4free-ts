@@ -5,7 +5,12 @@ import ffmpegInstaller from '@ffmpeg-installer/ffmpeg';
 import ffprobeInstaller from '@ffprobe-installer/ffprobe';
 import path from 'path';
 import { CreateNewAxios } from './proxyAgent';
-import { downloadAndUploadCDN, downloadFile, replaceLocalUrl, uploadFile } from './index';
+import {
+  downloadAndUploadCDN,
+  downloadFile,
+  replaceLocalUrl,
+  uploadFile,
+} from './index';
 import { v4 } from 'uuid';
 
 class SyncFileDebouncer {
@@ -89,7 +94,9 @@ export async function extractVideoLastFrame(videoUrl: string): Promise<string> {
   // 下载视频到本地临时文件
   const localURL = await downloadAndUploadCDN(videoUrl);
   const url = replaceLocalUrl(localURL);
-  const response = await CreateNewAxios({}, { proxy: false }).get(url, { responseType: 'stream' });
+  const response = await CreateNewAxios({}, { proxy: false }).get(url, {
+    responseType: 'stream',
+  });
   const writer = fs.createWriteStream(videoPath);
 
   response.data.pipe(writer);
@@ -128,11 +135,11 @@ export async function extractVideoLastFrame(videoUrl: string): Promise<string> {
  * @param videoPath 视频文件路径
  */
 async function getVideoInfo(videoPath: string): Promise<{
-  duration: number,
-  frameRate: number,
-  codec: string,
-  width: number,
-  height: number
+  duration: number;
+  frameRate: number;
+  codec: string;
+  width: number;
+  height: number;
 }> {
   return new Promise((resolve, reject) => {
     ffmpeg.ffprobe(videoPath, (err, metadata) => {
@@ -158,11 +165,21 @@ async function getVideoInfo(videoPath: string): Promise<{
  * @param height 视频高度
  * @param frameRate 视频帧率
  */
-async function convertVideoFormat(inputPath: string, codec: string, width: number, height: number, frameRate: number): Promise<void> {
+async function convertVideoFormat(
+  inputPath: string,
+  codec: string,
+  width: number,
+  height: number,
+  frameRate: number,
+): Promise<void> {
   const tempOutputPath = `run/${v4()}.mp4`;
 
   // 检测格式是不是已经是目标格式
-  const { codec: inputCodec, width: inputWidth, height: inputHeight } = await getVideoInfo(inputPath);
+  const {
+    codec: inputCodec,
+    width: inputWidth,
+    height: inputHeight,
+  } = await getVideoInfo(inputPath);
   if (inputCodec === codec && inputWidth === width && inputHeight === height) {
     return;
   }
@@ -194,12 +211,26 @@ async function convertVideoFormat(inputPath: string, codec: string, width: numbe
  * @param videoPath2 第二个视频文件路径
  * @param outputVideoPath 输出合并视频文件路径
  */
-export async function mergeVideosExcludeLastFrame(video_url1: string, video_url2: string): Promise<string> {
-  const [video1, video2] = await Promise.all([downloadFile(video_url1), downloadFile(video_url2)]);
+export async function mergeVideosExcludeLastFrame(
+  video_url1: string,
+  video_url2: string,
+): Promise<string> {
+  const [video1, video2] = await Promise.all([
+    downloadFile(video_url1),
+    downloadFile(video_url2),
+  ]);
   const outputVideoPath = `run/${v4()}.mp4`;
 
-  const { duration, codec, width, height, frameRate } = await getVideoInfo(video2.outputFilePath);
-  await convertVideoFormat(video1.outputFilePath, codec, width, height, frameRate);
+  const { duration, codec, width, height, frameRate } = await getVideoInfo(
+    video2.outputFilePath,
+  );
+  await convertVideoFormat(
+    video1.outputFilePath,
+    codec,
+    width,
+    height,
+    frameRate,
+  );
 
   // 合并两个视频
   await new Promise<void>((resolve, reject) => {
@@ -221,4 +252,26 @@ export async function mergeVideosExcludeLastFrame(video_url1: string, video_url2
   const videoURL = await uploadFile(outputVideoPath);
   fs.unlinkSync(outputVideoPath);
   return videoURL;
+}
+
+/**
+ * 获取音频文件的时长
+ * @param filePath 音频文件的路径
+ * @returns 一个 Promise，返回音频的时长（秒）
+ */
+export async function getAudioDuration(filePath: string): Promise<number> {
+  return new Promise((resolve, reject) => {
+    ffmpeg.ffprobe(filePath, (err, metadata) => {
+      if (err) {
+        reject(err);
+      } else {
+        const duration = metadata.format.duration;
+        if (!duration) {
+          reject('get audio duration failed');
+          return;
+        }
+        resolve(duration);
+      }
+    });
+  });
 }

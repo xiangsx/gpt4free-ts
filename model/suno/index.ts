@@ -1,6 +1,12 @@
 import { Chat, ChatOptions, ChatRequest, ModelType, Site } from '../base';
 import { Pool } from '../../utils/pool';
-import { Account, Clip, SongOptions } from './define';
+import {
+  Account,
+  Clip,
+  GoAmzGenReq,
+  SongOptions,
+  SunoServerCache,
+} from './define';
 import { Child } from './child';
 import { Config } from '../../utils/config';
 import { v4 } from 'uuid';
@@ -19,6 +25,8 @@ import { prompt } from './prompt';
 import moment from 'moment';
 import Application from 'koa';
 import Router from 'koa-router';
+import { checkBody, checkParams, checkQuery } from '../../utils/middleware';
+import Joi from 'joi';
 
 export class Suno extends Chat {
   constructor(options?: ChatOptions) {
@@ -294,9 +302,195 @@ export class Suno extends Chat {
   }
 
   dynamicRouter(router: Router) {
-    router.post('/generate', async (ctx) => {
-      ctx.body = 'hello';
-    });
+    router.post(
+      '/goamz/generate',
+      (ctx) =>
+        (ctx.request.body as GoAmzGenReq)?.custom_mode
+          ? checkBody({
+              custom_mode: Joi.boolean().required(),
+              mv: Joi.string()
+                .valid(ModelType.ChirpV3_0, ModelType.ChirpV3_5)
+                .required(),
+              input: Joi.object({
+                prompt: Joi.string().optional(),
+                gpt_description_prompt: Joi.string().optional(),
+                make_instrumental: Joi.boolean().optional(),
+              }).required(),
+            })
+          : checkBody(
+              {
+                custom_mode: Joi.boolean().required(),
+                mv: Joi.string()
+                  .valid(ModelType.ChirpV3_0, ModelType.ChirpV3_5)
+                  .required(),
+                input: Joi.object({
+                  infill_start_s: Joi.number().allow(null).optional(),
+                  infill_end_s: Joi.number().allow(null).optional(),
+                  continue_at: Joi.number().allow(null).required(),
+                  continue_clip_id: Joi.string().allow(null).required(),
+                  prompt: Joi.string().allow('').optional(),
+                  tags: Joi.string().required(),
+                  title: Joi.string().required(),
+                }).required(),
+              },
+              { allowUnknown: true },
+            ),
+      async (ctx) => {
+        const req = ctx.request.body as GoAmzGenReq;
+        ctx.body = await retryFunc(
+          async () => {
+            const child = await this.pool.pop();
+            const opt: SongOptions = {
+              mv: req.mv,
+              ...req.input,
+            };
+            const res = await child.createSong(opt);
+            await SunoServerCache.set(res.id, child.info.id);
+            return {
+              code: 200,
+              data: { ...res, input: JSON.stringify(req.input), id: res.id },
+              messages: 'success',
+            } as { code: number; messages: string };
+          },
+          3,
+          { defaultV: { code: 500, messages: 'error' } },
+        );
+      },
+    );
+
+    router.get(
+      '/goamz/music/:id',
+      checkParams({ id: Joi.string().required() }),
+      async (ctx) => {
+        const id = ctx.params.id;
+        const server_id = await SunoServerCache.get(id);
+        if (!server_id) {
+          throw new Error('lyrics task not found');
+        }
+        const child = await this.pool.popIf((v) => v.id === server_id);
+        ctx.body = await child.feedSong([id]);
+      },
+    );
+
+    router.get(
+      '/goamz/lyrics',
+      checkBody({ prompt: Joi.string().allow('').optional() }),
+      async (ctx) => {
+        const prompt = ctx.query.prompt as string;
+        const child = await this.pool.pop();
+        const res = await child.lyrics(prompt);
+        await SunoServerCache.set(res.id, child.info.id);
+        ctx.body = res;
+      },
+    );
+    router.get(
+      '/goamz/lyrics/:id',
+      checkParams({ id: Joi.string().required() }),
+      async (ctx) => {
+        const id = ctx.params.id;
+        const server_id = await SunoServerCache.get(id);
+        if (!server_id) {
+          throw new Error('lyrics task not found');
+        }
+        const child = await this.pool.popIf((v) => v.id === server_id);
+        ctx.body = await child.lyricsTask(id);
+      },
+    );
+
+    router.post(
+      '/generate',
+      checkBody({
+        prompt: Joi.string().allow('').required(),
+        tags: Joi.string().optional(),
+        mv: Joi.string().required(),
+        title: Joi.string().optional(),
+        continue_clip_id: Joi.string().allow(null).optional(),
+        continue_at: Joi.number().allow(null).optional(),
+        infill_start_s: Joi.number().allow(null).optional(),
+        infill_end_s: Joi.number().allow(null).optional(),
+        gpt_description_prompt: Joi.string().optional(),
+        make_instrumental: Joi.boolean().optional(),
+      }),
+      async (ctx) => {
+        const req = ctx.request.body as SongOptions;
+        let server_id: string | null = null;
+        if (req.continue_clip_id) {
+          server_id = await SunoServerCache.get(req.continue_clip_id);
+        }
+        const res = await retryFunc(
+          async () => {
+            const child = server_id
+              ? await this.pool.popIf((v) => v.id === server_id)
+              : await this.pool.pop();
+            const res = await child.createSong(req);
+            const [id1, id2] = res.clips.map((v) => v.id);
+            await SunoServerCache.set(id1, child.info.id);
+            await SunoServerCache.set(id2, child.info.id);
+            return res;
+          },
+          3,
+          {},
+        );
+        ctx.body = res;
+      },
+    );
+
+    router.get(
+      '/feed',
+      checkQuery({
+        ids: Joi.string().required(),
+      }),
+      async (ctx) => {
+        const req = ctx.request.query as { ids: string };
+        const ids = req.ids.split(',');
+        const [id] = ids;
+        const server_id = await SunoServerCache.get(id);
+        const child = await this.pool.popIf((v) => v.id === server_id);
+        ctx.body = await child.feedSong(ids);
+      },
+    );
+
+    router.post(
+      '/generate/lyrics',
+      checkBody({ prompt: Joi.string().required() }),
+      async (ctx) => {
+        const { prompt } = ctx.request.body as any;
+        await retryFunc(async () => {
+          const child = await this.pool.pop();
+          const res = await child.lyrics(prompt);
+          await SunoServerCache.set(res.id, child.info.id);
+          ctx.body = res;
+        }, 3);
+      },
+    );
+
+    router.get(
+      '/generate/lyrics/:id',
+      checkQuery({ id: Joi.string().required() }),
+      async (ctx) => {
+        const id = ctx.params.id;
+        const server_id = await SunoServerCache.get(id);
+        if (!server_id) {
+          throw new Error('lyrics task not found');
+        }
+        const child = await this.pool.popIf((v) => v.id === server_id);
+        ctx.body = await child.lyricsTask(id);
+      },
+    );
+
+    router.post(
+      '/uploads/audio',
+      checkBody({
+        url: Joi.string().required(),
+      }),
+      async (ctx) => {
+        const { url } = ctx.request.body as any;
+        const child = await this.pool.pop();
+        const res = await child.uploadFile(url);
+        await SunoServerCache.set(res.clip_id, child.info.id);
+        ctx.body = res;
+      },
+    );
     return true;
   }
 }
