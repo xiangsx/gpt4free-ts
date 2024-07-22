@@ -5,14 +5,7 @@ import { PoeAuto } from '../poeauto';
 import winston from 'winston';
 export const InputSelector = 'textarea';
 export const ClearSelector = 'footer > div > div > div > button > svg';
-export const defaultModelConfig: Map<
-  ModelType,
-  {
-    context_tokens: number;
-    key_name: string;
-    points: number;
-  }
-> = new Map([
+export const defaultModelConfig: Map<ModelType, PoeModelConfig> = new Map([
   [
     ModelType.Llama370BT,
     { context_tokens: 2400, key_name: 'Llama-3-70B-T', points: 75 },
@@ -21,7 +14,7 @@ export const defaultModelConfig: Map<
   [ModelType.GPT4o, { context_tokens: 2400, key_name: 'GPT-4o', points: 300 }],
   [
     ModelType.DallE3,
-    { context_tokens: 2400, key_name: 'DALL-E-3', points: 1500 },
+    { context_tokens: 2400, key_name: 'DALL-E-3', points: 1500, image: true },
   ],
   [
     ModelType.ClaudeInstant_100k,
@@ -74,7 +67,12 @@ export const defaultModelConfig: Map<
   ],
   [
     ModelType.StableDiffusion,
-    { context_tokens: 2000, key_name: 'StableDiffusionXL', points: 80 },
+    {
+      context_tokens: 2000,
+      key_name: 'StableDiffusionXL',
+      points: 80,
+      image: true,
+    },
   ],
   [
     ModelType.Fw_mistral_7b,
@@ -86,7 +84,12 @@ export const defaultModelConfig: Map<
   ],
   [
     ModelType.PlaygroundV2,
-    { context_tokens: 2000, key_name: 'Playground-v2', points: 40 },
+    {
+      context_tokens: 2000,
+      key_name: 'Playground-v2',
+      points: 40,
+      image: true,
+    },
   ],
   [
     ModelType.GeminiPro,
@@ -162,11 +165,21 @@ export const defaultModelConfig: Map<
   ],
   [
     ModelType.PlaygroundV2_5,
-    { context_tokens: 5000, key_name: 'Playground-V2.5', points: 200 },
+    {
+      context_tokens: 5000,
+      key_name: 'Playground-V2.5',
+      points: 200,
+      image: true,
+    },
   ],
   [
     ModelType.StableDiffusion3_2B,
-    { context_tokens: 5000, key_name: 'Stable-Diffusion-3-2B', points: 10 },
+    {
+      context_tokens: 5000,
+      key_name: 'Stable-Diffusion-3-2B',
+      points: 10,
+      image: true,
+    },
   ],
 ]);
 

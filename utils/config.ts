@@ -38,6 +38,7 @@ export type PoeModelConfig = {
   context_tokens: number;
   key_name: string;
   points: number;
+  image?: boolean;
 };
 
 // 首先定义配置的数据类型
