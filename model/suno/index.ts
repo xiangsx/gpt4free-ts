@@ -187,13 +187,14 @@ export class Suno extends Chat {
           let ids = song.clips.map((v) => v.id);
           let streaming = false;
           for (let i = 0; i < 120; i++) {
-            const clips = await child.feedSong(ids).catch((e) => {
+            const res = await child.feedSong(ids).catch((e) => {
               this.logger.error(e.message);
             });
-            if (!clips) {
+            if (!res) {
               await sleep(1000);
               continue;
             }
+            const { clips } = res;
             if (!streaming && clips.every((v) => v.status === 'streaming')) {
               stream.write(Event.message, {
                 content: '\n\n***音乐正在生成中, 可以边播边生成***\n',

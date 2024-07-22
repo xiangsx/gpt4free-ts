@@ -177,7 +177,7 @@ export class Child extends ComChild<Account> {
   }
 
   async feedSong(ids: string[]) {
-    const res: { data: Clip[] } = await this.client.get('/feed/v2', {
+    const res: { data: { clips: Clip[] } } = await this.client.get('/feed/v2', {
       params: { ids: ids.join(',') },
     });
     return res.data;
