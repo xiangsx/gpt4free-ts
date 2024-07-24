@@ -610,6 +610,7 @@ export const chatSaveHandler = async (ctx: Context) => {
     await SaveMessagesToLogstash(req);
     saved += 1;
   }
+  console.log(`saved ${saved} chats`);
   ctx.body = { success: true, saved };
 };
 
