@@ -9,14 +9,14 @@ import { Page, Protocol } from 'puppeteer';
 import moment from 'moment';
 import { loginGoogle } from '../../utils/puppeteer';
 import { ComError, Event, EventStream, parseJSON, sleep } from '../../utils';
-import { ChatRequest } from '../base';
 import es from 'event-stream';
 
 export class Child extends ComChild<Account> {
   private client!: WebFetchWithPage;
   private page!: Page;
+  private apipage!: Page;
   private proxy: string = this.info.proxy || getProxy();
-  checkUsageTimer?: NodeJS.Timeout;
+  private updateTimer: NodeJS.Timeout | null = null;
 
   async saveCookies() {
     const cookies = await this.page.cookies();
@@ -39,7 +39,7 @@ export class Child extends ComChild<Account> {
   }
 
   async fetch<T>(path: string, requestInit: RequestInit): Promise<T> {
-    const res = (await this.page.evaluate(
+    const res = (await this.apipage.evaluate(
       (token, path, requestInit) => {
         return new Promise((resolve) => {
           fetch(`https://api.groq.com${path}`, {
@@ -82,7 +82,6 @@ export class Child extends ComChild<Account> {
     )) as string;
     const data = parseJSON<T | null>(res, null);
     if (!data) {
-      await sleep(10 * 60 * 1000);
       throw new Error(`groq fetch failed: ${res}`);
     }
     return data;
@@ -201,12 +200,18 @@ export class Child extends ComChild<Account> {
     await sleep(3000);
     this.update({ proxy: this.proxy });
     await this.saveCookies();
-    await this.page.goto('https://api.groq.com/');
+    this.apipage = await this.page.browser().newPage();
+    await this.apipage.goto('https://api.groq.com/');
     await this.saveUA();
     await this.saveOrgID();
     // await page.reload();
     // 保存cookies
-    this.client = new WebFetchWithPage(this.page);
+    this.client = new WebFetchWithPage(this.apipage);
+    // @ts-ignore
+    this.updateTimer = setInterval(async () => {
+      await this.page.reload();
+      await this.saveCookies();
+    }, 60 * 1000);
   }
 
   initFailed() {
@@ -230,5 +235,8 @@ export class Child extends ComChild<Account> {
       ?.browser()
       .close()
       .catch((err) => this.logger.error(err.message));
+    if (this.updateTimer) {
+      clearInterval(this.updateTimer);
+    }
   }
 }
