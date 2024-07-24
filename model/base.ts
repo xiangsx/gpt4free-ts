@@ -307,6 +307,7 @@ export enum Site {
   Doc2x = 'doc2x',
   OpenchatGateway = 'openchatgateway',
   Luma = 'luma',
+  Groq = 'groq',
   Bibi = 'bibi',
 }
 
