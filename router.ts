@@ -35,6 +35,9 @@ import FormData from 'form-data';
 import fs from 'fs';
 import { v4 } from 'uuid';
 import { Config } from './utils/config';
+import { AwsLambda } from 'elastic-apm-node/types/aws-lambda';
+import { checkBody } from './utils/middleware';
+import Joi from 'joi';
 
 const supportsHandler = async (ctx: Context) => {
   const result: Support[] = [];
@@ -597,6 +600,19 @@ function logRouters(router: Router) {
   });
 }
 
+export const chatSaveHandler = async (ctx: Context) => {
+  const { data } = ctx.request.body as { data: ChatRequest[] };
+  let saved = 0;
+  for (const req of data) {
+    if (!req.model || !req.messages?.length) {
+      continue;
+    }
+    await SaveMessagesToLogstash(req);
+    saved += 1;
+  }
+  ctx.body = { success: true, saved };
+};
+
 export const registerApp = () => {
   const app = new Koa();
   // 允许所有域名
@@ -638,6 +654,19 @@ export const registerApp = () => {
   router.post('/:site/v1/song/create', songCreateHandle);
   router.get('/v1/song/feed', songFeedHandle);
   router.get('/:site/v1/song/feed', songFeedHandle);
+  router.post(
+    '/chat/save',
+    checkBody({
+      data: Joi.array()
+        .items(
+          Joi.object({
+            model: Joi.string().required(),
+          }).unknown(true),
+        )
+        .min(1),
+    }),
+    chatSaveHandler,
+  );
   chatModel.forEach((chat, site) => {
     // 增加前缀 dynamic/:site
     const dynamicRouter = new Router({ prefix: `/dynamic/${site}` });
