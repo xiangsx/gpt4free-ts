@@ -149,19 +149,6 @@ export class Child extends ComChild<Account> {
     return this.info.id + '|' + res.data.data.generation.id;
   }
 
-  async fetchVideo(id: string) {
-    return await this.page.evaluate((id) => {
-      const selectors = document.querySelectorAll('video > source');
-      // @ts-ignore
-      const src_list = [];
-      selectors.forEach((v) => {
-        src_list.push(v.getAttribute('src'));
-      });
-      // @ts-ignore
-      return src_list.find((v) => v.indexOf(id) !== -1);
-    }, id);
-  }
-
   async myLibrary(id: string) {
     const result = await this.fetch<string>('/my-library', {
       body: JSON.stringify([{ ids: [id] }]),

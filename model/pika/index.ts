@@ -113,6 +113,7 @@ export class Pika extends Chat {
               '/cdn/download/',
             )})\n\n`,
           });
+          // @ts-ignore
           clearInterval(itl);
           stream.write(Event.done, { content: '' });
           stream.end();
