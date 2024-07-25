@@ -160,6 +160,8 @@ export enum ModelType {
   Claude3Sonnet200k = 'claude-3-sonnet-200k',
   Claude3Opus200k = 'claude-3-opus-200k',
   GetGizmoInfo = 'get-gizmo-info',
+  GetGPTs = 'get-gpts',
+  BatchGetGPTs = 'batch-get-gpts',
   SearchGPTS = 'search-gpts',
   SearchGPTSChat = 'search-gpts-chat',
   MJChat = 'mj-chat',
