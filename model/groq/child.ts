@@ -98,66 +98,75 @@ export class Child extends ComChild<Account> {
   }
 
   async askForStream(req: any, stream: EventStream) {
-    const res = await this.client.fetch('/openai/v1/chat/completions', {
-      body: JSON.stringify(req),
-      method: 'POST',
-      headers: {
-        accept: 'application/json',
-        'accept-language': 'en-US,en;q=0.9,zh-CN;q=0.8,zh;q=0.7,en-GB;q=0.6',
-        authorization: `Bearer ${this.token}`,
-        'content-type': 'application/json',
-        'groq-app': 'chat',
-        'groq-organization': this.info.org_id,
-        priority: 'u=1, i',
-        'sec-ch-ua':
-          '"Not/A)Brand";v="8", "Chromium";v="126", "Microsoft Edge";v="126"',
-        'sec-ch-ua-mobile': '?0',
-        'sec-ch-ua-platform': '"macOS"',
-        'sec-fetch-dest': 'empty',
-        'sec-fetch-mode': 'cors',
-        'sec-fetch-site': 'same-site',
-        'x-groq-keep-alive-pings': 'true',
-        'x-stainless-arch': 'unknown',
-        'x-stainless-lang': 'js',
-        'x-stainless-os': 'Unknown',
-        'x-stainless-package-version': '0.4.0',
-        'x-stainless-runtime': 'browser:chrome',
-        'x-stainless-runtime-version': '126.0.0',
-      },
-      referrer: 'https://groq.com/',
-      referrerPolicy: 'strict-origin-when-cross-origin',
-      mode: 'cors',
-      credentials: 'include',
-    });
-    res.pipe(es.split(/\r?\n\r?\n/)).pipe(
-      es.map(async (chunk: any, cb: any) => {
-        const dataStr = chunk.replace('data: ', '');
-        if (!dataStr) {
-          return;
-        }
-        if (dataStr === '[DONE]') {
-          return;
-        }
-        const data = parseJSON(dataStr, {} as any);
-        if (!data?.choices) {
-          stream.write(Event.error, { error: 'not found data.choices' });
-          stream.end();
-          return;
-        }
-        const choices = data.choices || [];
-        const { delta, finish_reason } = choices[0] || {};
-        if (finish_reason === 'stop') {
-          return;
-        }
-        if (delta) {
-          stream.write(Event.message, delta);
-        }
-      }),
-    );
-    res.on('close', () => {
-      stream.write(Event.done, { content: '' });
-      stream.end();
-    });
+    try {
+      const res = await this.client.fetch('/openai/v1/chat/completions', {
+        body: JSON.stringify(req),
+        method: 'POST',
+        headers: {
+          accept: 'application/json',
+          'accept-language': 'en-US,en;q=0.9,zh-CN;q=0.8,zh;q=0.7,en-GB;q=0.6',
+          authorization: `Bearer ${this.token}`,
+          'content-type': 'application/json',
+          'groq-app': 'chat',
+          'groq-organization': this.info.org_id,
+          priority: 'u=1, i',
+          'sec-ch-ua':
+            '"Not/A)Brand";v="8", "Chromium";v="126", "Microsoft Edge";v="126"',
+          'sec-ch-ua-mobile': '?0',
+          'sec-ch-ua-platform': '"macOS"',
+          'sec-fetch-dest': 'empty',
+          'sec-fetch-mode': 'cors',
+          'sec-fetch-site': 'same-site',
+          'x-groq-keep-alive-pings': 'true',
+          'x-stainless-arch': 'unknown',
+          'x-stainless-lang': 'js',
+          'x-stainless-os': 'Unknown',
+          'x-stainless-package-version': '0.4.0',
+          'x-stainless-runtime': 'browser:chrome',
+          'x-stainless-runtime-version': '126.0.0',
+        },
+        referrer: 'https://groq.com/',
+        referrerPolicy: 'strict-origin-when-cross-origin',
+        mode: 'cors',
+        credentials: 'include',
+      });
+      res.pipe(es.split(/\r?\n\r?\n/)).pipe(
+        es.map(async (chunk: any, cb: any) => {
+          const dataStr = chunk.replace('data: ', '');
+          if (!dataStr) {
+            return;
+          }
+          if (dataStr === '[DONE]') {
+            return;
+          }
+          const data = parseJSON(dataStr, {} as any);
+          if (!data?.choices) {
+            stream.write(Event.error, { error: 'not found data.choices' });
+            stream.end();
+            return;
+          }
+          const choices = data.choices || [];
+          const { delta, finish_reason } = choices[0] || {};
+          if (finish_reason === 'stop') {
+            return;
+          }
+          if (delta) {
+            stream.write(Event.message, delta);
+          }
+        }),
+      );
+      res.on('close', () => {
+        stream.write(Event.done, { content: '' });
+        stream.end();
+      });
+    } catch (e: any) {
+      if (e.message.indexOf('restricted') > -1) {
+        this.logger.info('org restricted');
+        this.update({ refresh_time: moment().add(1, 'day').unix() });
+        this.destroy({ delFile: false, delMem: true });
+      }
+      throw e;
+    }
   }
 
   async init() {
