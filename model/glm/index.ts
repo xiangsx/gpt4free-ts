@@ -85,7 +85,7 @@ function generateAuthToken(apiKey: string): string {
   // 定义JWT的payload
   const payload = {
     api_key: id,
-    exp: Math.floor(now / 1000) + 60 * 60, // 设置token过期时间为1小时后
+    exp: Math.floor(now / 1000) + 120 * 24 * 60 * 60, // 设置token过期时间为1小时后
     timestamp: now,
   };
 
