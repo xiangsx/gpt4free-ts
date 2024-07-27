@@ -242,11 +242,21 @@ export class GLM extends Chat {
     router.post('/videos/generations', async (ctx) => {
       const body = ctx.request.body;
       const res = await this.client.post('/videos/generations', body);
+      this.logger.info(
+        `/videos/generations,req: ${JSON.stringify(body)} res: ${JSON.stringify(
+          res.data,
+        )}`,
+      );
       ctx.body = res.data;
     });
     router.get('/async-result/:id', async (ctx) => {
       const id = ctx.params.id;
       const res = await this.client.get(`/async-result/${id}`);
+      this.logger.info(
+        `async-result, req: ${JSON.stringify(id)}, res: ${JSON.stringify(
+          res.data,
+        )}`,
+      );
       ctx.body = res.data;
     });
     return true;
