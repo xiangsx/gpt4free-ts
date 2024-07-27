@@ -190,7 +190,9 @@ export class Auto extends Chat {
               return;
             }
             es.destroy();
-            this.tryAskStream(req, stream, tried + 1);
+            this.tryAskStream(req, stream, tried + 1).catch((e) => {
+              this.logger.error(`event error & retry failed ${e.message}`);
+            });
             break;
           default:
             stream.write(event, data);
