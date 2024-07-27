@@ -119,6 +119,8 @@ interface ConfigData {
     accounts: GoogleMailAccount[];
   };
   glm?: {
+    api_key?: string;
+    base_url?: string;
     token_limit: { [key: string]: number };
   };
   pika?: SizeCfg & {

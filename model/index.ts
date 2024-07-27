@@ -78,6 +78,8 @@ import { OpenchatGateway } from './openchatgateway';
 import { Luma } from './luma';
 import { Bibi } from './bibi';
 import { Groq } from './groq';
+import { GLM } from './glm';
+import { Config } from '../utils/config';
 
 export class ChatModelFactory {
   private readonly modelMap: Map<Site, Chat>;
@@ -184,6 +186,14 @@ export class ChatModelFactory {
     this.modelMap.set(Site.Luma, new Luma({ name: Site.Luma }));
     this.modelMap.set(Site.Groq, new Groq({ name: Site.Groq }));
     this.modelMap.set(Site.Bibi, new Bibi({ name: Site.Bibi }));
+    this.modelMap.set(
+      Site.GLM,
+      new GLM({
+        name: Site.GLM,
+        api_key: Config.config.glm?.api_key,
+        base_url: Config.config.glm?.base_url,
+      }),
+    );
     this.modelMap.set(
       Site.OpenchatGateway,
       new OpenchatGateway({ name: Site.OpenchatGateway }),

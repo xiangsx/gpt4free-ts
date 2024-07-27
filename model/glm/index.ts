@@ -22,6 +22,7 @@ import { Config } from '../../utils/config';
 import { AsyncStoreSN } from '../../asyncstore';
 import Application from 'koa';
 import jwt from 'jsonwebtoken';
+import Router from 'koa-router';
 
 interface RealReq extends ChatRequest {
   functions?: {
@@ -61,7 +62,7 @@ function generateAuthToken(apiKey: string): string {
   const [id, secret] = apiKey.split('.');
 
   if (!id || !secret) {
-    throw new Error('Invalid API Key format. Expected format: {id}.{secret}');
+    return '';
   }
 
   const now = Date.now();
@@ -235,5 +236,19 @@ export class GLM extends Chat {
     const res = await this.client.post('/images/generations', req);
     ctx.set(res.headers as any);
     ctx.body = res.data;
+  }
+
+  dynamicRouter(router: Router): boolean {
+    router.post('/videos/generations', async (ctx) => {
+      const body = ctx.request.body;
+      const res = await this.client.post('/videos/generations', body);
+      ctx.body = res.data;
+    });
+    router.get('/async-result/:id', async (ctx) => {
+      const id = ctx.params.id;
+      const res = await this.client.get(`/async-result/${id}`);
+      ctx.body = res.data;
+    });
+    return true;
   }
 }
