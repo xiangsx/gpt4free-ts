@@ -164,6 +164,13 @@ export class Child extends ComChild<Account> {
         this.logger.info('org restricted');
         this.update({ refresh_time: moment().add(1, 'day').unix() });
         this.destroy({ delFile: false, delMem: true });
+        throw e;
+      }
+      if (e.message.indexOf('Rate limit') > -1) {
+        this.logger.info('Rate limit');
+        this.update({ refresh_time: moment().add(1, 'h').unix() });
+        this.destroy({ delFile: false, delMem: true });
+        throw e;
       }
       throw e;
     }
