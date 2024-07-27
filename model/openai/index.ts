@@ -109,19 +109,19 @@ export class OpenAI extends Chat {
       forceRemove: true,
     });
     reqH.messages = reqH.messages.filter((v) => !!v.content);
-    if (this.options?.model_map && this.options.model_map[req.model]) {
-      reqH.model = this.options.model_map[req.model];
-    }
     return reqH;
   }
 
   public async askStream(req: ChatRequest, stream: EventStream) {
+    let model = req.model;
+    if (this.options?.model_map && this.options.model_map[req.model]) {
+      model = this.options.model_map[req.model];
+    }
     const data: RealReq = {
       ...req,
-      max_tokens:
-        req.max_tokens || Config.config.openai.max_tokens?.[req.model],
+      max_tokens: req.max_tokens || Config.config.openai.max_tokens?.[model],
       messages: req.messages,
-      model: req.model,
+      model,
       stream: true,
     };
     for (const key in data) {

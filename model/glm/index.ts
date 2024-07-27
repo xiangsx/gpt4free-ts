@@ -239,6 +239,10 @@ export class GLM extends Chat {
   }
 
   public async askStream(req: ChatRequest, stream: EventStream) {
+    let model = req.model;
+    if (this.options?.model_map && this.options.model_map[req.model]) {
+      model = this.options.model_map[req.model];
+    }
     if (checkSensitiveWords(req.prompt)) {
       stream.write(Event.error, {
         error: 'got sensitive words, please check and replace these word',
@@ -246,14 +250,14 @@ export class GLM extends Chat {
       stream.end();
       return;
     }
-    if (req.model === ModelType.CogVideoX) {
+    if (model === ModelType.CogVideoX) {
       await this.handleCogViewX(req, stream);
       return;
     }
     const data: RealReq = {
       ...req,
       messages: req.messages,
-      model: req.model,
+      model: model,
       stream: true,
     };
     for (const key in data) {

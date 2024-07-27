@@ -201,7 +201,6 @@ export class Suno extends Chat {
               });
               for (const i in clips) {
                 const v = clips[i];
-                const image_url = await downloadAndUploadCDN(v.image_url);
                 stream.write(Event.message, {
                   content: `\n音频${+i + 1}🎧: [点击播放](${v.audio_url})\n`,
                 });
