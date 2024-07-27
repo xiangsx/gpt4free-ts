@@ -221,6 +221,7 @@ export enum ModelType {
   Llama370BGroq = 'llama-3-70b-groq',
   PlaygroundV2_5 = 'playground-v2.5',
   StableDiffusion3_2B = 'stable-diffusion-3-2b',
+  CogVideoX = 'cogvideox',
 }
 
 export enum Site {

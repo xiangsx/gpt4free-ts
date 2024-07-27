@@ -2,9 +2,9 @@ import {
   Chat,
   ChatOptions,
   ChatRequest,
-  contentToString,
   ImageGenerationRequest,
   ModelType,
+  Site,
   SpeechRequest,
 } from '../base';
 import { AxiosInstance, AxiosRequestConfig, CreateAxiosDefaults } from 'axios';
@@ -12,17 +12,32 @@ import { CreateAxiosProxy } from '../../utils/proxyAgent';
 import es from 'event-stream';
 import {
   checkSensitiveWords,
-  ComError,
+  downloadAndUploadCDN,
   Event,
   EventStream,
   extractHttpFileURLs,
+  extractJSON,
+  MessageData,
   parseJSON,
+  retryFunc,
+  sleep,
+  ThroughEventStream,
 } from '../../utils';
 import { Config } from '../../utils/config';
 import { AsyncStoreSN } from '../../asyncstore';
 import Application from 'koa';
 import jwt from 'jsonwebtoken';
 import Router from 'koa-router';
+import { chatModel } from '../index';
+import { GenVideoReq } from '../luma/define';
+import { Child } from '../luma/child';
+import { LumaPrompt } from '../luma/prompt';
+import {
+  AsyncResultRes,
+  VideoGenerationsReq,
+  VideoGenerationsRes,
+} from './define';
+import { GlmCogViewXPrompt } from './prompt';
 
 interface RealReq extends ChatRequest {
   functions?: {
@@ -97,10 +112,15 @@ export class GLM extends Chat {
     super(options);
     this.client = CreateAxiosProxy(
       {
-        baseURL: options?.base_url || 'https://open.bigmodel.cn/api/paas/v4/',
+        baseURL:
+          options?.base_url ||
+          Config.config.glm?.base_url ||
+          'https://open.bigmodel.cn/api/paas/v4/',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `${generateAuthToken(options?.api_key || '')}`,
+          Authorization: `${generateAuthToken(
+            options?.api_key || Config.config.glm?.api_key || '',
+          )}`,
         },
       } as CreateAxiosDefaults,
       false,
@@ -125,12 +145,109 @@ export class GLM extends Chat {
     return reqH;
   }
 
+  async videoGenerations(
+    req: VideoGenerationsReq,
+  ): Promise<VideoGenerationsRes> {
+    const res = await this.client.post('/videos/generations', req);
+    return res.data;
+  }
+
+  async asyncResult(id: string): Promise<AsyncResultRes> {
+    const res = await this.client.get(`/async-result/${id}`);
+    return res.data;
+  }
+
+  public async handleCogViewX(req: ChatRequest, stream: EventStream) {
+    const auto = chatModel.get(Site.Auto);
+    let old = '';
+    const pt = new ThroughEventStream(
+      (event, data) => {
+        stream.write(event, data);
+        if ((data as MessageData).content) {
+          old += (data as MessageData).content;
+        }
+      },
+      async () => {
+        try {
+          stream.write(Event.message, { content: '\n\n' });
+          const action = extractJSON<VideoGenerationsReq>(old);
+          if (!action) {
+            stream.write(Event.message, {
+              content: 'Generate action failed',
+            });
+            stream.write(Event.done, { content: '' });
+            stream.end();
+            return;
+          }
+          const video = await this.videoGenerations(action);
+          stream.write(Event.message, { content: `\n\n> 生成中` });
+          for (let i = 0; i < 200; i++) {
+            try {
+              const task = await this.asyncResult(video.id);
+              if (task.task_status === 'PROCESSING') {
+                stream.write(Event.message, { content: `.` });
+              }
+              if (task.task_status === 'SUCCESS') {
+                stream.write(Event.message, {
+                  content: `\n> 生成完成 ✅\n> request_id: \`${video.request_id}\``,
+                });
+                if (!task?.video_result?.length) {
+                  this.logger.error('get video url failed');
+                  break;
+                }
+                for (const v of task.video_result) {
+                  stream.write(Event.message, {
+                    content: `\n\n![cover](${v.cover_image_url})\n [在线播放▶️](${v.url})`,
+                  });
+                }
+                stream.write(Event.done, { content: '' });
+                stream.end();
+                break;
+              }
+            } catch (e: any) {
+              this.logger.error(`get task list failed, err: ${e.message}`);
+            }
+            await sleep(3 * 1000);
+          }
+        } catch (e: any) {
+          this.logger.error(e.message);
+          stream.write(Event.message, {
+            content: `生成失败: ${
+              e.message
+            }\nReason:\n\`\`\`json\n${JSON.stringify(
+              e.response?.data,
+              null,
+              2,
+            )}\n\`\`\`\n`,
+          });
+          stream.write(Event.done, { content: '' });
+          stream.end();
+        }
+      },
+    );
+    req.messages = [
+      { role: 'system', content: GlmCogViewXPrompt },
+      ...req.messages,
+    ];
+    await auto?.askStream(
+      {
+        ...req,
+        model: Config.config.glm?.model || ModelType.GPT4_32k,
+      } as ChatRequest,
+      pt,
+    );
+  }
+
   public async askStream(req: ChatRequest, stream: EventStream) {
     if (checkSensitiveWords(req.prompt)) {
       stream.write(Event.error, {
         error: 'got sensitive words, please check and replace these word',
       });
       stream.end();
+      return;
+    }
+    if (req.model === ModelType.CogVideoX) {
+      await this.handleCogViewX(req, stream);
       return;
     }
     const data: RealReq = {
@@ -240,24 +357,22 @@ export class GLM extends Chat {
 
   dynamicRouter(router: Router): boolean {
     router.post('/videos/generations', async (ctx) => {
-      const body = ctx.request.body;
-      const res = await this.client.post('/videos/generations', body);
+      const body = ctx.request.body as any;
+      const res = await this.videoGenerations(body);
       this.logger.info(
         `/videos/generations,req: ${JSON.stringify(body)} res: ${JSON.stringify(
-          res.data,
+          res,
         )}`,
       );
-      ctx.body = res.data;
+      ctx.body = res;
     });
     router.get('/async-result/:id', async (ctx) => {
       const id = ctx.params.id;
-      const res = await this.client.get(`/async-result/${id}`);
+      const res = await this.asyncResult(id);
       this.logger.info(
-        `async-result, req: ${JSON.stringify(id)}, res: ${JSON.stringify(
-          res.data,
-        )}`,
+        `async-result, req: ${JSON.stringify(id)}, res: ${JSON.stringify(res)}`,
       );
-      ctx.body = res.data;
+      ctx.body = res;
     });
     return true;
   }

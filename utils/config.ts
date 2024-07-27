@@ -119,6 +119,7 @@ interface ConfigData {
     accounts: GoogleMailAccount[];
   };
   glm?: {
+    model?: ModelType;
     api_key?: string;
     base_url?: string;
     token_limit: { [key: string]: number };
