@@ -166,12 +166,6 @@ export class Child extends ComChild<Account> {
         this.destroy({ delFile: false, delMem: true });
         throw e;
       }
-      if (e.message.indexOf('Rate limit') > -1) {
-        this.logger.info('Rate limit');
-        this.update({ refresh_time: moment().add(1, 'h').unix() });
-        this.destroy({ delFile: false, delMem: true });
-        throw e;
-      }
       throw e;
     }
   }
