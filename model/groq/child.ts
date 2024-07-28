@@ -111,7 +111,7 @@ export class Child extends ComChild<Account> {
       try {
         await this.askForStream(
           {
-            model: 'llama-3-8b',
+            model: 'llama-3.1-8b-instant',
             messages: [
               {
                 role: 'system',
