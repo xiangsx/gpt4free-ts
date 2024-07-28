@@ -118,6 +118,10 @@ export class Child extends ComChild<Account> {
                 content: 'say 1',
               },
             ],
+            temperature: 0.2,
+            max_tokens: 2048,
+            top_p: 1,
+            stream: true,
           },
           pt,
         );
