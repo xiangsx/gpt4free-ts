@@ -136,7 +136,7 @@ export class Child extends ComChild<Account> {
   async updateCredit() {
     const bill = await this.queryBill();
     this.update({ credit_left: bill.total_credits_left });
-    if (bill.total_credits_left < 10) {
+    if (bill.total_credits_left < 60) {
       this.update({ refresh_time: moment().add(1, 'd').unix() });
       throw new Error(`credit left:${bill.total_credits_left} not enough`);
     }
