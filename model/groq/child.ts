@@ -162,7 +162,7 @@ export class Child extends ComChild<Account> {
     } catch (e: any) {
       if (e.message.indexOf('restricted') > -1) {
         this.logger.info('org restricted');
-        this.update({ refresh_time: moment().add(1, 'day').unix() });
+        this.update({ refresh_time: moment().add(30, 'day').unix() });
         this.destroy({ delFile: false, delMem: true });
         throw e;
       }
