@@ -8,8 +8,16 @@ import {
 import { Page, Protocol } from 'puppeteer';
 import moment from 'moment';
 import { loginGoogle } from '../../utils/puppeteer';
-import { ComError, Event, EventStream, parseJSON, sleep } from '../../utils';
+import {
+  ComError,
+  ErrorData,
+  Event,
+  EventStream,
+  parseJSON,
+  sleep,
+} from '../../utils';
 import es from 'event-stream';
+import { ModelType } from '../base';
 
 export class Child extends ComChild<Account> {
   private client!: WebFetchWithPage;
@@ -95,6 +103,42 @@ export class Child extends ComChild<Account> {
     }
     this.update({ org_id });
     this.logger.info('org_id saved ok');
+  }
+
+  async checkChat() {
+    const pt = new EventStream();
+    await new Promise(async (resolve, reject) => {
+      try {
+        await this.askForStream(
+          {
+            model: 'llama-3-8b',
+            messages: [
+              {
+                role: 'system',
+                content: 'say 1',
+              },
+            ],
+          },
+          pt,
+        );
+        pt.read(
+          (event, data) => {
+            if (event === Event.error) {
+              reject(new Error((data as ErrorData).error));
+            }
+            if (event === Event.done) {
+              resolve(null);
+            }
+          },
+          () => {
+            resolve(null);
+          },
+        );
+      } catch (e) {
+        reject(e);
+      }
+    });
+    this.logger.info('check chat ok');
   }
 
   async askForStream(req: any, stream: EventStream) {
@@ -217,6 +261,7 @@ export class Child extends ComChild<Account> {
     // await page.reload();
     // 保存cookies
     this.client = new WebFetchWithPage(this.apipage);
+    await this.checkChat();
     // @ts-ignore
     this.updateTimer = setInterval(async () => {
       await this.page.reload();
@@ -225,11 +270,8 @@ export class Child extends ComChild<Account> {
   }
 
   initFailed() {
-    super.initFailed();
-    if (this.page) {
-      this.update({ cookies: [], proxy: undefined });
-      this.page.browser().close();
-    }
+    this.update({ cookies: [], proxy: undefined });
+    this.destroy({ delFile: false, delMem: true });
   }
 
   use() {
