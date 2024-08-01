@@ -258,26 +258,6 @@ export class Vidu extends Chat {
       },
     );
     router.get(
-      '/v1/tasks',
-      checkQuery(
-        {
-          id: Joi.string().required(),
-          server_id: Joi.string().allow('').optional(),
-        },
-        { allowUnknown: true },
-      ),
-      async (ctx: Application.Context) => {
-        const id = ctx.query.id as string;
-        const server_id =
-          (ctx.query.server_id as string) || (await ViduServerCache.get(id));
-        if (!server_id) {
-          throw new ComError('server_id not found', ComError.Status.NotFound);
-        }
-        const task = await Child.HistoryOne(this.pool, server_id, id);
-        ctx.body = task;
-      },
-    );
-    router.get(
       '/v1/tasks/state',
       checkQuery(
         {
@@ -294,6 +274,25 @@ export class Vidu extends Chat {
           throw new ComError('server_id not found', ComError.Status.NotFound);
         }
         const task = await Child.TaskState(this.pool, server_id, id);
+        ctx.body = task;
+      },
+    );
+    router.get(
+      '/v1/tasks/:id',
+      checkParams(
+        {
+          id: Joi.string().required(),
+        },
+        { allowUnknown: true },
+      ),
+      async (ctx: Application.Context) => {
+        const id = ctx.params.id as string;
+        const server_id =
+          (ctx.query.server_id as string) || (await ViduServerCache.get(id));
+        if (!server_id) {
+          throw new ComError('server_id not found', ComError.Status.NotFound);
+        }
+        const task = await Child.HistoryOne(this.pool, server_id, id);
         ctx.body = task;
       },
     );

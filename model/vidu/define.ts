@@ -102,7 +102,7 @@ export enum ETaskType {
 }
 
 interface TextPrompt {
-  type: 'text';
+  type: 'text' | 'image';
   content: string;
   negative?: boolean;
   enhance: boolean;
