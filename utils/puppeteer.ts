@@ -347,16 +347,19 @@ export async function loginGoogle(
   await page.waitForSelector('#identifierId', { timeout: 10 * 60 * 1000 });
   await sleep(1000);
   await page.click('#identifierId');
-  await page.keyboard.type(email, { delay: 50 });
-  await sleep(3000);
-  await page.keyboard.press('Enter');
-  await sleep(5000);
+  await page.keyboard.type(email, { delay: 10 });
+  await sleep(1000);
+  await page.waitForSelector('#identifierNext > div > button > span');
+  await page.click('#identifierNext > div > button > span');
+  await sleep(1000);
 
-  await page.waitForSelector('input[type="password"]');
+  await page.waitForSelector('input[type="password"]', { visible: true });
+  await sleep(1000);
   await page.click('input[type="password"]', { delay: 50 });
-  await sleep(3000);
-  await page.keyboard.type(password);
-  await page.keyboard.press('Enter');
+  await sleep(1000);
+  await page.keyboard.type(password, { delay: 10 });
+  await page.waitForSelector('#passwordNext > div > button > span');
+  await page.click('#passwordNext > div > button > span');
   await sleep(3000);
   if (recovery_email) {
     await checkRecoveryMail(page, recovery_email);

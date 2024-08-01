@@ -97,6 +97,8 @@ export enum ETaskState {
 export enum ETaskType {
   upscale = 'upscale',
   text2video = 'text2video',
+  img2video = 'img2video',
+  character2video = 'character2video',
 }
 
 interface TextPrompt {

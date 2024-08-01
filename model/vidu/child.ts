@@ -49,9 +49,8 @@ export class Child extends ComChild<Account> {
     }
     this.update({ destroyed: false });
     let page;
-    if (Config.config.luma?.login_any_time || !this.info.cookies?.length) {
+    if (!this.info.cookies?.length) {
       page = await CreateNewPage('https://www.vidu.studio/login', {
-        simplify: false,
         recognize: false,
         proxy: this.proxy,
       });
@@ -59,7 +58,6 @@ export class Child extends ComChild<Account> {
       // click login
       await page.waitForSelector('button:nth-child(1)');
       await page.click('button:nth-child(1)');
-
       await loginGoogle(
         page,
         this.info.email,
@@ -73,7 +71,6 @@ export class Child extends ComChild<Account> {
       await page.browser().close();
     } else if (!this.info.ua || !this.info.proxy) {
       page = await CreateNewPage('https://www.vidu.studio/', {
-        simplify: false,
         recognize: false,
         proxy: this.proxy,
         cookies: this.info.cookies.map((v) => ({
@@ -98,6 +95,7 @@ export class Child extends ComChild<Account> {
           referrer: 'https://www.vidu.studio/',
           origin: 'https://www.vidu.studio',
           'User-Agent': this.info.ua,
+          Cookie: this.cookie,
         },
       },
       {
@@ -168,7 +166,7 @@ export class Child extends ComChild<Account> {
   }
 
   async tasks(req: TaskReq) {
-    const res = await this.client.post<TaskRes>('/vidu/v1/tasks');
+    const res = await this.client.post<TaskRes>('/vidu/v1/tasks', req);
     return res.data;
   }
 
@@ -210,7 +208,7 @@ export class Child extends ComChild<Account> {
 
   async saveCookies() {
     const cookies = await this.page.cookies('https://www.vidu.studio/');
-    const token = cookies.find((v) => v.name === 'luma_session')?.value;
+    const token = cookies.find((v) => v.name === 'JWT')?.value;
     if (!token) {
       throw new ComError('no access_token');
     }
@@ -270,6 +268,7 @@ export class Child extends ComChild<Account> {
           referrer: 'https://www.vidu.studio/',
           origin: 'https://www.vidu.studio',
           'User-Agent': info.ua,
+          Cookie: info.cookies.map((v) => `${v.name}=${v.value}`).join('; '),
         },
       },
       {
@@ -289,21 +288,6 @@ export class Child extends ComChild<Account> {
       responseType: 'stream',
     });
     return res.data;
-  }
-
-  static async GetDownloadURL(
-    pool: Pool<Account, Child>,
-    server_id: string,
-    id: string,
-  ) {
-    const client = this.GetClient(pool, server_id);
-    const res = await client.get<{ url: string }>(
-      `https://internal-api.virginia.labs.lumalabs.ai/api/photon/v1/generations/${id}/download_video_url`,
-    );
-    if (!res.data) {
-      throw new ComError(`get download url failed, no res`);
-    }
-    return downloadAndUploadCDN(res.data.url);
   }
 
   static async History(pool: Pool<Account, Child>, server_id: string) {

@@ -1,6 +1,12 @@
 import { Chat, ChatOptions, ChatRequest, ModelType, Site } from '../base';
 import { Pool } from '../../utils/pool';
-import { Account, GenVideoReq, TaskReq, ViduServerCache } from './define';
+import {
+  Account,
+  ETaskType,
+  GenVideoReq,
+  TaskReq,
+  ViduServerCache,
+} from './define';
 import { Child } from './child';
 import { Config } from '../../utils/config';
 import Application from 'koa';
@@ -17,7 +23,7 @@ import {
   ThroughEventStream,
 } from '../../utils';
 import Router from 'koa-router';
-import { checkBody, checkQuery } from '../../utils/middleware';
+import { checkBody, checkParams, checkQuery } from '../../utils/middleware';
 import Joi from 'joi';
 import { chatModel } from '../index';
 import { ViduPrompt } from './prompt';
@@ -218,7 +224,9 @@ export class Vidu extends Chat {
             )
             .required(),
         }).required(),
-        type: Joi.string().valid('character2video').required(),
+        type: Joi.string()
+          .valid(...Object.values(ETaskType))
+          .required(),
         settings: Joi.object({
           style: Joi.string().valid('general').required(),
           aspect_ratio: Joi.string().valid('16:9').required(),
@@ -254,7 +262,6 @@ export class Vidu extends Chat {
       checkQuery(
         {
           id: Joi.string().required(),
-          server_id: Joi.string().allow('').optional(),
         },
         { allowUnknown: true },
       ),
@@ -266,6 +273,26 @@ export class Vidu extends Chat {
           throw new ComError('server_id not found', ComError.Status.NotFound);
         }
         const task = await Child.HistoryOne(this.pool, server_id, id);
+        ctx.body = task;
+      },
+    );
+    router.get(
+      '/v1/tasks/state',
+      checkQuery(
+        {
+          id: Joi.string().required(),
+          server_id: Joi.string().allow('').optional(),
+        },
+        { allowUnknown: true },
+      ),
+      async (ctx: Application.Context) => {
+        const id = ctx.query.id as string;
+        const server_id =
+          (ctx.query.server_id as string) || (await ViduServerCache.get(id));
+        if (!server_id) {
+          throw new ComError('server_id not found', ComError.Status.NotFound);
+        }
+        const task = await Child.TaskState(this.pool, server_id, id);
         ctx.body = task;
       },
     );
