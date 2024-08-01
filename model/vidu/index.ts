@@ -262,6 +262,7 @@ export class Vidu extends Chat {
       checkQuery(
         {
           id: Joi.string().required(),
+          server_id: Joi.string().allow('').optional(),
         },
         { allowUnknown: true },
       ),
