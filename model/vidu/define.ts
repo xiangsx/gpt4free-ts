@@ -1,8 +1,6 @@
 import { ComInfo } from '../../utils/pool';
 import { Protocol } from 'puppeteer';
-import exp from 'constants';
-import { CommCache, DefaultRedis, StringCache } from '../../utils/cache';
-import { GizmoInfo } from '../openchat4/define';
+import { DefaultRedis, StringCache } from '../../utils/cache';
 
 export interface Account extends ComInfo {
   email: string;
@@ -18,74 +16,12 @@ export interface Account extends ComInfo {
   ua?: string;
 }
 
-export interface GenVideoReq {
-  user_prompt: string;
-  aspect_ratio: '16:9';
-  expand_prompt: boolean;
-  loop?: boolean;
-  image_url?: string;
-  image_end_url?: string;
-}
-
-export type GenVideoRes = TaskDetail[];
-
 export type ErrorRes = { detail: string };
-
-export interface TaskDetail {
-  id: string;
-  prompt: string;
-  state: 'pending' | 'processing' | 'completed' | 'failed';
-  created_at: string;
-  video: VideoDetails | null;
-  liked: boolean | null;
-  estimate_wait_seconds: number | null;
-}
-
-interface VideoDetails {
-  url: string;
-  width: number;
-  height: number;
-  thumbnail: string | null;
-}
-
-interface Subscription {
-  active: boolean;
-  plan: string;
-  type: string | null;
-}
-
-interface Plan {
-  name: string;
-  key: string;
-  capacity_per_month: number;
-  monthly_cost_in_cents: number;
-  yearly_cost_in_cents: number;
-}
-
-export interface UsageRes {
-  consumed: number;
-  capacity: number;
-  available: number;
-  subscription: Subscription;
-  plans: Plan[];
-}
-
-export interface GetUploadURLRes {
-  id: string;
-  presigned_url: string;
-  public_url: string;
-}
 
 export const ViduServerCache = new StringCache<string>(
   DefaultRedis,
   'vidu_id_server',
   24 * 60 * 60,
-);
-
-export const ViduTaskCache = new StringCache<TaskDetail>(
-  DefaultRedis,
-  'vidu_task',
-  20,
 );
 
 export enum ETaskState {
@@ -162,7 +98,7 @@ export interface Task {
   input: Input;
   settings: Settings;
   type: string;
-  state: string;
+  state: ETaskState;
   creations: Creation[];
   err_code: string;
   created_at: string;
@@ -181,4 +117,13 @@ export interface CreditsRes {
   credits_expire_today: number;
   credits_expire_monthly: number;
   credits_permanent: number;
+}
+
+export interface Action {
+  prompt: 'string'; // 视频的详细描述，必须是英文的
+  enhance: boolean; // 是否扩展提示词
+  aspect_ratio?: '16:9'; // 视频的宽高比 目前固定为16：9 不可更改
+  duration?: 4; // 目前固定为 4，不允许修改
+  image_url?: 'string'; // [可选] 图片的url地址，如果用户请求里面无图片链接，则不需要此参数
+  image_character?: boolean; // [可选] 默认不填即为false， 如果 true: 图片作为视频的角色出现，false: 图片作为首帧出现
 }

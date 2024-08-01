@@ -2,8 +2,9 @@ import { Chat, ChatOptions, ChatRequest, ModelType, Site } from '../base';
 import { Pool } from '../../utils/pool';
 import {
   Account,
+  Action,
+  ETaskState,
   ETaskType,
-  GenVideoReq,
   TaskReq,
   ViduServerCache,
 } from './define';
@@ -124,7 +125,7 @@ export class Vidu extends Chat {
           await retryFunc(
             async () => {
               stream.write(Event.message, { content: '\n\n' });
-              const action = extractJSON<TaskReq>(old);
+              const action = extractJSON<Action>(old);
               if (!action) {
                 stream.write(Event.message, {
                   content: 'Generate action failed',
@@ -134,7 +135,37 @@ export class Vidu extends Chat {
                 return;
               }
               const child = await this.pool.pop();
-              const video = await child.tasks(action);
+              const req: TaskReq = {
+                input: {
+                  prompts: [],
+                },
+                settings: {
+                  style: 'general',
+                  aspect_ratio: action.aspect_ratio || '16:9',
+                  duration: action.duration || 4,
+                  model: 'vidu-1',
+                },
+                type: action.image_url
+                  ? action.image_character
+                    ? ETaskType.character2video
+                    : ETaskType.img2video
+                  : ETaskType.text2video,
+              };
+              if (action.prompt) {
+                req.input.prompts.push({
+                  type: 'text',
+                  content: action.prompt,
+                  enhance: true,
+                });
+              }
+              if (action.image_url) {
+                req.input.prompts.push({
+                  type: 'image',
+                  content: action.image_url,
+                  enhance: true,
+                });
+              }
+              const video = await child.tasks(req);
               let pendingOK = false;
               let processingOK = false;
               stream.write(Event.message, { content: `\n\n> 排队中` });
@@ -145,10 +176,10 @@ export class Vidu extends Chat {
                     child.info.id,
                     video.id,
                   );
-                  if (task.state === 'pending' && !pendingOK) {
+                  if (task.state === ETaskState.queueing && !pendingOK) {
                     stream.write(Event.message, { content: `.` });
                   }
-                  if (task.state === 'processing') {
+                  if (task.state === ETaskState.processing) {
                     if (!pendingOK) {
                       stream.write(Event.message, { content: `\n> 生成中` });
                       pendingOK = true;
@@ -157,18 +188,21 @@ export class Vidu extends Chat {
                       stream.write(Event.message, { content: `.` });
                     }
                   }
-                  if (task.state === 'completed') {
+                  if (task.state === ETaskState.success) {
                     stream.write(Event.message, {
                       content: `\n> 生成完成 ✅`,
                     });
-                    let { url, width, height } = task?.creations?.[0]?.video;
-                    if (!url) {
-                      this.logger.error('get video url failed');
+                    let video = task?.creations?.[0];
+                    if (!video || !video.uri) {
+                      stream.write(Event.message, {
+                        content: '生成失败: 未找到视频地址',
+                      });
+                      stream.write(Event.done, { content: '' });
                       break;
                     }
-                    url = await downloadAndUploadCDN(url);
+                    video.uri = await downloadAndUploadCDN(video.uri);
                     stream.write(Event.message, {
-                      content: `\n> 视频信息 ${width}x${height}\n\n[在线播放▶️](${url})`,
+                      content: `\n> 视频信息 ${video.video.resolution.width}x${video.video.resolution.height} \`fps: ${video.video.fps}\`\n\n![cover](${video.cover_uri})\n[在线播放▶️](${video.uri})`,
                     });
                     stream.write(Event.done, { content: '' });
                     stream.end();

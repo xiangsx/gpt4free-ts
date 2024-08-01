@@ -2,18 +2,12 @@ import { ComChild, DestroyOptions, Pool } from '../../utils/pool';
 import {
   Account,
   CreditsRes,
-  ErrorRes,
-  GenVideoReq,
-  GenVideoRes,
-  GetUploadURLRes,
   Task,
-  TaskDetail,
   TaskReq,
   TaskRes,
   TaskStateProcess,
-  UsageRes,
 } from './define';
-import { AxiosError, AxiosInstance } from 'axios';
+import { AxiosInstance } from 'axios';
 import {
   CreateNewAxios,
   CreateNewPage,
@@ -22,18 +16,7 @@ import {
 import { Page, Protocol } from 'puppeteer';
 import moment from 'moment';
 import { loginGoogle } from '../../utils/puppeteer';
-import {
-  ComError,
-  downloadAndUploadCDN,
-  EventStream,
-  parseCookie,
-  parseJSON,
-  randomUserAgent,
-  replaceLocalUrl,
-  sleep,
-  TimeFormat,
-} from '../../utils';
-import { Config } from '../../utils/config';
+import { ComError, parseJSON, sleep, TimeFormat } from '../../utils';
 import { Stream } from 'stream';
 import es from 'event-stream';
 
