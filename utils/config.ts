@@ -115,6 +115,11 @@ interface ConfigData {
     retry_times?: number;
     login_any_time?: boolean;
   };
+  vidu?: SizeCfg & {
+    accounts: (GoogleMailAccount & { jwt?: string })[];
+    retry_times?: number;
+    model: ModelType;
+  };
   groq?: SizeCfg & {
     accounts: GoogleMailAccount[];
   };

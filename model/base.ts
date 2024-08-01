@@ -22,6 +22,7 @@ import { SongOptions } from './suno/define';
 import { Chatgateai } from './chatgateai';
 import { MJPlus } from './mjplus';
 import Router from 'koa-router';
+import { Vidu } from './vidu';
 
 export interface ChatOptions {
   name: string;
@@ -312,6 +313,7 @@ export enum Site {
   Luma = 'luma',
   Groq = 'groq',
   Bibi = 'bibi',
+  Vidu = 'vidu',
 }
 
 export interface ChatRequest {
