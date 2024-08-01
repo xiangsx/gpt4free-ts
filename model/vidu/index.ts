@@ -20,7 +20,7 @@ import Router from 'koa-router';
 import { checkBody, checkQuery } from '../../utils/middleware';
 import Joi from 'joi';
 import { chatModel } from '../index';
-import { LumaPrompt } from './prompt';
+import { ViduPrompt } from './prompt';
 import moment from 'moment';
 
 export class Vidu extends Chat {
@@ -30,7 +30,7 @@ export class Vidu extends Chat {
 
   private pool: Pool<Account, Child> = new Pool<Account, Child>(
     this.options?.name || 'vidu',
-    () => Config.config.luma?.size || 0,
+    () => Config.config.vidu?.size || 0,
     (info, options) => new Child(this.options?.name || 'vidu', info, options),
     (info) => {
       if (!info.email || !info.password) {
@@ -84,7 +84,7 @@ export class Vidu extends Chat {
         return newInfos;
       },
       delay: 1000,
-      serial: Config.config.luma?.serial || 1,
+      serial: Config.config.vidu?.serial || 1,
       needDel: (info) => {
         if (!info.email || !info.password) {
           return true;
@@ -96,7 +96,7 @@ export class Vidu extends Chat {
 
   support(model: ModelType): number {
     switch (model) {
-      case ModelType.LumaVideo:
+      case ModelType.ViduVideo:
         return 1000;
       default:
         return 0;
@@ -174,8 +174,8 @@ export class Vidu extends Chat {
                 await sleep(5 * 1000);
               }
             },
-            Config.config.luma?.retry_times || 3,
-            { label: 'luma gen video', delay: 100 },
+            Config.config.vidu?.retry_times || 3,
+            { label: 'vidu gen video', delay: 100 },
           );
         } catch (e: any) {
           this.logger.error(e.message);
@@ -193,11 +193,11 @@ export class Vidu extends Chat {
         }
       },
     );
-    req.messages = [{ role: 'system', content: LumaPrompt }, ...req.messages];
+    req.messages = [{ role: 'system', content: ViduPrompt }, ...req.messages];
     await auto?.askStream(
       {
         ...req,
-        model: Config.config.luma?.model || ModelType.GPT4_32k,
+        model: Config.config.vidu?.model || ModelType.GPT4_32k,
       } as ChatRequest,
       pt,
     );

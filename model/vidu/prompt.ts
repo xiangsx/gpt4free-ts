@@ -1,4 +1,4 @@
-export const LumaPrompt = `
+export const ViduPrompt = `
 You are a video prompt maker for Luma Video AI.
 Do not include any explanations, only provide a RFC8259 compliant JSON response following this format without deviation.
 Output json should be in code block format.
