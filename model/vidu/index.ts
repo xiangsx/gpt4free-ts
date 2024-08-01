@@ -5,6 +5,8 @@ import {
   Action,
   ETaskState,
   ETaskType,
+  EViduModel,
+  EViduStyle,
   TaskReq,
   ViduServerCache,
 } from './define';
@@ -140,10 +142,10 @@ export class Vidu extends Chat {
                   prompts: [],
                 },
                 settings: {
-                  style: 'general',
+                  style: EViduStyle.general,
                   aspect_ratio: action.aspect_ratio || '16:9',
                   duration: action.duration || 4,
-                  model: 'vidu-1',
+                  model: EViduModel.vidu1,
                 },
                 type: action.image_url
                   ? action.image_character
@@ -246,28 +248,36 @@ export class Vidu extends Chat {
   dynamicRouter(router: Router): boolean {
     router.post(
       '/v1/tasks',
-      checkBody({
-        input: Joi.object({
-          prompts: Joi.array()
-            .items(
-              Joi.object({
-                type: Joi.string().valid('text', 'image').required(),
-                content: Joi.string().required(),
-                enhance: Joi.boolean(),
-              }),
-            )
+      checkBody(
+        {
+          input: Joi.object({
+            creation_id: Joi.string().optional(),
+            prompts: Joi.array()
+              .items(
+                Joi.object({
+                  type: Joi.string().valid('text', 'image').required(),
+                  content: Joi.string().required(),
+                  enhance: Joi.boolean(),
+                }),
+              )
+              .optional(),
+          }).required(),
+          type: Joi.string()
+            .valid(...Object.values(ETaskType))
             .required(),
-        }).required(),
-        type: Joi.string()
-          .valid(...Object.values(ETaskType))
-          .required(),
-        settings: Joi.object({
-          style: Joi.string().valid('general').required(),
-          aspect_ratio: Joi.string().valid('16:9').required(),
-          duration: Joi.number().integer().min(1).max(10).required(), // Assuming the duration is between 1 and 10 seconds
-          model: Joi.string().valid('vidu-1').required(),
-        }).required(),
-      }),
+          settings: Joi.object({
+            duration: Joi.number().integer().valid(4, 8).required(), // Assuming the duration is between 1 and 10 seconds
+            model: Joi.string()
+              .valid(...Object.values(EViduModel))
+              .required(),
+            style: Joi.string()
+              .valid(...Object.values(EViduStyle))
+              .optional(),
+            aspect_ratio: Joi.string().valid('16:9').optional(),
+          }).required(),
+        },
+        { allowUnknown: true },
+      ),
       async (ctx: Application.Context) => {
         const req = ctx.request.body as TaskReq;
         await retryFunc(
@@ -307,8 +317,10 @@ export class Vidu extends Chat {
         if (!server_id) {
           throw new ComError('server_id not found', ComError.Status.NotFound);
         }
-        const task = await Child.TaskState(this.pool, server_id, id);
-        ctx.body = task;
+        ctx.append('Content-Type', 'text/event-stream;charset=utf-8');
+        ctx.append('Cache-Control', 'no-cache');
+        ctx.append('Connection', 'keep-alive');
+        ctx.body = await Child.TaskState(this.pool, server_id, id);
       },
     );
     router.get(

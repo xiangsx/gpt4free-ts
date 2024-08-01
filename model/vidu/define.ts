@@ -37,6 +37,15 @@ export enum ETaskType {
   character2video = 'character2video',
 }
 
+export enum EViduModel {
+  stable = 'stable',
+  vidu1 = 'vidu-1',
+}
+
+export enum EViduStyle {
+  general = 'general',
+}
+
 interface TextPrompt {
   type: 'text' | 'image';
   content: string;
@@ -52,10 +61,10 @@ interface Input {
 }
 
 interface Settings {
-  style: string;
+  style: EViduStyle;
   aspect_ratio: string;
   duration: number;
-  model: string;
+  model: EViduModel;
 }
 
 export interface TaskReq {
