@@ -81,6 +81,7 @@ export class Child extends ComChild<Account> {
     const sid = res.data?.response?.sessions?.[0]?.id;
     if (!sid) {
       this.logger.error(`sid not found, data: ${JSON.stringify(res.data)}`);
+      this.update({ refresh_time: moment().add(1, 'h').unix() });
       throw new Error('sid not found');
     }
     this.update({ sid });
