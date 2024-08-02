@@ -164,6 +164,9 @@ export class MJPlus extends Chat {
           stream.write(Event.message, { content: `${v.progress}` });
           last_process = v.progress;
         }
+        if (v.progress === '100%') {
+          this.logger.error(`imageStream res: ${JSON.stringify(v)}`);
+        }
         if (v.status === 'FAILURE') {
           stream.write(Event.message, {
             content: `\n生成失败, 原因: ${v.failReason}`,
@@ -224,6 +227,9 @@ export class MJPlus extends Chat {
         } else {
           stream.write(Event.message, { content: `${v.progress}` });
           last_process = v.progress;
+        }
+        if (v.progress === '100%') {
+          this.logger.error(`imageStream res: ${JSON.stringify(v)}`);
         }
         if (v.status === 'FAILURE') {
           stream.write(Event.message, {
