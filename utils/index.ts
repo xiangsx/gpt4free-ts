@@ -1090,7 +1090,7 @@ export async function downloadAndUploadCDN(url: string): Promise<string> {
         console.error(
           `downloadAndUploadCDN failed, url:${url}, proxy:${proxy}, err = ${e.message}`,
         );
-        throw new Error(e);
+        throw e;
       }
     },
     3,
