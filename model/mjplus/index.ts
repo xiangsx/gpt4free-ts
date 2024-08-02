@@ -216,7 +216,7 @@ export class MJPlus extends Chat {
     let last_process: string = '';
     for (let i = 0; i < 100; i++) {
       try {
-        let v = await child.fetchTask(res.result);
+        const v = await child.fetchTask(res.result);
         if (!v.progress) {
           stream.write(Event.message, { content: '.' });
           await sleep(3000);

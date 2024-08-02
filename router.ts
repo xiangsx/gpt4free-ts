@@ -297,6 +297,7 @@ const AskStreamHandle: (ESType: new () => EventStream) => Middleware =
             },
           );
           await chat.askStream(req, es).catch((err) => {
+            console.log(`router chat.askStream failed, err:${err.message}`);
             clearTimeout(timeout);
             es.destroy();
             reject(err);
