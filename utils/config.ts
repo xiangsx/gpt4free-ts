@@ -207,6 +207,7 @@ interface ConfigData {
   };
   gemini: SizeCfg & {
     apikeys: string[];
+    token_limit?: { [key: string]: number };
   };
   poeauto: SizeCfg & {
     mail_type: TempEmailType;
