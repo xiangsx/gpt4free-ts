@@ -315,6 +315,9 @@ export class Gemini extends Chat {
   }
 
   support(model: ModelType): number {
+    if (Config.config.gemini.token_limit[model]) {
+      return Config.config.gemini.token_limit[model];
+    }
     switch (model) {
       case ModelType.GeminiPro:
         return 30000;
