@@ -81,6 +81,7 @@ import { Groq } from './groq';
 import { GLM } from './glm';
 import { Config } from '../utils/config';
 import { Vidu } from './vidu';
+import { Flux } from './flux';
 
 export class ChatModelFactory {
   private readonly modelMap: Map<Site, Chat>;
@@ -208,6 +209,7 @@ export class ChatModelFactory {
       Site.OpenAIAuto,
       new OpenAIAuto({ name: Site.OpenAIAuto }),
     );
+    this.modelMap.set(Site.Flux, new Flux({ name: Site.Flux }));
     this.modelMap.set(
       Site.ClaudeAuto,
       new ClaudeAuto({ name: Site.ClaudeAuto }),

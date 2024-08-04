@@ -209,6 +209,7 @@ interface ConfigData {
     apikeys: string[];
     token_limit?: { [key: string]: number };
   };
+  flux?: { model: ModelType };
   poeauto: SizeCfg & {
     mail_type: TempEmailType;
     model_config?: Partial<Record<ModelType, PoeModelConfig>>;

@@ -224,6 +224,7 @@ export enum ModelType {
   PlaygroundV2_5 = 'playground-v2.5',
   StableDiffusion3_2B = 'stable-diffusion-3-2b',
   CogVideoX = 'cogvideox',
+  Flux = 'flux',
 }
 
 export enum Site {
@@ -315,6 +316,7 @@ export enum Site {
   Groq = 'groq',
   Bibi = 'bibi',
   Vidu = 'vidu',
+  Flux = 'flux',
 }
 
 export interface ChatRequest {
