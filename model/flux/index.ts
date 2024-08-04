@@ -83,6 +83,8 @@ export class Flux extends Chat {
                     stream.write(Event.message, {
                       content: `✅\n\n![${task.imgAfterSrc}](${task.imgAfterSrc})`,
                     });
+                    stream.write(Event.done, { content: '' });
+                    stream.end();
                     break;
                   }
                   stream.write(Event.message, { content: '.' });
