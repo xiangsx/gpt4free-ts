@@ -7,6 +7,7 @@ import {
   ResultRes,
 } from './define';
 import {
+  downloadAndUploadCDN,
   Event,
   EventStream,
   extractJSON,
@@ -33,7 +34,11 @@ export class Flux extends Chat {
   }
 
   async result(id: string) {
-    return (await this.client.get<ResultRes>(`/result/${id}`)).data;
+    const { data } = await this.client.get<ResultRes>(`/result/${id}`);
+    if (data.imgAfterSrc) {
+      data.imgAfterSrc = await downloadAndUploadCDN(data.imgAfterSrc);
+    }
+    return data;
   }
 
   support(model: ModelType): number {
