@@ -386,6 +386,13 @@ export class Gemini extends Chat {
           ComError.Status.RequestTooMany,
         );
       }
+      if (e.response.status === 429) {
+        child.update({ refresh_unix: moment().add(1, 'd').unix() });
+        throw new ComError(
+          '当前模型负载较高，请稍后尝试',
+          ComError.Status.RequestTooMany,
+        );
+      }
       e.response?.data?.on('data', (chunk: any) =>
         this.logger.error(chunk.toString()),
       );
