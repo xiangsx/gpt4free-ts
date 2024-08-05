@@ -89,6 +89,11 @@ export class Child extends ComChild<Account> {
               err.response?.data,
             )}, req: ${JSON.stringify(err.config?.data)}`,
           );
+          if (err.response?.status === 403) {
+            this.update({ refresh_time: moment().add(1, 'month').unix() });
+            this.destroy({ delFile: false, delMem: true });
+            return;
+          }
           if (err.message.indexOf('timeout') > -1) {
             this.destroy({ delMem: true, delFile: false });
           }
