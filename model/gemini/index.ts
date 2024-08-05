@@ -389,7 +389,7 @@ export class Gemini extends Chat {
         );
       }
       if (e.response.status === 429) {
-        child.update({ refresh_unix: moment().add(1, 'd').unix() });
+        child.update({ refresh_unix: moment().add(1, 'm').unix() });
         child.destroy({ delMem: true, delFile: false });
         throw new ComError(
           '当前模型负载较高，请稍后尝试',
