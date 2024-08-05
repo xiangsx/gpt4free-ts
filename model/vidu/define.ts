@@ -44,6 +44,7 @@ export enum EViduModel {
 
 export enum EViduStyle {
   general = 'general',
+  anime = 'anime',
 }
 
 interface TextPrompt {
