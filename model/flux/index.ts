@@ -136,7 +136,7 @@ export class Flux extends Chat {
         allowSizeStr.push(`${size}x${size2}`);
       }
     }
-    router.get(
+    router.post(
       '/v1/image/generations',
       checkBody({
         prompt: Joi.string().required(),
@@ -166,9 +166,9 @@ export class Flux extends Chat {
         throw new Error('task timeout');
       },
     );
-    router.get(
+    router.post(
       '/v1/image',
-      checkQuery({
+      checkBody({
         prompt: Joi.string().required(),
         width: Joi.number()
           .allow(...allowSize)
@@ -178,30 +178,32 @@ export class Flux extends Chat {
           .optional(),
       }),
       async (ctx) => {
-        const { prompt, width, height } = ctx.request.query as any;
+        const { prompt, width, height } = ctx.request.body as any;
         const result = await this.predictions({
           prompt,
           width: +width,
           height: +height,
         });
-        for (let i = 0; i < 20; i++) {
-          try {
-            const task = await this.result(result.replicateId);
-            if (task.status === 1) {
-              ctx.body = {
-                url: task.imgAfterSrc,
-              };
-              return;
-            }
-          } catch (e: any) {
-            this.logger.error(`get task list failed, err: ${e.message}`);
-          }
-          await sleep(2 * 1000);
-        }
+        ctx.body = { id: result.replicateId };
+      },
+    );
+    router.get(
+      '/v1/get_result',
+      checkQuery({
+        request_id: Joi.string().required(),
+      }),
+      async (ctx) => {
+        const request_id = ctx.request.query.request_id;
+        const res = await this.result(request_id as string);
+        ctx.body = {
+          id: request_id,
+          status: res.status === 1 ? 'Ready' : 'Pending',
+          result: res.imgAfterSrc,
+        };
       },
     );
     router.post(
-      '/v1/image',
+      '/v1/image/auto',
       checkBody({
         prompt: Joi.string().required(),
         width: Joi.number().optional(),
@@ -231,31 +233,7 @@ export class Flux extends Chat {
       },
     );
     router.post(
-      '/predictions',
-      checkBody({
-        prompt: Joi.string().required(),
-        width: Joi.number()
-          .valid(...allowSize)
-          .optional(),
-        height: Joi.number()
-          .valid(...allowSize)
-          .optional(),
-      }),
-      async (ctx) => {
-        const req = ctx.request.body as PredictionsReq;
-        ctx.body = await this.predictions(req);
-      },
-    );
-    router.get(
-      '/result/:id',
-      checkParams({ id: Joi.string().required() }),
-      async (ctx) => {
-        const { id } = ctx.params;
-        ctx.body = await this.result(id);
-      },
-    );
-    router.post(
-      '/chat',
+      '/v1/chat',
       checkBody({ messages: Joi.string().required() }),
       async (ctx) => {
         const { messages } = ctx.request.body as any;
