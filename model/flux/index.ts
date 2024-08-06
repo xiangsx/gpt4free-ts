@@ -18,6 +18,10 @@ import {
 } from '../../utils';
 import { chatModel } from '../index';
 import { Config } from '../../utils/config';
+import Router from 'koa-router';
+import { checkBody, checkParams, checkQuery } from '../../utils/middleware';
+import Joi from 'joi';
+import moment from 'moment';
 
 export class Flux extends Chat {
   get client() {
@@ -121,5 +125,143 @@ export class Flux extends Chat {
       } as ChatRequest,
       pt,
     );
+  }
+
+  dynamicRouter(router: Router): boolean {
+    const allowSize = ['256', '512', '1024', '1280', '1440'];
+    // size格式widthxheight
+    const allowSizeStr: string[] = [];
+    for (const size of allowSize) {
+      for (const size2 of allowSize) {
+        allowSizeStr.push(`${size}x${size2}`);
+      }
+    }
+    router.get(
+      '/v1/image/generations',
+      checkBody({
+        prompt: Joi.string().required(),
+        size: Joi.string()
+          .allow('', ...allowSizeStr)
+          .optional(),
+      }),
+      async (ctx) => {
+        const { prompt, size } = ctx.request.body as any;
+        const [width, height] = size.split('x').map((v: string) => parseInt(v));
+        const result = await this.predictions({ prompt, width, height });
+        for (let i = 0; i < 20; i++) {
+          try {
+            const task = await this.result(result.replicateId);
+            if (task.status === 1) {
+              ctx.body = {
+                created: moment().unix(),
+                data: [{ url: task.imgAfterSrc }],
+              };
+              return;
+            }
+          } catch (e: any) {
+            this.logger.error(`get task list failed, err: ${e.message}`);
+          }
+          await sleep(2 * 1000);
+        }
+        throw new Error('task timeout');
+      },
+    );
+    router.get(
+      '/v1/image',
+      checkQuery({
+        prompt: Joi.string().required(),
+        width: Joi.number()
+          .allow(...allowSize)
+          .optional(),
+        height: Joi.number()
+          .allow(...allowSize)
+          .optional(),
+      }),
+      async (ctx) => {
+        const { prompt, width, height } = ctx.request.query as any;
+        const result = await this.predictions({
+          prompt,
+          width: +width,
+          height: +height,
+        });
+        for (let i = 0; i < 20; i++) {
+          try {
+            const task = await this.result(result.replicateId);
+            if (task.status === 1) {
+              ctx.body = {
+                url: task.imgAfterSrc,
+              };
+              return;
+            }
+          } catch (e: any) {
+            this.logger.error(`get task list failed, err: ${e.message}`);
+          }
+          await sleep(2 * 1000);
+        }
+      },
+    );
+    router.post(
+      '/v1/image',
+      checkBody({
+        prompt: Joi.string().required(),
+        width: Joi.number().optional(),
+        height: Joi.number().optional(),
+      }),
+      async (ctx) => {
+        const { prompt, width, height } = ctx.request.body as any;
+        const result = await this.predictions({
+          prompt,
+          width: +width,
+          height: +height,
+        });
+        for (let i = 0; i < 20; i++) {
+          try {
+            const task = await this.result(result.replicateId);
+            if (task.status === 1) {
+              ctx.body = {
+                url: task.imgAfterSrc,
+              };
+              return;
+            }
+          } catch (e: any) {
+            this.logger.error(`get task list failed, err: ${e.message}`);
+          }
+          await sleep(2 * 1000);
+        }
+      },
+    );
+    router.post(
+      '/predictions',
+      checkBody({
+        prompt: Joi.string().required(),
+        width: Joi.number()
+          .valid(...allowSize)
+          .optional(),
+        height: Joi.number()
+          .valid(...allowSize)
+          .optional(),
+      }),
+      async (ctx) => {
+        const req = ctx.request.body as PredictionsReq;
+        ctx.body = await this.predictions(req);
+      },
+    );
+    router.get(
+      '/result/:id',
+      checkParams({ id: Joi.string().required() }),
+      async (ctx) => {
+        const { id } = ctx.params;
+        ctx.body = await this.result(id);
+      },
+    );
+    router.post(
+      '/chat',
+      checkBody({ messages: Joi.string().required() }),
+      async (ctx) => {
+        const { messages } = ctx.request.body as any;
+        ctx.body = await this.chat(messages);
+      },
+    );
+    return true;
   }
 }
