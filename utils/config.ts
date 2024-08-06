@@ -264,6 +264,7 @@ interface ConfigData {
     disable_fk_low?: boolean;
     arkose_share?: boolean;
     arkose_cache_first?: boolean;
+    fill_sential_interval?: number;
   };
   findplus: {
     size: number;
