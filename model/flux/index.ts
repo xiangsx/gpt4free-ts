@@ -137,13 +137,16 @@ export class Flux extends Chat {
       }
     }
     router.post(
-      '/v1/image/generations',
-      checkBody({
-        prompt: Joi.string().required(),
-        size: Joi.string()
-          .allow('', ...allowSizeStr)
-          .optional(),
-      }),
+      '/v1/images/generations',
+      checkBody(
+        {
+          prompt: Joi.string().required(),
+          size: Joi.string()
+            .allow('', ...allowSizeStr)
+            .optional(),
+        },
+        { allowUnknown: true },
+      ),
       async (ctx) => {
         const { prompt, size } = ctx.request.body as any;
         const [width, height] = size.split('x').map((v: string) => parseInt(v));
