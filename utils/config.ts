@@ -266,6 +266,7 @@ interface ConfigData {
     arkose_cache_first?: boolean;
     fill_sential_interval?: number;
     detail_log?: boolean;
+    protocol_time_out?: number;
   };
   findplus: {
     size: number;
