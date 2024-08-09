@@ -267,6 +267,7 @@ interface ConfigData {
     fill_sential_interval?: number;
     detail_log?: boolean;
     protocol_time_out?: number;
+    ignore_login?: boolean;
   };
   findplus: {
     size: number;
