@@ -226,6 +226,11 @@ export enum ModelType {
   StableDiffusion3_2B = 'stable-diffusion-3-2b',
   CogVideoX = 'cogvideox',
   Flux = 'flux',
+  Llama3_1_8b = 'llama-3.1-8b',
+  Llama3_1_70b = 'llama-3.1-70b',
+  Llama3_1_405b = 'llama-3.1-405b',
+  Llama3_8b = 'llama-3-8b',
+  Llama3_70b = 'llama-3-70b',
 }
 
 export enum Site {
@@ -318,6 +323,7 @@ export enum Site {
   Bibi = 'bibi',
   Vidu = 'vidu',
   Flux = 'flux',
+  Fireworks = 'fireworks',
 }
 
 export interface ChatRequest {
@@ -325,6 +331,7 @@ export interface ChatRequest {
   model: ModelType;
   messages: Message[];
   search?: boolean;
+  temperature?: number;
   max_tokens?: number;
   secret?: string;
   images?: { width: number; height: number; url?: string }[];

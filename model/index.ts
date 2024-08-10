@@ -82,6 +82,7 @@ import { GLM } from './glm';
 import { Config } from '../utils/config';
 import { Vidu } from './vidu';
 import { Flux } from './flux';
+import { Fireworks } from './fireworks';
 
 export class ChatModelFactory {
   private readonly modelMap: Map<Site, Chat>;
@@ -189,6 +190,7 @@ export class ChatModelFactory {
     this.modelMap.set(Site.Groq, new Groq({ name: Site.Groq }));
     this.modelMap.set(Site.Bibi, new Bibi({ name: Site.Bibi }));
     this.modelMap.set(Site.Vidu, new Vidu({ name: Site.Vidu }));
+    this.modelMap.set(Site.Fireworks, new Fireworks({ name: Site.Fireworks }));
     this.modelMap.set(
       Site.GLM,
       new GLM({

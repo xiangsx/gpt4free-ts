@@ -123,6 +123,9 @@ interface ConfigData {
   groq?: SizeCfg & {
     accounts: GoogleMailAccount[];
   };
+  fireworks?: SizeCfg & {
+    accounts: GoogleMailAccount[];
+  };
   glm?: {
     model?: ModelType;
     api_key?: string;
