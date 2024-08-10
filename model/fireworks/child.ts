@@ -35,7 +35,6 @@ export class Child extends ComChild<Account> {
 
   async saveAPIKey() {
     await this.page.goto('https://fireworks.ai/account/api-keys');
-    await this.page.reload();
     const v = await this.page.evaluate(() => {
       return Array.from(document.scripts)
         .map((v) => v.textContent)
@@ -144,36 +143,39 @@ export class Child extends ComChild<Account> {
     }
     this.update({ destroyed: false });
     let page;
-    if (!this.info.cookies?.length) {
-      page = await CreateNewPage('https://fireworks.ai/login', {
-        proxy: this.proxy,
-      });
-      this.page = page;
-      // click login
-      await page.waitForSelector("button[type='submit']");
-      await page.click("button[type='submit']");
+    if (!this.info.apikey) {
+      if (!this.info.cookies?.length) {
+        page = await CreateNewPage('https://fireworks.ai/login', {
+          proxy: this.proxy,
+        });
+        this.page = page;
+        // click login
+        await page.waitForSelector("button[type='submit']");
+        await page.click("button[type='submit']");
 
-      await loginGoogle(
-        page,
-        this.info.email,
-        this.info.password,
-        this.info.recovery,
-      );
-    } else {
-      page = await CreateNewPage('https://fireworks.ai', {
-        proxy: this.proxy,
-        cookies: this.info.cookies.map((v) => ({
-          ...v,
-          url: 'https://fireworks.ai/',
-        })),
-      });
-      this.page = page;
+        await loginGoogle(
+          page,
+          this.info.email,
+          this.info.password,
+          this.info.recovery,
+        );
+      } else {
+        page = await CreateNewPage('https://fireworks.ai', {
+          proxy: this.proxy,
+          cookies: this.info.cookies.map((v) => ({
+            ...v,
+            url: 'https://fireworks.ai/',
+          })),
+        });
+        this.page = page;
+      }
+      await sleep(10000);
+      this.update({ proxy: this.proxy });
+      await this.saveUA();
+      await this.saveCookies();
+      await this.saveAPIKey();
+      await this.page.close();
     }
-    await sleep(3000);
-    this.update({ proxy: this.proxy });
-    await this.saveUA();
-    await this.saveCookies();
-    await this.saveAPIKey();
     this.client = CreateNewAxios(
       {
         baseURL: 'https://api.fireworks.ai/inference',
@@ -193,7 +195,7 @@ export class Child extends ComChild<Account> {
   }
 
   initFailed() {
-    this.update({ cookies: [], proxy: undefined });
+    this.update({ proxy: undefined });
     this.destroy({ delFile: false, delMem: true });
   }
 
