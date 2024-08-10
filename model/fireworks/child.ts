@@ -35,6 +35,7 @@ export class Child extends ComChild<Account> {
 
   async saveAPIKey() {
     await this.page.goto('https://fireworks.ai/account/api-keys');
+    await this.page.reload();
     const v = await this.page.evaluate(() => {
       return Array.from(document.scripts)
         .map((v) => v.textContent)
