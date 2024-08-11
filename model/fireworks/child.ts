@@ -189,7 +189,18 @@ export class Child extends ComChild<Account> {
           'content-type': 'application/json',
         },
       },
-      { proxy: this.proxy },
+      {
+        proxy: this.proxy,
+        errorHandler: (e) => {
+          if (e.message.indexOf('Internal Server Error') > -1) {
+            this.logger.info('Internal Server Error');
+            this.update({ refresh_time: moment().add(30, 'day').unix() });
+            this.destroy({ delFile: false, delMem: true });
+            return e;
+          }
+          throw e;
+        },
+      },
     );
     await this.checkChat();
   }
