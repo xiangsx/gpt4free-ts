@@ -13,6 +13,19 @@ export const defaultModelConfig: Map<ModelType, PoeModelConfig> = new Map([
   [ModelType.GPT4, { context_tokens: 2400, key_name: 'GPT-4', points: 350 }],
   [ModelType.GPT4o, { context_tokens: 2400, key_name: 'GPT-4o', points: 300 }],
   [
+    ModelType.FluxDev,
+    {
+      context_tokens: 2400,
+      key_name: 'FLUX-schnell',
+      points: 1500,
+      image: true,
+    },
+  ],
+  [
+    ModelType.FluxDev,
+    { context_tokens: 2400, key_name: 'FLUX-dev', points: 1500, image: true },
+  ],
+  [
     ModelType.DallE3,
     { context_tokens: 2400, key_name: 'DALL-E-3', points: 1500, image: true },
   ],
@@ -299,4 +312,10 @@ export class Poe {
       return false;
     }
   }
+}
+
+export function extractPoeImageUrl(input: string): string | null {
+  const regex = /!\[.*?\]\((https?:\/\/[^\s]+)\)/;
+  const match = input.match(regex);
+  return match ? match[1] : null;
 }
