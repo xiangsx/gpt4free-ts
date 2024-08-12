@@ -127,8 +127,8 @@ export class Child extends ComChild<Account> {
         stream.end();
       });
     } catch (e: any) {
-      if (e.message.indexOf('restricted') > -1) {
-        this.logger.info('org restricted');
+      if (e.message.indexOf('Internal Server Error') > -1) {
+        this.logger.info('Internal Server Error');
         this.update({ refresh_time: moment().add(30, 'day').unix() });
         this.destroy({ delFile: false, delMem: true });
         throw e;
@@ -196,9 +196,7 @@ export class Child extends ComChild<Account> {
             this.logger.info('Internal Server Error');
             this.update({ refresh_time: moment().add(30, 'day').unix() });
             this.destroy({ delFile: false, delMem: true });
-            return e;
           }
-          throw e;
         },
       },
     );
