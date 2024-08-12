@@ -54,87 +54,59 @@ export class Child extends ComChild<Account> {
   async checkChat() {
     const pt = new EventStream();
     const model = getFireworksModel(ModelType.Llama3_1_8b);
-    await new Promise(async (resolve, reject) => {
-      try {
-        await this.askForStream(
+    try {
+      await this.client.post('/v1/chat/completions', {
+        model: model.id,
+        messages: [
           {
-            model: model.id,
-            messages: [
-              {
-                role: 'user',
-                content: 'say 1',
-              },
-            ],
-            temperature: 0.1,
-            max_tokens: 2,
-            top_p: 1,
-            stream: true,
+            role: 'user',
+            content: 'say 1',
           },
-          pt,
-        );
-        pt.read(
-          (event, data) => {
-            if (event === Event.error) {
-              reject(new Error((data as ErrorData).error));
-            }
-            if (event === Event.done) {
-              resolve(null);
-            }
-          },
-          () => {
-            resolve(null);
-          },
-        );
-      } catch (e) {
-        reject(e);
-      }
-    });
-    this.logger.info('check chat ok');
+        ],
+        temperature: 0.1,
+        max_tokens: 2,
+        top_p: 1,
+        stream: false,
+      });
+      this.logger.info('check chat ok');
+    } catch (e) {
+      throw e;
+    }
   }
 
   async askForStream(req: any, stream: EventStream) {
-    try {
-      const res = await this.client.post<Stream>('/v1/chat/completions', req, {
-        responseType: 'stream',
-      });
-      res.data.pipe(es.split(/\r?\n\r?\n/)).pipe(
-        es.map(async (chunk: any, cb: any) => {
-          const dataStr = chunk.replace('data: ', '');
-          if (!dataStr) {
-            return;
-          }
-          if (dataStr === '[DONE]') {
-            return;
-          }
-          const data = parseJSON(dataStr, {} as any);
-          if (!data?.choices) {
-            stream.write(Event.error, { error: 'not found data.choices' });
-            stream.end();
-            return;
-          }
-          const choices = data.choices || [];
-          const { delta, finish_reason } = choices[0] || {};
-          if (finish_reason === 'stop') {
-            return;
-          }
-          if (delta) {
-            stream.write(Event.message, delta);
-          }
-        }),
-      );
-      res.data.on('close', () => {
-        stream.write(Event.done, { content: '' });
-        stream.end();
-      });
-    } catch (e: any) {
-      if (e.message.indexOf('Internal Server Error') > -1) {
-        this.logger.info('Internal Server Error');
-        this.update({ refresh_time: moment().add(30, 'day').unix() });
-        this.destroy({ delFile: false, delMem: true });
-        throw e;
-      }
-      throw e;
-    }
+    const res = await this.client.post<Stream>('/v1/chat/completions', req, {
+      responseType: 'stream',
+    });
+    res.data.pipe(es.split(/\r?\n\r?\n/)).pipe(
+      es.map(async (chunk: any, cb: any) => {
+        const dataStr = chunk.replace('data: ', '');
+        if (!dataStr) {
+          return;
+        }
+        if (dataStr === '[DONE]') {
+          return;
+        }
+        const data = parseJSON(dataStr, {} as any);
+        if (!data?.choices) {
+          stream.write(Event.error, { error: 'not found data.choices' });
+          stream.end();
+          return;
+        }
+        const choices = data.choices || [];
+        const { delta, finish_reason } = choices[0] || {};
+        if (finish_reason === 'stop') {
+          return;
+        }
+        if (delta) {
+          stream.write(Event.message, delta);
+        }
+      }),
+    );
+    res.data.on('close', () => {
+      stream.write(Event.done, { content: '' });
+      stream.end();
+    });
   }
 
   async init() {
@@ -192,8 +164,8 @@ export class Child extends ComChild<Account> {
       {
         proxy: this.proxy,
         errorHandler: (e) => {
-          if (e.message.indexOf('Internal Server Error') > -1) {
-            this.logger.info('Internal Server Error');
+          if (e.response?.status === 412) {
+            this.logger.info('monthly limit exceeded');
             this.update({ refresh_time: moment().add(30, 'day').unix() });
             this.destroy({ delFile: false, delMem: true });
           }
