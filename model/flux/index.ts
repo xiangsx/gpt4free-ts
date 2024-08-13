@@ -2,11 +2,13 @@ import { Chat, ChatRequest, ModelType, Site } from '../base';
 import { CreateNewAxios } from '../../utils/proxyAgent';
 import {
   FluxPrompt,
+  FluxServerCache,
   PredictionsReq,
   PredictionsRes,
   ResultRes,
 } from './define';
 import {
+  ComError,
   downloadAndUploadCDN,
   Event,
   EventStream,
@@ -20,30 +22,68 @@ import { chatModel } from '../index';
 import { Config } from '../../utils/config';
 import Router from 'koa-router';
 import { checkBody, checkParams, checkQuery } from '../../utils/middleware';
-import Joi from 'joi';
+import Joi, { func } from 'joi';
 import moment from 'moment';
+import { Pool } from '../../utils/pool';
+import { Account } from '../flux/define';
+import { Child } from '../flux/child';
+import { v4 } from 'uuid';
 
 export class Flux extends Chat {
-  get client() {
-    return CreateNewAxios({ baseURL: 'https://flux1.ai/api' }, { proxy: true });
-  }
-
-  async chat(messages: string) {
-    return (await this.client.post<{ data: string }>('/chat', { messages }))
-      .data;
-  }
-
-  async predictions(req: PredictionsReq) {
-    return (await this.client.post<PredictionsRes>('/predictions', req)).data;
-  }
-
-  async result(id: string) {
-    const { data } = await this.client.get<ResultRes>(`/result/${id}`);
-    if (data.imgAfterSrc) {
-      data.imgAfterSrc = await downloadAndUploadCDN(data.imgAfterSrc);
-    }
-    return data;
-  }
+  private pool: Pool<Account, Child> = new Pool<Account, Child>(
+    this.options?.name || 'flux',
+    () => Config.config.flux?.size || 0,
+    (info, options) =>
+      new Child(false, this.options?.name || 'flux', info, options),
+    (info) => {
+      if (!info.email || !info.password) {
+        return false;
+      }
+      if (info.refresh_time && info.refresh_time > moment().unix()) {
+        return false;
+      }
+      return true;
+    },
+    {
+      preHandleAllInfos: async (allInfos) => {
+        const newInfos: Account[] = [];
+        const oldInfoMap: Record<string, Account | undefined> = {};
+        const newInfoSet: Set<string> = new Set(
+          Config.config.flux?.accounts.map((v) => v.email) || [],
+        );
+        for (const v of allInfos) {
+          oldInfoMap[v.email] = v;
+          if (!newInfoSet.has(v.email)) {
+            newInfos.push(v);
+          }
+        }
+        for (const v of Config.config.flux?.accounts || []) {
+          let old = oldInfoMap[v.email];
+          if (!old) {
+            old = {
+              id: v4(),
+              email: v.email,
+              password: v.password,
+              recovery: v.recovery,
+            } as Account;
+            newInfos.push(old);
+            continue;
+          }
+          old.password = v.password;
+          newInfos.push(old);
+        }
+        return newInfos;
+      },
+      delay: 1000,
+      serial: Config.config.flux?.serial || 1,
+      needDel: (info) => {
+        if (!info.email || !info.password) {
+          return true;
+        }
+        return false;
+      },
+    },
+  );
 
   support(model: ModelType): number {
     switch (model) {
@@ -68,6 +108,7 @@ export class Flux extends Chat {
         try {
           await retryFunc(
             async () => {
+              const child = await this.pool.pop();
               stream.write(Event.message, { content: '\n\n' });
               const action = extractJSON<PredictionsReq>(old);
               if (!action) {
@@ -78,11 +119,11 @@ export class Flux extends Chat {
                 stream.end();
                 return;
               }
-              const pRes = await this.predictions(action);
+              const pRes = await child.predictions(action);
               stream.write(Event.message, { content: `\n\n> 生成中` });
               for (let i = 0; i < 10; i++) {
                 try {
-                  const task = await this.result(pRes.replicateId);
+                  const task = await child.result(pRes.replicateId);
                   if (task.status === 1) {
                     stream.write(Event.message, {
                       content: `✅\n\n![${task.imgAfterSrc}](${task.imgAfterSrc})`,
@@ -150,23 +191,26 @@ export class Flux extends Chat {
       async (ctx) => {
         const { prompt, size } = ctx.request.body as any;
         const [width, height] = size.split('x').map((v: string) => parseInt(v));
-        const result = await this.predictions({ prompt, width, height });
-        for (let i = 0; i < 20; i++) {
-          try {
-            const task = await this.result(result.replicateId);
-            if (task.status === 1) {
-              ctx.body = {
-                created: moment().unix(),
-                data: [{ url: task.imgAfterSrc }],
-              };
-              return;
+        await retryFunc(async () => {
+          const child = await this.pool.pop();
+          const result = await child.predictions({ prompt, width, height });
+          for (let i = 0; i < 20; i++) {
+            try {
+              const task = await child.result(result.replicateId);
+              if (task.status === 1) {
+                ctx.body = {
+                  created: moment().unix(),
+                  data: [{ url: task.imgAfterSrc }],
+                };
+                return;
+              }
+            } catch (e: any) {
+              this.logger.error(`get task list failed, err: ${e.message}`);
             }
-          } catch (e: any) {
-            this.logger.error(`get task list failed, err: ${e.message}`);
+            await sleep(2 * 1000);
           }
-          await sleep(2 * 1000);
-        }
-        throw new Error('task timeout');
+          throw new Error('task timeout');
+        }, 3);
       },
     );
     router.post(
@@ -182,12 +226,16 @@ export class Flux extends Chat {
       }),
       async (ctx) => {
         const { prompt, width, height } = ctx.request.body as any;
-        const result = await this.predictions({
-          prompt,
-          width: +width,
-          height: +height,
-        });
-        ctx.body = { id: result.replicateId };
+        await retryFunc(async () => {
+          const child = await this.pool.pop();
+          const result = await child.predictions({
+            prompt,
+            width: +width,
+            height: +height,
+          });
+          await FluxServerCache.set(result.replicateId, child.info.id);
+          ctx.body = { id: result.replicateId };
+        }, 3);
       },
     );
     router.get(
@@ -196,8 +244,15 @@ export class Flux extends Chat {
         request_id: Joi.string().required(),
       }),
       async (ctx) => {
-        const request_id = ctx.request.query.request_id;
-        const res = await this.result(request_id as string);
+        const request_id = ctx.request.query.request_id as string;
+        const id = await FluxServerCache.get(request_id);
+        const info = this.pool.findOne((v) => v.id === id);
+        if (!info) {
+          throw new ComError('request_id not exist', ComError.Status.NotFound);
+        }
+
+        const child = new Child(true, this.options?.name || 'flux', info);
+        const res = await child.result(request_id as string);
         ctx.body = {
           id: request_id,
           status: res.status === 1 ? 'Ready' : 'Pending',
@@ -214,25 +269,28 @@ export class Flux extends Chat {
       }),
       async (ctx) => {
         const { prompt, width, height } = ctx.request.body as any;
-        const result = await this.predictions({
-          prompt,
-          width: +width,
-          height: +height,
-        });
-        for (let i = 0; i < 20; i++) {
-          try {
-            const task = await this.result(result.replicateId);
-            if (task.status === 1) {
-              ctx.body = {
-                url: task.imgAfterSrc,
-              };
-              return;
+        await retryFunc(async () => {
+          const child = await this.pool.pop();
+          const result = await child.predictions({
+            prompt,
+            width: +width,
+            height: +height,
+          });
+          for (let i = 0; i < 20; i++) {
+            try {
+              const task = await child.result(result.replicateId);
+              if (task.status === 1) {
+                ctx.body = {
+                  url: task.imgAfterSrc,
+                };
+                return;
+              }
+            } catch (e: any) {
+              this.logger.error(`get task list failed, err: ${e.message}`);
             }
-          } catch (e: any) {
-            this.logger.error(`get task list failed, err: ${e.message}`);
+            await sleep(2 * 1000);
           }
-          await sleep(2 * 1000);
-        }
+        }, 3);
       },
     );
     router.post(
@@ -240,7 +298,10 @@ export class Flux extends Chat {
       checkBody({ messages: Joi.string().required() }),
       async (ctx) => {
         const { messages } = ctx.request.body as any;
-        ctx.body = await this.chat(messages);
+        await retryFunc(async () => {
+          const child = await this.pool.pop();
+          ctx.body = await child.chat(messages);
+        }, 3);
       },
     );
     return true;

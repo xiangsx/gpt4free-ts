@@ -1,6 +1,6 @@
 import { Context, Next } from 'koa';
-import Joi, { ValidationOptions } from 'joi';
-import { ComError } from './index';
+import Joi, { string, ValidationOptions } from 'joi';
+import { ComError, retryFunc } from './index';
 
 export const checkBody = (
   schema: {
@@ -48,4 +48,4 @@ export const checkParams = (
     }
     await next();
   };
-}
+};
