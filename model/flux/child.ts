@@ -54,6 +54,7 @@ export class Child extends ComChild<Account> {
             this.logger.error(
               JSON.stringify({
                 message: e.message,
+                status: e.response?.status,
                 response: e.response?.data,
               }),
             );
