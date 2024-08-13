@@ -51,6 +51,12 @@ export class Child extends ComChild<Account> {
         {
           proxy: this.proxy,
           errorHandler: (e) => {
+            this.logger.error(
+              JSON.stringify({
+                message: e.message,
+                response: e.response?.data,
+              }),
+            );
             if (e.response?.status === 401) {
               this.logger.info('not login');
               this.update({ cookies: [] });
