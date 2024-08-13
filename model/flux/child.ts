@@ -177,7 +177,7 @@ export class Child extends ComChild<Account> {
         this.info.password,
         this.info.recovery,
       );
-      await sleep(5000);
+      await sleep(10000);
       await this.page.goto('https://flux1.ai/create');
       this.update({ proxy: this.proxy });
       await this.saveUA();
