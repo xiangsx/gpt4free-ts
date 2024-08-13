@@ -275,6 +275,43 @@ interface ConfigData {
     protocol_time_out?: number;
     ignore_login?: boolean;
   };
+  xychat?: {
+    size: number;
+    max_sential_pool_size?: number;
+    max_arkose_pool_size?: number;
+    serial: number;
+    allow_3: boolean;
+    must_all_tools: boolean;
+    must_plus: boolean;
+    upload_url: string;
+    download_proxy: string;
+    history_and_training_disabled?: boolean;
+    download_map?: Record<string, string>;
+    prompt_map?: Record<string, string>;
+    system?: string;
+    not_need_check_chat?: boolean;
+    sleep_interval?: number; // 429之后睡眠多久
+    accounts: { email: string; password: string }[];
+    del_accounts?: { email: string; password: string }[];
+    clear_history?: boolean;
+    file_num_limit?: number;
+    ban_msg?: string[];
+    max_retry_times?: number;
+    max_continue_times?: number;
+    handle_login_turnstile?: boolean;
+    close_delay?: number; // 延迟关闭时间
+    ask_sleep?: number; // 对话之后睡眠多久
+    emulate?: boolean;
+    pow_server?: string[];
+    failed_image?: boolean;
+    disable_fk_low?: boolean;
+    arkose_share?: boolean;
+    arkose_cache_first?: boolean;
+    fill_sential_interval?: number;
+    detail_log?: boolean;
+    protocol_time_out?: number;
+    ignore_login?: boolean;
+  };
   findplus: {
     size: number;
     serial: number;
