@@ -97,7 +97,7 @@ for (const v of FireworksModels) {
 }
 
 export function extractSecretKey(inputString: string) {
-  const regex = /\\"plaintext\\":\\"(.*?)\\"/;
+  const regex = /\\"key\\":\\"(.*?)\\"/;
   const match = inputString.match(regex);
   if (match && match[1]) {
     return match[1];

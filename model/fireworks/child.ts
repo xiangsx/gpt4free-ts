@@ -38,7 +38,7 @@ export class Child extends ComChild<Account> {
     const v = await this.page.evaluate(() => {
       return Array.from(document.scripts)
         .map((v) => v.textContent)
-        .find((v) => v && v.indexOf('plaintext') > -1);
+        .find((v) => v && v.indexOf('apikey-default') > -1);
     });
     if (!v) {
       throw new Error('no apikey script');
