@@ -177,7 +177,7 @@ export class Child extends ComChild<Account> {
 
   initFailed() {
     this.update({ proxy: undefined });
-    this.destroy({ delFile: false, delMem: true });
+    this.destroy({ delFile: !this.info.email, delMem: true });
   }
 
   use() {
