@@ -130,7 +130,7 @@ export class Child extends ComChild<Account> {
           this.info.password,
           this.info.recovery,
         );
-        await page.waitForNavigation();
+        await page.waitForNavigation({ timeout: 20 * 1000 }).catch((e) => {});
         await sleep(10000);
         this.logger.info(`login end, ${page.url()}`);
         if (
