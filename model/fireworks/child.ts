@@ -113,7 +113,6 @@ export class Child extends ComChild<Account> {
     if (!this.info.email) {
       throw new Error('email is required');
     }
-    this.update({ destroyed: false });
     let page;
     if (!this.info.apikey) {
       if (!this.info.cookies?.length) {
@@ -131,6 +130,17 @@ export class Child extends ComChild<Account> {
           this.info.password,
           this.info.recovery,
         );
+        await page.waitForNavigation();
+        await sleep(10000);
+        this.logger.info(`login end, ${page.url()}`);
+        if (
+          page.url().indexOf('login') > -1 ||
+          page.url().indexOf('logout') > -1
+        ) {
+          this.logger.info('try relogin');
+          await page.waitForSelector("button[type='submit']");
+          await page.click("button[type='submit']");
+        }
       } else {
         page = await CreateNewPage('https://fireworks.ai', {
           proxy: this.proxy,
