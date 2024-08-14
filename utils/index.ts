@@ -1198,7 +1198,7 @@ export function genPowToken(
     const v = hash.substring(0, diffLen);
     if (v <= diff) {
       if (i > 1000) {
-        console.log(`diff: ${diff}, count:${i}, time:${config[9]}`);
+        console.debug(`diff: ${diff}, count:${i}, time:${config[9]}`);
       }
       const result = (prefix || 'gAAAAAB') + base;
       return result;
