@@ -86,9 +86,9 @@ export class Child extends ComChild<Account> {
           },
           errorHandler: (err) => {
             this.logger.info(
-              `axios error：${err.message}, res: ${JSON.stringify(
-                err.response?.data,
-              )}, req: ${JSON.stringify(err.config?.data)}`,
+              `axios error：${err.message}, req: ${JSON.stringify(
+                err.config?.data,
+              )}`,
             );
             if (err.message.indexOf('timeout') > -1) {
               this.destroy({ delMem: true, delFile: false });
