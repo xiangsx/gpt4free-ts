@@ -181,7 +181,7 @@ export class Child extends ComChild<Account> {
           }
         });
       });
-      await sleep(10000);
+      await sleep(3000);
       await this.checkLogin();
       await this.saveCookies();
       await this.saveToken();
@@ -202,7 +202,8 @@ export class Child extends ComChild<Account> {
         },
       );
       this.page = page;
-      await sleep(10000);
+      await sleep(3000);
+      await this.checkLogin();
       await this.saveCookies();
       await this.saveToken();
       await this.saveTeamID();
@@ -288,9 +289,9 @@ export class Child extends ComChild<Account> {
 
   async destroy(options?: DestroyOptions) {
     super.destroy(options);
-    await this.page
-      .screenshot({ path: `run/error-${randomStr(20)}.png` })
-      .catch((err) => this.logger.error(err.message));
+    // await this.page
+    //   .screenshot({ path: `run/error-${randomStr(20)}.png` })
+    //   .catch((err) => this.logger.error(err.message));
     this.page
       ?.browser()
       .close()
