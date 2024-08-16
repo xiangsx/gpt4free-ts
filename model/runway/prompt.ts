@@ -8,9 +8,8 @@ Output json should be in code block format.
 {
   "user_prompt": "string", // 视频的详细描述，必须是英文的
   "enhance_prompt": "boolean", // 是否扩展提示词
-  "seed"?:"number", // [可选] 随机种子，如果用户请求里面无明确要求，则不需要此参数
-  "image_url"?: "string", // [可选] 图片的url地址，如果用户请求里面无图片链接，则不需要此参数
-  "image_end_url"?: "string" // [可选] 视频的关键帧，视频结束帧，图片的url地址，如果用户请求里面无明确要求，则不需要此参数
+  "image_url"?: "string", // [可选] 图片的url, 地址如果用户请求里面无图片链接，则不需要此参数
+  "seed"?:"number" // [可选] 随机种子，如果用户请求里面无明确要求，则不加此参数
 }
 \`\`\`
 `;

@@ -323,6 +323,11 @@ export class Child extends ComChild<Account> {
         res.data.task.artifacts[0].url,
       );
     }
+    if (res.data.task.artifacts?.[0]?.previewUrls?.length) {
+      res.data.task.artifacts[0].previewUrls = await Promise.all(
+        res.data.task.artifacts[0].previewUrls.map(downloadAndUploadCDN),
+      );
+    }
     return res.data;
   }
 

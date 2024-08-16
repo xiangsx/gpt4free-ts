@@ -125,10 +125,19 @@ export class Runway extends Chat {
       },
       async () => {
         try {
+          stream.write(Event.message, { content: '\n\n' });
           const action = extractJSON<GenVideoAction>(old);
           if (!action) {
             stream.write(Event.message, {
               content: 'Generate action failed',
+            });
+            stream.write(Event.done, { content: '' });
+            stream.end();
+            return;
+          }
+          if (!action.image_url?.includes('http')) {
+            stream.write(Event.message, {
+              content: '请上传图片链接，才能开始生成视频',
             });
             stream.write(Event.done, { content: '' });
             stream.end();
@@ -157,7 +166,6 @@ export class Runway extends Chat {
           };
           await retryFunc(
             async () => {
-              stream.write(Event.message, { content: '\n\n' });
               const child = await this.pool.pop();
               const video = await child.genTask(req);
               let pendingOK = false;
@@ -196,12 +204,12 @@ export class Runway extends Chat {
                       this.logger.error('get video url failed');
                       break;
                     }
-                    url = await downloadAndUploadCDN(url);
                     const dimensions =
                       task.task?.artifacts?.[0]?.metadata?.dimensions.join('x');
                     const fps = task.task?.artifacts?.[0]?.metadata?.frameRate;
+                    const preurl = task.task?.artifacts?.[0]?.previewUrls?.[0];
                     stream.write(Event.message, {
-                      content: `\n> 视频信息 ${dimensions} ${fps}fps\n\n[在线播放▶️](${url})`,
+                      content: `\n> 视频信息 ${dimensions} ${fps}fps\n\n![${preurl}](${preurl})\n[在线播放▶️](${url})`,
                     });
                     stream.write(Event.done, { content: '' });
                     stream.end();
