@@ -179,6 +179,7 @@ export enum ModelType {
   DomoVideoToVideo = 'domo-video-to-video',
   PikaTextToVideo = 'pika-text-to-video',
   LumaVideo = 'luma-video',
+  RunwayVideo = 'runway-video',
   ViduVideo = 'vidu-video',
   SunoV3p5 = 'suno-v3.5',
   SunoV3 = 'suno-v3',
@@ -328,6 +329,7 @@ export enum Site {
   Flux = 'flux',
   Fireworks = 'fireworks',
   XyChat = 'xychat',
+  Runway = 'runway',
 }
 
 export interface ChatRequest {

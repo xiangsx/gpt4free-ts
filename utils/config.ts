@@ -115,6 +115,12 @@ interface ConfigData {
     retry_times?: number;
     login_any_time?: boolean;
   };
+  runway?: SizeCfg & {
+    accounts: (GoogleMailAccount & { token?: string })[];
+    model: ModelType;
+    retry_times?: number;
+    login_any_time?: boolean;
+  };
   vidu?: SizeCfg & {
     accounts: (GoogleMailAccount & { jwt?: string })[];
     retry_times?: number;

@@ -84,6 +84,7 @@ import { Vidu } from './vidu';
 import { Flux } from './flux';
 import { Fireworks } from './fireworks';
 import { XyChat } from './xychat';
+import { Runway } from './runway';
 
 export class ChatModelFactory {
   private readonly modelMap: Map<Site, Chat>;
@@ -193,6 +194,7 @@ export class ChatModelFactory {
     this.modelMap.set(Site.Vidu, new Vidu({ name: Site.Vidu }));
     this.modelMap.set(Site.Fireworks, new Fireworks({ name: Site.Fireworks }));
     this.modelMap.set(Site.XyChat, new XyChat({ name: Site.XyChat }));
+    this.modelMap.set(Site.Runway, new Runway({ name: Site.Runway }));
     this.modelMap.set(
       Site.GLM,
       new GLM({
