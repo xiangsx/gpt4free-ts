@@ -166,6 +166,12 @@ export class Runway extends Chat {
               for (let i = 0; i < 200; i++) {
                 try {
                   const task = await child.getTask(video.task.id);
+                  if (task.task.status === RunwayTaskStatus.FAILED) {
+                    stream.write(Event.message, { content: '生成失败' });
+                    stream.write(Event.done, { content: '' });
+                    stream.end();
+                    break;
+                  }
                   if (
                     task.task.status === RunwayTaskStatus.PENDING &&
                     !pendingOK

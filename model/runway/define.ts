@@ -23,7 +23,7 @@ export interface GenVideoAction {
   user_prompt: string;
   enhance_prompt: boolean;
   seed?: number;
-  image_url?: string;
+  image_url: string;
   image_end_url?: string;
 }
 
@@ -89,6 +89,7 @@ export enum RunwayTaskType {
 }
 
 export enum RunwayTaskStatus {
+  FAILED = 'FAILED',
   PENDING = 'PENDING',
   RUNNING = 'RUNNING',
   SUCCEEDED = 'SUCCEEDED',
@@ -102,7 +103,7 @@ interface GenVideoOptions {
   exploreMode: boolean;
   watermark: boolean;
   enhance_prompt: boolean;
-  init_image?: string;
+  init_image: string;
   resolution: string;
   image_as_end_frame: boolean;
   assetGroupName: string;
@@ -169,4 +170,18 @@ interface VideoTask {
 
 export interface GetVideoTaskRes {
   task: VideoTask;
+}
+
+export interface UploadsReq {
+  filename: string;
+  numberOfParts: number;
+  type: 'DATASET';
+}
+
+export interface UploadsRes {
+  id: string;
+  uploadUrls: string[];
+  uploadHeaders: {
+    'Content-Type': string;
+  };
 }

@@ -4,6 +4,8 @@ import {
   GenVideoTaskReq,
   GenVideoTaskRes,
   GetVideoTaskRes,
+  UploadsReq,
+  UploadsRes,
 } from './define';
 import { AxiosError, AxiosInstance } from 'axios';
 import {
@@ -17,6 +19,7 @@ import { loginGoogle } from '../../utils/puppeteer';
 import {
   ComError,
   downloadAndUploadCDN,
+  downloadFile,
   parseCookie,
   parseJSON,
   randomStr,
@@ -28,6 +31,7 @@ import {
 import { Config } from '../../utils/config';
 import { newLogger } from '../../utils/log';
 import { AwsLambda } from 'elastic-apm-node/types/aws-lambda';
+import fs from 'fs';
 
 export class Child extends ComChild<Account> {
   private _client?: AxiosInstance;
@@ -303,6 +307,7 @@ export class Child extends ComChild<Account> {
 
   async genTask(req: GenVideoTaskReq) {
     req.asTeamId = this.info.team_id;
+    req.options.init_image = await this.autoUpload(req.options.init_image);
     const res = await this.client.post<GenVideoTaskRes>('/v1/tasks', req, {});
     return res.data;
   }
@@ -319,5 +324,54 @@ export class Child extends ComChild<Account> {
       );
     }
     return res.data;
+  }
+
+  async uploads(filename: string) {
+    const req: UploadsReq = {
+      filename,
+      numberOfParts: 1,
+      type: 'DATASET',
+    };
+    const res = await this.client.post<UploadsRes>('/v1/uploads', req);
+    return res.data;
+  }
+
+  async upload(filepath: string, contentType: string, url: string) {
+    const filestream = fs.readFileSync(filepath);
+    const res = await this.client.put(url, filestream, {
+      headers: {
+        'Content-Type': contentType,
+        Authorization: null,
+      },
+    });
+    // 返回Etag
+    return res.headers.etag;
+  }
+
+  async complete(id: string, ETag: string) {
+    const res = await this.client.post<{ url: string }>(
+      `/v1/uploads/${id}/complete`,
+      {
+        parts: [
+          {
+            PartNumber: 1,
+            ETag,
+          },
+        ],
+      },
+    );
+    return res.data.url;
+  }
+
+  async autoUpload(url: string) {
+    const { file_name, outputFilePath } = await downloadFile(url);
+    const uploadRes = await this.uploads(file_name);
+    const ETag = await this.upload(
+      outputFilePath,
+      uploadRes.uploadHeaders['Content-Type'],
+      uploadRes.uploadUrls[0],
+    );
+    const completeUrl = await this.complete(uploadRes.id, ETag);
+    return completeUrl;
   }
 }
