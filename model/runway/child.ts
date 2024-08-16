@@ -19,6 +19,7 @@ import {
   downloadAndUploadCDN,
   parseCookie,
   parseJSON,
+  randomStr,
   randomUserAgent,
   replaceLocalUrl,
   sleep,
@@ -26,6 +27,7 @@ import {
 } from '../../utils';
 import { Config } from '../../utils/config';
 import { newLogger } from '../../utils/log';
+import { AwsLambda } from 'elastic-apm-node/types/aws-lambda';
 
 export class Child extends ComChild<Account> {
   private _client?: AxiosInstance;
@@ -201,7 +203,6 @@ export class Child extends ComChild<Account> {
       );
       this.page = page;
       await sleep(10000);
-      await this.checkLogin();
       await this.saveCookies();
       await this.saveToken();
       await this.saveTeamID();
@@ -287,6 +288,9 @@ export class Child extends ComChild<Account> {
 
   destroy(options?: DestroyOptions) {
     super.destroy(options);
+    this.page
+      .screenshot({ path: `run/error-${randomStr(20)}.png` })
+      .catch((err) => this.logger.error(err.message));
     this.page
       ?.browser()
       .close()
