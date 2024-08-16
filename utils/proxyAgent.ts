@@ -189,6 +189,7 @@ export async function CreateNewPage<
     devtools?: boolean;
     fingerprint_inject?: boolean;
     protocolTimeout?: number;
+    navigationTimeout?: number;
     recognize?: boolean;
     block_google_analysis?: boolean;
     interception_handlers?: InterceptHandler[];
@@ -207,6 +208,7 @@ export async function CreateNewPage<
     devtools = false,
     fingerprint_inject = false,
     protocolTimeout,
+    navigationTimeout,
     stealth = true,
     recognize = true,
     block_google_analysis = false,
@@ -295,6 +297,9 @@ export async function CreateNewPage<
       if (cookies.length > 0) {
         await page.setCookie(...cookies);
       }
+    }
+    if (navigationTimeout) {
+      page.setDefaultNavigationTimeout(navigationTimeout);
     }
     try {
       await page.goto(url);

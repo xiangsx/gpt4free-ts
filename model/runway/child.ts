@@ -154,6 +154,7 @@ export class Child extends ComChild<Account> {
         recognize: true,
         proxy: this.proxy,
         protocolTimeout: 60 * 1000,
+        navigationTimeout: 60 * 1000,
       });
       this.page = page;
       await sleep(3000);
@@ -201,6 +202,7 @@ export class Child extends ComChild<Account> {
           recognize: true,
           proxy: this.proxy,
           protocolTimeout: 60 * 1000,
+          navigationTimeout: 60 * 1000,
           cookies: this.info.cookies.map((v) => ({
             ...v,
             url: 'https://internal-api.virginia.labs.lumalabs.ai',
@@ -208,6 +210,7 @@ export class Child extends ComChild<Account> {
         },
       );
       this.page = page;
+      page.setDefaultNavigationTimeout(60 * 1000);
       await sleep(3000);
       await this.checkLogin();
       await this.saveCookies();
