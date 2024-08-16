@@ -150,9 +150,10 @@ export class Child extends ComChild<Account> {
     let page: Page;
     if (!this.info.cookies?.length) {
       page = await CreateNewPage('https://app.runwayml.com/login', {
-        simplify: false,
-        recognize: false,
+        simplify: true,
+        recognize: true,
         proxy: this.proxy,
+        protocolTimeout: 60 * 1000,
       });
       this.page = page;
       await sleep(3000);
@@ -196,9 +197,10 @@ export class Child extends ComChild<Account> {
       page = await CreateNewPage(
         'https://lumalabs.ai/dream-machine/creations',
         {
-          simplify: false,
-          recognize: false,
+          simplify: true,
+          recognize: true,
           proxy: this.proxy,
+          protocolTimeout: 60 * 1000,
           cookies: this.info.cookies.map((v) => ({
             ...v,
             url: 'https://internal-api.virginia.labs.lumalabs.ai',
