@@ -179,7 +179,7 @@ export class Child extends ComChild<Account> {
           }
         });
       });
-      await sleep(3000);
+      await sleep(10000);
       await this.checkLogin();
       await this.saveCookies();
       await this.saveToken();
@@ -200,7 +200,7 @@ export class Child extends ComChild<Account> {
         },
       );
       this.page = page;
-      await sleep(3000);
+      await sleep(10000);
       await this.checkLogin();
       await this.saveCookies();
       await this.saveToken();
