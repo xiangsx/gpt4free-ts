@@ -286,9 +286,9 @@ export class Child extends ComChild<Account> {
     });
   }
 
-  destroy(options?: DestroyOptions) {
+  async destroy(options?: DestroyOptions) {
     super.destroy(options);
-    this.page
+    await this.page
       .screenshot({ path: `run/error-${randomStr(20)}.png` })
       .catch((err) => this.logger.error(err.message));
     this.page
