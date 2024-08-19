@@ -739,7 +739,10 @@ export async function retryFunc<T>(
       err = e;
       if (skip?.(e)) {
         console.error(`${label || 'retryFunc'} skip error: ${e.message}`);
-        throw e;
+        if (defaultV === undefined) {
+          throw e;
+        }
+        return defaultV;
       }
       if (log) {
         console.error(
