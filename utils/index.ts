@@ -1094,7 +1094,12 @@ export async function downloadAndUploadCDN(url: string): Promise<string> {
       }
     },
     3,
-    { defaultV: url, label: 'downloadAndUploadCDN', delay: 100 },
+    {
+      defaultV: url,
+      label: 'downloadAndUploadCDN',
+      delay: 100,
+      skip: (e: any) => e?.response?.status === 404,
+    },
   );
 }
 
