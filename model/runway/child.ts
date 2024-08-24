@@ -154,8 +154,9 @@ export class Child extends ComChild<Account> {
           }
         });
       });
-      await sleep(3000);
+      await sleep(10000);
       await this.checkLogin();
+      await sleep(10 * 60 * 1000);
       await this.saveCookies();
       await this.saveToken();
       await this.saveTeamID();
@@ -178,7 +179,8 @@ export class Child extends ComChild<Account> {
       );
       this.page = page;
       page.setDefaultNavigationTimeout(60 * 1000);
-      await sleep(3000);
+      await sleep(10000);
+      await sleep(10 * 60 * 1000);
       await this.checkLogin();
       await this.saveCookies();
       await this.saveToken();
@@ -197,10 +199,6 @@ export class Child extends ComChild<Account> {
 
   async saveCookies() {
     const cookies = await this.page.cookies('https://app.runwayml.com');
-    const sess = cookies.find((v) => v.name.indexOf('session') > -1)?.value;
-    if (!sess) {
-      throw new ComError('no sess');
-    }
     this.update({ cookies, proxy: this.proxy });
     this.logger.debug('saved cookies ok');
   }
