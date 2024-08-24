@@ -327,6 +327,7 @@ export enum Site {
   Bibi = 'bibi',
   Vidu = 'vidu',
   Flux = 'flux',
+  MJWeb = 'mjweb',
   Fireworks = 'fireworks',
   XyChat = 'xychat',
   Runway = 'runway',

@@ -85,6 +85,7 @@ import { Flux } from './flux';
 import { Fireworks } from './fireworks';
 import { XyChat } from './xychat';
 import { Runway } from './runway';
+import { MJWeb } from './mjweb';
 
 export class ChatModelFactory {
   private readonly modelMap: Map<Site, Chat>;
@@ -216,6 +217,7 @@ export class ChatModelFactory {
       new OpenAIAuto({ name: Site.OpenAIAuto }),
     );
     this.modelMap.set(Site.Flux, new Flux({ name: Site.Flux }));
+    this.modelMap.set(Site.MJWeb, new MJWeb({ name: Site.MJWeb }));
     this.modelMap.set(
       Site.ClaudeAuto,
       new ClaudeAuto({ name: Site.ClaudeAuto }),

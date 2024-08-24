@@ -222,6 +222,10 @@ interface ConfigData {
     model: ModelType;
     accounts: GoogleMailAccount[];
   };
+  mjweb?: SizeCfg & {
+    model: ModelType;
+    accounts: GoogleMailAccount[];
+  };
   poeauto: SizeCfg & {
     mail_type: TempEmailType;
     model_config?: Partial<Record<ModelType, PoeModelConfig>>;

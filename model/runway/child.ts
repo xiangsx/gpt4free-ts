@@ -156,7 +156,6 @@ export class Child extends ComChild<Account> {
       });
       await sleep(10000);
       await this.checkLogin();
-      await sleep(10 * 60 * 1000);
       await this.saveCookies();
       await this.saveToken();
       await this.saveTeamID();
@@ -180,7 +179,6 @@ export class Child extends ComChild<Account> {
       this.page = page;
       page.setDefaultNavigationTimeout(60 * 1000);
       await sleep(10000);
-      await sleep(10 * 60 * 1000);
       await this.checkLogin();
       await this.saveCookies();
       await this.saveToken();
