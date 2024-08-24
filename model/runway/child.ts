@@ -88,52 +88,19 @@ export class Child extends ComChild<Account> {
             this.logger.info(
               `axios error：${err.message}, req: ${JSON.stringify(
                 err.config?.data,
-              )}`,
+              )} response: ${JSON.stringify(err.response?.data)}`,
             );
             if (err.message.indexOf('timeout') > -1) {
               this.destroy({ delMem: true, delFile: false });
             }
             if (
               // @ts-ignore
-              err.response?.data?.detail?.indexOf?.('Not authenticated') > -1
-            ) {
-              this.update({
-                cookies: [],
-              });
-              this.destroy({ delMem: true, delFile: false });
-              this.logger.info('account not authenticated');
-              return;
-            }
-            if (
-              // @ts-ignore
-              err.response?.data?.detail?.indexOf?.(
-                'Maximum concurrent usage limit exceeded',
-              ) > -1
-            ) {
-              this.update({ refresh_time: moment().add(20, 'minute').unix() });
-              this.destroy({ delMem: true, delFile: false });
-              this.logger.info('Maximum concurrent usage limit exceeded');
-              return;
-            }
-            if (
-              // @ts-ignore
-              err.response?.data?.detail?.indexOf?.(
-                'Usage limit exceeded for this month',
-              ) > -1
+              err.response?.data?.error?.indexOf?.('enough credits') > -1
             ) {
               this.update({ refresh_time: moment().add(1, 'month').unix() });
               this.destroy({ delMem: true, delFile: false });
-              this.logger.info('Usage limit exceeded for this month');
+              this.logger.info('Usage limit exceeded');
               return;
-            }
-            if (
-              // @ts-ignore
-              err.response?.data?.detail?.indexOf?.(
-                'Maximum daily generation limit reached',
-              ) > -1
-            ) {
-              this.update({ refresh_time: moment().add(1, 'day').unix() });
-              this.destroy({ delMem: true, delFile: false });
             }
           },
         },
