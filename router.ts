@@ -613,7 +613,7 @@ export const chatSaveHandler = async (ctx: Context) => {
       continue;
     }
     await SaveMessagesToLogstash(req, {
-      'from.ip': ctx.request.ip || 'unknown',
+      from: { ip: ctx.request.ip || 'unknown' },
     });
     saved += 1;
   }
