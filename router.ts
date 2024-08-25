@@ -617,7 +617,7 @@ export const chatSaveHandler = async (ctx: Context) => {
     });
     saved += 1;
   }
-  console.log(`saved ${saved} chats`);
+  console.log(`saved ${saved} chats, from: ${ctx.request.ip}`);
   ctx.body = { success: true, saved };
 };
 
