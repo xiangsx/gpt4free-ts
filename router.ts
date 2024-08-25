@@ -612,7 +612,9 @@ export const chatSaveHandler = async (ctx: Context) => {
     if (!req.model || !req.messages?.length) {
       continue;
     }
-    await SaveMessagesToLogstash(req);
+    await SaveMessagesToLogstash(req, {
+      'from.ip': ctx.request.ip || 'unknown',
+    });
     saved += 1;
   }
   console.log(`saved ${saved} chats`);

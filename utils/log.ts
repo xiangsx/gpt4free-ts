@@ -183,7 +183,10 @@ export class UDPTransport extends Transport {
 
 let client: Socket | undefined;
 
-export async function SaveMessagesToLogstash(msg: ChatRequest) {
+export async function SaveMessagesToLogstash(
+  msg: ChatRequest,
+  other: { [key: string]: any } = {},
+) {
   const { enable = false, host, port } = Config.config.global?.msg_saver || {};
   if (!enable || !port || !host) {
     return;
@@ -192,12 +195,15 @@ export async function SaveMessagesToLogstash(msg: ChatRequest) {
     client = dgram.createSocket('udp4');
   }
   return new Promise((resolve, reject) => {
-    const message = Buffer.from(JSON.stringify({
-      ...msg,
-      prompt: undefined,
-      type: 'chat',
-      '@timestamp': new Date().toISOString(),
-    }));
+    const message = Buffer.from(
+      JSON.stringify({
+        ...msg,
+        ...other,
+        prompt: undefined,
+        type: 'chat',
+        '@timestamp': new Date().toISOString(),
+      }),
+    );
     client?.send(message, port, host, (err) => {
       if (err) {
         console.error(`发送失败: ${err.message}`);
