@@ -10,6 +10,7 @@ import { Config } from './config';
 import { ecsFields, ecsFormat } from '@elastic/ecs-winston-format';
 import { colorLabel } from './index';
 import { ChatRequest } from '../model/base';
+import * as net from 'node:net';
 
 let logger: Logger;
 
@@ -181,7 +182,7 @@ export class UDPTransport extends Transport {
   }
 }
 
-let client: Socket | undefined;
+let client: net.Socket | undefined;
 
 export async function SaveMessagesToLogstash(
   msg: ChatRequest,
@@ -192,22 +193,29 @@ export async function SaveMessagesToLogstash(
     return;
   }
   if (!client) {
-    client = dgram.createSocket('udp4');
+    client = new net.Socket();
+    client.connect(port, host, () => {
+      console.log('Connected to Logstash via TCP');
+    });
+
+    client.on('error', (err) => {
+      console.error(`TCP connection error: ${err.message}`);
+      client?.destroy();
+      client = undefined;
+    });
   }
   return new Promise((resolve, reject) => {
-    const message = Buffer.from(
+    const message =
       JSON.stringify({
         ...msg,
-        ...other,
         prompt: undefined,
         type: 'chat',
         '@timestamp': new Date().toISOString(),
-      }),
-    );
-    client?.send(message, port, host, (err) => {
+      }) + '\n';
+    client?.write(message, 'utf8', (err) => {
       if (err) {
-        console.error(`发送失败: ${err.message}`);
-        client?.close();
+        console.error(`Failed to send log: ${err.message}`);
+        client?.destroy();
         client = undefined;
       }
       resolve(null);
