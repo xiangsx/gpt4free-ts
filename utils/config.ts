@@ -222,6 +222,10 @@ interface ConfigData {
     model: ModelType;
     accounts: GoogleMailAccount[];
   };
+  ideogram?: SizeCfg & {
+    model: ModelType;
+    accounts: GoogleMailAccount[];
+  };
   mjweb?: SizeCfg & {
     model: ModelType;
     accounts: GoogleMailAccount[];
