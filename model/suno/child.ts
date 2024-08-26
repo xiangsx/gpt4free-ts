@@ -206,6 +206,14 @@ export class Child extends ComChild<Account> {
     return res.data;
   }
 
+  async wholeSong(id: string) {
+    const res = await this.client.post<Clip>('/generate/concat/v2/', {
+      clip_id: id,
+      is_infill: false,
+    });
+    return res.data;
+  }
+
   async getUploadTarget(
     extension: string = 'mp3',
   ): Promise<GetUploadTargetRes> {

@@ -464,6 +464,24 @@ export class Suno extends Chat {
       },
     );
 
+    router.post(
+      '/generate/concat/v2',
+      checkBody({ clip_id: Joi.string().required() }, { allowUnknown: true }),
+      async (ctx) => {
+        const { clip_id } = ctx.request.body as any;
+        const server_id = await SunoServerCache.get(clip_id);
+        if (!server_id) {
+          throw new Error('clip_id task not found');
+        }
+        await retryFunc(async () => {
+          const child = await this.pool.pop();
+          const res = await child.wholeSong(clip_id);
+          await SunoServerCache.set(res.id, child.info.id);
+          ctx.body = res;
+        }, 3);
+      },
+    );
+
     router.get(
       '/generate/lyrics/:id',
       checkQuery({ id: Joi.string().required() }),
