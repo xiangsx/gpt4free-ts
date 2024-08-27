@@ -52,6 +52,13 @@ export class Child extends ComChild<Account> {
   async pdfToMDStream(form: FormData, stream: EventStream) {
     const pt = await this.pdfToStream(form, stream);
     pt.on('data', (data: StatusData) => {
+      if (data.code) {
+        stream.write(Event.message, { content: `${data.code}:${data.msg}` });
+        stream.write(Event.done, { content: '' });
+        stream.end();
+        pt.destroy();
+        return;
+      }
       if (data.status === 'pages limit exceeded') {
         stream.write(Event.error, { error: 'pages limit exceeded' });
         stream.write(Event.done, { content: '' });
@@ -74,6 +81,13 @@ export class Child extends ComChild<Account> {
   async pdfToMDWithProgressStream(form: FormData, stream: EventStream) {
     const pt = await this.pdfToStream(form, stream);
     pt.on('data', (data: StatusData) => {
+      if (data.code) {
+        stream.write(Event.message, { content: `${data.code}:${data.msg}` });
+        stream.write(Event.done, { content: '' });
+        stream.end();
+        pt.destroy();
+        return;
+      }
       if (data.status === 'pages limit exceeded') {
         stream.write(Event.error, { error: 'pages limit exceeded' });
         stream.write(Event.done, { content: '' });
@@ -98,6 +112,13 @@ export class Child extends ComChild<Account> {
   async pdfToJSONStream(form: FormData, stream: EventStream) {
     const pt = await this.pdfToStream(form, stream);
     pt.on('data', (data: StatusData) => {
+      if (data.code) {
+        stream.write(Event.message, { content: `${data.code}:${data.msg}` });
+        stream.write(Event.done, { content: '' });
+        stream.end();
+        pt.destroy();
+        return;
+      }
       stream.write(Event.message, { content: JSON.stringify(data) });
       stream.write(Event.done, { content: '' });
       stream.end();

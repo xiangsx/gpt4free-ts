@@ -23,4 +23,6 @@ export interface StatusData {
   uuid: string;
   status: 'processing' | 'success' | 'pages limit exceeded';
   data: ProcessingData;
+  code?: string;
+  msg?: string;
 }
