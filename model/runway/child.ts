@@ -93,14 +93,20 @@ export class Child extends ComChild<Account> {
             if (err.message.indexOf('timeout') > -1) {
               this.destroy({ delMem: true, delFile: false });
             }
-            if (
-              // @ts-ignore
-              err.response?.data?.error?.indexOf?.('enough credits') > -1
-            ) {
-              this.update({ refresh_time: moment().add(1, 'month').unix() });
-              this.destroy({ delMem: true, delFile: false });
-              this.logger.info('Usage limit exceeded');
-              return;
+            let res = err.response?.data as { error: string };
+            if (res?.error) {
+              if (res.error.indexOf('Jobs are limited') > -1) {
+                this.update({ refresh_time: moment().add(1, 'month').unix() });
+                this.destroy({ delMem: true, delFile: false });
+                this.logger.info('Jobs are limited');
+                return;
+              }
+              if (res.error.indexOf('enough credits') > -1) {
+                this.update({ refresh_time: moment().add(1, 'month').unix() });
+                this.destroy({ delMem: true, delFile: false });
+                this.logger.info('Usage limit exceeded');
+                return;
+              }
             }
           },
         },
