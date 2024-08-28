@@ -128,7 +128,10 @@ export function jsonArrayToMarkdownTable(jsonArray: any[]): string {
   // 添加数据行
   jsonArray.forEach((obj) => {
     const row = keys.map((key) => {
-      const value = obj[key] !== undefined ? obj[key] : '';
+      let value = obj[key] !== undefined ? obj[key] : '';
+      if (typeof value !== 'string') {
+        value = JSON.stringify(value);
+      }
       // 转义表格中的管道符号
       return String(value).replace(/\|/g, '\\|');
     });
