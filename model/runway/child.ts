@@ -144,19 +144,23 @@ export class Child extends ComChild<Account> {
           30 * 1000,
         );
         page.browser().on('targetcreated', async (target) => {
-          const newPage = await target.page();
-          if (newPage) {
-            console.log('新窗口/标签被创建');
-            await newPage.waitForTimeout(1000); // 等待一会让页面加载
-            console.log(await newPage.url()); // 输出新窗口的URL
-            await loginGoogle(
-              newPage,
-              this.info.email,
-              this.info.password,
-              this.info.recovery,
-            );
-            resolve(null);
-            clearTimeout(delay);
+          try {
+            const newPage = await target.page();
+            if (newPage) {
+              console.log('新窗口/标签被创建');
+              await newPage.waitForTimeout(1000); // 等待一会让页面加载
+              console.log(await newPage.url()); // 输出新窗口的URL
+              await loginGoogle(
+                newPage,
+                this.info.email,
+                this.info.password,
+                this.info.recovery,
+              );
+              resolve(null);
+              clearTimeout(delay);
+            }
+          } catch (e) {
+            reject(e);
           }
         });
       });
