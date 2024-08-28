@@ -14,6 +14,7 @@ export function markdownToHTML(markdown: string) {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f0f4f8;
             color: #333;
+            font-size: 14px; /* 减小基础字体大小 */
         }
         .container {
             max-width: 100%;
@@ -29,17 +30,18 @@ export function markdownToHTML(markdown: string) {
             color: #2c3e50;
             text-align: center;
             margin-bottom: 30px;
-            font-size: 2.5em;
+            font-size: 2em; /* 减小标题字体大小 */
         }
         table {
             width: 100%;
             border-collapse: separate;
             border-spacing: 0;
             margin-bottom: 20px;
+            font-size: 0.9em; /* 减小表格字体大小 */
         }
         th, td {
             border: 1px solid #ddd;
-            padding: 12px;
+            padding: 8px; /* 减小内边距 */
             text-align: left;
             cursor: pointer;
             transition: background-color 0.3s;
@@ -57,10 +59,11 @@ export function markdownToHTML(markdown: string) {
         }
         .summary {
             background-color: #ecf0f1;
-            padding: 20px;
+            padding: 15px; /* 减小内边距 */
             border-radius: 5px;
             font-style: italic;
             margin-top: 20px;
+            font-size: 0.9em; /* 减小摘要字体大小 */
         }
         .copied {
             background-color: #2ecc71 !important;
