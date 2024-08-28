@@ -278,7 +278,7 @@ export class Runway extends Chat {
             }
           },
           Config.config.runway?.retry_times || 3,
-          { skip: (e) => e?.status === 400 },
+          {},
         );
       },
     );
