@@ -1,10 +1,10 @@
-export function markdownToHTML(markdown: string) {
+export function markdownToHTML(title: string, markdown: string) {
   return `<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>年度销售报告</title>
+    <title>${title}</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/2.0.3/marked.min.js"></script>
     <style>
         body, html {
@@ -14,7 +14,7 @@ export function markdownToHTML(markdown: string) {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f0f4f8;
             color: #333;
-            font-size: 14px; /* 减小基础字体大小 */
+            font-size: 14px;
         }
         .container {
             max-width: 100%;
@@ -30,18 +30,18 @@ export function markdownToHTML(markdown: string) {
             color: #2c3e50;
             text-align: center;
             margin-bottom: 30px;
-            font-size: 2em; /* 减小标题字体大小 */
+            font-size: 2em;
         }
         table {
             width: 100%;
             border-collapse: separate;
             border-spacing: 0;
             margin-bottom: 20px;
-            font-size: 0.9em; /* 减小表格字体大小 */
+            font-size: 0.9em;
         }
         th, td {
             border: 1px solid #ddd;
-            padding: 8px; /* 减小内边距 */
+            padding: 8px;
             text-align: left;
             cursor: pointer;
             transition: background-color 0.3s;
@@ -59,11 +59,11 @@ export function markdownToHTML(markdown: string) {
         }
         .summary {
             background-color: #ecf0f1;
-            padding: 15px; /* 减小内边距 */
+            padding: 15px;
             border-radius: 5px;
             font-style: italic;
             margin-top: 20px;
-            font-size: 0.9em; /* 减小摘要字体大小 */
+            font-size: 0.9em;
         }
         .copied {
             background-color: #2ecc71 !important;
@@ -80,11 +80,39 @@ export function markdownToHTML(markdown: string) {
         const markdownText = \`${markdown}\`;
         document.getElementById('markdown-content').innerHTML = marked(markdownText);
 
+        function fallbackCopyTextToClipboard(text) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            
+            // Avoid scrolling to bottom
+            textArea.style.top = "0";
+            textArea.style.left = "0";
+            textArea.style.position = "fixed";
+
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+
+            try {
+                const successful = document.execCommand('copy');
+                console.log('Fallback: Copying text command was ' + (successful ? 'successful' : 'unsuccessful'));
+            } catch (err) {
+                console.error('Fallback: Oops, unable to copy', err);
+            }
+
+            document.body.removeChild(textArea);
+        }
+
         function copyToClipboard(text) {
-            navigator.clipboard.writeText(text).then(() => {
-                console.log('Text copied to clipboard');
-            }).catch(err => {
-                console.error('Error copying text: ', err);
+            if (!navigator.clipboard) {
+                fallbackCopyTextToClipboard(text);
+                return;
+            }
+            navigator.clipboard.writeText(text).then(function() {
+                console.log('Async: Copying to clipboard was successful!');
+            }, function(err) {
+                console.error('Async: Could not copy text: ', err);
+                fallbackCopyTextToClipboard(text);
             });
         }
 
