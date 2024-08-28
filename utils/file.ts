@@ -219,7 +219,7 @@ export async function mergeVideosExcludeLastFrame(
     downloadFile(video_url1),
     downloadFile(video_url2),
   ]);
-  const outputVideoPath = `run/${v4()}.mp4`;
+  const outputVideoPath = `run/file/${v4()}.mp4`;
 
   const { duration, codec, width, height, frameRate } = await getVideoInfo(
     video2.outputFilePath,
