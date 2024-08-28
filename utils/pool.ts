@@ -6,6 +6,7 @@ import fs from 'fs';
 import { fileDebouncer } from './file';
 import path from 'path';
 import { newLogger } from './log';
+import { jsonArrayToMarkdownTable, markdownToHTML } from './web';
 
 const PoolDir = './run/pool';
 
@@ -356,6 +357,10 @@ export class Pool<U extends Info, T extends PoolChild<U>> {
       Object.assign(info, v);
       this.save();
     }
+  }
+  // 转成 html 展示详细 info 列表
+  showInfosWithMarkdown() {
+    return markdownToHTML(jsonArrayToMarkdownTable(this.allInfos));
   }
 }
 

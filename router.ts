@@ -633,6 +633,16 @@ export const registerApp = () => {
   app.use(errorHandler);
   app.use(bodyParser({ jsonLimit: '100mb' }));
   app.use(checkApiKey);
+  router.get('/webshow/:site', async (ctx) => {
+    const model = chatModel.get(ctx.params.site as Site);
+    if (!model) {
+      ctx.status = 404;
+      ctx.body = 'not found';
+      return;
+    }
+    ctx.set('Content-Type', 'text/html');
+    await model.webshow(ctx);
+  });
   router.post('/pow', powHandler);
   router.get('/supports', supportsHandler);
   router.get('/ask', AskHandle);

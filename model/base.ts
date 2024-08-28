@@ -652,6 +652,10 @@ export class Chat {
     throw new ComError('not implement', ComError.Status.InternalServerError);
   }
 
+  public async webshow(ctx: Context) {
+    ctx.body = 'not implement';
+  }
+
   public async speech(ctx: Context, req: SpeechRequest) {
     throw new ComError('not implement', ComError.Status.InternalServerError);
   }
