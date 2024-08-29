@@ -10,6 +10,7 @@ export interface Account extends ComInfo {
   password: string;
   recovery: string;
   token: string;
+  refresh_token: string;
   org_id: string;
   cookies: Protocol.Network.CookieParam[];
   sessCookies: Protocol.Network.CookieParam[];
@@ -18,6 +19,7 @@ export interface Account extends ComInfo {
   proxy?: string;
   ua?: string;
   apikey?: string;
+  usage: ideogram.ImagesSamplingAvailableRes;
 }
 
 export interface PredictionsReq {
@@ -124,5 +126,88 @@ export class ClertAuth {
       throw new Error('jwt not found');
     }
     return jwt;
+  }
+}
+
+export declare namespace ideogram {
+  interface Resolution {
+    width: number;
+    height: number;
+  }
+
+  interface ColorPalette {
+    color_hex: string;
+  }
+
+  interface ImagesSampleReq {
+    prompt: string;
+    user_id: string;
+    model_version: string;
+    use_autoprompt_option: string;
+    style_expert: string;
+    resolution: Resolution;
+    color_palette: ColorPalette[];
+  }
+
+  interface ImagesSampleRes {
+    user_id: string;
+    caption: string;
+    request_id: string;
+    response_ids: string[];
+    rejected_prompt_id: string | null;
+    status: string | null;
+    aspect_ratio: string;
+    seed: number;
+  }
+
+  interface ImagesSamplingAvailableRes {
+    allowed_to_generate: boolean;
+    min_time_s_between_generations: number;
+    time_until_next_generation: number;
+    max_creations_per_day: number;
+    num_standard_generations_today: number;
+    sticky_balance: number;
+    reject_reason: string | null;
+    message: string | null;
+  }
+
+  interface ProviderData {
+    providerId: string;
+    uid: string;
+    displayName: string;
+    email: string;
+    phoneNumber: string | null;
+    photoURL: string;
+  }
+
+  interface StsTokenManager {
+    refreshToken: string;
+    accessToken: string;
+    expirationTime: number;
+  }
+
+  interface User {
+    uid: string;
+    email: string;
+    emailVerified: boolean;
+    displayName: string;
+    isAnonymous: boolean;
+    photoURL: string;
+    providerData: ProviderData[];
+    stsTokenManager: StsTokenManager;
+    createdAt: string;
+    lastLoginAt: string;
+    apiKey: string;
+    appName: string;
+  }
+
+  interface TokenRefreshResponse {
+    access_token: string;
+    expires_in: number;
+    token_type: string;
+    refresh_token: string;
+    id_token: string;
+    user_id: string;
+    project_id: string;
   }
 }

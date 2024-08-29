@@ -2,6 +2,7 @@ import { ChildOptions, ComChild, DestroyOptions } from '../../utils/pool';
 import {
   Account,
   ClertAuth,
+  ideogram,
   PredictionsReq,
   PredictionsRes,
   ResultRes,
@@ -13,22 +14,27 @@ import {
 } from '../../utils/proxyAgent';
 import { Page, Protocol } from 'puppeteer';
 import moment from 'moment';
-import { loginGoogle } from '../../utils/puppeteer';
+import {
+  loginGoogle,
+  loginGoogleNew,
+  PuppeteerAxios,
+  setPageInterception,
+} from '../../utils/puppeteer';
 import {
   downloadAndUploadCDN,
   ErrorData,
   Event,
   EventStream,
   parseJSON,
+  randomUserAgent,
   sleep,
 } from '../../utils';
-import es from 'event-stream';
-import { AxiosInstance } from 'axios';
 
 export class Child extends ComChild<Account> {
-  private _client!: AxiosInstance;
+  private _client!: PuppeteerAxios;
   private page!: Page;
   private apipage!: Page;
+  private ua: string = this.info.ua || randomUserAgent();
   private proxy: string = this.info.proxy || getProxy();
   private updateTimer: NodeJS.Timeout | null = null;
   clert!: ClertAuth;
@@ -42,57 +48,44 @@ export class Child extends ComChild<Account> {
     super(label, info, options);
   }
 
+  get headers() {
+    return {
+      authority: 'ideogram.ai',
+      accept: '*/*',
+      'accept-language': 'en-US,en;q=0.9',
+      authorization: `Bearer ${this.info.token}`,
+      'content-type': 'application/json',
+      origin: 'https://ideogram.ai',
+      referer: 'https://ideogram.ai/t/explore',
+      'user-agent': this.ua,
+    };
+  }
+
   get client() {
     if (!this._client) {
-      this._client = CreateNewAxios(
-        {
-          baseURL: 'https://ideogram.ai/api/',
+      this._client = new PuppeteerAxios(this.page, {
+        baseURL: 'https://ideogram.ai/api',
+        headers: {
+          authority: 'ideogram.ai',
+          accept: '*/*',
+          'accept-language': 'en-US,en;q=0.9',
+          authorization: `Bearer ${this.info.token}`,
+          'content-type': 'application/json',
+          origin: 'https://ideogram.ai',
+          referer: 'https://ideogram.ai/t/explore',
         },
-        {
-          proxy: this.proxy,
-          errorHandler: (e) => {
-            this.logger.error(
-              JSON.stringify({
-                message: e.message,
-                status: e.response?.status,
-                response: e.response?.data,
-              }),
-            );
-            if (e.response?.status === 401) {
-              this.logger.info('not login');
-              this.update({ cookies: [] });
-              this.destroy({ delFile: false, delMem: true });
-              return;
-            }
-            if (e.response?.status === 402) {
-              this.logger.info('not enough quota');
-              this.update({ refresh_time: moment().add(365, 'day').unix() });
-              this.destroy({ delFile: false, delMem: true });
-              return;
-            }
-          },
-        },
-      );
+      });
     }
     return this._client;
   }
 
   async saveCookies() {
-    const cookies = await this.page.cookies('https://clerk.flux1.ai');
-    const client = cookies.find((v) => v.name === '__client');
-    if (!client) {
+    const cookies = await this.page.cookies('https://ideogram.ai');
+    const session_cookie = cookies.find((v) => v.name === 'session_cookie');
+    if (!session_cookie) {
       throw new Error('not found cookies');
     }
     this.update({ cookies });
-    const sessionCookies = await this.page.cookies('https://flux1.ai');
-    const session = sessionCookies.filter((v) =>
-      v.name.startsWith('__session'),
-    );
-    if (!session?.length) {
-      throw new Error('not found session');
-    }
-    this.update({ sessCookies: session });
-    this.logger.info('cookies saved ok');
   }
 
   async getHeader() {
@@ -156,6 +149,30 @@ export class Child extends ComChild<Account> {
     return data;
   }
 
+  async checkCreateProfile() {
+    try {
+      await this.page.waitForSelector('button.MuiButton-root', {
+        timeout: 15000,
+      });
+      await this.page.click('button.MuiButton-root');
+      this.logger.info('create profile');
+    } catch (e) {
+      this.logger.info('profile already created');
+    }
+  }
+
+  async checkUsage() {
+    const usage = await this.ImagesSamplingAvailable();
+    this.update({ usage });
+    const left =
+      usage.max_creations_per_day - usage.num_standard_generations_today;
+    if (left <= 0) {
+      this.update({ refresh_time: moment().add(1, 'day').unix() });
+      throw new Error('not enough quota');
+    }
+    this.logger.info(`usage ${left}/${usage.max_creations_per_day}`);
+  }
+
   async init() {
     if (!this.info.email) {
       throw new Error('email is required');
@@ -171,19 +188,36 @@ export class Child extends ComChild<Account> {
       await page.waitForSelector('.MuiButton-containedPrimary');
       await page.click('.MuiButton-containedPrimary');
 
-      await loginGoogle(
-        page,
-        this.info.email,
-        this.info.password,
-        this.info.recovery,
-      );
-      await sleep(10000);
-      await this.page.goto('https://flux1.ai/create');
+      await loginGoogleNew(page, this.info);
+      await this.checkCreateProfile();
       this.update({ proxy: this.proxy });
       await this.saveUA();
       await this.saveCookies();
-      await this.page.close();
+      await sleep(3 * 1000);
+    } else {
+      page = await CreateNewPage('https://ideogram.ai/t/explore', {
+        proxy: this.proxy,
+        cookies: this.info.cookies.map((v) => ({
+          ...v,
+          url: 'https://ideogram.ai',
+        })),
+      });
+      this.page = page;
+      await this.saveUA();
+      await this.saveCookies;
     }
+    await this.saveToken();
+    const av = await this.ImagesSamplingAvailable();
+    await this.checkUsage();
+    if (this.updateTimer) {
+      clearInterval(this.updateTimer);
+    }
+    // @ts-ignore
+    this.updateTimer = setInterval(async () => {
+      this.checkUsage().catch(() => {
+        this.destroy({ delFile: false, delMem: true });
+      });
+    }, 10 * 1000);
   }
 
   initFailed() {
@@ -198,7 +232,7 @@ export class Child extends ComChild<Account> {
     });
   }
 
-  destroy(options?: DestroyOptions) {
+  async destroy(options?: DestroyOptions) {
     super.destroy(options);
     this.page
       ?.browser()
@@ -207,5 +241,103 @@ export class Child extends ComChild<Account> {
     if (this.updateTimer) {
       clearInterval(this.updateTimer);
     }
+  }
+
+  async ImagesSample(req: ideogram.ImagesSampleReq) {
+    return (
+      await this.client.post<ideogram.ImagesSampleRes>('/images/sample', req, {
+        headers: await this.getHeader(),
+      })
+    ).data;
+  }
+
+  async ImagesSamplingAvailable(model_version: string = 'V_0_2') {
+    return (
+      await this.client.get<ideogram.ImagesSamplingAvailableRes>(
+        'https://ideogram.ai/api/images/sampling_available_v2?model_version=V_0_2',
+        {},
+      )
+    ).data;
+  }
+
+  async saveToken() {
+    // if (this.info.refresh_token) {
+    //   const data = await this.GetRefreshToken(this.info.refresh_token);
+    //   this.update({
+    //     token: data.access_token,
+    //     refresh_token: data.refresh_token,
+    //   });
+    //   this.logger.info('token saved ok');
+    //   return;
+    // }
+    const data = (await this.page.evaluate(() => {
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open('firebaseLocalStorageDb');
+
+        request.onerror = (event) =>
+          // @ts-ignore
+          reject('IndexedDB error: ' + event.target.error);
+
+        request.onsuccess = (event) => {
+          // @ts-ignore
+          const db = event.target.result;
+          const transaction = db.transaction(
+            ['firebaseLocalStorage'],
+            'readonly',
+          );
+          const objectStore = transaction.objectStore('firebaseLocalStorage');
+
+          const getRequest = objectStore.get(
+            'firebase:authUser:AIzaSyBwq4bRiOapXYaKE-0Y46vLAw1-fzALq7Y:[DEFAULT]',
+          );
+
+          //@ts-ignore
+          getRequest.onerror = (event) =>
+            reject('Error getting data: ' + event.target.error);
+
+          // @ts-ignore
+          getRequest.onsuccess = (event) => {
+            const data = event.target.result;
+            resolve(data);
+          };
+        };
+      });
+    })) as { value: ideogram.User };
+    if (!data?.value) {
+      throw new Error('not found token');
+    }
+    this.update({
+      token: data.value.stsTokenManager.accessToken,
+      refresh_token: data.value.stsTokenManager.refreshToken,
+    });
+    this.logger.info('token saved ok');
+  }
+
+  async GetRefreshToken(refreshToken: string) {
+    const url =
+      'https://securetoken.googleapis.com/v1/token?key=AIzaSyBwq4bRiOapXYaKE-0Y46vLAw1-fzALq7Y';
+
+    const headers = {
+      authority: 'securetoken.googleapis.com',
+      accept: '*/*',
+      'content-type': 'application/x-www-form-urlencoded',
+      origin: 'https://ideogram.ai',
+      referer: 'https://ideogram.ai/',
+      'user-agent': this.ua,
+      'x-client-version': 'Chrome/JsCore/10.12.3/FirebaseCore-web',
+    };
+
+    const data = {
+      grant_type: 'refresh_token',
+      refresh_token: refreshToken,
+    };
+
+    const response = await CreateNewAxios(
+      {},
+      { proxy: this.proxy },
+    ).post<ideogram.TokenRefreshResponse>(url, new URLSearchParams(data), {
+      headers,
+    });
+    return response.data;
   }
 }

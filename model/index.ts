@@ -86,6 +86,7 @@ import { Fireworks } from './fireworks';
 import { XyChat } from './xychat';
 import { Runway } from './runway';
 import { MJWeb } from './mjweb';
+import { Ideogram } from './ideogram';
 
 export class ChatModelFactory {
   private readonly modelMap: Map<Site, Chat>;
@@ -196,6 +197,7 @@ export class ChatModelFactory {
     this.modelMap.set(Site.Fireworks, new Fireworks({ name: Site.Fireworks }));
     this.modelMap.set(Site.XyChat, new XyChat({ name: Site.XyChat }));
     this.modelMap.set(Site.Runway, new Runway({ name: Site.Runway }));
+    this.modelMap.set(Site.Ideogram, new Ideogram({ name: Site.Ideogram }));
     this.modelMap.set(
       Site.GLM,
       new GLM({

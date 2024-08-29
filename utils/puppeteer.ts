@@ -387,7 +387,10 @@ export async function loginGoogleNew(page: Page, opt: GoogleMailAccount) {
   try {
     for (let i = 0; i < 10; i++) {
       await page
-        .waitForNavigation({ waitUntil: 'networkidle0', timeout: 3 * 1000 })
+        .waitForNavigation({
+          waitUntil: 'networkidle0',
+          timeout: i === 0 ? 15 * 1000 : 3 * 1000,
+        })
         .catch(() => {});
       await sleep(1000);
       if (await googleScreenHandle(page, opt)) {
@@ -509,6 +512,13 @@ export async function googleScreenHandle(page: Page, opt: GoogleMailAccount) {
     case '/accounts/SetSID':
       await sleep(3000);
       break;
+    case '/signin/oauth/id': //是否同意授权界面
+      await page.waitForSelector(
+        'c-wiz > div > div > div > div > div:nth-child(2)',
+      );
+      await sleep(1000);
+      await page.click('c-wiz > div > div > div > div > div:nth-child(2)');
+      break;
     default:
       throw new Error(`unknown pathname: ${pathname}`);
   }
@@ -581,4 +591,138 @@ const devices = Object.values(KnownDevices);
 
 export function getRandomDevice() {
   return getRandomOne(devices);
+}
+
+interface CreateAxiosDefaults {
+  baseURL?: string;
+  headers?: Record<string, string>;
+  timeout?: number;
+}
+
+interface RequestConfig extends CreateAxiosDefaults {
+  url: string;
+  method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
+  data?: any;
+}
+
+interface ResponseData<T = any> {
+  data: T;
+  status: number;
+  statusText: string;
+  headers: Record<string, string>;
+}
+
+export class PuppeteerAxios {
+  private page!: Page;
+  private browser: Browser | null = null;
+  private readonly config: CreateAxiosDefaults;
+
+  constructor(page: Page, config: CreateAxiosDefaults = {}) {
+    this.config = config;
+    this.page = page;
+  }
+
+  private async ensurePageInitialized(): Promise<void> {}
+
+  async request<T = any>(config: RequestConfig): Promise<ResponseData<T>> {
+    await this.ensurePageInitialized();
+
+    if (!this.page) {
+      throw new Error('Page is not initialized');
+    }
+
+    const { url, method = 'GET', data, headers } = config;
+    const fullUrl = this.config.baseURL
+      ? new URL(url, this.config.baseURL).toString()
+      : url;
+
+    const response = await this.page.evaluate(
+      (params) => {
+        return new Promise((resolve, reject) => {
+          const { fullUrl, method, data, headers, timeout } = params;
+
+          const controller = new AbortController();
+          const id = setTimeout(() => controller.abort(), timeout);
+
+          fetch(fullUrl, {
+            method,
+            headers: {
+              ...headers,
+              ...(data && { 'Content-Type': 'application/json' }),
+            },
+            body: data ? JSON.stringify(data) : undefined,
+            signal: controller.signal,
+          })
+            .then((response) => {
+              clearTimeout(id);
+              return response.text().then((text) => {
+                let data;
+                try {
+                  data = JSON.parse(text);
+                } catch (e) {
+                  data = text;
+                }
+                const headers: Record<string, string> = {};
+                response.headers.forEach((value, key) => {
+                  headers[key] = value;
+                });
+                resolve({
+                  data,
+                  status: response.status,
+                  statusText: response.statusText,
+                  headers,
+                });
+              });
+            })
+            .catch((error) => {
+              clearTimeout(id);
+              if (error.name === 'AbortError') {
+                reject(new Error('Request timed out'));
+              } else {
+                reject(error);
+              }
+            });
+        });
+      },
+      {
+        fullUrl,
+        method,
+        data,
+        headers: { ...this.config.headers, ...headers },
+        timeout: this.config.timeout || 30000,
+      },
+    );
+
+    return response as ResponseData<T>;
+  }
+
+  async get<T = any>(
+    url: string,
+    config: Omit<RequestConfig, 'url' | 'method'> = {},
+  ): Promise<ResponseData<T>> {
+    return this.request<T>({ ...config, url, method: 'GET' });
+  }
+
+  async post<T = any>(
+    url: string,
+    data?: any,
+    config: Omit<RequestConfig, 'url' | 'method' | 'data'> = {},
+  ): Promise<ResponseData<T>> {
+    return this.request<T>({ ...config, url, method: 'POST', data });
+  }
+
+  async put<T = any>(
+    url: string,
+    data?: any,
+    config: Omit<RequestConfig, 'url' | 'method' | 'data'> = {},
+  ): Promise<ResponseData<T>> {
+    return this.request<T>({ ...config, url, method: 'PUT', data });
+  }
+
+  async delete<T = any>(
+    url: string,
+    config: Omit<RequestConfig, 'url' | 'method'> = {},
+  ): Promise<ResponseData<T>> {
+    return this.request<T>({ ...config, url, method: 'DELETE' });
+  }
 }

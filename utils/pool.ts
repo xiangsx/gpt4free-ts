@@ -359,8 +359,11 @@ export class Pool<U extends Info, T extends PoolChild<U>> {
     }
   }
   // 转成 html 展示详细 info 列表
-  showInfosWithMarkdown() {
-    return markdownToHTML(this.label, jsonArrayToMarkdownTable(this.allInfos));
+  showInfosWithMarkdown(title?: string) {
+    return markdownToHTML(
+      title || `${process.env['apm.serviceName']}:${this.label}`,
+      jsonArrayToMarkdownTable(this.allInfos),
+    );
   }
 }
 

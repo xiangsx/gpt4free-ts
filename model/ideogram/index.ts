@@ -1,15 +1,7 @@
 import { Chat, ChatRequest, ModelType, Site } from '../base';
-import { CreateNewAxios } from '../../utils/proxyAgent';
-import {
-  FluxPrompt,
-  FluxServerCache,
-  PredictionsReq,
-  PredictionsRes,
-  ResultRes,
-} from './define';
+import { Account, FluxPrompt, FluxServerCache, PredictionsReq } from './define';
 import {
   ComError,
-  downloadAndUploadCDN,
   Event,
   EventStream,
   extractJSON,
@@ -21,20 +13,19 @@ import {
 import { chatModel } from '../index';
 import { Config } from '../../utils/config';
 import Router from 'koa-router';
-import { checkBody, checkParams, checkQuery } from '../../utils/middleware';
-import Joi, { func } from 'joi';
+import { checkBody, checkQuery } from '../../utils/middleware';
+import Joi from 'joi';
 import moment from 'moment';
 import { Pool } from '../../utils/pool';
-import { Account } from '../flux/define';
-import { Child } from '../flux/child';
 import { v4 } from 'uuid';
+import { Child } from './child';
 
-export class Flux extends Chat {
+export class Ideogram extends Chat {
   private pool: Pool<Account, Child> = new Pool<Account, Child>(
-    this.options?.name || 'flux',
-    () => Config.config.flux?.size || 0,
+    this.options?.name || 'ideogram',
+    () => Config.config.ideogram?.size || 0,
     (info, options) =>
-      new Child(false, this.options?.name || 'flux', info, options),
+      new Child(false, this.options?.name || 'ideogram', info, options),
     (info) => {
       if (!info.email || !info.password) {
         return false;
@@ -49,7 +40,7 @@ export class Flux extends Chat {
         const newInfos: Account[] = [];
         const oldInfoMap: Record<string, Account | undefined> = {};
         const newInfoSet: Set<string> = new Set(
-          Config.config.flux?.accounts.map((v) => v.email) || [],
+          Config.config.ideogram?.accounts.map((v) => v.email) || [],
         );
         for (const v of allInfos) {
           oldInfoMap[v.email] = v;
@@ -57,25 +48,23 @@ export class Flux extends Chat {
             newInfos.push(v);
           }
         }
-        for (const v of Config.config.flux?.accounts || []) {
+        for (const v of Config.config.ideogram?.accounts || []) {
           let old = oldInfoMap[v.email];
           if (!old) {
             old = {
               id: v4(),
-              email: v.email,
-              password: v.password,
-              recovery: v.recovery,
+              ...v,
             } as Account;
             newInfos.push(old);
             continue;
           }
-          old.password = v.password;
+          old = { ...old, ...v };
           newInfos.push(old);
         }
         return newInfos;
       },
       delay: 1000,
-      serial: Config.config.flux?.serial || 1,
+      serial: Config.config.ideogram?.serial || 1,
       needDel: (info) => {
         if (!info.email || !info.password) {
           return true;
@@ -162,7 +151,7 @@ export class Flux extends Chat {
     await auto?.askStream(
       {
         ...req,
-        model: Config.config.flux?.model || ModelType.GPT4oMini,
+        model: Config.config.ideogram?.model || ModelType.GPT4oMini,
       } as ChatRequest,
       pt,
     );

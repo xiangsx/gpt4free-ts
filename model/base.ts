@@ -331,6 +331,7 @@ export enum Site {
   Fireworks = 'fireworks',
   XyChat = 'xychat',
   Runway = 'runway',
+  Ideogram = 'ideogram',
 }
 
 export interface ChatRequest {
