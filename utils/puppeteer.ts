@@ -6,8 +6,20 @@ import normalPPT, {
   PuppeteerLaunchOptions,
 } from 'puppeteer';
 import * as fs from 'fs';
-import { ComError, getRandomOne, shuffleArray, sleep } from './index';
-import { getProxy, launchChromeAndFetchWsUrl } from './proxyAgent';
+import {
+  ComError,
+  getRandomOne,
+  parseJSON,
+  retryFunc,
+  shuffleArray,
+  sleep,
+} from './index';
+import {
+  CreateNewAxios,
+  getProxy,
+  launchChromeAndFetchWsUrl,
+} from './proxyAgent';
+import { GoogleMailAccount } from './config';
 
 const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
@@ -343,6 +355,7 @@ export async function loginGoogle(
   email: string,
   password: string,
   recovery_email?: string,
+  sms_url?: string,
 ) {
   await page.waitForSelector('#identifierId', { timeout: 10 * 60 * 1000 });
   await sleep(1000);
@@ -368,6 +381,145 @@ export async function loginGoogle(
   await checkGmailIKnown(page);
   await sleep(3000);
   await checkGmailContinue(page);
+}
+
+export async function loginGoogleNew(page: Page, opt: GoogleMailAccount) {
+  for (let i = 0; i < 10; i++) {
+    await page
+      .waitForNavigation({ waitUntil: 'networkidle0', timeout: 3 * 1000 })
+      .catch(() => {});
+    await sleep(1000);
+    if (await googleScreenHandle(page, opt)) {
+      return;
+    }
+  }
+  throw new Error('login failed');
+}
+
+export async function googleScreenHandle(page: Page, opt: GoogleMailAccount) {
+  const url = page.url();
+  if (!url.includes('accounts.google.com')) {
+    console.log(`no login page, login ok! Now at ${url}`);
+    return true;
+  }
+  const pathname = new URL(url).pathname;
+  const title = await page.evaluate(
+    () => document.querySelector('#headingText')?.textContent,
+  );
+  console.log(`screen at: ${pathname} ${title}`);
+  switch (pathname) {
+    case '/v3/signin/identifier':
+      await page.click('#identifierId');
+      await page.keyboard.type(opt.email, { delay: 10 });
+      await sleep(1000);
+      await page.keyboard.press('Enter');
+      break;
+    case '/v3/signin/challenge/recaptcha':
+      await sleep(20 * 1000);
+      await page.waitForSelector('button');
+      await page.click('button');
+      break;
+    case '/v3/signin/challenge/pwd':
+      await page.waitForSelector('input[type="password"]', { visible: true });
+      await sleep(1000);
+      await page.click('input[type="password"]', { delay: 50 });
+      await sleep(1000);
+      await page.keyboard.type(opt.password, { delay: 10 });
+      await page.waitForSelector('#passwordNext > div > button > span');
+      await page.click('#passwordNext > div > button > span');
+      break;
+    case '/v3/signin/challenge/ipp/consent': // 短信验证界面 选择是 text 还是 call
+      const btn = await page.evaluate(() =>
+        Array.from(document.querySelectorAll('button')).map(
+          (v) => v.textContent,
+        ),
+      );
+      console.log(`got buttons: ${btn.join('|')}`);
+      await page.waitForSelector('button');
+      await page.click('button');
+      break;
+    case '/v3/signin/challenge/selection': // 选择界面 选短信验证
+      const actions = await page.evaluate(() =>
+        Array.from(document.querySelector('form')!.querySelectorAll('li')).map(
+          (v) => v.textContent,
+        ),
+      );
+      if (!actions?.length) {
+        break;
+      }
+      console.log(`title:[${title}] got actions |${actions.join('|')}|`);
+      if (actions.includes('Confirm your recovery email')) {
+        // recovery email验证
+        if (!opt.recovery) {
+          throw new Error('need recovery email');
+        }
+        await page.waitForSelector('li:nth-child(3)');
+        await page.click('li:nth-child(3)');
+        await sleep(2000);
+        await page.waitForSelector('input');
+        await page.click('input');
+        await page.keyboard.type(opt.recovery);
+        await page.keyboard.press('Enter');
+        break;
+      }
+      if (actions.find((v) => v?.includes('Get a verification code at'))) {
+        // 选择短信验证
+        await page.waitForSelector('li:nth-child(1)');
+        await page.click('li:nth-child(1)');
+        break;
+      }
+      if (title === 'Use a phone number from your account') {
+        await page.waitForSelector(`div[data-challengevariant="SMS"]`);
+        await page.click(`div[data-challengevariant="SMS"]`);
+        break;
+      }
+      throw new Error('unknown action');
+    case '/v3/signin/challenge/ipp/verify':
+      await page.waitForSelector('input[type="tel"]');
+      await page.click('input[type="tel"]');
+      if (!opt.sms_url) {
+        throw new Error('need sms_url');
+      }
+      await sleep(5000);
+      const code = await retryFunc(async () => GetSMSFromAPI(opt.sms_url!), 3, {
+        defaultV: null,
+      });
+      if (!code) {
+        console.log('no code');
+        break;
+      }
+      await page.keyboard.type(code, { delay: 10 });
+      // 点击 next 按钮
+      await page.waitForSelector('#idvPreregisteredPhoneNext');
+      await page.click('#idvPreregisteredPhoneNext');
+      break;
+    case '/v3/signin/challenge/kpp':
+      if (!opt.phone) {
+        throw new Error('need phone');
+      }
+      await page.waitForSelector('#phoneNumberId');
+      await page.click('#phoneNumberId');
+      await page.keyboard.type(opt.phone, { delay: 10 });
+      await page.keyboard.press('Enter');
+      break;
+    default:
+      throw new Error(`unknown pathname: ${pathname}`);
+  }
+  return false;
+}
+
+export async function GetSMSFromAPI(url: string) {
+  const client = CreateNewAxios({}, { proxy: true });
+  if (url.includes('api.1-sms.com')) {
+    let res = await client.get<string>(url);
+    const data = parseJSON<{ data?: string }>(res.data, {});
+    // G-803499 is your Google verification code.
+    const regex = /\d+/; // 正则表达式匹配一组数字
+    const match = data.data?.match(regex); // 使用正则表达式匹配消息中的数字
+    return match ? match[0] : null;
+  }
+
+  throw new Error('unsupport sms api');
 }
 
 export async function checkGmailContinue(page: Page) {

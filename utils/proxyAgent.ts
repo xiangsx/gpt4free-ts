@@ -227,6 +227,16 @@ export async function CreateNewPage<
       ...args,
     ],
   };
+  // 遍历run/extensions目录，加载所有扩展
+  if (fs.existsSync('run/extensions')) {
+    const exts = fs.readdirSync('run/extensions');
+    for (const ext of exts) {
+      const extPath = path.join('run/extensions', ext);
+      if (fs.statSync(extPath).isDirectory()) {
+        launchOpt.args?.push(`--load-extension=${extPath}`);
+      }
+    }
+  }
   if (enable_user_cache) {
     const host = new URL(url).host;
     if (host) {

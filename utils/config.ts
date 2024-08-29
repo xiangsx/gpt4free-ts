@@ -28,10 +28,12 @@ type DiscordAccount = {
   channel_id: string;
 };
 
-type GoogleMailAccount = {
+export type GoogleMailAccount = {
   email: string;
   password: string;
   recovery: string;
+  phone?: string;
+  sms_url?: string;
 };
 
 export type PoeModelConfig = {
