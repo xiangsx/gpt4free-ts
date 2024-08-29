@@ -506,6 +506,9 @@ export async function googleScreenHandle(page: Page, opt: GoogleMailAccount) {
       await page.keyboard.type(opt.phone, { delay: 10 });
       await page.keyboard.press('Enter');
       break;
+    case '/accounts/SetSID':
+      await sleep(3000);
+      break;
     default:
       throw new Error(`unknown pathname: ${pathname}`);
   }
