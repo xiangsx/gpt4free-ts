@@ -384,16 +384,21 @@ export async function loginGoogle(
 }
 
 export async function loginGoogleNew(page: Page, opt: GoogleMailAccount) {
-  for (let i = 0; i < 10; i++) {
-    await page
-      .waitForNavigation({ waitUntil: 'networkidle0', timeout: 3 * 1000 })
-      .catch(() => {});
-    await sleep(1000);
-    if (await googleScreenHandle(page, opt)) {
-      return;
+  try {
+    for (let i = 0; i < 10; i++) {
+      await page
+        .waitForNavigation({ waitUntil: 'networkidle0', timeout: 3 * 1000 })
+        .catch(() => {});
+      await sleep(1000);
+      if (await googleScreenHandle(page, opt)) {
+        return;
+      }
     }
+    throw new Error('login failed');
+  } catch (e) {
+    await page.screenshot({ path: `./run/error_${opt.email}.png` });
+    throw e;
   }
-  throw new Error('login failed');
 }
 
 export async function googleScreenHandle(page: Page, opt: GoogleMailAccount) {
