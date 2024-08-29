@@ -402,7 +402,7 @@ export async function loginGoogleNew(page: Page, opt: GoogleMailAccount) {
 }
 
 export async function googleScreenHandle(page: Page, opt: GoogleMailAccount) {
-  const url = page.url();
+  const url = await page.evaluate(() => window.location.href);
   if (!url.includes('accounts.google.com')) {
     console.log(`no login page, login ok! Now at ${url}`);
     return true;
