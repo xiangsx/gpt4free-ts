@@ -417,7 +417,8 @@ export async function googleScreenHandle(page: Page, opt: GoogleMailAccount) {
       await page.click('#identifierId');
       await page.keyboard.type(opt.email, { delay: 10 });
       await sleep(1000);
-      await page.keyboard.press('Enter');
+      await page.waitForSelector('#identifierNext > div > button > span');
+      await page.click('#identifierNext > div > button > span');
       break;
     case '/v3/signin/challenge/recaptcha':
       await sleep(20 * 1000);
