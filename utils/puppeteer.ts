@@ -521,6 +521,11 @@ export async function googleScreenHandle(page: Page, opt: GoogleMailAccount) {
       break;
     case '/signin/v2/disabled/explanation':
       throw new Error('account fk banned');
+    case '/speedbump/gaplustos':
+      await page.waitForSelector('#confirm', {});
+      await sleep(1000);
+      await page.click('#confirm');
+      break;
     default:
       throw new Error(`unknown pathname: ${pathname}`);
   }
