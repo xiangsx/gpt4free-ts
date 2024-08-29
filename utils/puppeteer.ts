@@ -489,9 +489,7 @@ export async function googleScreenHandle(page: Page, opt: GoogleMailAccount) {
         break;
       }
       await page.keyboard.type(code, { delay: 10 });
-      // 点击 next 按钮
-      await page.waitForSelector('#idvPreregisteredPhoneNext');
-      await page.click('#idvPreregisteredPhoneNext');
+      await page.keyboard.press('Enter');
       break;
     case '/v3/signin/challenge/kpp':
       if (!opt.phone) {
