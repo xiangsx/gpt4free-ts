@@ -96,7 +96,7 @@ export class Child extends ComChild<Account> {
             let res = err.response?.data as { error: string };
             if (res?.error) {
               if (res.error.indexOf('Jobs are limited') > -1) {
-                this.update({ refresh_time: moment().add(1, 'month').unix() });
+                this.update({ refresh_time: moment().add(1, 'd').unix() });
                 this.destroy({ delMem: true, delFile: false });
                 this.logger.info('Jobs are limited');
                 return;

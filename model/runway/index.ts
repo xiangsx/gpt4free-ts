@@ -222,7 +222,7 @@ export class Runway extends Chat {
               }
             },
             Config.config.runway?.retry_times || 3,
-            { label: 'luma gen video', delay: 100 },
+            { label: 'runway gen video', delay: 100 },
           );
         } catch (e: any) {
           this.logger.error(e.message);
