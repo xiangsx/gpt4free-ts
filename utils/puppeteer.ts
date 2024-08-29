@@ -396,7 +396,7 @@ export async function loginGoogleNew(page: Page, opt: GoogleMailAccount) {
     }
     throw new Error('login failed');
   } catch (e) {
-    await page.screenshot({ path: `./run/error_${opt.email}.png` });
+    await page.screenshot({ path: `./run/file/error_${opt.email}.png` });
     throw e;
   }
 }
