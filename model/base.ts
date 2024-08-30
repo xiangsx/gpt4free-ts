@@ -227,6 +227,7 @@ export enum ModelType {
   StableDiffusion3_2B = 'stable-diffusion-3-2b',
   CogVideoX = 'cogvideox',
   Flux = 'flux',
+  Ideogram = 'ideogram',
   FluxPro = 'flux-pro',
   FluxDev = 'flux-dev',
   FluxSchnell = 'flux-schnell',
