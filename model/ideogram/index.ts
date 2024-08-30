@@ -83,7 +83,7 @@ export class Ideogram extends Chat {
   support(model: ModelType): number {
     switch (model) {
       case ModelType.Ideogram:
-        return 5000;
+        return 2000;
       default:
         return 0;
     }
