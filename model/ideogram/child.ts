@@ -211,6 +211,7 @@ export class Child extends ComChild<Account> {
           return v;
         }),
       );
+      this.logger.info('gen image ok');
     }
     return data;
   }
