@@ -128,10 +128,9 @@ export class Ideogram extends Chat {
               });
               stream.write(Event.message, { content: `\n\n> 生成中` });
               for (let i = 0; i < 50; i++) {
+                let task: ideogram.GalleryRetrieveRes | null = null;
                 try {
-                  const task = await child.GalleryRetrieveRequests([
-                    pRes.request_id,
-                  ]);
+                  task = await child.GalleryRetrieveRequests([pRes.request_id]);
                   if (task?.sampling_requests?.[0]?.responses?.length) {
                     stream.write(Event.message, {
                       content: `✅\n\n${task.sampling_requests[0].responses
@@ -144,7 +143,11 @@ export class Ideogram extends Chat {
                   }
                   stream.write(Event.message, { content: '.' });
                 } catch (e: any) {
-                  this.logger.error(`get task list failed, err: ${e.message}`);
+                  this.logger.error(
+                    `get task list failed, err: ${
+                      e.message
+                    }, task:${JSON.stringify(task)}`,
+                  );
                 }
                 await sleep(2 * 1000);
               }
