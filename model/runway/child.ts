@@ -93,6 +93,12 @@ export class Child extends ComChild<Account> {
             if (err.message.indexOf('timeout') > -1) {
               this.destroy({ delMem: true, delFile: false });
             }
+            if (err.message.indexOf('TLS connection') > -1) {
+              this.logger.error('TLS connection error');
+              this.update({ proxy: undefined });
+              this.destroy({ delMem: true, delFile: false });
+              return;
+            }
             let res = err.response?.data as { error: string };
             if (res?.error) {
               if (res.error.indexOf('Jobs are limited') > -1) {
@@ -130,8 +136,7 @@ export class Child extends ComChild<Account> {
         navigationTimeout: 60 * 1000,
       });
       this.page = page;
-      await sleep(3000);
-
+      await sleep(10000);
       // click login
       setImmediate(async () => {
         await page.waitForSelector('button:nth-child(2)');
@@ -151,7 +156,9 @@ export class Child extends ComChild<Account> {
               console.log('新窗口/标签被创建');
               await newPage.waitForTimeout(1000); // 等待一会让页面加载
               console.log(await newPage.url()); // 输出新窗口的URL
-              await loginGoogleNew(newPage, this.info);
+              await loginGoogleNew(newPage, this.info).catch((e) => {
+                this.logger.error(e.message);
+              });
               resolve(null);
             }
           } catch (e) {
@@ -166,31 +173,8 @@ export class Child extends ComChild<Account> {
       await this.saveTeamID();
       await this.saveUA();
       await page.browser().close();
-    } else if (!this.info.token || !this.info.ua || !this.info.proxy) {
-      page = await CreateNewPage(
-        'https://lumalabs.ai/dream-machine/creations',
-        {
-          simplify: true,
-          recognize: true,
-          proxy: this.proxy,
-          protocolTimeout: 60 * 1000,
-          navigationTimeout: 60 * 1000,
-          cookies: this.info.cookies.map((v) => ({
-            ...v,
-            url: 'https://internal-api.virginia.labs.lumalabs.ai',
-          })),
-        },
-      );
-      this.page = page;
-      page.setDefaultNavigationTimeout(60 * 1000);
-      await sleep(10000);
-      await this.checkLogin();
-      await this.saveCookies();
-      await this.saveToken();
-      await this.saveTeamID();
-      await this.saveUA();
-      await page.browser().close();
     }
+    this.update({ proxy: this.proxy });
     // await page.reload();
     // 保存cookies
     this.update({ failed: 0 });
