@@ -11,6 +11,8 @@ export interface Account extends ComInfo {
   recovery: string;
   token: string;
   refresh_token: string;
+  photo_url: string;
+  uid: string;
   org_id: string;
   cookies: Protocol.Network.CookieParam[];
   sessCookies: Protocol.Network.CookieParam[];
@@ -44,21 +46,6 @@ export const FluxServerCache = new StringCache<string>(
   'flux_id_server',
   24 * 60 * 60,
 );
-
-export const FluxPrompt = `
-You are a image prompt maker for flux Image AI.
-Do not include any explanations, only provide a RFC8259 compliant JSON response following this format without deviation.
-Output json should be in code block format.
-
-你需要根据用户的提示词生成如下格式的json
-\`\`\`
-{
-  "prompt": "string", // 图片的详细描述，必须是英文的, 注意规避涉黄涉政的内容。
-  "height": 256|512|1024|1280|1440, // 默认 1440 图片的高度 注意只能从这几个值中选择 
-  "width": 256|512|1024|1280|1440, , // 默认 1440 图片的高度 注意只能从这几个值中选择
-}
-\`\`\`
-`;
 
 export class ClertAuth {
   sessClient: any;
@@ -128,8 +115,46 @@ export class ClertAuth {
     return jwt;
   }
 }
+export enum StyleExpert {
+  AUTO = 'AUTO',
+  DEFAULT = 'DEFAULT',
+  PHOTO = 'PHOTO',
+  ILLUSTRATION = 'ILLUSTRATION',
+  RENDER_3D = 'RENDER_3D',
+  ANIME = 'ANIME',
+}
+
+export enum ModelVersion {
+  V_1_5 = 'V_1_5',
+}
+
+enum AspectRatio {
+  // PORTRAIT_1x3 = '512x1536',
+  // PORTRAIT_1x2 = '704x1408',
+  PORTRAIT_9x16 = '736x1312',
+  PORTRAIT_10x16 = '800x1280',
+  PORTRAIT_2x3 = '832x1248',
+  PORTRAIT_3x4 = '864x1152',
+  PORTRAIT_4x5 = '890x1120',
+
+  // LANDSCAPE_3x1 = '1536x512',
+  // LANDSCAPE_2x1 = '1408x704',
+  LANDSCAPE_16x9 = '1312x736',
+  LANDSCAPE_16x10 = '1280x800',
+  LANDSCAPE_3x2 = '1248x832',
+  LANDSCAPE_4x3 = '1152x864',
+  LANDSCAPE_5x4 = '1120x890',
+
+  SQUARE_1x1 = '1024x1024',
+}
 
 export declare namespace ideogram {
+  interface Action {
+    prompt: string;
+    size: AspectRatio;
+    style: StyleExpert;
+  }
+
   interface Resolution {
     width: number;
     height: number;
@@ -141,12 +166,13 @@ export declare namespace ideogram {
 
   interface ImagesSampleReq {
     prompt: string;
-    user_id: string;
-    model_version: string;
+    user_id?: string;
+    model_version: ModelVersion;
     use_autoprompt_option: string;
-    style_expert: string;
+    sampling_speed: 0;
+    style_expert: StyleExpert;
     resolution: Resolution;
-    color_palette: ColorPalette[];
+    color_palette?: ColorPalette[];
   }
 
   interface ImagesSampleRes {
@@ -210,4 +236,104 @@ export declare namespace ideogram {
     user_id: string;
     project_id: string;
   }
+
+  interface SamplingRequest {
+    aspect_ratio: string;
+    can_upscale: boolean;
+    completion_percentage: number;
+    cover_response_id: string;
+    creation_time_float: number;
+    has_started: boolean;
+    height: number;
+    is_completed: boolean;
+    model_version: string;
+    private: boolean;
+    request_id: string;
+    request_type: string;
+    resolution: number;
+    responses: Response[];
+    sampling_speed: number;
+    seed: number;
+    style_expert: string;
+    user: User;
+    user_hparams: UserHparams;
+    user_prompt: string;
+    width: number;
+  }
+
+  interface Response {
+    cover: boolean;
+    descriptions: string[];
+    highest_fidelity: boolean;
+    is_autoprompt: boolean;
+    num_likes: number;
+    num_remixes: number;
+    prompt: string;
+    response_id: string;
+    url?: string;
+    self_like: boolean;
+    style_expert: string;
+  }
+
+  interface User {
+    badge: string | null;
+    display_handle: string;
+    photo_url: string;
+    subscription_plan_id: string | null;
+    user_id: string;
+  }
+
+  interface UserHparams {
+    aspect_ratio: string;
+  }
+
+  interface GalleryRetrieveRes {
+    sampling_requests: SamplingRequest[];
+  }
+
+  interface EnabledFeatures {
+    features: string[];
+  }
+
+  interface SubscriptionStatus {
+    active_subscription: string | null;
+    has_private_channel: string | null;
+    no_active_subscription: boolean;
+    subscription_quota: string | null;
+  }
+
+  interface UserModel {
+    badge: string | null;
+    display_handle: string;
+    email_address: string;
+    external_photo_url: string;
+    recommended_display_handle: string | null;
+    subscription_plan_id: string | null;
+    tos_acceptance_required: boolean;
+    user_id: string;
+  }
+
+  interface LoginRes {
+    enabled_features: EnabledFeatures;
+    subscription_status: SubscriptionStatus;
+    user_model: UserModel;
+  }
 }
+export const IdeogramPrompt = `
+You are a image prompt maker for ideogram Image AI.
+Do not include any explanations, only provide a RFC8259 compliant JSON response following this format without deviation.
+Output json should be in code block format.
+
+你需要根据用户的提示词生成如下格式的json
+\`\`\`
+{
+  "prompt": "string", // 图片的详细描述，必须是英文的, 注意规避涉黄涉政的内容。
+  "size": "string", // 不可自定义尺寸默认为 1024x1024，有特别说明的情况下，从以下尺寸中寻找最适合要求的尺寸 ${Object.values(
+    AspectRatio,
+  ).join('|')}
+  "style": "string" // 默认为 AUTO, 除非有特别说明并指定只画某种风格的情况下，从以下风格中选择最适合的 ${Object.values(
+    StyleExpert,
+  ).join('|')}
+}
+\`\`\`
+`;

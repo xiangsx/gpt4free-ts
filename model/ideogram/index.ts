@@ -1,7 +1,13 @@
 import { Chat, ChatRequest, ModelType, Site } from '../base';
-import { Account, FluxPrompt, FluxServerCache, PredictionsReq } from './define';
 import {
-  ComError,
+  Account,
+  ideogram,
+  IdeogramPrompt,
+  ModelVersion,
+  PredictionsReq,
+  StyleExpert,
+} from './define';
+import {
   Event,
   EventStream,
   extractJSON,
@@ -13,7 +19,7 @@ import {
 import { chatModel } from '../index';
 import { Config } from '../../utils/config';
 import Router from 'koa-router';
-import { checkBody, checkQuery } from '../../utils/middleware';
+import { checkBody } from '../../utils/middleware';
 import Joi from 'joi';
 import moment from 'moment';
 import { Pool } from '../../utils/pool';
@@ -58,7 +64,7 @@ export class Ideogram extends Chat {
             newInfos.push(old);
             continue;
           }
-          old = { ...old, ...v };
+          Object.assign(old, v);
           newInfos.push(old);
         }
         return newInfos;
@@ -99,7 +105,7 @@ export class Ideogram extends Chat {
             async () => {
               const child = await this.pool.pop();
               stream.write(Event.message, { content: '\n\n' });
-              const action = extractJSON<PredictionsReq>(old);
+              const action = extractJSON<ideogram.Action>(old);
               if (!action) {
                 stream.write(Event.message, {
                   content: 'Generate action failed',
@@ -108,14 +114,29 @@ export class Ideogram extends Chat {
                 stream.end();
                 return;
               }
-              const pRes = await child.predictions(action);
+              let [w, h] = action.size.split('x');
+              const pRes = await child.ImagesSample({
+                prompt: action.prompt,
+                model_version: ModelVersion.V_1_5,
+                use_autoprompt_option: 'ON',
+                sampling_speed: 0,
+                style_expert: action.style || StyleExpert.AUTO,
+                resolution: {
+                  width: +w || 1024,
+                  height: +h || 1024,
+                },
+              });
               stream.write(Event.message, { content: `\n\n> 生成中` });
-              for (let i = 0; i < 10; i++) {
+              for (let i = 0; i < 50; i++) {
                 try {
-                  const task = await child.result(pRes.replicateId);
-                  if (task.status === 1) {
+                  const task = await child.GalleryRetrieveRequests([
+                    pRes.request_id,
+                  ]);
+                  if (task?.sampling_requests?.[0]?.responses?.length) {
                     stream.write(Event.message, {
-                      content: `✅\n\n![${task.imgAfterSrc}](${task.imgAfterSrc})`,
+                      content: `✅\n\n${task.sampling_requests[0].responses
+                        .map((v) => `>![${v.url}](${v.url})\n>${v.prompt}`)
+                        .join('\n\n')}`,
                     });
                     stream.write(Event.done, { content: '' });
                     stream.end();
@@ -147,7 +168,10 @@ export class Ideogram extends Chat {
         }
       },
     );
-    req.messages = [{ role: 'system', content: FluxPrompt }, ...req.messages];
+    req.messages = [
+      { role: 'system', content: IdeogramPrompt },
+      ...req.messages,
+    ];
     await auto?.askStream(
       {
         ...req,
@@ -182,14 +206,28 @@ export class Ideogram extends Chat {
         const [width, height] = size.split('x').map((v: string) => parseInt(v));
         await retryFunc(async () => {
           const child = await this.pool.pop();
-          const result = await child.predictions({ prompt, width, height });
+          const result = await child.ImagesSample({
+            prompt: prompt,
+            model_version: ModelVersion.V_1_5,
+            use_autoprompt_option: 'ON',
+            sampling_speed: 0,
+            style_expert: StyleExpert.AUTO,
+            resolution: {
+              width,
+              height,
+            },
+          });
           for (let i = 0; i < 20; i++) {
             try {
-              const task = await child.result(result.replicateId);
-              if (task.status === 1) {
+              const task = await child.GalleryRetrieveRequests([
+                result.request_id,
+              ]);
+              if (task?.sampling_requests?.[0]?.responses?.length) {
                 ctx.body = {
                   created: moment().unix(),
-                  data: [{ url: task.imgAfterSrc }],
+                  data: task.sampling_requests[0].responses.map((v) => ({
+                    url: v.url,
+                  })),
                 };
                 return;
               }
@@ -199,97 +237,6 @@ export class Ideogram extends Chat {
             await sleep(2 * 1000);
           }
           throw new Error('task timeout');
-        }, 3);
-      },
-    );
-    router.post(
-      '/v1/image',
-      checkBody({
-        prompt: Joi.string().required(),
-        width: Joi.number()
-          .allow(...allowSize)
-          .optional(),
-        height: Joi.number()
-          .allow(...allowSize)
-          .optional(),
-      }),
-      async (ctx) => {
-        const { prompt, width, height } = ctx.request.body as any;
-        await retryFunc(async () => {
-          const child = await this.pool.pop();
-          const result = await child.predictions({
-            prompt,
-            width: +width,
-            height: +height,
-          });
-          await FluxServerCache.set(result.replicateId, child.info.id);
-          ctx.body = { id: result.replicateId };
-        }, 3);
-      },
-    );
-    router.get(
-      '/v1/get_result',
-      checkQuery({
-        request_id: Joi.string().required(),
-      }),
-      async (ctx) => {
-        const request_id = ctx.request.query.request_id as string;
-        const id = await FluxServerCache.get(request_id);
-        const info = this.pool.findOne((v) => v.id === id);
-        if (!info) {
-          throw new ComError('request_id not exist', ComError.Status.NotFound);
-        }
-
-        const child = new Child(true, this.options?.name || 'flux', info);
-        const res = await child.result(request_id as string);
-        ctx.body = {
-          id: request_id,
-          status: res.status === 1 ? 'Ready' : 'Pending',
-          result: res.imgAfterSrc,
-        };
-      },
-    );
-    router.post(
-      '/v1/image/auto',
-      checkBody({
-        prompt: Joi.string().required(),
-        width: Joi.number().optional(),
-        height: Joi.number().optional(),
-      }),
-      async (ctx) => {
-        const { prompt, width, height } = ctx.request.body as any;
-        await retryFunc(async () => {
-          const child = await this.pool.pop();
-          const result = await child.predictions({
-            prompt,
-            width: +width,
-            height: +height,
-          });
-          for (let i = 0; i < 20; i++) {
-            try {
-              const task = await child.result(result.replicateId);
-              if (task.status === 1) {
-                ctx.body = {
-                  url: task.imgAfterSrc,
-                };
-                return;
-              }
-            } catch (e: any) {
-              this.logger.error(`get task list failed, err: ${e.message}`);
-            }
-            await sleep(2 * 1000);
-          }
-        }, 3);
-      },
-    );
-    router.post(
-      '/v1/chat',
-      checkBody({ messages: Joi.string().required() }),
-      async (ctx) => {
-        const { messages } = ctx.request.body as any;
-        await retryFunc(async () => {
-          const child = await this.pool.pop();
-          ctx.body = await child.chat(messages);
         }, 3);
       },
     );

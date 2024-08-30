@@ -28,7 +28,10 @@ import {
   parseJSON,
   randomUserAgent,
   sleep,
+  uploadFile,
 } from '../../utils';
+import fs from 'fs';
+import { Config } from '../../utils/config';
 
 export class Child extends ComChild<Account> {
   private _client!: PuppeteerAxios;
@@ -37,6 +40,7 @@ export class Child extends ComChild<Account> {
   private ua: string = this.info.ua || randomUserAgent();
   private proxy: string = this.info.proxy || getProxy();
   private updateTimer: NodeJS.Timeout | null = null;
+  private lastUseTime?: number;
   clert!: ClertAuth;
 
   constructor(
@@ -48,19 +52,6 @@ export class Child extends ComChild<Account> {
     super(label, info, options);
   }
 
-  get headers() {
-    return {
-      authority: 'ideogram.ai',
-      accept: '*/*',
-      'accept-language': 'en-US,en;q=0.9',
-      authorization: `Bearer ${this.info.token}`,
-      'content-type': 'application/json',
-      origin: 'https://ideogram.ai',
-      referer: 'https://ideogram.ai/t/explore',
-      'user-agent': this.ua,
-    };
-  }
-
   get client() {
     if (!this._client) {
       this._client = new PuppeteerAxios(this.page, {
@@ -70,7 +61,6 @@ export class Child extends ComChild<Account> {
           accept: '*/*',
           'accept-language': 'en-US,en;q=0.9',
           authorization: `Bearer ${this.info.token}`,
-          'content-type': 'application/json',
           origin: 'https://ideogram.ai',
           referer: 'https://ideogram.ai/t/explore',
         },
@@ -86,67 +76,13 @@ export class Child extends ComChild<Account> {
       throw new Error('not found cookies');
     }
     this.update({ cookies });
-  }
-
-  async getHeader() {
-    if (!this.clert) {
-      this.clert = new ClertAuth(
-        'flux1.ai',
-        this.info.cookies.find((v) => v.name === '__client')!.value,
-        '5.14.0',
-        this.info.ua!,
-        this.proxy,
-      );
-    }
-    const token = await this.clert.getToken();
-    return {
-      accept: '*/*',
-      'accept-language': 'en-US,en;q=0.9,zh-CN;q=0.8,zh;q=0.7,en-GB;q=0.6',
-      origin: 'https://flux1.ai',
-      priority: 'u=1, i',
-      referer: 'https://flux1.ai/create',
-      'user-agent': this.info.ua!,
-      Cookie:
-        `__client_uat=${moment().unix()}` +
-        '; ' +
-        this.info.sessCookies.map((v) => `${v.name}=${token}`).join('; '),
-      'content-type': 'text/plain;charset=UTF-8',
-    };
+    this.logger.info('cookies saved ok');
   }
 
   async saveUA() {
     const ua = await this.page.evaluate(() => navigator.userAgent.toString());
     this.update({ ua });
-  }
-
-  async chat(messages: string) {
-    return (
-      await this.client.post<{ data: string }>(
-        '/chat',
-        { messages },
-        {
-          headers: await this.getHeader(),
-        },
-      )
-    ).data;
-  }
-
-  async predictions(req: PredictionsReq) {
-    return (
-      await this.client.post<PredictionsRes>('/predictions', req, {
-        headers: await this.getHeader(),
-      })
-    ).data;
-  }
-
-  async result(id: string) {
-    const { data } = await this.client.get<ResultRes>(`/result/${id}`, {
-      headers: await this.getHeader(),
-    });
-    if (data.imgAfterSrc) {
-      data.imgAfterSrc = await downloadAndUploadCDN(data.imgAfterSrc);
-    }
-    return data;
+    this.logger.info('ua saved ok');
   }
 
   async checkCreateProfile() {
@@ -203,10 +139,12 @@ export class Child extends ComChild<Account> {
         })),
       });
       this.page = page;
+      await page.waitForNavigation({ waitUntil: 'networkidle0' });
       await this.saveUA();
-      await this.saveCookies;
+      await this.saveCookies();
     }
     await this.saveToken();
+    await this.saveUserID();
     const av = await this.ImagesSamplingAvailable();
     await this.checkUsage();
     if (this.updateTimer) {
@@ -221,7 +159,7 @@ export class Child extends ComChild<Account> {
   }
 
   initFailed() {
-    this.update({ proxy: undefined });
+    this.update({ proxy: undefined, ua: undefined, cookies: undefined });
     this.destroy({ delFile: false, delMem: true });
   }
 
@@ -232,44 +170,77 @@ export class Child extends ComChild<Account> {
     });
   }
 
-  async destroy(options?: DestroyOptions) {
-    super.destroy(options);
+  close() {
     this.page
       ?.browser()
       .close()
       .catch((err) => this.logger.error(err.message));
+    this.logger.info('page closed');
+  }
+
+  get close_delay() {
+    return Config.config.ideogram?.close_delay || 120;
+  }
+
+  async destroy(options?: DestroyOptions) {
+    super.destroy(options);
+    if (
+      !this.lastUseTime ||
+      moment().unix() - this.lastUseTime > this.close_delay
+    ) {
+      this.close();
+    } else {
+      this.logger.info('wait for close');
+      setTimeout(() => {
+        this.close();
+      }, this.close_delay * 1000);
+    }
     if (this.updateTimer) {
       clearInterval(this.updateTimer);
     }
   }
 
   async ImagesSample(req: ideogram.ImagesSampleReq) {
+    req.user_id = this.info.uid;
+    this.lastUseTime = moment().unix();
     return (
-      await this.client.post<ideogram.ImagesSampleRes>('/images/sample', req, {
-        headers: await this.getHeader(),
-      })
+      await this.client.post<ideogram.ImagesSampleRes>(
+        '/images/sample',
+        req,
+        {},
+      )
     ).data;
   }
 
   async ImagesSamplingAvailable(model_version: string = 'V_0_2') {
     return (
       await this.client.get<ideogram.ImagesSamplingAvailableRes>(
-        'https://ideogram.ai/api/images/sampling_available_v2?model_version=V_0_2',
+        '/images/sampling_available_v2?model_version=V_0_2',
         {},
       )
     ).data;
   }
 
+  async GalleryRetrieveRequests(request_ids: string[]) {
+    const data = (
+      await this.client.post<ideogram.GalleryRetrieveRes>(
+        '/gallery/retrieve-requests',
+        { request_ids },
+        {},
+      )
+    ).data;
+    if (data.sampling_requests[0].responses?.length) {
+      data.sampling_requests[0].responses = await Promise.all(
+        data.sampling_requests[0].responses.map(async (v) => {
+          v.url = await this.downloadAndUploadCDN(v.response_id);
+          return v;
+        }),
+      );
+    }
+    return data;
+  }
+
   async saveToken() {
-    // if (this.info.refresh_token) {
-    //   const data = await this.GetRefreshToken(this.info.refresh_token);
-    //   this.update({
-    //     token: data.access_token,
-    //     refresh_token: data.refresh_token,
-    //   });
-    //   this.logger.info('token saved ok');
-    //   return;
-    // }
     const data = (await this.page.evaluate(() => {
       return new Promise((resolve, reject) => {
         const request = indexedDB.open('firebaseLocalStorageDb');
@@ -309,8 +280,15 @@ export class Child extends ComChild<Account> {
     this.update({
       token: data.value.stsTokenManager.accessToken,
       refresh_token: data.value.stsTokenManager.refreshToken,
+      photo_url: data.value.photoURL,
     });
     this.logger.info('token saved ok');
+  }
+
+  async saveUserID() {
+    const res = await this.Login(this.info.photo_url);
+    this.update({ uid: res.user_model.user_id });
+    this.logger.info(`uid[${this.info.uid}] saved ok`);
   }
 
   async GetRefreshToken(refreshToken: string) {
@@ -339,5 +317,37 @@ export class Child extends ComChild<Account> {
       headers,
     });
     return response.data;
+  }
+
+  async Login(external_photo_url: string) {
+    const data = (
+      await this.client.post<ideogram.LoginRes>(
+        '/account/login',
+        { external_photo_url },
+        {},
+      )
+    ).data;
+    await this.saveCookies();
+    return data;
+  }
+
+  async downloadAndUploadCDN(response_id: string) {
+    const image_url = `https://ideogram.ai/assets/image/lossless/response/${response_id}`;
+    const blobData = await this.page.evaluate((url) => {
+      return new Promise((resolve, reject) => {
+        fetch(url)
+          .then((response) => response.blob())
+          .then((blob) => blob.arrayBuffer())
+          .then((arrayBuffer) => {
+            const uint8Array = new Uint8Array(arrayBuffer);
+            resolve(Array.from(uint8Array));
+          })
+          .catch((error) => reject(error));
+      });
+    }, image_url);
+    const filepath = 'run/file/' + response_id + '.webp';
+    fs.writeFileSync(filepath, Buffer.from(blobData as any));
+    const url = await uploadFile(filepath);
+    return url;
   }
 }

@@ -626,6 +626,9 @@ export class PuppeteerAxios {
 
   constructor(page: Page, config: CreateAxiosDefaults = {}) {
     this.config = config;
+    if (!this.config.baseURL?.endsWith('/')) {
+      this.config.baseURL += '/';
+    }
     this.page = page;
   }
 
@@ -639,9 +642,10 @@ export class PuppeteerAxios {
     }
 
     const { url, method = 'GET', data, headers } = config;
+    let tmpUrl = url.startsWith('/') ? url.slice(1) : url;
     const fullUrl = this.config.baseURL
-      ? new URL(url, this.config.baseURL).toString()
-      : url;
+      ? new URL(tmpUrl, this.config.baseURL).toString()
+      : tmpUrl;
 
     const response = await this.page.evaluate(
       (params) => {

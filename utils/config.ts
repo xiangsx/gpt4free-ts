@@ -227,6 +227,7 @@ interface ConfigData {
   ideogram?: SizeCfg & {
     model: ModelType;
     accounts: GoogleMailAccount[];
+    close_delay?: number;
   };
   mjweb?: SizeCfg & {
     model: ModelType;
