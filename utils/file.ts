@@ -12,6 +12,7 @@ import {
   uploadFile,
 } from './index';
 import { v4 } from 'uuid';
+import { exec } from 'node:child_process';
 
 class SyncFileDebouncer {
   private static instance: SyncFileDebouncer;
@@ -254,6 +255,57 @@ export async function mergeVideosExcludeLastFrame(
   return videoURL;
 }
 
+export async function removeWatermarkFromVideo(
+  video_url: string,
+  watermarkX: number,
+  watermarkY: number,
+  watermarkWidth: number,
+  watermarkHeight: number,
+): Promise<string> {
+  const video = await downloadFile(video_url);
+  const outputVideoPath = `run/file/${v4()}.mp4`;
+
+  // 获取视频信息
+  const { codec, width, height, frameRate } = await getVideoInfo(
+    video.outputFilePath,
+  );
+
+  // 确保水印坐标和尺寸在视频范围内
+  const safeWatermarkX = Math.max(
+    0,
+    Math.min(watermarkX, width - watermarkWidth),
+  );
+  const safeWatermarkY = Math.max(
+    0,
+    Math.min(watermarkY, height - watermarkHeight),
+  );
+  const safeWatermarkWidth = Math.min(watermarkWidth, width - safeWatermarkX);
+  const safeWatermarkHeight = Math.min(
+    watermarkHeight,
+    height - safeWatermarkY,
+  );
+
+  // 构建 FFmpeg 命令
+  const ffmpegCommand = `${ffmpegInstaller.path} -i "${video.outputFilePath}" -vf "delogo=x=${safeWatermarkX}:y=${safeWatermarkY}:w=${safeWatermarkWidth}:h=${safeWatermarkHeight}:show=0" -c:v libx264 -preset fast -crf 22 -c:a copy "${outputVideoPath}"`;
+
+  // 运行 FFmpeg 命令
+  await new Promise<void>((resolve, reject) => {
+    exec(ffmpegCommand, (error, stdout, stderr) => {
+      if (error) {
+        console.error('Error during watermark removal:', stderr);
+        reject(error);
+      } else {
+        console.log('FFmpeg process completed:', stdout);
+        resolve();
+      }
+    });
+  });
+
+  // 上传处理后的视频并删除本地文件
+  const videoURL = await uploadFile(outputVideoPath);
+  fs.unlinkSync(outputVideoPath);
+  return videoURL;
+}
 /**
  * 获取音频文件的时长
  * @param filePath 音频文件的路径

@@ -32,6 +32,7 @@ import { Config } from '../../utils/config';
 import { newLogger } from '../../utils/log';
 import { AwsLambda } from 'elastic-apm-node/types/aws-lambda';
 import fs from 'fs';
+import { removeWatermarkFromVideo } from '../../utils/file';
 
 export class Child extends ComChild<Account> {
   private _client?: AxiosInstance;
@@ -127,10 +128,10 @@ export class Child extends ComChild<Account> {
     }
     this.update({ destroyed: false });
     let page: Page;
-    if (!this.info.cookies?.length) {
+    if (!this.info.token) {
       page = await CreateNewPage('https://app.runwayml.com/login', {
         simplify: true,
-        recognize: true,
+        recognize: false,
         proxy: this.proxy,
         protocolTimeout: 60 * 1000,
         navigationTimeout: 60 * 1000,
@@ -276,9 +277,9 @@ export class Child extends ComChild<Account> {
       },
     });
     if (res.data.task.artifacts?.[0]?.url) {
-      res.data.task.artifacts[0].url = await downloadAndUploadCDN(
-        res.data.task.artifacts[0].url,
-      );
+      let localUrl = await downloadAndUploadCDN(res.data.task.artifacts[0].url);
+      localUrl = await removeWatermarkFromVideo(localUrl, 1150, 700, 100, 50);
+      res.data.task.artifacts[0].url = localUrl;
     }
     if (res.data.task.artifacts?.[0]?.previewUrls?.length) {
       res.data.task.artifacts[0].previewUrls = await Promise.all(
