@@ -165,7 +165,6 @@ export class Child extends ComChild<Account> {
       await this.saveToken();
       await this.saveTeamID();
       await this.saveUA();
-      await sleep(60 * 60 * 1000);
       await page.browser().close();
     } else if (!this.info.token || !this.info.ua || !this.info.proxy) {
       page = await CreateNewPage(
