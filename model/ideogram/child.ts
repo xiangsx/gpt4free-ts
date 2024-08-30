@@ -130,7 +130,7 @@ export class Child extends ComChild<Account> {
       this.checkUsage().catch(() => {
         this.destroy({ delFile: false, delMem: true });
       });
-    }, 10 * 1000);
+    }, 20 * 1000);
   }
 
   initFailed() {
