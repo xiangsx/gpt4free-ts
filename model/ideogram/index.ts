@@ -82,8 +82,8 @@ export class Ideogram extends Chat {
 
   support(model: ModelType): number {
     switch (model) {
-      case ModelType.Flux:
-        return 1000;
+      case ModelType.Ideogram:
+        return 5000;
       default:
         return 0;
     }
