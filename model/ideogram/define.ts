@@ -152,7 +152,7 @@ export declare namespace ideogram {
   interface Action {
     prompt: string;
     size: AspectRatio;
-    style: StyleExpert;
+    style?: StyleExpert;
   }
 
   interface Resolution {
@@ -331,7 +331,7 @@ Output json should be in code block format.
   "size": "string", // 不可自定义尺寸默认为 1024x1024，有特别说明的情况下，从以下尺寸中寻找最适合要求的尺寸 ${Object.values(
     AspectRatio,
   ).join('|')}
-  "style": "string" // 默认为 AUTO, 除非有特别说明并指定只画某种风格的情况下，从以下风格中选择最适合的 ${Object.values(
+  "style"?: "string" // 默认不返回. 除非用户特别指定风格的时候从以下风格中选择最适合的 ${Object.values(
     StyleExpert,
   ).join('|')}
 }
