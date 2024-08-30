@@ -92,7 +92,7 @@ export class Child extends ComChild<Account> {
     this.update({ usage });
     const left =
       usage.max_creations_per_day - usage.num_standard_generations_today;
-    if (left <= 0) {
+    if (!left || left <= 0) {
       this.update({ refresh_time: moment().add(1, 'day').unix() });
       throw new Error('not enough quota');
     }
