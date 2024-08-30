@@ -228,6 +228,7 @@ interface ConfigData {
     model: ModelType;
     accounts: GoogleMailAccount[];
     close_delay?: number;
+    save_cdn?: boolean;
   };
   mjweb?: SizeCfg & {
     model: ModelType;

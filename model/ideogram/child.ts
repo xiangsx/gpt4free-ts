@@ -27,6 +27,7 @@ import {
   EventStream,
   parseJSON,
   randomUserAgent,
+  retryFunc,
   sleep,
   uploadFile,
 } from '../../utils';
@@ -205,13 +206,10 @@ export class Child extends ComChild<Account> {
       )
     ).data;
     if (data.sampling_requests[0].responses?.length) {
-      data.sampling_requests[0].responses = await Promise.all(
-        data.sampling_requests[0].responses.map(async (v) => {
-          v.url = await this.downloadAndUploadCDN(v.response_id);
-          return v;
-        }),
-      );
       this.logger.info('gen image ok');
+      for (const v of data.sampling_requests[0].responses) {
+        v.url = await this.downloadAndUploadCDN(v.response_id);
+      }
     }
     return data;
   }
@@ -308,21 +306,30 @@ export class Child extends ComChild<Account> {
 
   async downloadAndUploadCDN(response_id: string) {
     const image_url = `https://ideogram.ai/assets/image/lossless/response/${response_id}`;
-    const blobData = await this.page.evaluate((url) => {
-      return new Promise((resolve, reject) => {
-        fetch(url)
-          .then((response) => response.blob())
-          .then((blob) => blob.arrayBuffer())
-          .then((arrayBuffer) => {
-            const uint8Array = new Uint8Array(arrayBuffer);
-            resolve(Array.from(uint8Array));
-          })
-          .catch((error) => reject(error));
-      });
-    }, image_url);
-    const filepath = 'run/file/' + response_id + '.webp';
-    fs.writeFileSync(filepath, Buffer.from(blobData as any));
-    const url = await uploadFile(filepath);
-    return url;
+    if (!Config.config.ideogram?.save_cdn) {
+      return image_url;
+    }
+    return retryFunc(
+      async () => {
+        const blobData = await this.page.evaluate((url) => {
+          return new Promise((resolve, reject) => {
+            fetch(url)
+              .then((response) => response.blob())
+              .then((blob) => blob.arrayBuffer())
+              .then((arrayBuffer) => {
+                const uint8Array = new Uint8Array(arrayBuffer);
+                resolve(Array.from(uint8Array));
+              })
+              .catch((error) => reject(error));
+          });
+        }, image_url);
+        const filepath = 'run/file/' + response_id + '.webp';
+        fs.writeFileSync(filepath, Buffer.from(blobData as any));
+        const url = await uploadFile(filepath);
+        return url;
+      },
+      2,
+      { defaultV: image_url },
+    );
   }
 }
