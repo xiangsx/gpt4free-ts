@@ -15,7 +15,7 @@ import {
 } from '../../utils/proxyAgent';
 import { Page, Protocol } from 'puppeteer';
 import moment from 'moment';
-import { loginGoogle } from '../../utils/puppeteer';
+import { loginGoogle, loginGoogleNew } from '../../utils/puppeteer';
 import {
   ComError,
   downloadAndUploadCDN,
@@ -144,20 +144,15 @@ export class Child extends ComChild<Account> {
           30 * 1000,
         );
         page.browser().on('targetcreated', async (target) => {
+          clearTimeout(delay);
           try {
             const newPage = await target.page();
             if (newPage) {
               console.log('新窗口/标签被创建');
               await newPage.waitForTimeout(1000); // 等待一会让页面加载
               console.log(await newPage.url()); // 输出新窗口的URL
-              await loginGoogle(
-                newPage,
-                this.info.email,
-                this.info.password,
-                this.info.recovery,
-              );
+              await loginGoogleNew(newPage, this.info);
               resolve(null);
-              clearTimeout(delay);
             }
           } catch (e) {
             reject(e);
@@ -170,6 +165,7 @@ export class Child extends ComChild<Account> {
       await this.saveToken();
       await this.saveTeamID();
       await this.saveUA();
+      await sleep(60 * 60 * 1000);
       await page.browser().close();
     } else if (!this.info.token || !this.info.ua || !this.info.proxy) {
       page = await CreateNewPage(
