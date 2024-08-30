@@ -280,6 +280,7 @@ export class Child extends ComChild<Account> {
       let localUrl = await downloadAndUploadCDN(res.data.task.artifacts[0].url);
       localUrl = await removeWatermarkFromVideo(localUrl, 1150, 700, 100, 50);
       res.data.task.artifacts[0].url = localUrl;
+      this.logger.info(`video gen ok: ${localUrl}`);
     }
     if (res.data.task.artifacts?.[0]?.previewUrls?.length) {
       res.data.task.artifacts[0].previewUrls = await Promise.all(
