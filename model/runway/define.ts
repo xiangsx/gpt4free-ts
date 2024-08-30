@@ -86,6 +86,7 @@ export const RunwayTaskCache = new StringCache<TaskDetail>(
 
 export enum RunwayTaskType {
   gen3a_turbo = 'gen3a_turbo',
+  gen3a = 'gen3a',
 }
 
 export enum RunwayTaskStatus {
