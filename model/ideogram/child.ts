@@ -69,16 +69,6 @@ export class Child extends ComChild<Account> {
     return this._client;
   }
 
-  async saveCookies() {
-    const cookies = await this.page.cookies('https://ideogram.ai');
-    const session_cookie = cookies.find((v) => v.name === 'session_cookie');
-    if (!session_cookie) {
-      throw new Error('not found cookies');
-    }
-    this.update({ cookies });
-    this.logger.info('cookies saved ok');
-  }
-
   async saveUA() {
     const ua = await this.page.evaluate(() => navigator.userAgent.toString());
     this.update({ ua });
@@ -115,34 +105,19 @@ export class Child extends ComChild<Account> {
     }
     this.update({ destroyed: false });
     let page;
-    if (!this.info.cookies?.length) {
-      page = await CreateNewPage('https://ideogram.ai/login', {
-        proxy: this.proxy,
-      });
-      this.page = page;
-      // click login
-      await page.waitForSelector('.MuiButton-containedPrimary');
-      await page.click('.MuiButton-containedPrimary');
+    page = await CreateNewPage('https://ideogram.ai/login', {
+      proxy: this.proxy,
+    });
+    this.page = page;
+    // click login
+    await page.waitForSelector('.MuiButton-containedPrimary');
+    await page.click('.MuiButton-containedPrimary');
 
-      await loginGoogleNew(page, this.info);
-      await this.checkCreateProfile();
-      this.update({ proxy: this.proxy });
-      await this.saveUA();
-      await this.saveCookies();
-      await sleep(3 * 1000);
-    } else {
-      page = await CreateNewPage('https://ideogram.ai/t/explore', {
-        proxy: this.proxy,
-        cookies: this.info.cookies.map((v) => ({
-          ...v,
-          url: 'https://ideogram.ai',
-        })),
-      });
-      this.page = page;
-      await page.waitForNavigation({ waitUntil: 'networkidle0' });
-      await this.saveUA();
-      await this.saveCookies();
-    }
+    await loginGoogleNew(page, this.info);
+    await this.checkCreateProfile();
+    this.update({ proxy: this.proxy });
+    await this.saveUA();
+    await sleep(3 * 1000);
     await this.saveToken();
     await this.saveUserID();
     const av = await this.ImagesSamplingAvailable();
@@ -327,7 +302,6 @@ export class Child extends ComChild<Account> {
         {},
       )
     ).data;
-    await this.saveCookies();
     return data;
   }
 
