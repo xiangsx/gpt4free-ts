@@ -105,12 +105,10 @@ export class Runway extends Chat {
   );
 
   support(model: ModelType): number {
-    switch (model) {
-      case ModelType.RunwayVideo:
-        return 1000;
-      default:
-        return 0;
+    if (model.startsWith('runway')) {
+      return 3000;
     }
+    return 0;
   }
 
   async askStream(req: ChatRequest, stream: EventStream): Promise<void> {
