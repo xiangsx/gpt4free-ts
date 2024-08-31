@@ -278,7 +278,13 @@ export class Child extends ComChild<Account> {
     });
     if (res.data.task.artifacts?.[0]?.url) {
       let localUrl = await downloadAndUploadCDN(res.data.task.artifacts[0].url);
-      localUrl = await removeWatermarkFromVideo(localUrl, 1150, 700, 100, 50);
+      if (
+        res.data.task.options.watermark &&
+        Config.config.runway?.remove_watermark
+      ) {
+        this.logger.info(`removing watermark: ${localUrl}`);
+        localUrl = await removeWatermarkFromVideo(localUrl, 1150, 700, 100, 50);
+      }
       res.data.task.artifacts[0].url = localUrl;
       this.logger.info(`video gen ok: ${localUrl}`);
     }

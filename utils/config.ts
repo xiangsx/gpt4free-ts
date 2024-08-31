@@ -122,6 +122,7 @@ interface ConfigData {
     model: ModelType;
     retry_times?: number;
     login_any_time?: boolean;
+    remove_watermark?: boolean;
   };
   vidu?: SizeCfg & {
     accounts: (GoogleMailAccount & { jwt?: string })[];
