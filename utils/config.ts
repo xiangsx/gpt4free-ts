@@ -259,6 +259,7 @@ interface ConfigData {
   };
   openchat4: {
     size: number;
+    proxy_once?: boolean;
     login_proxy?: string;
     max_sential_pool_size?: number;
     max_arkose_pool_size?: number;
