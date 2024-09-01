@@ -87,7 +87,7 @@
     "tiktoken": "^1.0.13",
     "tunnel": "^0.0.6",
     "turndown": "^7.1.2",
-    "user-agents": "1.1.264",
+    "user-agents": "1.1.313",
     "uuid": "^9.0.0",
     "winston": "^3.10.0",
     "ws": "^8.13.0",
