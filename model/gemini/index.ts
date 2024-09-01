@@ -31,7 +31,6 @@ import { v4 } from 'uuid';
 import es from 'event-stream';
 import moment from 'moment';
 import { GeminiRequest, MaxOutputTokens } from './define';
-import { data } from 'cheerio/lib/api/attributes';
 
 interface Account extends ComInfo {
   apikey: string;
