@@ -243,13 +243,6 @@ export class GLM extends Chat {
     if (this.options?.model_map && this.options.model_map[req.model]) {
       model = this.options.model_map[req.model];
     }
-    if (checkSensitiveWords(req.prompt)) {
-      stream.write(Event.error, {
-        error: 'got sensitive words, please check and replace these word',
-      });
-      stream.end();
-      return;
-    }
     if (model === ModelType.CogVideoX) {
       await this.handleCogViewX(req, stream);
       return;
