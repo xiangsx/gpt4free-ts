@@ -44,9 +44,7 @@ import { TakeOff } from './takeoff';
 import { Navit } from './navit';
 import { ClaudeAPI } from './claudeapi';
 import { Stack } from './stack';
-import { PoeAuto } from './poeauto';
 import { TD } from './td';
-import { PoeVIP } from './poevip';
 import { Izea } from './izea';
 import { Askx } from './askx';
 import { OpenSess } from './opensess';
@@ -120,8 +118,6 @@ export class ChatModelFactory {
     // this.modelMap.set(Site.Xun, new Xun({ name: Site.Xun }));
     // this.modelMap.set(Site.VVM, new VVM({ name: Site.VVM }));
     // this.modelMap.set(Site.Poef, new Poef({ name: Site.Poef }));
-    this.modelMap.set(Site.PoeAuto, new PoeAuto({ name: Site.PoeAuto }));
-    this.modelMap.set(Site.PoeVIP, new PoeVIP({ name: Site.PoeVIP }));
     this.modelMap.set(
       Site.MerlinGmail,
       new MerlinGmail({ name: Site.MerlinGmail }),
