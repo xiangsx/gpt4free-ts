@@ -8,25 +8,35 @@
 <p>你可以加入discord: <a href="https://discord.gg/cYUU8mCDMd">discord.gg/gptgod<a> 以获取项目最新进展. <a href="https://discord.gg/cYUU8mCDMd"><img align="center" alt="gpt4free Discord" width="22px" src="https://raw.githubusercontent.com/peterthehan/peterthehan/master/assets/discord.svg" /></a></p>
 </div>
 
+## 🆓 免费OpenAI key
+
+如果你不想部署，直接用下面的key
+
+官网: `https://gptgod.online`
+
+API Base URL: `https://api.gptgod.online`
+
+Api Key: `sk-OsMMq65tXdfOIlTUYtocSL7NCsmA7CerN77OkEv29dODg1EA`
+
+Support Models: `gpt-4-all`,`gpt-3.5-turbo`,`gpt-3.5-turbo-16k`,`net-gpt-3.5-turbo`,`net-gpt-3.5-turbo-16k`,`claude-1-100k`,`google-palm`,`llama-2-70b`,`llama-2-13b`,`llama-2-7b`,`code-llama-34b`,`code-llama-13b`,`code-llama-7b`,`qwen-72b`,`stable-diffusion`,`mixtral-8x7b`,`mistral-medium`
 
 ## 👍 基于此项目的最强网站 [GPTGOD](http://gptgod.online)
-<details>
-<summary><strong>网站功能(点击展开)</strong></summary>
 
 ### GPTGOD Support
 
+下面所有功能可以直接在网站内使用，也可创建api调用，并且可以直接扫码集成到微信机器人上
 - [x] Midjourney 史上最强AI画图
 - [x] Stable Diffusion 史上最强开源AI画图
 - [x] Claude 仅次于GPT4的AI对话模型
 - [x] gpt3.5-turbo 都知道
 - [x] gpt4 都知道
 - [x] gpt-4-32k 都知道
-- [x] claude-2-100k 无敌的上下文 
+- [x] claude-2-100k 无敌的上下文
 - [x] Chatgpt with internet 联网版本GPT
-- [x] 以上所有功能均可在网站中一键集成到微信机器人中
+- [x] 🔥 GPT-4-All alltools版本，集成识图、画图、联网和code interpreter
+- [x] 🔥 GPTS 可以使用openai的所有的GPTs
 
 在未来的一段时间GPTGOD将开源，进入网站左下角有入群二维码，入群时刻关注最新动态
-</details>
 
 ## 🚩 Reverse target
 
@@ -69,7 +79,6 @@
 | openai   | too much                              |
 | jasper   | gpt-3.5-turbo, gpt-4                              |
 | pap      |                                                   |
-| myshell  | gpt-3.5-turbo, gpt-4                              |
 | acytoo   | gpt-3.5-turbo                                     |
 | google   | search                                            |
 | www      | url                                               |
@@ -93,13 +102,13 @@ PHIND_POOL_SIZE=3
 
 - `http_proxy`: 你的本地代理，目前仅支持http协议，如果是国外的机器不需要配置此行，直接删除；如果是国内的，必须配置，请务必注意。
 - 使用`forefront`才需要配置的env(该站点已被移除，下面可以不用配置):
-  - `rapid_api_key`: 如果你使用forefront，这个必填，为了接收临时邮箱
-  - `EMAIL_TYPE`: `forefront`临时邮箱类型 `temp-email` `temp-email44` `tempmail-lol`
-     - [temp-email](https://rapidapi.com/Privatix/api/temp-mail): 软限制 免费100请求/days 如果超过了 每条收0.0038$ 具体查看下方网站，官方api非常稳定 
-     - [temp-email44](https://rapidapi.com/calvinloveland335703-0p6BxLYIH8f/api/temp-mail44): 硬限制 免费100req/days! 超过就会报错，也很稳定
-     - [tempmail-lol](): 什么都不需要配置 硬限制 25request/5min. 不怎么稳定.
-  - `DEBUG`: `forefront`专属配置 设置成1，会显示运行过程
-  - `POOL_SIZE`: 默认配置成1，修改之前确定你可以运行成功，并且知道此值的含义！！！`forefront` 可以同时进行的对话数目，数值越大，同时进行的对话数越多，但是使用的内存越大，如果个人使用设置1即可
+    - `rapid_api_key`: 如果你使用forefront，这个必填，为了接收临时邮箱
+    - `EMAIL_TYPE`: `forefront`临时邮箱类型 `temp-email` `temp-email44` `tempmail-lol`
+        - [temp-email](https://rapidapi.com/Privatix/api/temp-mail): 软限制 免费100请求/days 如果超过了 每条收0.0038$ 具体查看下方网站，官方api非常稳定
+        - [temp-email44](https://rapidapi.com/calvinloveland335703-0p6BxLYIH8f/api/temp-mail44): 硬限制 免费100req/days! 超过就会报错，也很稳定
+        - [tempmail-lol](): 什么都不需要配置 硬限制 25request/5min. 不怎么稳定.
+    - `DEBUG`: `forefront`专属配置 设置成1，会显示运行过程
+    - `POOL_SIZE`: 默认配置成1，修改之前确定你可以运行成功，并且知道此值的含义！！！`forefront` 可以同时进行的对话数目，数值越大，同时进行的对话数越多，但是使用的内存越大，如果个人使用设置1即可
 - 使用`phind`才需要的配置
     - `PHIND_POOL_SIZE`: 默认配置成=3，`phind` 可以同时进行的对话数目，数值越大，同时进行的对话数越多，但是使用的内存越大，如果个人使用设置1即可
 
@@ -139,7 +148,7 @@ docker-compose up --build -d
 > 查看目前支持的site以及model http://127.0.0.1:3000/supports [GET]
 
 > 和openai一致的返回格式 http://127.0.0.1:3000/:site/v1/chat/completions [POST]
-> 
+>
 > 和openai一致的返回格式 http://127.0.0.1:3000/v1/chat/completions?site=xxx [POST]
 
 > 会话完成之后返回示例 http://127.0.0.1:3000/ask?prompt=***&model=***&site=*** [POST/GET]
@@ -149,8 +158,8 @@ docker-compose up --build -d
 ### 请求参数，请放在query里 📝
 
 - `prompt`: 你的问题，类型是`string` 或者 `jsonstr`.
-  - `jsonstr`:包含上下文的json字符串，例如：`[{"role":"user","content":"你好\n"},{"role":"assistant","content":"你好！有什么我可以帮助你的吗？"},{"role":"user","content":"你是谁"}]`
-  - `string`: 单次对话 例如：`你是谁`
+    - `jsonstr`:包含上下文的json字符串，例如：`[{"role":"user","content":"你好\n"},{"role":"assistant","content":"你好！有什么我可以帮助你的吗？"},{"role":"user","content":"你是谁"}]`
+    - `string`: 单次对话 例如：`你是谁`
 - `model`: 默认 `gpt3.5-turbo`. 模型:`gpt4` `gpt3.5-turbo`
 - `site`: 默认 `you`. 目标网站 `fakeopen` `better` `forefront` `you` `chatdemo`
 
@@ -285,8 +294,7 @@ data: {"content":"done"}
 ```
 ## 👥 加群细聊
 
-<image src="https://github.com/xiangsx/gpt4free-ts/assets/29322721/4e14d056-a22e-43f7-972f-daaf2b36077e" width=240 />
-<image src="https://github.com/xiangsx/gpt4free-ts/assets/29322721/da4a08c5-8340-4da1-9f6b-03780d56f5b3" width=240 />
+<image src="https://github.com/xiangsx/gpt4free-ts/assets/29322721/311ba62d-e611-4aed-98f6-b34cf115866a" width=240 />
 
 ## 🌟 Star History
 

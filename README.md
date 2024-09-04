@@ -1,5 +1,5 @@
 <div align="center">
-  
+
 # GPT4Free TypeScript Version 🆓
 ###### Providing a free OpenAI GPT-4 API!
 English | [中文](README_zh.md) | [日本語](README_ja.md)
@@ -7,6 +7,16 @@ English | [中文](README_zh.md) | [日本語](README_ja.md)
 [![Discord Server](https://discordapp.com/api/guilds/1115852499535020084/widget.png?style=banner2&count=true)](https://discord.gg/cYUU8mCDMd)
 <p>You can join our discord: <a href="https://discord.gg/cYUU8mCDMd">discord.gg/gptgod<a> for further updates. <a href="https://discord.gg/cYUU8mCDMd"><img align="center" alt="gpt4free Discord" width="22px" src="https://raw.githubusercontent.com/peterthehan/peterthehan/master/assets/discord.svg" /></a></p>
 </div>
+
+## 🆓 Free OpenAI Key
+
+WebSite: `https://gptgod.online`
+
+Api Base URL: `https://api.gptgod.online`
+
+Api Key: `sk-OsMMq65tXdfOIlTUYtocSL7NCsmA7CerN77OkEv29dODg1EA`
+
+Support Models: `gpt-4-all`,`gpt-3.5-turbo`,`gpt-3.5-turbo-16k`,`net-gpt-3.5-turbo`,`net-gpt-3.5-turbo-16k`,`claude-1-100k`,`google-palm`,`llama-2-70b`,`llama-2-13b`,`llama-2-7b`,`code-llama-34b`,`code-llama-13b`,`code-llama-7b`,`qwen-72b`,`stable-diffusion`,`mixtral-8x7b`,`mistral-medium`
 
 ## 🚩 Reverse target
 
@@ -49,7 +59,6 @@ If you do not want your website to appear here, please raise an issue and I will
 | openai   | too much                              |
 | jasper   | gpt-3.5-turbo, gpt-4                              |
 | pap      |                                                   |
-| myshell  | gpt-3.5-turbo, gpt-4                              |
 | acytoo   | gpt-3.5-turbo                                     |
 | google   | search                                            |
 | www      | url                                               |
@@ -57,7 +66,7 @@ If you do not want your website to appear here, please raise an issue and I will
 
 ## 🏃‍♂️ Run
 
-First of all, you should create file `.env`. 
+First of all, you should create file `.env`.
 > ***All operation methods require this step.***
 
 ```env
@@ -70,18 +79,18 @@ PHIND_POOL_SIZE=0
 ```
 
 - `http_proxy`: config your proxy if you can not access target website directly; If you dont need proxy, delete this line;
-- `forefront` use env(this site has been removed): 
-  - `rapid_api_key`: you should config this if you use forefront api, this apikey is used for receive register email, get api key here
-  - `EMAIL_TYPE`: temp email type includes `temp-email` `temp-email44` `tempmail-lol`
-      - [temp-email](https://rapidapi.com/Privatix/api/temp-mail): soft limit 100req/days, if over use money, need bind credit card! Very Stable!
-      - [temp-email44](https://rapidapi.com/calvinloveland335703-0p6BxLYIH8f/api/temp-mail44): hard limit 100req/days! Stable!
-      - [tempmail-lol](): nothing need, limit 25request/5min. Not Stable.
-  - `DEBUG`: Valid when use `forefront` You can set =1 when you run local. show reverse process
-  - `POOL_SIZE`: `forefront` concurrency size. Keep set=1 until you run it successfully!!! You can engage in {POOL_SIZE} conversations concurrently. More pool size, More conversation can be done simultaneously, But use more RAM
+- `forefront` use env(this site has been removed):
+    - `rapid_api_key`: you should config this if you use forefront api, this apikey is used for receive register email, get api key here
+    - `EMAIL_TYPE`: temp email type includes `temp-email` `temp-email44` `tempmail-lol`
+        - [temp-email](https://rapidapi.com/Privatix/api/temp-mail): soft limit 100req/days, if over use money, need bind credit card! Very Stable!
+        - [temp-email44](https://rapidapi.com/calvinloveland335703-0p6BxLYIH8f/api/temp-mail44): hard limit 100req/days! Stable!
+        - [tempmail-lol](): nothing need, limit 25request/5min. Not Stable.
+    - `DEBUG`: Valid when use `forefront` You can set =1 when you run local. show reverse process
+    - `POOL_SIZE`: `forefront` concurrency size. Keep set=1 until you run it successfully!!! You can engage in {POOL_SIZE} conversations concurrently. More pool size, More conversation can be done simultaneously, But use more RAM
 - `phind` use env:
-  - `PHIND_POOL_SIZE`: `phind` concurrency size.You can engage in {POOL_SIZE} conversations concurrently. More pool size, More conversation can be done simultaneously, But use more RAM
+    - `PHIND_POOL_SIZE`: `phind` concurrency size.You can engage in {POOL_SIZE} conversations concurrently. More pool size, More conversation can be done simultaneously, But use more RAM
 
-### Run local 🖥️ 
+### Run local 🖥️
 
 ```shell
 # install module
@@ -90,13 +99,13 @@ yarn
 yarn start
 ```
 
-### Run with docker(Suggest!) 🐳 
+### Run with docker(Suggest!) 🐳
 
 ```
 docker run -p 3000:3000 --env-file .env xiangsx/gpt4free-ts:latest
 ```
 
-### Deploy with docker-compose 🎭 
+### Deploy with docker-compose 🎭
 
 first, you should create file .env; Follow step "Run with docker
 
@@ -112,7 +121,7 @@ docker-compose up --build -d
 
 ## 🚀 Let's Use GPT4
 
-> Find supports model and site http://127.0.0.1:3000/supports [GET] 
+> Find supports model and site http://127.0.0.1:3000/supports [GET]
 
 > The same as openai http://127.0.0.1:3000/:site/v1/chat/completions [POST]
 
@@ -125,8 +134,8 @@ docker-compose up --build -d
 ### Request Params 📝
 
 - `prompt`: your question. It can be a `string` or `jsonstr`.
-  - example `jsonstr`:`[{"role":"user","content":"hello\n"},{"role":"assistant","content":"Hi there! How can I assist you today?"},{"role":"user","content":"who are you"}]`
-  - example `string`: `who are you`
+    - example `jsonstr`:`[{"role":"user","content":"hello\n"},{"role":"assistant","content":"Hi there! How can I assist you today?"},{"role":"user","content":"who are you"}]`
+    - example `string`: `who are you`
 - `model`: default `gpt3.5-turbo`. model include:`gpt4` `gpt3.5-turbo` `net-gpt3.5-turbo` `gpt-3.5-turbo-16k`
 - `site`: default `you`. target site, include `fakeopen` `better` `forefront` `you` `chatdemo` `phind` `vita`
 
@@ -215,10 +224,9 @@ event: done
 data: {"content":"done"}
 ```
 
-## 👥 Wechat Group
+## 👥 Chat Group
 
-<image src="https://github.com/xiangsx/gpt4free-ts/assets/29322721/4e14d056-a22e-43f7-972f-daaf2b36077e" width=240 />
-<image src="https://github.com/xiangsx/gpt4free-ts/assets/29322721/da4a08c5-8340-4da1-9f6b-03780d56f5b3" width=240 />
+<image src="https://github.com/xiangsx/gpt4free-ts/assets/29322721/311ba62d-e611-4aed-98f6-b34cf115866a" width=240 />
 
 ## 🌟 Star History
 
