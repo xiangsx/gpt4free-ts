@@ -1,16 +1,22 @@
-import {
-  Chat,
-  ChatOptions,
-  ChatRequest,
-  ChatResponse,
-  ModelType,
-} from '../base';
-import { Event, EventStream, getTokenSize, sleep } from '../../utils';
+import { Chat, ChatOptions, ChatRequest, ModelType } from '../base';
+import { Event, EventStream, getTokenCount } from '../../utils';
 import puppeteer from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
-import { CreateNewBrowser } from '../../utils/proxyAgent';
-import { Browser } from 'puppeteer';
+import { CreateNewBrowser, CreateNewPage } from '../../utils/proxyAgent';
+import { Page } from 'puppeteer';
 import { simplifyPageAll } from '../../utils/puppeteer';
+import {
+  ChildOptions,
+  ComChild,
+  ComInfo,
+  DestroyOptions,
+  Pool,
+} from '../../utils/pool';
+import moment from 'moment';
+import { Config } from '../../utils/config';
+import fs from 'fs';
+import pdfParse from 'pdf-parse';
+import { AwsLambda } from 'elastic-apm-node/types/aws-lambda';
 
 puppeteer.use(StealthPlugin());
 
@@ -18,21 +24,64 @@ interface WWWChatRequest extends ChatRequest {
   max_tokens?: number;
 }
 
+interface Account extends ComInfo {}
+
+class Child extends ComChild<Account> {
+  public page!: Page;
+
+  constructor(label: string, info: any, options?: ChildOptions) {
+    super(label, info, options);
+  }
+
+  async init(): Promise<void> {
+    this.page = await CreateNewPage('about:blank', {
+      simplify: true,
+      recognize: true,
+      protocolTimeout: 5000,
+    });
+  }
+
+  async getURLInfo(url: string): Promise<string> {
+    await this.page.goto(url, {
+      waitUntil: 'networkidle2',
+      timeout: 15 * 1000,
+    });
+    const pdf = await this.page.pdf();
+    const pdfText = await pdfParse(pdf);
+    return pdfText.text;
+  }
+
+  initFailed() {
+    this.page?.browser().close();
+    this.destroy({ delFile: true, delMem: true });
+  }
+
+  destroy(options?: DestroyOptions) {
+    this.page?.browser().close().catch(this.logger.error);
+    super.destroy(options);
+  }
+
+  async release() {
+    await this.page.goto('about:blank', { waitUntil: 'domcontentloaded' });
+    super.release();
+  }
+}
+
 export class WWW extends Chat {
-  private browser?: Browser;
+  private pool: Pool<Account, Child> = new Pool(
+    this.options?.name || '',
+    () => Config.config.www.size,
+    (info, options) => {
+      return new Child(this.options?.name || '', info, options);
+    },
+    (v) => {
+      return false;
+    },
+    { delay: 1000, serial: () => Config.config.www.serial || 1 },
+  );
+
   constructor(options?: ChatOptions) {
     super(options);
-  }
-
-  async init() {
-    this.browser = await CreateNewBrowser();
-  }
-
-  async newPage() {
-    if (!this.browser) throw new Error('browser not init');
-    const page = await this.browser.newPage();
-    await simplifyPageAll(page);
-    return page;
   }
 
   support(model: ModelType): number {
@@ -45,67 +94,11 @@ export class WWW extends Chat {
   }
 
   async askStream(req: WWWChatRequest, stream: EventStream): Promise<void> {
-    if (!this.browser) {
-      await this.init();
-      this.logger.info('init ok');
-    }
-    const page = await this.newPage();
+    const child = await this.pool.pop();
     try {
-      await page
-        .goto(req.prompt, {
-          waitUntil: 'domcontentloaded',
-          timeout: 5000,
-        })
-        .catch((err) => this.logger.error(`page load failed, `, err));
-
-      // @ts-ignore
-      let content = await page.$$eval(
-        'p, h1, h2, h3, h4, h5, h6, div, section, article, main',
-        (elements) => {
-          let textEntries = [];
-          const textMap = new Map();
-
-          elements.forEach((element) => {
-            const tag = element.tagName.toLowerCase();
-            const newText = element.innerText;
-            const position = element.offsetTop; // 获取元素在页面上的垂直位置
-
-            let shouldAdd = true;
-
-            Array.from(textMap.keys()).forEach((storedText) => {
-              if (newText.includes(storedText)) {
-                if (newText.length > storedText.length) {
-                  textMap.delete(storedText);
-                } else {
-                  shouldAdd = false;
-                }
-              } else if (storedText.includes(newText)) {
-                shouldAdd = false;
-              }
-            });
-
-            if (shouldAdd) {
-              textMap.set(newText, { tag, position });
-            }
-          });
-
-          // Convert the map to an array of entries (text, tag, and position)
-          textEntries = Array.from(textMap.entries());
-
-          // Sort by position (from top to bottom)
-          textEntries = textEntries.sort(
-            (a, b) => a[1].position - b[1].position,
-          );
-
-          // Create the final text
-          const maxText = textEntries.map((entry) => entry[0]).join('\n');
-
-          // Post-processing to remove extra whitespace and newlines
-          return maxText.replace(/\s+/g, ' ').trim();
-        },
-      );
+      let content = await child.getURLInfo(req.prompt);
       const maxToken = +(req.max_tokens || process.env.WWW_MAX_TOKEN || 2000);
-      const token = getTokenSize(content);
+      const token = getTokenCount(content);
       if (token > maxToken) {
         content = content.slice(
           0,
@@ -113,13 +106,13 @@ export class WWW extends Chat {
         );
       }
       stream.write(Event.message, { content });
+      child.release();
     } catch (e: any) {
-      this.logger.error('ask stream failed', e);
-      stream.write(Event.error, { error: e.message });
-    } finally {
-      stream.write(Event.done, { content: '' });
-      stream.end();
-      await page.close();
+      this.logger.error(e.message);
+      stream.write(Event.message, { content: '' });
+      child.destroy({ delFile: true, delMem: true });
     }
+    stream.write(Event.done, { content: '' });
+    stream.end();
   }
 }

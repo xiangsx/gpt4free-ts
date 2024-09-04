@@ -1,6 +1,12 @@
 import { AxiosInstance } from 'axios';
-import { sleep } from './index';
+import { randomStr, sleep } from './index';
 import { CreateAxiosProxy } from './proxyAgent';
+import { Page } from 'puppeteer';
+import CDP from 'chrome-remote-interface';
+import { Config } from './config';
+import fs from 'fs';
+import puppeteer from 'puppeteer-extra';
+import { closeOtherPages } from './puppeteer';
 
 class CaptchaSolver {
   private readonly apiKey: string;
@@ -79,4 +85,123 @@ export async function getCaptchaCode(base64: string) {
     console.error('Error:', error.message);
     return '';
   }
+}
+
+export async function ifCF(page: Page) {
+  try {
+    await page.waitForSelector('#challenge-stage > div, #turnstile-wrapper', {
+      timeout: 3 * 1000,
+    });
+    return true;
+  } catch (e) {
+    console.log('no cf');
+    return false;
+  }
+}
+
+export async function handleCF(
+  page: Page,
+  debug: boolean = false,
+): Promise<Page> {
+  if (!(await ifCF(page))) {
+    return page;
+  }
+  const browser = page.browser();
+  const url = page.url();
+  const pageIdx = (await browser.pages()).findIndex((v) => v === page);
+  const wsEndpoint = browser.wsEndpoint();
+  browser.disconnect();
+  console.log('handle cf start');
+  const client: CDP.Client = await CDP({
+    target: wsEndpoint,
+  });
+  try {
+    const targets = await client.Target.getTargets();
+    await sleep(5000);
+    const target = targets.targetInfos.find((v) => v.url.indexOf(url) > -1);
+    if (!target) {
+      throw new Error('not found target');
+    }
+    const { sessionId } = await client.Target.attachToTarget({
+      targetId: target.targetId,
+      flatten: true,
+    });
+
+    // 设置页面尺寸
+    await client.Page.enable(sessionId);
+    await client.Runtime.enable(sessionId);
+    await client.DOM.enable(sessionId);
+    let x = 0;
+    let y = 0;
+    const { result } = await client.Runtime.evaluate(
+      {
+        expression: `
+            const element = document.querySelector("#challenge-stage > div, #turnstile-wrapper");
+            const rect = element.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2 - 120; 
+            const centerY = rect.top + rect.height / 2;
+const redBox = document.createElement("div");
+redBox.style.position = "absolute";
+redBox.style.width = "32px";
+redBox.style.height = "32px";
+redBox.style.backgroundColor = "red";
+redBox.style.left = centerX+'px';
+redBox.style.top = centerY+'px';
+// document.body.appendChild(redBox);
+            ({centerX, centerY});
+        `,
+        returnByValue: true,
+      },
+      sessionId,
+    );
+    const { centerX, centerY } = (result.value as any) || {};
+    if (!centerY || !centerX) {
+      throw new Error('center not found');
+    }
+    x = centerX;
+    y = centerY;
+
+    await client.Input.dispatchMouseEvent(
+      {
+        type: 'mousePressed',
+        x,
+        y,
+        button: 'left',
+        clickCount: 1,
+      },
+      sessionId,
+    );
+    await client.Input.dispatchMouseEvent(
+      {
+        type: 'mouseReleased',
+        x,
+        y,
+        button: 'left',
+        clickCount: 1,
+      },
+      sessionId,
+    );
+    await sleep(5000);
+  } catch (e) {
+    await client.Browser.close();
+    throw e;
+  }
+
+  console.log('handle cf end');
+  const newB = await puppeteer.connect({ browserWSEndpoint: wsEndpoint });
+  return (await newB.pages()).find(
+    (v) => v.url().indexOf('blank') === -1,
+  ) as Page;
+}
+
+export async function fuckCF(target: Page) {
+  let page = target;
+  for (let i = 0; i < 5; i++) {
+    page = await handleCF(page);
+    const gotCf = await ifCF(page);
+    if (!gotCf) {
+      return page;
+    }
+  }
+  throw new Error('fuck cf');
 }

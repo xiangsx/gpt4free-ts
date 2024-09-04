@@ -97,6 +97,7 @@ class PoeAccountPool {
     }
     for (const v of this.pool) {
       v.failedCnt = 0;
+      v.last_use_time = moment().unix();
       v.battery =
         v.battery +
         Math.floor((moment().unix() - v.last_use_time) / 60 / 60) * 8;
@@ -136,6 +137,9 @@ class PoeAccountPool {
       if (this.using.has(vv.id)) {
         continue;
       }
+      if (!vv.token || !vv.visitorID) {
+        continue;
+      }
       if (vv.battery < 30) {
         continue;
       }
@@ -169,7 +173,7 @@ export class MyShell extends Chat implements BrowserUser<Account> {
       +(process.env.MYSHELL_POOL_SIZE || 0),
       this,
       false,
-      -1,
+      10000,
       false,
     );
   }
@@ -186,7 +190,11 @@ export class MyShell extends Chat implements BrowserUser<Account> {
   }
 
   async preHandle(req: ChatRequest): Promise<ChatRequest> {
-    return super.preHandle(req, { token: true, countPrompt: true });
+    return super.preHandle(req, {
+      token: true,
+      countPrompt: true,
+      forceRemove: true,
+    });
   }
 
   deleteID(id: string): void {
@@ -219,10 +227,10 @@ export class MyShell extends Chat implements BrowserUser<Account> {
         await page.goto('https://app.myshell.ai/');
         // await page.setUserAgent('Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101 Firefox/102.0');
         await page.waitForSelector(
-          '.tw-block > #sidebar > .tw-overflow-hidden > .tw-justify-center > .chakra-button',
+          '.relative > #sidebar > .overflow-hidden > .justify-center > .chakra-button',
         );
         await page.click(
-          '.tw-block > #sidebar > .tw-overflow-hidden > .tw-justify-center > .chakra-button',
+          '.relative > #sidebar > .overflow-hidden > .justify-center > .chakra-button',
         );
 
         await page.waitForSelector(`.chakra-form-control > div`);
@@ -256,34 +264,20 @@ export class MyShell extends Chat implements BrowserUser<Account> {
         await frame.waitForSelector('.react-input-code > .input-code-item');
         await frame.click('.react-input-code > .input-code-item');
         await frame.focus('.react-input-code > .input-code-item');
-        // await sleep(10 * 60 * 1000);
-
         await page.keyboard.type(validateURL, { delay: 10 });
 
-        await page.waitForSelector('.chakra-form-control > div > input');
-        await page.click('.chakra-form-control > div > input');
-        await page.keyboard.type('e97145', { delay: 10 });
+        // continue talk
+        await page.waitForSelector('body > div > button');
+        await page.click('body > div > button');
 
-        await page.waitForSelector('.chakra-form-control > button');
-        await page.click('.chakra-form-control > button');
+        await this.enterInviteCode(page);
 
-        await sleep(3000);
-        await page.waitForSelector('.chakra-modal__content > * > * > button');
-        await page.click('.chakra-modal__content > * > * > button');
-        this.logger.info('visit earn shell points');
+        await this.getFreeTrail(page);
 
-        await page.waitForSelector(
-          '#redemption > div > * > * > * > div > button',
-        );
-        await page.click('#redemption > div > * > * > * > div > button');
-
-        await page.waitForSelector('.chakra-modal__body > * > * > * > button');
-        await page.click('.chakra-modal__body > * > * > * > button');
-
-        await page.waitForSelector('.chakra-modal__body > div > div > button');
-        await page.click('.chakra-modal__body > div > div > button');
-        await page.goto(`https://app.myshell.ai/chat`);
         await this.getChatBooster(page);
+
+        // await sleep(10 * 60 * 1000);
+        await page.goto(`https://app.myshell.ai/chat`);
         account.token = await this.getToken(page);
         account.visitorID = await this.getVisitorId(page);
         account.battery = (await this.getBattery(account.token)).energy;
@@ -306,6 +300,42 @@ export class MyShell extends Chat implements BrowserUser<Account> {
       this.logger.warn(`account:${account?.id}, something error happened.`, e);
       return [] as any;
     }
+  }
+
+  async enterInviteCode(page: Page) {
+    try {
+      await page.waitForSelector(
+        '#shell > aside > div.relative.h-full > div > div > div > div > div > button:nth-child(2)',
+      );
+      await page.click(
+        '#shell > aside > div.relative.h-full > div > div > div > div > div > button:nth-child(2)',
+      );
+
+      await page.waitForSelector(
+        '#shell > aside > div.relative.h-full > div > div > div > div > div > input',
+      );
+      await page.click(
+        '#shell > aside > div.relative.h-full > div > div > div > div > div > input',
+      );
+      await page.keyboard.type('26e86e', { delay: 10 });
+      await page.waitForSelector(
+        '#shell > aside > div.relative.h-full > div > div > div > div > div > button',
+      );
+      await page.click(
+        '#shell > aside > div.relative.h-full > div > div > div > div > div > button',
+      );
+    } catch (e) {
+      this.logger.error('enterInviteCode failed, ', e);
+    }
+  }
+
+  async getFreeTrail(page: Page) {
+    try {
+      await page.goto('https://app.myshell.ai/rewards-center/earn');
+      await sleep(2000);
+      await page.waitForSelector('#edit > div > * > div > div > button');
+      await page.click('#edit > div > * > div > div > button');
+    } catch (e) {}
   }
 
   async getBattery(token: string) {
