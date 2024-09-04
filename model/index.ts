@@ -33,7 +33,6 @@ import { MyShell } from './myshell';
 import { AcyToo } from './acytoo';
 import { Google } from './google';
 import { WWW } from './www';
-import { Bing } from './bing';
 import { DDG } from './ddg';
 import { Vanus } from './vanus';
 import { Mixer } from './mixer';
@@ -45,10 +44,8 @@ import { TakeOff } from './takeoff';
 import { Navit } from './navit';
 import { ClaudeAPI } from './claudeapi';
 import { Stack } from './stack';
-import { OpenChat3 } from './openchat3';
 import { PoeAuto } from './poeauto';
 import { TD } from './td';
-import { OpenChat4 } from './openchat4';
 import { PoeVIP } from './poevip';
 import { Izea } from './izea';
 import { Askx } from './askx';
@@ -57,7 +54,6 @@ import { Hypotenuse } from './hypotenuse';
 import { Gemini } from './gemini';
 import { AIRoom } from './airoom';
 import { GPTGOD } from './gptgod';
-import { Arkose } from './arkose';
 import { Midjourney } from './midjourney';
 import { FreeGPT4 } from './freegpt4';
 import { Domo } from './domo';
@@ -72,10 +68,7 @@ import { PerLabs } from './perlabs';
 import { MerlinGmail } from './merlingmail';
 import { Chatgateai } from './chatgateai';
 import { MJPlus } from './mjplus';
-import { FindPlus } from './findplus';
 import { Doc2x } from './doc2x';
-import { OpenchatGateway } from './openchatgateway';
-import { Luma } from './luma';
 import { Bibi } from './bibi';
 import { Groq } from './groq';
 import { GLM } from './glm';
@@ -83,7 +76,6 @@ import { Config } from '../utils/config';
 import { Vidu } from './vidu';
 import { Flux } from './flux';
 import { Fireworks } from './fireworks';
-import { XyChat } from './xychat';
 import { Runway } from './runway';
 import { MJWeb } from './mjweb';
 import { Ideogram } from './ideogram';
@@ -158,7 +150,6 @@ export class ChatModelFactory {
     // this.modelMap.set(Site.AcyToo, new AcyToo({ name: Site.AcyToo }));
     this.modelMap.set(Site.Google, new Google({ name: Site.Google }));
     this.modelMap.set(Site.WWW, new WWW({ name: Site.WWW }));
-    this.modelMap.set(Site.Bing, new Bing({ name: Site.Bing }));
     this.modelMap.set(Site.DDG, new DDG({ name: Site.DDG }));
     // this.modelMap.set(Site.Vanus, new Vanus({ name: Site.Vanus }));
     this.modelMap.set(Site.Mixer, new Mixer({ name: Site.Mixer }));
@@ -170,16 +161,13 @@ export class ChatModelFactory {
     this.modelMap.set(Site.Navit, new Navit({ name: Site.Navit }));
     this.modelMap.set(Site.Claude, new ClaudeAPI({ name: Site.Claude }));
     this.modelMap.set(Site.Stack, new Stack({ name: Site.Stack }));
-    this.modelMap.set(Site.OpenChat3, new OpenChat3({ name: Site.OpenChat3 }));
     this.modelMap.set(Site.TD, new TD({ name: Site.TD }));
-    this.modelMap.set(Site.OpenChat4, new OpenChat4({ name: Site.OpenChat4 }));
     this.modelMap.set(Site.Izea, new Izea({ name: Site.Izea }));
     this.modelMap.set(Site.Askx, new Askx({ name: Site.Askx }));
     this.modelMap.set(Site.OpenSess, new OpenSess({ name: Site.OpenSess }));
     this.modelMap.set(Site.Gemini, new Gemini({ name: Site.Gemini }));
     this.modelMap.set(Site.AIRoom, new AIRoom({ name: Site.AIRoom }));
     this.modelMap.set(Site.GPTGOD, new GPTGOD({ name: Site.GPTGOD }));
-    this.modelMap.set(Site.Arkose, new Arkose({ name: Site.Arkose }));
     this.modelMap.set(Site.FreeGPT4, new FreeGPT4({ name: Site.FreeGPT4 }));
     this.modelMap.set(Site.Domo, new Domo({ name: Site.Domo }));
     this.modelMap.set(Site.Pika, new Pika({ name: Site.Pika }));
@@ -188,14 +176,11 @@ export class ChatModelFactory {
     this.modelMap.set(Site.FreeGPT35, new FreeGPT35({ name: Site.FreeGPT35 }));
     this.modelMap.set(Site.PerLabs, new PerLabs({ name: Site.PerLabs }));
     this.modelMap.set(Site.MJPlus, new MJPlus({ name: Site.MJPlus }));
-    this.modelMap.set(Site.FindPlus, new FindPlus({ name: Site.FindPlus }));
     this.modelMap.set(Site.Doc2x, new Doc2x({ name: Site.Doc2x }));
-    this.modelMap.set(Site.Luma, new Luma({ name: Site.Luma }));
     this.modelMap.set(Site.Groq, new Groq({ name: Site.Groq }));
     this.modelMap.set(Site.Bibi, new Bibi({ name: Site.Bibi }));
     this.modelMap.set(Site.Vidu, new Vidu({ name: Site.Vidu }));
     this.modelMap.set(Site.Fireworks, new Fireworks({ name: Site.Fireworks }));
-    this.modelMap.set(Site.XyChat, new XyChat({ name: Site.XyChat }));
     this.modelMap.set(Site.Runway, new Runway({ name: Site.Runway }));
     this.modelMap.set(Site.Ideogram, new Ideogram({ name: Site.Ideogram }));
     this.modelMap.set(
@@ -205,10 +190,6 @@ export class ChatModelFactory {
         api_key: Config.config.glm?.api_key,
         base_url: Config.config.glm?.base_url,
       }),
-    );
-    this.modelMap.set(
-      Site.OpenchatGateway,
-      new OpenchatGateway({ name: Site.OpenchatGateway }),
     );
     this.modelMap.set(
       Site.Chatgateai,
