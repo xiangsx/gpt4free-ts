@@ -56,6 +56,7 @@ interface ConfigData {
     };
     cdn: {
       url: string;
+      cf: string;
     };
     msg_saver?: {
       enable: boolean;
@@ -411,6 +412,7 @@ class BaseConfig {
       },
       cdn: {
         url: '',
+        cf: '',
       },
       redis: {
         host: '',

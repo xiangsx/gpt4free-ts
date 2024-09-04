@@ -1081,7 +1081,7 @@ export async function downloadAndUploadCDN(url: string): Promise<string> {
           });
         }
         const res: { data: { data: { url: string } } } = await axios.post(
-          'https://file-tran.davdu2479.workers.dev',
+          Config.config.global.cdn.cf,
           {
             fileUrl: url,
           },
