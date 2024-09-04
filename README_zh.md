@@ -12,7 +12,7 @@
 
 如果你不想部署，直接用下面的key
 
-官网: `https://gptgod.online`
+官网: [https://gptgod.online](https://gptgod.online)
 
 API Base URL: `https://api.gptgod.online`
 

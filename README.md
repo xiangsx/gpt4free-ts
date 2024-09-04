@@ -10,7 +10,7 @@ English | [中文](README_zh.md) | [日本語](README_ja.md)
 
 ## 🆓 Free OpenAI Key
 
-WebSite: `https://gptgod.online`
+WebSite: [https://gptgod.online](https://gptgod.online)
 
 Api Base URL: `https://api.gptgod.online`
 
