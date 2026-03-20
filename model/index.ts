@@ -77,6 +77,7 @@ import { Fireworks } from './fireworks';
 import { Runway } from './runway';
 import { MJWeb } from './mjweb';
 import { Ideogram } from './ideogram';
+import { MiniMax } from './minimax';
 
 export class ChatModelFactory {
   private readonly modelMap: Map<Site, Chat>;
@@ -216,6 +217,15 @@ export class ChatModelFactory {
     this.modelMap.set(
       Site.Perplexity,
       new Perplexity({ name: Site.Perplexity }),
+    );
+    this.modelMap.set(
+      Site.MiniMax,
+      new MiniMax({
+        name: Site.MiniMax,
+        api_key: Config.config.minimax?.api_key,
+        base_url: Config.config.minimax?.base_url,
+        proxy: Config.config.minimax?.proxy,
+      }),
     );
   }
 

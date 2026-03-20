@@ -63,6 +63,7 @@ If you do not want your website to appear here, please raise an issue and I will
 | google   | search                                            |
 | www      | url                                               |
 | ddg      | search                                            |
+| minimax  | MiniMax-M2.7, MiniMax-M2.5, MiniMax-M2.5-highspeed |
 
 ## 🏃‍♂️ Run
 
@@ -87,6 +88,8 @@ PHIND_POOL_SIZE=0
         - [tempmail-lol](): nothing need, limit 25request/5min. Not Stable.
     - `DEBUG`: Valid when use `forefront` You can set =1 when you run local. show reverse process
     - `POOL_SIZE`: `forefront` concurrency size. Keep set=1 until you run it successfully!!! You can engage in {POOL_SIZE} conversations concurrently. More pool size, More conversation can be done simultaneously, But use more RAM
+- `minimax` use env:
+    - `MINIMAX_API_KEY`: your MiniMax API key. Get one at [MiniMax Platform](https://platform.minimaxi.com/)
 - `phind` use env:
     - `PHIND_POOL_SIZE`: `phind` concurrency size.You can engage in {POOL_SIZE} conversations concurrently. More pool size, More conversation can be done simultaneously, But use more RAM
 

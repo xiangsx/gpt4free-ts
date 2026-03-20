@@ -83,6 +83,7 @@ Support Models: `gpt-4-all`,`gpt-3.5-turbo`,`gpt-3.5-turbo-16k`,`net-gpt-3.5-tur
 | google   | search                                            |
 | www      | url                                               |
 | ddg      | search                                            |
+| minimax  | MiniMax-M2.7, MiniMax-M2.5, MiniMax-M2.5-highspeed |
 
 ## 🏃‍♂️ 运行
 
