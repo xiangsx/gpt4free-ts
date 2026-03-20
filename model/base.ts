@@ -236,6 +236,9 @@ export enum ModelType {
   Llama3_1_405b = 'llama-3.1-405b',
   Llama3_8b = 'llama-3-8b',
   Llama3_70b = 'llama-3-70b',
+  MiniMaxM2_7 = 'MiniMax-M2.7',
+  MiniMaxM2_5 = 'MiniMax-M2.5',
+  MiniMaxM2_5_highspeed = 'MiniMax-M2.5-highspeed',
 }
 
 export enum Site {
@@ -333,6 +336,7 @@ export enum Site {
   XyChat = 'xychat',
   Runway = 'runway',
   Ideogram = 'ideogram',
+  MiniMax = 'minimax',
 }
 
 export interface ChatRequest {

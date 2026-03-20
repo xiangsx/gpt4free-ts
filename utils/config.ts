@@ -136,6 +136,11 @@ interface ConfigData {
   fireworks?: SizeCfg & {
     accounts: GoogleMailAccount[];
   };
+  minimax?: {
+    api_key?: string;
+    base_url?: string;
+    proxy?: boolean;
+  };
   glm?: {
     model?: ModelType;
     api_key?: string;
