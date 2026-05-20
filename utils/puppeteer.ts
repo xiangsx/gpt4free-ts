@@ -248,8 +248,12 @@ export async function closeOtherPages(browser: Browser, page: Page) {
   const pages = await browser.pages();
   for (let i = 0; i < pages.length; i++) {
     // 如果不是当前页面，就关闭
-    if (pages[i] !== page) {
-      await pages[i].close();
+    if (pages[i] !== page && !pages[i].isClosed()) {
+      try {
+        await pages[i].close();
+      } catch (e) {
+        console.error(`closeOtherPages: failed to close page, continue`, e);
+      }
     }
   }
 }
